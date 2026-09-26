@@ -24,6 +24,7 @@ class Job(TableBase, table=True):
     salary_text: str | None = None
     posted_at: datetime | None = dt_field()
     discovered_at: datetime = dt_field(default_factory=utcnow)
+    last_seen_at: datetime | None = dt_field()
     dedupe_key: str = Field(index=True)
     duplicate_of_id: int | None = Field(default=None, foreign_key="job.id")
 

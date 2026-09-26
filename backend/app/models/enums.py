@@ -23,6 +23,12 @@ class RunStatus(StrEnum):
     failed = "failed"
 
 
+class RunTrigger(StrEnum):
+    manual = "manual"
+    scheduled = "scheduled"
+    test = "test"
+
+
 class RemoteType(StrEnum):
     remote = "remote"
     hybrid = "hybrid"

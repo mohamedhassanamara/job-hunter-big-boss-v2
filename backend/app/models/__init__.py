@@ -4,7 +4,7 @@ from app.models.application import Application, ApplicationEvent, CVVersion, Out
 from app.models.company import Company, Contact
 from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
-from app.models.profile import SearchProfile, SourceRun
+from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
 from app.models.queue import SendQueue, SendQueueItem
 from app.models.settings import AppSetting
 
@@ -15,6 +15,7 @@ __all__ = [
     "CVVersion",
     "Company",
     "Contact",
+    "DiscoveryRun",
     "ExperienceItem",
     "FitScore",
     "Job",
