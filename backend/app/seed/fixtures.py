@@ -366,7 +366,7 @@ def job_description(j: JobFx, company_name: str) -> str:
 {company_name} {j.mission}. We're a product-led team that values ownership, clear writing, and shipping small increments.
 
 ## The role
-As a {j.title} you'll join a small team that owns the data and AI foundations behind our product. {REMOTE_LINE[j.remote]}
+As our next {j.title}, you'll join a small team that owns the data and AI foundations behind our product. {REMOTE_LINE[j.remote]}
 
 ## What you'll do
 - Design, build, and operate reliable pipelines and services using {stack}
