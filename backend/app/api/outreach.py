@@ -1,0 +1,371 @@
+from datetime import timedelta
+from typing import Literal
+
+from fastapi import APIRouter, HTTPException
+from sqlmodel import Session, col, func, select
+
+from app.api.deps import SessionDep, get_or_404
+from app.models import (
+    Application,
+    Company,
+    Contact,
+    CVVersion,
+    Job,
+    OutreachDraft,
+    SendQueue,
+    SendQueueItem,
+)
+from app.models.base import utcnow
+from app.models.enums import (
+    CVStatus,
+    DraftStatus,
+    EventKind,
+    QueueItemStatus,
+    QueueStatus,
+    Route,
+    Stage,
+)
+from app.providers.base import ContactSnapshot, CVContent, JobSnapshot
+from app.providers.registry import email_drafter
+from app.schemas.outreach import (
+    DraftContact,
+    DraftOut,
+    DraftPatch,
+    QueueCounts,
+    QueueItemOut,
+    QueueOut,
+)
+from app.services import pipeline
+from app.services.views import fit_brief, latest_fits
+
+router = APIRouter(tags=["outreach"])
+
+
+def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]:
+    if not drafts:
+        return []
+    apps = {
+        a.id: a
+        for a in session.exec(
+            select(Application).where(col(Application.id).in_({d.application_id for d in drafts}))
+        ).all()
+    }
+    jobs = {
+        j.id: j
+        for j in session.exec(
+            select(Job).where(col(Job.id).in_({a.job_id for a in apps.values()}))
+        ).all()
+    }
+    companies = {
+        c.id: c
+        for c in session.exec(
+            select(Company).where(col(Company.id).in_({j.company_id for j in jobs.values()}))
+        ).all()
+    }
+    contacts = {
+        c.id: c
+        for c in session.exec(
+            select(Contact).where(col(Contact.id).in_({d.contact_id for d in drafts}))
+        ).all()
+    }
+    cvs: dict[int, int] = {}
+    for cv in session.exec(
+        select(CVVersion).where(
+            col(CVVersion.application_id).in_(apps.keys()), CVVersion.status == CVStatus.approved
+        )
+    ).all():
+        cvs[cv.application_id] = cv.version
+    fits = latest_fits(session, jobs.keys())
+    out = []
+    for d in drafts:
+        app = apps[d.application_id]
+        job = jobs[app.job_id]
+        c = contacts.get(d.contact_id) if d.contact_id else None
+        out.append(
+            DraftOut(
+                id=d.id,
+                application_id=app.id,
+                job_id=job.id,
+                job_title=job.title,
+                company_name=companies[job.company_id].name,
+                fit=fit_brief(fits.get(job.id)),
+                contact=DraftContact(id=c.id, full_name=c.full_name, title=c.title, email=c.email)
+                if c
+                else None,
+                subject=d.subject,
+                body=d.body,
+                status=d.status,
+                edited=d.edited,
+                model=d.model,
+                cv_version=cvs.get(app.id),
+                created_at=d.created_at,
+                updated_at=d.updated_at,
+            )
+        )
+    return out
+
+
+def _queue(session: Session) -> SendQueue:
+    queue = session.exec(select(SendQueue)).first()
+    if queue is None:
+        queue = SendQueue()
+        session.add(queue)
+        session.flush()
+    return queue
+
+
+@router.get("/outreach/drafts", response_model=list[DraftOut])
+def list_drafts(
+    session: SessionDep,
+    status: Literal["draft", "approved", "rejected", "queued", "sent", "all"] = "draft",
+) -> list[DraftOut]:
+    stmt = select(OutreachDraft).order_by(col(OutreachDraft.created_at).desc())
+    if status == "approved":
+        stmt = stmt.where(
+            col(OutreachDraft.status).in_([DraftStatus.approved, DraftStatus.queued])
+        )
+    elif status != "all":
+        stmt = stmt.where(OutreachDraft.status == status)
+    return _drafts_out(session, list(session.exec(stmt).all()))
+
+
+@router.get("/outreach/drafts/{draft_id}", response_model=DraftOut)
+def get_draft(draft_id: int, session: SessionDep) -> DraftOut:
+    return _drafts_out(session, [get_or_404(session, OutreachDraft, draft_id, "Draft")])[0]
+
+
+@router.patch("/outreach/drafts/{draft_id}", response_model=DraftOut)
+def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOut:
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status not in (DraftStatus.draft, DraftStatus.rejected):
+        raise HTTPException(409, "Only drafts under review can be edited")
+    if body.subject is not None and body.subject != d.subject:
+        d.subject, d.edited = body.subject, True
+    if body.body is not None and body.body != d.body:
+        d.body, d.edited = body.body, True
+    session.add(d)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
+def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
+    """Approve → append to the send queue (or wait as `approved` if the queue is full)."""
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status != DraftStatus.draft:
+        raise HTTPException(409, "Only drafts under review can be approved")
+    app = get_or_404(session, Application, d.application_id)
+    queue = _queue(session)
+    pending = session.exec(
+        select(func.count()).select_from(SendQueueItem).where(
+            SendQueueItem.queue_id == queue.id, SendQueueItem.status == QueueItemStatus.pending
+        )
+    ).one()
+    last_pos = session.exec(
+        select(func.max(SendQueueItem.position)).where(SendQueueItem.queue_id == queue.id)
+    ).one()
+    if pending < queue.max_items:
+        d.status = DraftStatus.queued
+        session.add(
+            SendQueueItem(
+                queue_id=queue.id, draft_id=d.id, position=(last_pos or 0) + 1
+            )
+        )
+    else:
+        d.status = DraftStatus.approved
+    pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved and queued")
+    if app.stage == Stage.cv_ready:
+        pipeline.transition(session, app, Stage.ready)
+    session.add(d)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/reject", response_model=DraftOut)
+def reject_draft(draft_id: int, session: SessionDep) -> DraftOut:
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status != DraftStatus.draft:
+        raise HTTPException(409, "Only drafts under review can be rejected")
+    d.status = DraftStatus.rejected
+    session.add(d)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/restore", response_model=DraftOut)
+def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
+    """Undo a rejection: move the draft back to review."""
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status != DraftStatus.rejected:
+        raise HTTPException(409, "Only rejected drafts can be restored")
+    d.status = DraftStatus.draft
+    session.add(d)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/applications/{app_id}/draft/generate", response_model=DraftOut)
+def generate_draft(app_id: int, session: SessionDep) -> DraftOut:
+    app = get_or_404(session, Application, app_id, "Application")
+    if app.contact_id is None:
+        raise HTTPException(409, "No contact for this job. Route it to web apply instead")
+    job = get_or_404(session, Job, app.job_id)
+    company = get_or_404(session, Company, job.company_id)
+    contact = get_or_404(session, Contact, app.contact_id)
+    cv = session.exec(
+        select(CVVersion).where(
+            CVVersion.application_id == app.id, CVVersion.status == CVStatus.approved
+        )
+    ).first()
+    for old in session.exec(
+        select(OutreachDraft).where(
+            OutreachDraft.application_id == app.id, OutreachDraft.status == DraftStatus.draft
+        )
+    ).all():
+        old.status = DraftStatus.rejected
+        session.add(old)
+    drafter = email_drafter()
+    result = drafter.draft(
+        JobSnapshot(title=job.title, company=company.name, description=job.description),
+        ContactSnapshot(full_name=contact.full_name, title=contact.title, email=contact.email),
+        CVContent.model_validate(cv.content) if cv else None,
+    )
+    d = OutreachDraft(
+        application_id=app.id,
+        contact_id=contact.id,
+        subject=result.subject,
+        body=result.body,
+        model=result.model,
+    )
+    if app.route == Route.undecided:
+        app.route = Route.cold_email
+        session.add(app)
+    session.add(d)
+    pipeline.log_event(
+        session, app, EventKind.draft_created, f"Email draft created for {contact.full_name}"
+    )
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+# ---------------------------------------------------------------------------------------- queue
+
+
+def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
+    items = session.exec(
+        select(SendQueueItem)
+        .where(
+            SendQueueItem.queue_id == queue.id,
+            SendQueueItem.status != QueueItemStatus.cancelled,
+        )
+        .order_by(col(SendQueueItem.position))
+    ).all()
+    drafts = {
+        d.id: d
+        for d in _drafts_out(
+            session,
+            list(
+                session.exec(
+                    select(OutreachDraft).where(
+                        col(OutreachDraft.id).in_([i.draft_id for i in items])
+                    )
+                ).all()
+            ),
+        )
+    }
+    # Pending items get projected send times: next_send_at, then +interval each.
+    pending = [i for i in items if i.status == QueueItemStatus.pending]
+    base = queue.next_send_at if queue.status == QueueStatus.running else None
+    projected = {
+        i.id: (base + timedelta(minutes=queue.interval_minutes * n)) if base else None
+        for n, i in enumerate(pending)
+    }
+    out = []
+    for i in items:
+        d = drafts[i.draft_id]
+        out.append(
+            QueueItemOut(
+                id=i.id,
+                position=i.position,
+                status=i.status,
+                scheduled_at=projected.get(i.id, i.scheduled_at),
+                sent_at=i.sent_at,
+                error=i.error,
+                draft_id=d.id,
+                job_id=d.job_id,
+                subject=d.subject,
+                contact_name=d.contact.full_name if d.contact else None,
+                contact_email=d.contact.email if d.contact else None,
+                company_name=d.company_name,
+            )
+        )
+    # Pending first (in send order), then history newest first.
+    out.sort(key=lambda o: (o.status != "pending", o.position if o.status == "pending" else 0))
+    history = sorted(
+        (o for o in out if o.status != "pending"),
+        key=lambda o: o.sent_at or o.scheduled_at or utcnow(),
+        reverse=True,
+    )
+    out = [o for o in out if o.status == "pending"] + history
+    return QueueOut(
+        status=queue.status,
+        interval_minutes=queue.interval_minutes,
+        max_items=queue.max_items,
+        next_send_at=queue.next_send_at if queue.status == QueueStatus.running else None,
+        counts=QueueCounts(
+            pending=len(pending),
+            sent=sum(1 for i in items if i.status == QueueItemStatus.sent),
+            failed=sum(1 for i in items if i.status == QueueItemStatus.failed),
+        ),
+        items=out,
+    )
+
+
+@router.get("/queue", response_model=QueueOut)
+def get_queue(session: SessionDep) -> QueueOut:
+    return _queue_out(session, _queue(session))
+
+
+@router.post("/queue/pause", response_model=QueueOut)
+def pause_queue(session: SessionDep) -> QueueOut:
+    queue = _queue(session)
+    queue.status = QueueStatus.paused
+    queue.next_send_at = None
+    session.add(queue)
+    session.commit()
+    return _queue_out(session, queue)
+
+
+@router.post("/queue/resume", response_model=QueueOut)
+def resume_queue(session: SessionDep) -> QueueOut:
+    """Phase 0: marks the queue running and projects send times. Nothing is actually sent."""
+    queue = _queue(session)
+    queue.status = QueueStatus.running
+    queue.next_send_at = utcnow() + timedelta(minutes=queue.interval_minutes)
+    session.add(queue)
+    session.commit()
+    return _queue_out(session, queue)
+
+
+@router.delete("/queue/items/{item_id}", response_model=QueueOut)
+def remove_queue_item(item_id: int, session: SessionDep) -> QueueOut:
+    """Take a pending email out of the queue; its draft goes back to review."""
+    item = get_or_404(session, SendQueueItem, item_id, "Queue item")
+    if item.status != QueueItemStatus.pending:
+        raise HTTPException(409, "Only pending items can be removed")
+    draft = get_or_404(session, OutreachDraft, item.draft_id)
+    draft.status = DraftStatus.draft
+    session.add(draft)
+    session.delete(item)
+    app = get_or_404(session, Application, draft.application_id)
+    if app.stage == Stage.ready:
+        pipeline.transition(
+            session, app, Stage.cv_ready, message="Removed from send queue, back to review"
+        )
+    session.commit()
+    return _queue_out(session, _queue(session))
