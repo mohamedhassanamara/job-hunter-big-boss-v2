@@ -121,7 +121,35 @@ Sections in a left sub-nav:
 - **Data:** DB path, plus "Reset demo data" and "Start with an empty workspace" (dev only, with a confirmation dialog).
 - Each section saves independently, with a toast.
 
-## 4. Phase 0 scope
+## 4. Discovery (Phase 1)
+
+- **Sources**, each behind the `JobSource` interface:
+  - **Adzuna:** official API with free keys; ES/FR/IT only (no PT endpoint); ~12 requests/run.
+  - **Remotive:** public API; one request/run, with a 6h cooldown (their guidance is ≤ 4/day); link back and attribution.
+  - **Arbeitnow:** public feed, newest pages, mostly DACH listings.
+  - **Welcome to the Jungle:** the public Algolia search key the site itself uses; one multi-query request/run; unofficial.
+- **Pipeline per source:**
+  1. Fetch with a polite client (timeouts, retries with backoff, Retry-After, per-source spacing, User-Agent).
+  2. Normalize: HTML becomes clean text, and country and remote type are detected.
+  3. **Pre-filter** by the search profile: role match (multilingual, synonyms), title exclude keywords, target countries or compatible remote region, remote policy, max age. Every drop has a reason code.
+  4. **Ingest** idempotently: an update by `(source, external_id)`, cross-source duplicates flagged via a normalized dedupe key, and new jobs get a (mock) fit score and an application.
+- **Runs:**
+  - One at a time (409 otherwise), in the background.
+  - One failing source never breaks the others.
+  - A daily APScheduler run (Settings → Schedule) plus the manual button.
+- **UI:**
+  - A Discover progress strip while running, and a summary toast at the end ("34 fetched · 12 new · 9 filtered · 3 duplicates").
+  - Settings → Sources: status, counts, full errors, config hints, **Test source** (a dry run), and a filter report.
+  - A Today banner when an enabled source failed or isn't configured.
+  - Listing links name their source ("Open on Remotive").
+
+## 5. Sample data and guided tours
+
+- The real workspace **never contains fake data**. A fresh install shows real empty states and an onboarding card.
+- **Guided tours, one per feature** (Today, Discover, Pipeline, Job detail, CV Studio, Outreach, Contacts, Experience, Settings), start from the **?** menu, the ⌘K palette, or an empty state's "See how it works".
+- A tour rebuilds the sandbox, switches the app to it (a persistent "Tour · Sample data" strip), spotlights 3–6 elements with a short explanation (→ / ← / Esc), and returns to the real workspace on exit. Anything clicked during a tour only changes the sandbox.
+
+## 6. Phase 0 scope
 
 Built: every screen above, clickable, backed by real FastAPI endpoints over a seeded SQLite DB,
 with mutations that persist (shortlist, dismiss, stage moves, notes, experience CRUD and reorder, CV edit,

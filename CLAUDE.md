@@ -12,15 +12,37 @@ transitions), `docs/DESIGN.md` (tokens and UI rules). Keep them updated when beh
 ```bash
 make setup     # first time: uv venv (Python 3.12) + pip deps, npm install, migrate, seed
 make dev       # API on :8000 (docs at /docs) + web on :5173, Ctrl-C stops both
-make seed      # reset DB contents to mock data
-make seed-empty  # empty workspace (onboarding + empty states)
+make seed      # rebuild the tour sandbox (data/demo.db); sample data lives ONLY there
+make reset     # ERASE the real workspace (keeps profile + settings defaults)
 make migrate   # alembic upgrade head
 make test      # backend pytest
 make lint      # ruff + tsc + oxlint + design-token guard
 make build     # frontend production build
 ```
 Dev aids: `MOCK_LATENCY_MS=1500 make dev` slows every API response (check skeletons). Stopping only the
-backend shows error states. Settings → Data (or `POST /api/dev/reset[?empty=true]`) resets the data from the UI.
+backend shows error states. `JOB_SOURCES=mock` swaps every job source for the offline mock.
+Secrets and keys go in `.env` (see `.env.example`): `ADZUNA_APP_ID/KEY`, optional `WTTJ_ALGOLIA_KEY`.
+
+## Real data vs sample data (non-negotiable)
+
+- `data/jobhunter.db` is the user's **real** workspace: never seed fixtures into it. A fresh DB gets only
+  the search profile and settings defaults (`ensure_defaults` at startup).
+- `data/demo.db` is the **tour sandbox**, rebuilt from `app/seed/fixtures.py` at every tour start
+  (`POST /api/sandbox/reset`). Requests with `X-Workspace: demo` use it (`db.get_session`), and the
+  sandbox always uses mock job sources. The scheduler only touches the real DB.
+- Every new feature ships with a real empty state (plus a "See how it works" `TourButton`) and a short
+  per-feature tour in `features/tours/tours.ts`, anchored with `data-tour="…"` attributes.
+
+## Job sources (backend/app/providers/sources/)
+
+- Each source has a class (`fetch`, `configured()`, `cooldown_hours`, `requests`) plus a **pure `parse_*`
+  mapper**. HTTP always goes through `providers/http.PoliteClient`.
+- Mapper tests run offline against real responses in `backend/tests/fixtures/sources/`, recorded with
+  `.venv/bin/python scripts/record_fixtures.py <source>` (manual; makes real requests). The test suite
+  blocks the network. The Adzuna fixture is synthetic until keys exist, so re-record it.
+- Orchestration lives in `services/discovery.py`: lock (one run), per-source isolation, cooldown, and a filter
+  report into `source_run.details` plus `data/logs/discovery.log`. Pre-filter rules are in `services/prefilter.py`
+  (never filter seniority by default), idempotent upsert and dedupe in `services/ingest.py`.
 Python is managed by `uv` (`uv python install 3.12`). The venv is `backend/.venv`. The DB is `data/jobhunter.db`.
 The Vite dev server proxies `/api` → `http://localhost:8000`.
 
@@ -73,6 +95,10 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   arrive faster than re-renders, so read the *live* selection in handlers, not render-time state.
 - `hooks/useHotkeys`: global keys and `g x` sequences. Shortcuts are skipped in inputs and while a dialog/menu is open.
 - `hooks/useTriageActions`: shortlist/dismiss with an Undo toast (8s). `components/app/CloseDialog`: close reasons.
+- `hooks/useDiscoveryAction` starts a run. `DiscoveryWatcher` (in the shell) turns finished runs into toasts,
+  and `DiscoveryProgress` is the strip shown while running.
+- `components/app/tour/*`: TourProvider (switches `lib/api` to the sandbox workspace), TourOverlay,
+  TourStrip, TourButton.
 - `components/app/badges`: Stage/Fit/Source/Remote/ContactTier/Tone badges. `states`: EmptyState/ErrorState/SkeletonRows.
 - `components/app/job-cards`: FitCard, ContactCard, JobFlags. `Prose` renders listing markdown safely. `TagInput`.
 - Autosave pattern (notes, CV, drafts): local state, a 700ms debounced mutation, and a "Saving… / All changes saved" label.
