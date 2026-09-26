@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { CommandPalette } from './CommandPalette'
+import { DiscoveryWatcher } from './DiscoveryWatcher'
 import { ALL_NAV } from './nav'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Sidebar } from './Sidebar'
@@ -65,6 +66,7 @@ export function AppShell() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <DiscoveryWatcher />
     </div>
   )
 }

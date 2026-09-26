@@ -25,7 +25,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
 import { usePatchApplication } from '@/lib/queries/jobs'
-import { useQueueControl, useToday } from '@/lib/queries/workflow'
+import { useQueueControl, useSources, useToday } from '@/lib/queries/workflow'
 import type { Today } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -179,13 +179,19 @@ function DiscoveryCard({ runs }: { runs: Today['last_runs'] }) {
                   <span className="flex-1 truncate">{SOURCE_LABELS[r.source]}</span>
                   {r.status === 'partial' || r.status === 'failed' ? (
                     <Tooltip content={r.error}>
-                      <span className="inline-flex items-center gap-1 text-xs text-warning-fg">
+                      <span className="inline-flex items-center gap-1 text-xs text-danger-fg">
                         <TriangleAlert className="size-3.5" />
                         {r.status === 'failed' ? 'Failed' : 'Partial'}
                       </span>
                     </Tooltip>
-                  ) : null}
-                  <span className="w-16 text-right text-xs text-fg-muted tabular-nums">
+                  ) : r.status === 'skipped' ? (
+                    <Tooltip content={r.error}>
+                      <span className="text-xs text-fg-subtle">Skipped</span>
+                    </Tooltip>
+                  ) : (
+                    <span className="text-xs text-fg-subtle tabular-nums">{r.kept_count} kept</span>
+                  )}
+                  <span className="w-14 text-right text-xs text-fg-muted tabular-nums">
                     {r.new_count} new
                   </span>
                 </li>
@@ -199,6 +205,34 @@ function DiscoveryCard({ runs }: { runs: Today['last_runs'] }) {
         </Button>
       </div>
     </Card>
+  )
+}
+
+/** Source problems belong on Today, not only in logs. */
+function SourceAlerts() {
+  const { data } = useSources()
+  const problems = (data ?? []).filter(
+    (s) => s.enabled && (!s.configured || s.last_run?.status === 'failed'),
+  )
+  if (!problems.length) return null
+  return (
+    <div role="alert" className="flex items-start gap-3 rounded-lg border border-tone-red-border bg-danger-bg px-4 py-3">
+      <TriangleAlert className="mt-0.5 size-4 shrink-0 text-danger-fg" />
+      <div className="min-w-0 flex-1 space-y-0.5 text-sm">
+        <p className="font-medium text-danger-fg">
+          {problems.length === 1 ? `${problems[0].name} needs attention` : `${problems.length} sources need attention`}
+        </p>
+        {problems.map((s) => (
+          <p key={s.source} className="truncate text-xs text-fg-muted">
+            <span className="font-medium text-fg">{s.name}:</span>{' '}
+            {!s.configured ? `not configured (${s.config_hint})` : s.last_run?.error}
+          </p>
+        ))}
+      </div>
+      <Button size="sm" asChild>
+        <Link to="/settings?section=sources">Open sources</Link>
+      </Button>
+    </div>
   )
 }
 
@@ -306,6 +340,8 @@ export default function TodayPage() {
               : `${pluralize(attention, 'thing needs', 'things need')} your attention.`}
         </p>
       </header>
+
+      <SourceAlerts />
 
       {data.last_runs.length === 0 ? (
         <Onboarding />
