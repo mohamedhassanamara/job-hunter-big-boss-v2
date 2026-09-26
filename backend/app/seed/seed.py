@@ -1,16 +1,18 @@
-"""Reset the database contents to realistic mock data.
+"""Sample data lives ONLY in the tour sandbox (data/demo.db). The real DB gets no fake data.
 
-    python -m app.seed.seed          # full demo data
-    python -m app.seed.seed --empty  # only profile + settings (to see empty states)
+    python -m app.seed.seed               # rebuild the tour sandbox from fixtures
+    python -m app.seed.seed --defaults    # real DB: add profile + settings if missing
+    python -m app.seed.seed --erase-real  # real DB: erase everything but the defaults
 """
 
 import argparse
 import unicodedata
 import zlib
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 
 from sqlalchemy import Engine, delete
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 import app.models  # noqa: F401
 from app.models import (
@@ -410,14 +412,56 @@ def fx_company(job_key: str) -> str:
     return _KEY_TO_COMPANY[job_key]
 
 
+def migrate(url: str) -> None:
+    from alembic import command
+    from alembic.config import Config
+
+    backend = Path(__file__).resolve().parents[2]
+    cfg = Config(str(backend / "alembic.ini"))
+    cfg.set_main_option("script_location", str(backend / "alembic"))
+    cfg.set_main_option("sqlalchemy.url", url)
+    cfg.attributes["embedded"] = True
+    command.upgrade(cfg, "head")
+
+
+def reset_sandbox() -> None:
+    """Rebuild the tour sandbox (data/demo.db) from fixtures. Never touches the real DB."""
+    from app.config import get_settings
+    from app.db import demo_engine
+
+    migrate(get_settings().demo_database_url)
+    seed(demo_engine)
+
+
+def ensure_defaults(engine: Engine) -> None:
+    """Give a brand-new real workspace its search profile and settings. Idempotent: never
+    overwrites or adds data once a profile exists."""
+    with Session(engine) as s:
+        if s.exec(select(SearchProfile)).first() is not None:
+            return
+    seed(engine, empty=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--empty", action="store_true", help="seed only profile + settings")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--sandbox", action="store_true", help="rebuild the tour sandbox (default)")
+    group.add_argument("--erase-real", action="store_true",
+                       help="ERASE the real workspace (keeps only profile + settings defaults)")
+    group.add_argument("--defaults", action="store_true",
+                       help="add profile + settings to the real DB if it has none")
     args = parser.parse_args()
     from app.db import engine
 
-    seed(engine, empty=args.empty)
-    print("Seeded", "empty workspace" if args.empty else "demo data")
+    if args.erase_real:
+        seed(engine, empty=True)
+        print("Real workspace erased (profile + settings defaults kept)")
+    elif args.defaults:
+        ensure_defaults(engine)
+        print("Real workspace defaults ensured")
+    else:
+        reset_sandbox()
+        print("Tour sandbox rebuilt (data/demo.db)")
 
 
 if __name__ == "__main__":

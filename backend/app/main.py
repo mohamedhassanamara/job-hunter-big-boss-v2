@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -8,7 +9,8 @@ from fastapi.responses import JSONResponse
 
 from app.api import router as api_router
 from app.config import get_settings
-from app.db import engine
+from app.db import demo_engine, engine
+from app.seed.seed import ensure_defaults
 from app.services import scheduler
 from app.services.discovery import mark_stale_runs
 from app.services.pipeline import TransitionError
@@ -19,7 +21,12 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    ensure_defaults(engine)
     mark_stale_runs(engine)
+    if demo_engine.url != engine.url:
+        # The sandbox may not exist yet: the first tour builds it.
+        with contextlib.suppress(Exception):
+            mark_stale_runs(demo_engine)
     if settings.scheduler_enabled:
         scheduler.start(engine)
     yield

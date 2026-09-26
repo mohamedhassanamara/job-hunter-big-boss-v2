@@ -180,12 +180,3 @@ def test_contacts_import_preview(client: TestClient) -> None:
     assert body["total_rows"] == 1
     assert body["mapping"]["email"] == "Email"
     assert body["mapping"]["company"] == "Company"
-
-
-def test_dev_reset_empty_then_demo(client: TestClient) -> None:
-    assert client.post("/api/dev/reset?empty=true").status_code == 204
-    assert client.get("/api/jobs?stage=all").json()["total"] == 0
-    today = client.get("/api/today").json()
-    assert today["new_high_fit"] == [] and today["last_runs"] == []
-    assert client.post("/api/dev/reset").status_code == 204
-    assert client.get("/api/jobs?stage=all").json()["total"] > 0

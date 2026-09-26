@@ -137,10 +137,11 @@ export function useSaveSearchProfile() {
   })
 }
 
-export function useResetData() {
+/** Erase every real job, contact, CV and draft (keeps profile + settings). */
+export function useEraseWorkspace() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (empty: boolean) => api.post<void>(`/dev/reset${qs({ empty })}`),
+    mutationFn: (confirm: string) => api.post<void>('/workspace/erase', { confirm }),
     onSuccess: () => qc.invalidateQueries(),
   })
 }

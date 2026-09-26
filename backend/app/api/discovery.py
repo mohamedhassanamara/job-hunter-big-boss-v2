@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, col, select
 
-from app.api.deps import SessionDep
-from app.db import engine
+from app.api.deps import EngineDep, SessionDep, WorkspaceDep
 from app.models import DiscoveryRun, SourceRun
 from app.models.enums import RunStatus, Source
 from app.providers.registry import job_sources
@@ -41,8 +40,11 @@ def discovery_run_out(session: Session, run: DiscoveryRun) -> DiscoveryRunOut:
 
 
 @router.post("/discovery/run", response_model=DiscoveryStarted, status_code=202)
-def start_discovery(session: SessionDep) -> DiscoveryStarted:
-    sources = job_sources(discovery.enabled_sources(session))
+def start_discovery(
+    session: SessionDep, engine: EngineDep, workspace: WorkspaceDep
+) -> DiscoveryStarted:
+    # The tour sandbox never touches the network.
+    sources = job_sources(discovery.enabled_sources(session), mock=workspace == "demo" or None)
     if not sources:
         raise HTTPException(422, "Every source is disabled. Enable one in Settings → Sources.")
     try:
@@ -66,9 +68,9 @@ def discovery_status(session: SessionDep) -> DiscoveryStatus:
 
 
 @router.get("/sources", response_model=list[SourceInfo])
-def list_sources(session: SessionDep) -> list[SourceInfo]:
+def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInfo]:
     enabled = set(discovery.enabled_sources(session))
-    impls = job_sources(list(Source))
+    impls = job_sources(list(Source), mock=workspace == "demo" or None)
     out = []
     for src, impl in impls.items():
         last = session.exec(
@@ -101,8 +103,8 @@ def _sample(job, reason: str | None = None) -> SampleJob:  # noqa: ANN001
 
 
 @router.post("/sources/{source}/test", response_model=SourceTestResult)
-def test_source(source: Source) -> SourceTestResult:
-    impl = job_sources([source])[source]
+def test_source(source: Source, engine: EngineDep, workspace: WorkspaceDep) -> SourceTestResult:
+    impl = job_sources([source], mock=workspace == "demo" or None)[source]
     try:
         result, requests, warnings = discovery.test_source(engine, impl)
     except (discovery.RunInProgress, discovery.SourceCoolingDown) as exc:
