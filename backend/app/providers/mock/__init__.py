@@ -32,10 +32,17 @@ class MockJobSource:
         ("Analytics Engineer", "Cobalto Retail", "Milan, Italy", "IT", RemoteType.onsite),
     ]
 
+    cooldown_hours = 0.0
+
     def __init__(self, source: Source):
         self.source = source
+        self.requests = 0
+
+    def configured(self) -> str | None:
+        return None
 
     def fetch(self, profile: ProfileSpec) -> list[RawJob]:
+        self.requests = 1
         now = datetime.now(UTC)
         stamp = now.strftime("%Y%m%d%H%M%S")
         pick = self._TEMPLATES[_seed(self.source, stamp) % len(self._TEMPLATES)]

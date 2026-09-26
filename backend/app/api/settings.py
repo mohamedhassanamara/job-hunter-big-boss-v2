@@ -5,8 +5,10 @@ from sqlmodel import Session, col, select
 
 from app.api.deps import SessionDep
 from app.config import get_settings
+from app.db import engine
 from app.models import AppSetting, SearchProfile, SourceRun
 from app.models.enums import RemotePolicy
+from app.providers.registry import job_sources
 from app.schemas.settings import (
     DiscoveryResult,
     SearchProfileIO,
@@ -14,7 +16,7 @@ from app.schemas.settings import (
     SettingValue,
     SourceRunOut,
 )
-from app.services.discovery import run_discovery
+from app.services.discovery import RunInProgress, enabled_sources, run_discovery
 
 router = APIRouter(tags=["settings"])
 
@@ -88,8 +90,12 @@ def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
 
 @router.post("/discovery/run", response_model=DiscoveryResult)
 def discovery_run(session: SessionDep) -> DiscoveryResult:
-    runs, new_jobs = run_discovery(session)
-    return DiscoveryResult(runs=[run_out(r) for r in runs], new_jobs=new_jobs)
+    try:
+        run_id = run_discovery(engine, job_sources(enabled_sources(session)))
+    except RunInProgress as exc:
+        raise HTTPException(409, str(exc)) from exc
+    runs = session.exec(select(SourceRun).where(SourceRun.discovery_run_id == run_id)).all()
+    return DiscoveryResult(runs=[run_out(r) for r in runs], new_jobs=sum(r.new_count for r in runs))
 
 
 @router.post("/dev/reset", status_code=204)
