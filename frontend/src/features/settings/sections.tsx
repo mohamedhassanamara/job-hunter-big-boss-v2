@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { absoluteDate, COUNTRY_LABELS } from '@/lib/format'
-import { useResetData, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
+import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
 import type { SearchProfile, SettingsView } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -326,14 +326,13 @@ export function EmailSection({ settings }: { settings: SettingsView }) {
 }
 
 export function DataSection({ settings }: { settings: SettingsView }) {
-  const reset = useResetData()
-  const [confirm, setConfirm] = useState<null | 'demo' | 'empty'>(null)
-  const run = (empty: boolean) =>
-    reset.mutate(empty, {
-      onSuccess: () => toast.success(empty ? 'Workspace emptied' : 'Demo data restored'),
-      onError: (e) => toast.error(e.message),
-      onSettled: () => setConfirm(null),
-    })
+  const erase = useEraseWorkspace()
+  const [open, setOpen] = useState(false)
+  const [typed, setTyped] = useState('')
+  const close = () => {
+    setOpen(false)
+    setTyped('')
+  }
   return (
     <Card title="Data" description="Local SQLite database. Everything stays on this machine.">
       <Field label="Database">
@@ -342,33 +341,52 @@ export function DataSection({ settings }: { settings: SettingsView }) {
           {settings.database_path}
         </p>
       </Field>
-      <Field label="Development" hint="Phase 0 helpers">
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => setConfirm('demo')}>
-            Reset demo data
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setConfirm('empty')}>
-            Start with an empty workspace
-          </Button>
-        </div>
+      <Field label="Sample data" hint="Only ever used inside guided tours">
+        <p className="pt-1.5 text-sm text-fg-muted">
+          Your workspace contains only your real data. Tours run on a separate sandbox that is
+          rebuilt every time a tour starts. Start one from the <span className="font-medium">?</span> menu
+          in the top bar.
+        </p>
       </Field>
-      <Dialog open={confirm !== null} onOpenChange={(o) => !o && setConfirm(null)}>
-        <DialogContent title="Reset data" className="max-w-md p-0">
-          <div className="space-y-1 px-5 py-4">
-            <h2 className="text-md font-semibold tracking-tight">
-              {confirm === 'empty' ? 'Empty the workspace?' : 'Reset to demo data?'}
-            </h2>
-            <p className="text-sm text-fg-muted">
-              This replaces every job, contact, CV and draft in the local database
-              {confirm === 'empty' ? ' with an empty workspace' : ' with the mock dataset'}. It can't be undone.
-            </p>
+      <Field label="Erase my workspace" hint="Jobs, contacts, CVs, drafts, experience">
+        <Button size="sm" variant="ghost" className="text-danger-fg hover:text-danger-fg" onClick={() => setOpen(true)}>
+          Erase all data…
+        </Button>
+      </Field>
+      <Dialog open={open} onOpenChange={(o) => !o && close()}>
+        <DialogContent title="Erase workspace" className="max-w-md p-0">
+          <div className="space-y-3 px-5 py-4">
+            <div className="space-y-1">
+              <h2 className="text-md font-semibold tracking-tight">Erase your workspace?</h2>
+              <p className="text-sm text-fg-muted">
+                This permanently deletes every job, contact, CV, draft and experience item. Your
+                search profile and settings are kept. It can't be undone.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="erase-confirm">Type ERASE to confirm</Label>
+              <Input id="erase-confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+            </div>
           </div>
           <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
-            <Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
+            <Button size="sm" variant="ghost" onClick={close}>
               Cancel
             </Button>
-            <Button size="sm" variant="danger" onClick={() => run(confirm === 'empty')} disabled={reset.isPending}>
-              {confirm === 'empty' ? 'Empty workspace' : 'Reset data'}
+            <Button
+              size="sm"
+              variant="danger"
+              disabled={typed !== 'ERASE' || erase.isPending}
+              onClick={() =>
+                erase.mutate(typed, {
+                  onSuccess: () => {
+                    toast.success('Workspace erased')
+                    close()
+                  },
+                  onError: (e) => toast.error(e.message),
+                })
+              }
+            >
+              Erase everything
             </Button>
           </div>
         </DialogContent>

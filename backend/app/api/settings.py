@@ -1,6 +1,7 @@
 import os
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, col, select
 
 from app.api.deps import SessionDep
@@ -14,7 +15,9 @@ from app.schemas.settings import (
     SettingValue,
     SourceRunOut,
 )
+from app.seed.seed import reset_sandbox, seed
 from app.services import scheduler
+from app.services.discovery import is_running
 
 router = APIRouter(tags=["settings"])
 
@@ -95,9 +98,22 @@ def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
     return get_profile(session)
 
 
-@router.post("/dev/reset", status_code=204)
-def reset_demo(empty: bool = False) -> None:
-    """Dev aid: reset the DB to the demo dataset, or to an empty workspace (to see empty states)."""
-    from app.seed.seed import seed
+class EraseIn(BaseModel):
+    confirm: str
 
-    seed(engine, empty=empty)
+
+@router.post("/sandbox/reset", status_code=204)
+def reset_sandbox_endpoint() -> None:
+    """Rebuild the tour sandbox from fixtures (called at every tour start)."""
+    reset_sandbox()
+
+
+@router.post("/workspace/erase", status_code=204)
+def erase_workspace(body: EraseIn) -> None:
+    """Erase ALL real data (jobs, contacts, CVs, drafts, experience). Keeps profile + settings
+    defaults. Requires typing ERASE."""
+    if body.confirm != "ERASE":
+        raise HTTPException(422, 'Type "ERASE" to confirm')
+    if is_running():
+        raise HTTPException(409, "A discovery run is in progress")
+    seed(engine, empty=True)

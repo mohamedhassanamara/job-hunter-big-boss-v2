@@ -8,7 +8,9 @@ from app.config import get_settings
 from app.db import make_engine
 
 config = context.config
-if config.config_file_name is not None:
+# When the app runs migrations itself (sandbox reset), don't let Alembic's logging config
+# disable the app's loggers.
+if config.config_file_name is not None and not config.attributes.get("embedded"):
     fileConfig(config.config_file_name)
 
 target_metadata = SQLModel.metadata
