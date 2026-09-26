@@ -17,7 +17,9 @@ class RemotePolicy(StrEnum):
 
 
 class RunStatus(StrEnum):
+    pending = "pending"
     running = "running"
+    skipped = "skipped"
     success = "success"
     partial = "partial"
     failed = "failed"

@@ -104,6 +104,14 @@ class ContactSnapshot(BaseModel):
 
 class JobSource(Protocol):
     source: Source
+    # Minimum hours between real fetches (e.g. Remotive asks for <= 4 requests/day).
+    cooldown_hours: float
+    # HTTP requests made by the last fetch (for the run report).
+    requests: int
+
+    def configured(self) -> str | None:
+        """None when ready, otherwise a human-readable reason (e.g. missing API keys)."""
+        ...
 
     def fetch(self, profile: ProfileSpec) -> list[RawJob]: ...
 

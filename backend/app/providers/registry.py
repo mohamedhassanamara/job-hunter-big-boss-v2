@@ -3,6 +3,7 @@ Phase 0: always the mocks. Later: read `app_setting['models']` and return Ollama
 
 from functools import lru_cache
 
+from app.config import get_settings
 from app.models.enums import Source
 from app.providers.base import CVGenerator, CVRenderer, EmailDrafter, FitScorer, JobSource, Mailer
 from app.providers.mock import (
@@ -15,8 +16,17 @@ from app.providers.mock import (
 )
 
 
-def job_sources(enabled: list[Source]) -> list[JobSource]:
-    return [MockJobSource(s) for s in enabled]
+def real_source(source: Source) -> JobSource:
+    """Real implementation for a source (imported lazily so tests never touch HTTP code)."""
+    from app.providers.sources import REAL_SOURCES
+
+    factory = REAL_SOURCES.get(source)
+    return factory() if factory else MockJobSource(source)
+
+
+def job_sources(enabled: list[Source], *, mock: bool | None = None) -> dict[Source, JobSource]:
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    return {s: MockJobSource(s) if use_mock else real_source(s) for s in enabled}
 
 
 @lru_cache

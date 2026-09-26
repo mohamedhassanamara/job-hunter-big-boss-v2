@@ -5,7 +5,11 @@ _LEGAL_SUFFIXES = {
     "sl", "slu", "sa", "sas", "sarl", "spa", "srl", "lda", "gmbh", "ag", "bv", "ltd", "inc",
     "llc", "plc", "group", "grupo",
 }
-_TITLE_NOISE = {"m", "f", "h", "d", "x", "mfd", "hf", "fh", "remote", "hybrid"}
+# Gender markers ((m/f/d), H/F, M/W/D…) and work-mode suffixes don't make a job different.
+_TITLE_NOISE = {
+    "m", "f", "h", "d", "x", "w", "mfd", "hf", "fh", "mwd", "wmd", "fhx", "hfx", "mfx",
+    "remote", "hybrid", "onsite", "teletravail", "remoto", "remota",
+}
 
 
 def _ascii_words(text: str) -> list[str]:
