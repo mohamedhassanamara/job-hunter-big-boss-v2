@@ -6,14 +6,19 @@ from pydantic import BaseModel
 
 class SourceRunOut(BaseModel):
     id: int
+    discovery_run_id: int | None
     source: str
     status: str
     started_at: datetime
     finished_at: datetime | None
     fetched_count: int
+    kept_count: int
+    filtered_count: int
     new_count: int
+    updated_count: int
     duplicate_count: int
     error: str | None
+    details: dict[str, Any]
 
 
 class SearchProfileIO(BaseModel):
@@ -31,12 +36,59 @@ class SettingsOut(BaseModel):
     smtp_password_configured: bool
     database_path: str
     last_runs: list[SourceRunOut]
+    next_run_at: datetime | None = None
 
 
 class SettingValue(BaseModel):
     value: dict[str, Any]
 
 
-class DiscoveryResult(BaseModel):
-    runs: list[SourceRunOut]
-    new_jobs: int
+class DiscoveryRunOut(BaseModel):
+    id: int
+    trigger: str
+    status: str
+    started_at: datetime
+    finished_at: datetime | None
+    totals: dict[str, int]
+    sources: list[SourceRunOut]
+
+
+class DiscoveryStatus(BaseModel):
+    running: bool
+    run: DiscoveryRunOut | None
+
+
+class DiscoveryStarted(BaseModel):
+    run_id: int
+
+
+class SourceInfo(BaseModel):
+    source: str
+    name: str
+    enabled: bool
+    configured: bool
+    config_hint: str | None
+    cooldown_hours: float
+    cooldown_remaining_minutes: int | None
+    last_run: SourceRunOut | None
+
+
+class SampleJob(BaseModel):
+    title: str
+    company: str
+    location: str
+    remote_type: str
+    url: str
+    reason: str | None = None
+
+
+class SourceTestResult(BaseModel):
+    source: str
+    fetched: int
+    kept: int
+    filtered: int
+    requests: int
+    reasons: dict[str, int]
+    warnings: list[str]
+    kept_samples: list[SampleJob]
+    filtered_samples: list[SampleJob]

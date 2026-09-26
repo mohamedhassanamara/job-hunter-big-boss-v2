@@ -1,0 +1,123 @@
+from fastapi import APIRouter, HTTPException
+from sqlmodel import Session, col, select
+
+from app.api.deps import SessionDep
+from app.db import engine
+from app.models import DiscoveryRun, SourceRun
+from app.models.enums import RunStatus, Source
+from app.providers.registry import job_sources
+from app.schemas.settings import (
+    DiscoveryRunOut,
+    DiscoveryStarted,
+    DiscoveryStatus,
+    SampleJob,
+    SourceInfo,
+    SourceRunOut,
+    SourceTestResult,
+)
+from app.services import discovery
+from app.services.ingest import SOURCE_NAMES
+
+router = APIRouter(tags=["discovery"])
+
+
+def run_out(r: SourceRun) -> SourceRunOut:
+    return SourceRunOut.model_validate(r, from_attributes=True)
+
+
+def discovery_run_out(session: Session, run: DiscoveryRun) -> DiscoveryRunOut:
+    srs = session.exec(
+        select(SourceRun).where(SourceRun.discovery_run_id == run.id).order_by(col(SourceRun.id))
+    ).all()
+    return DiscoveryRunOut(
+        id=run.id,
+        trigger=run.trigger,
+        status=run.status,
+        started_at=run.started_at,
+        finished_at=run.finished_at,
+        totals=run.totals,
+        sources=[run_out(sr) for sr in srs],
+    )
+
+
+@router.post("/discovery/run", response_model=DiscoveryStarted, status_code=202)
+def start_discovery(session: SessionDep) -> DiscoveryStarted:
+    sources = job_sources(discovery.enabled_sources(session))
+    if not sources:
+        raise HTTPException(422, "Every source is disabled. Enable one in Settings → Sources.")
+    try:
+        run_id = discovery.start_run_in_background(engine, sources)
+    except discovery.RunInProgress as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return DiscoveryStarted(run_id=run_id)
+
+
+@router.get("/discovery/status", response_model=DiscoveryStatus)
+def discovery_status(session: SessionDep) -> DiscoveryStatus:
+    run = session.exec(
+        select(DiscoveryRun)
+        .where(DiscoveryRun.trigger != "test")
+        .order_by(col(DiscoveryRun.started_at).desc())
+    ).first()
+    return DiscoveryStatus(
+        running=discovery.is_running(),
+        run=discovery_run_out(session, run) if run else None,
+    )
+
+
+@router.get("/sources", response_model=list[SourceInfo])
+def list_sources(session: SessionDep) -> list[SourceInfo]:
+    enabled = set(discovery.enabled_sources(session))
+    impls = job_sources(list(Source))
+    out = []
+    for src, impl in impls.items():
+        last = session.exec(
+            select(SourceRun)
+            .where(SourceRun.source == src, SourceRun.status != RunStatus.pending)
+            .order_by(col(SourceRun.started_at).desc())
+        ).first()
+        hint = impl.configured()
+        wait = discovery.cooldown_remaining(session, impl)
+        out.append(
+            SourceInfo(
+                source=src,
+                name=SOURCE_NAMES[src],
+                enabled=src in enabled,
+                configured=hint is None,
+                config_hint=hint,
+                cooldown_hours=impl.cooldown_hours,
+                cooldown_remaining_minutes=int(wait.total_seconds() // 60) + 1 if wait else None,
+                last_run=run_out(last) if last else None,
+            )
+        )
+    return out
+
+
+def _sample(job, reason: str | None = None) -> SampleJob:  # noqa: ANN001
+    return SampleJob(
+        title=job.title, company=job.company, location=job.location,
+        remote_type=job.remote_type, url=job.url, reason=reason,
+    )
+
+
+@router.post("/sources/{source}/test", response_model=SourceTestResult)
+def test_source(source: Source) -> SourceTestResult:
+    impl = job_sources([source])[source]
+    try:
+        result, requests, warnings = discovery.test_source(engine, impl)
+    except (discovery.RunInProgress, discovery.SourceCoolingDown) as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(502, f"{SOURCE_NAMES[source]} failed: {exc}") from exc
+    return SourceTestResult(
+        source=source,
+        fetched=len(result.kept) + len(result.dropped),
+        kept=len(result.kept),
+        filtered=len(result.dropped),
+        requests=requests,
+        reasons=result.reason_counts(),
+        warnings=warnings,
+        kept_samples=[_sample(j) for j in result.kept[:10]],
+        filtered_samples=[_sample(d.job, d.reason) for d in result.dropped[:15]],
+    )
+

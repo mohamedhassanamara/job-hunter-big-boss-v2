@@ -247,3 +247,57 @@ def start_run_in_background(
         target=execute_run, args=(engine, run_id, sources), name=f"discovery-{run_id}", daemon=True
     ).start()
     return run_id
+
+
+class SourceCoolingDown(RuntimeError):
+    pass
+
+
+def test_source(engine: Engine, source: JobSource):  # noqa: ANN201 (FilterResult)
+    """Dry run: fetch + parse + pre-filter, write no jobs. Recorded as a `test` SourceRun so it
+    still counts towards the source's cooldown (Remotive's daily request budget)."""
+    if _lock.locked():
+        raise RunInProgress("A discovery run is in progress; try again when it finishes")
+    with Session(engine) as s:
+        if reason := source.configured():
+            raise RuntimeError(f"Not configured: {reason}")
+        if wait := cooldown_remaining(s, source):
+            minutes = int(wait.total_seconds() // 60) + 1
+            raise SourceCoolingDown(
+                f"Fetched recently; this source asks for at most one fetch every "
+                f"{source.cooldown_hours:g}h. Try again in {minutes} min."
+            )
+        profile_id, profile = active_profile(s)
+        run = DiscoveryRun(trigger=RunTrigger.test)
+        s.add(run)
+        s.flush()
+        sr = SourceRun(discovery_run_id=run.id, source=source.source, profile_id=profile_id,
+                       status=RunStatus.running)
+        s.add(sr)
+        s.commit()
+        try:
+            raw = source.fetch(profile)
+            result = prefilter(raw, profile)
+        except Exception as exc:
+            sr.status = run.status = RunStatus.failed
+            sr.error = str(exc)[:1000]
+            sr.finished_at = run.finished_at = utcnow()
+            s.add_all([sr, run])
+            s.commit()
+            raise
+        sr.status = run.status = RunStatus.success
+        sr.fetched_count, sr.kept_count, sr.filtered_count = (
+            len(raw), len(result.kept), len(result.dropped),
+        )
+        sr.details = {
+            "dry_run": True,
+            "requests": source.requests,
+            "warnings": list(getattr(source, "warnings", [])),
+            "reasons": result.reason_counts(),
+        }
+        sr.finished_at = run.finished_at = utcnow()
+        run.totals = {"fetched": len(raw), "kept": len(result.kept),
+                      "filtered": len(result.dropped)}
+        s.add_all([sr, run])
+        s.commit()
+        return result, source.requests, list(getattr(source, "warnings", []))

@@ -16,6 +16,8 @@ GET_ENDPOINTS = [
     "/api/settings",
     "/api/search-profile",
     "/api/search?q=engineer",
+    "/api/discovery/status",
+    "/api/sources",
 ]
 
 
@@ -144,10 +146,29 @@ def test_settings_and_profile(client: TestClient) -> None:
 
 
 def test_discovery_run_mock(client: TestClient) -> None:
+    import time
+
     before = client.get("/api/jobs?stage=all").json()["total"]
-    result = client.post("/api/discovery/run").json()
-    assert result["new_jobs"] >= 1
+    started = client.post("/api/discovery/run")
+    assert started.status_code == 202
+    for _ in range(100):
+        status = client.get("/api/discovery/status").json()
+        if not status["running"]:
+            break
+        time.sleep(0.05)
+    run = status["run"]
+    assert run["id"] == started.json()["run_id"] and run["status"] == "success"
+    assert {s["source"] for s in run["sources"]} == {"adzuna", "remotive", "arbeitnow", "wttj"}
     assert client.get("/api/jobs?stage=all").json()["total"] > before
+
+
+def test_sources_list_and_dry_run(client: TestClient) -> None:
+    sources = {s["source"]: s for s in client.get("/api/sources").json()}
+    assert set(sources) == {"adzuna", "remotive", "arbeitnow", "wttj"}
+    before = client.get("/api/jobs?stage=all").json()["total"]
+    result = client.post("/api/sources/arbeitnow/test").json()
+    assert result["fetched"] == result["kept"] + result["filtered"]
+    assert client.get("/api/jobs?stage=all").json()["total"] == before  # dry run writes nothing
 
 
 def test_contacts_import_preview(client: TestClient) -> None:
