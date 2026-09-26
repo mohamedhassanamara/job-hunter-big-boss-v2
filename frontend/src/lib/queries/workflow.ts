@@ -44,6 +44,9 @@ export function useDiscoveryStatus() {
     queryKey: keys.discoveryStatus,
     queryFn: () => api.get<DiscoveryStatus>('/discovery/status'),
     refetchInterval: (query) => (query.state.data?.running ? 1000 : 30_000),
+    // Keep polling when the window is in the background: a run started before switching away
+    // must still finish in the UI (it's a cheap local call).
+    refetchIntervalInBackground: true,
     retry: false,
   })
 }

@@ -8,7 +8,7 @@ multi-query request per run. The index has no full description: we use summary +
 """
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 
@@ -23,8 +23,8 @@ INDEX = "wttj_jobs_production_en"
 HITS_PER_QUERY = 50
 ATTRIBUTES = [
     "objectID", "name", "slug", "organization.name", "organization.slug", "offices", "remote",
-    "published_at", "summary", "key_missions", "profile", "language", "contract_type",
-    "salary_minimum", "salary_maximum", "salary_currency", "salary_period",
+    "published_at", "published_at_timestamp", "summary", "key_missions", "profile", "language",
+    "contract_type", "salary_minimum", "salary_maximum", "salary_currency", "salary_period",
 ]
 _REMOTE = {
     "fulltime": RemoteType.remote,
@@ -35,7 +35,9 @@ _REMOTE = {
 _CURRENCY = {"EUR": "€", "GBP": "£", "USD": "$"}
 
 
-def build_queries(profile: ProfileSpec) -> list[dict[str, str]]:
+def build_queries(profile: ProfileSpec, now: datetime | None = None) -> list[dict[str, str]]:
+    # WTTJ search ranks by relevance, not date: filter by age server-side so every hit is fresh.
+    cutoff = int(((now or datetime.now(UTC)) - timedelta(days=profile.max_age_days)).timestamp())
     queries = []
     for role in profile.roles:
         for country in profile.locations:
@@ -51,6 +53,7 @@ def build_queries(profile: ProfileSpec) -> list[dict[str, str]]:
                     "query": role,
                     "hitsPerPage": HITS_PER_QUERY,
                     "facetFilters": json.dumps(filters),
+                    "numericFilters": json.dumps([f"published_at_timestamp>={cutoff}"]),
                     "attributesToRetrieve": json.dumps(ATTRIBUTES),
                     "attributesToHighlight": "[]",
                 }
