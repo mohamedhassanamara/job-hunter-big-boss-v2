@@ -26,7 +26,7 @@ function isEditable(target: EventTarget | null) {
 
 function overlayOpen() {
   return !!document.querySelector(
-    '[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [role="listbox"], [data-radix-popper-content-wrapper]',
+    '[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [data-radix-popper-content-wrapper]',
   )
 }
 

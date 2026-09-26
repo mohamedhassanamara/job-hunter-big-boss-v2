@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useHotkeys } from './useHotkeys'
 
 interface Options<Id extends string | number> {
@@ -20,14 +20,24 @@ export function useListKeyboard<Id extends string | number>({
   actions = {},
   enabled = true,
 }: Options<Id>) {
+  // Keys can arrive faster than React re-renders; track the selection synchronously so a
+  // quick "k" then "s" acts on the row "k" moved to, not the stale one.
+  const current = useRef(selectedId)
+  useEffect(() => {
+    current.current = selectedId
+  }, [selectedId])
+
   const move = useCallback(
     (delta: number) => {
       if (!ids.length) return
-      const index = selectedId === null ? -1 : ids.indexOf(selectedId)
+      const sel = current.current
+      const index = sel === null ? -1 : ids.indexOf(sel)
       const next = index === -1 ? (delta > 0 ? 0 : ids.length - 1) : index + delta
-      onSelect(ids[Math.max(0, Math.min(ids.length - 1, next))])
+      const id = ids[Math.max(0, Math.min(ids.length - 1, next))]
+      current.current = id
+      onSelect(id)
     },
-    [ids, selectedId, onSelect],
+    [ids, onSelect],
   )
 
   // Keep the selected row visible.
@@ -44,12 +54,14 @@ export function useListKeyboard<Id extends string | number>({
     arrowdown: () => move(1),
     arrowup: () => move(-1),
   }
+  const withSelected = (fn: (id: Id) => void) => () => {
+    const sel = current.current
+    if (sel !== null) fn(sel)
+  }
   if (onOpen) {
-    bindings.enter = () => selectedId !== null && onOpen(selectedId)
-    bindings.o = () => selectedId !== null && onOpen(selectedId)
+    bindings.enter = withSelected(onOpen)
+    bindings.o = withSelected(onOpen)
   }
-  for (const [key, fn] of Object.entries(actions)) {
-    bindings[key] = () => selectedId !== null && fn(selectedId)
-  }
+  for (const [key, fn] of Object.entries(actions)) bindings[key] = withSelected(fn)
   useHotkeys(bindings, { enabled })
 }
