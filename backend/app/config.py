@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     # Optional contact appended to the User-Agent sent to job sources.
     discovery_contact: str = ""
     log_dir: Path = DATA_DIR / "logs"
+    # Daily discovery via APScheduler (tests turn it off).
+    scheduler_enabled: bool = True
 
 
 @lru_cache
