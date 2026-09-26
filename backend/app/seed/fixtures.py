@@ -498,11 +498,17 @@ SETTINGS: dict[str, dict] = {
 
 SEARCH_PROFILE = {
     "name": "Data / AI Engineering, South EU + remote",
-    "roles": ["data engineer", "analytics engineer", "ai engineer", "ml engineer",
-              "llm engineer", "data platform engineer", "mlops engineer"],
+    "roles": ["Data Engineer", "AI Engineer", "ML Engineer", "Analytics Engineer"],
     "keywords": ["spark", "dbt", "airflow", "kafka", "llm", "rag", "python", "aws", "gcp"],
-    "excluded_keywords": ["php", "salesforce", "sap", "intern"],
+    # Title keywords that are never relevant. No seniority words by default: every level stays
+    # visible and the user decides what to pursue.
+    "excluded_keywords": [
+        "intern", "internship", "stage", "stagiaire", "alternance", "alternant", "apprenti",
+        "apprentice", "working student", "werkstudent", "praktikum", "becario", "tirocinio",
+        "estagio",
+    ],
     "locations": ["ES", "PT", "FR", "IT"],
     "remote_policy": "remote_ok",
     "min_fit_score": 65,
+    "max_age_days": 30,
 }

@@ -29,6 +29,7 @@ class ProfileSpec(BaseModel):
     excluded_keywords: list[str] = []
     locations: list[str] = []
     remote_policy: str = "remote_ok"
+    max_age_days: int = 30
 
 
 class JobSnapshot(BaseModel):
