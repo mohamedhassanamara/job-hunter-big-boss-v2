@@ -48,6 +48,13 @@ def main(names: list[str]) -> None:
             small = profile.model_copy(update={"roles": ["Data Engineer", "AI Engineer"],
                                                "locations": ["ES", "IT"]})
             payload = wttj.WTTJSource().fetch_payload(small)
+        elif name == "adzuna":
+            from app.providers.sources import adzuna
+
+            adzuna.RESULTS_PER_PAGE = KEEP
+            single = profile.model_copy(update={"roles": ["Data Engineer"], "locations": ["ES"]})
+            country, payload = adzuna.AdzunaSource().fetch_payloads(single)[0]
+            payload["_country"] = country
         else:
             raise SystemExit(f"unknown source {name}")
         path = OUT / f"{name}.json"
