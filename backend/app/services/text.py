@@ -1,6 +1,7 @@
 """Turn source HTML (or loose plain text) into the small markdown subset the UI renders:
 paragraphs, `## ` headings and `- ` bullets. The original language is kept."""
 
+import html
 import re
 from html.parser import HTMLParser
 
@@ -100,6 +101,9 @@ def _render(blocks: list[tuple[str, str]]) -> str:
 def html_to_text(value: str | None) -> str:
     if not value:
         return ""
+    # Some feeds (Arbeitnow) ship entity-escaped markup: "&lt;p&gt;Hello&lt;/p&gt;".
+    if re.search(r"&lt;/?[a-zA-Z][^&]*&gt;", value):
+        value = html.unescape(value)
     if "<" not in value or not re.search(r"</?[a-zA-Z][^>]*>", value):
         return _render(_plain_blocks(value))
     parser = _Converter()
