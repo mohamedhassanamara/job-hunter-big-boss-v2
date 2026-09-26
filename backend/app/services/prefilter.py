@@ -45,22 +45,31 @@ _WORDS = {
     "analytique": "analytics",
 }
 _MAX_GAP = 2  # words allowed between role tokens ("data platform engineer" ~ "data engineer")
+# Romance-language job words: only these titles put the noun first ("Ingeniero de datos").
+_ROMANCE = {"ingenieur", "ingenieure", "ingeniero", "ingeniera", "ingegnere", "engenheiro",
+            "engenheira"}
 
 
-def normalize_title(title: str) -> list[str]:
+def _normalize(title: str) -> list[tuple[str, bool]]:
+    """(token, came_from_a_romance_word) pairs after synonym/translation mapping."""
     text = fold(title)
     for pattern, repl in _PHRASES:
         text = re.sub(pattern, repl, text)
-    words: list[str] = []
+    out: list[tuple[str, bool]] = []
     for w in text.split():
-        words.extend(_WORDS.get(w, w).split())
-    return words
+        out.extend((tok, w in _ROMANCE) for tok in _WORDS.get(w, w).split())
+    return out
 
 
-def _in_order(words: list[str], tokens: list[str]) -> bool:
-    """tokens appear in `words` in order, with at most _MAX_GAP words between neighbours."""
+def normalize_title(title: str) -> list[str]:
+    return [tok for tok, _ in _normalize(title)]
+
+
+def _in_order(words: list[str], tokens: list[str], starts: set[int] | None = None) -> bool:
+    """tokens appear in `words` in order, with at most _MAX_GAP words between neighbours.
+    `starts` restricts where the first token may be matched."""
     for start, w in enumerate(words):
-        if w != tokens[0]:
+        if w != tokens[0] or (starts is not None and start not in starts):
             continue
         pos, ok = start, True
         for tok in tokens[1:]:
@@ -75,13 +84,18 @@ def _in_order(words: list[str], tokens: list[str]) -> bool:
 
 
 def matches_role(title: str, roles: list[str]) -> str | None:
-    words = normalize_title(title)
+    pairs = _normalize(title)
+    words = [tok for tok, _ in pairs]
+    romance = {i for i, (_, is_romance) in enumerate(pairs) if is_romance}
     for role in roles:
         tokens = normalize_title(role)
         if not tokens:
             continue
-        # Romance languages put the noun first: "Ingeniero de datos" → engineer … data.
-        if _in_order(words, tokens) or (len(tokens) > 1 and _in_order(words, tokens[::-1])):
+        if _in_order(words, tokens):
+            return role
+        # Romance languages put the noun first ("Ingeniero de datos" → engineer … data). Only
+        # allow reversed order there: in English "Backend Engineer Kotlin & Data" is noise.
+        if len(tokens) > 1 and romance and _in_order(words, tokens[::-1], starts=romance):
             return role
     return None
 

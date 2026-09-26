@@ -97,6 +97,7 @@ def test_wttj_queries_cover_roles_countries_and_remote() -> None:
     assert len(queries) == 2 * (4 + 1)
     assert all(q["indexName"] == "wttj_jobs_production_en" for q in queries)
     assert any("remote%3Afulltime" in q["params"] for q in queries)
+    assert all("published_at_timestamp%3E%3D" in q["params"] for q in queries)
 
 
 def test_adzuna_mapper() -> None:

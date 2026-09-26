@@ -40,7 +40,13 @@ def test_role_matches(title: str) -> None:
 
 @pytest.mark.parametrize(
     "title",
-    ["Data Analyst", "Software Engineer", "Account Executive", "Product Manager AI", "Engineer"],
+    [
+        "Data Analyst", "Software Engineer", "Account Executive", "Product Manager AI", "Engineer",
+        # English titles with the words in reverse order are not the role (real-run noise):
+        "Backend Engineer Kotlin & Data", "System Engineer – Data & Cloud Security",
+        "Software Engineer Frontend - AI-Powered Store Manager Companion",
+        "Staff Backend Engineer (Databases Analytics)",
+    ],
 )
 def test_role_non_matches(title: str) -> None:
     assert matches_role(title, PROFILE.roles) is None, title
