@@ -1,4 +1,4 @@
-import type { ContactTier, RemoteType, Source, Stage } from './types'
+import type { ContactTier, FitBand, RemoteType, Source, Stage } from './types'
 
 const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' })
 
@@ -116,4 +116,9 @@ export function initials(name: string): string {
 
 export function pluralize(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`
+}
+
+/** Mirrors backend services.views.fit_band. */
+export function fitBand(score: number): FitBand {
+  return score >= 80 ? 'strong' : score >= 65 ? 'good' : score >= 50 ? 'fair' : 'weak'
 }
