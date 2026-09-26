@@ -41,6 +41,9 @@ export default function DiscoverPage() {
   }
   const selectedId = url.get('job') ? Number(url.get('job')) : null
   const { data, isPending, error, refetch } = useJobs(filters)
+  // Only asked when the current view is empty: has anything ever been discovered?
+  const everything = useJobs({ stage: 'all' }, { enabled: !!data && data.total === 0 })
+  const neverDiscovered = everything.data?.total === 0
 
   // Respect optimistic stage changes so triaged jobs leave the "New" view immediately.
   const items = useMemo(
@@ -136,7 +139,7 @@ export default function DiscoverPage() {
                 description="Try widening the filters or clearing them."
                 action={<Button size="sm" onClick={clearFilters}>Clear filters</Button>}
               />
-            ) : filters.stage === 'new' ? (
+            ) : filters.stage === 'new' && !neverDiscovered ? (
               <EmptyState
                 icon={Compass}
                 title="Inbox zero: every new job is triaged"
@@ -152,7 +155,7 @@ export default function DiscoverPage() {
               <EmptyState
                 icon={Compass}
                 title="No jobs yet"
-                description="Run discovery to pull listings from your enabled sources."
+                description="Run discovery to pull listings from your enabled sources. It also runs daily on its own."
                 action={
                   <Button size="sm" variant="default" onClick={discovery.trigger} disabled={discovery.pending}>
                     <Radar />

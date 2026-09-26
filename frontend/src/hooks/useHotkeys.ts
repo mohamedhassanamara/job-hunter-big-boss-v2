@@ -26,7 +26,8 @@ function isEditable(target: EventTarget | null) {
 
 function overlayOpen() {
   return !!document.querySelector(
-    '[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [data-radix-popper-content-wrapper]',
+    // Real overlays only: dialogs/sheets/popovers, menus, open select lists. Tooltips don't block.
+    '[role="dialog"][data-state="open"], [role="menu"][data-state="open"], [role="listbox"][data-state="open"]',
   )
 }
 

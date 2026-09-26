@@ -22,11 +22,12 @@ export interface JobFilters {
   sort?: 'fit' | 'newest'
 }
 
-export function useJobs(filters: JobFilters) {
+export function useJobs(filters: JobFilters, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: keys.jobs(filters as Record<string, unknown>),
     queryFn: () => api.get<JobList>(`/jobs${qs({ ...filters })}`),
     placeholderData: (prev) => prev,
+    enabled: options.enabled ?? true,
   })
 }
 

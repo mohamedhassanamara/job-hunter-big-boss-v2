@@ -13,7 +13,11 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 10_000,
-      retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
+      // Local API: an unreachable backend (proxy 502/network) or a 4xx won't fix itself on retry,
+      // so show the error state immediately. Anything else gets one retry.
+      retry: (count, error) =>
+        !(error instanceof ApiError && (error.status === 0 || error.status === 502 || error.status < 500)) &&
+        count < 1,
     },
   },
 })
