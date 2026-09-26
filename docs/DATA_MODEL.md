@@ -125,6 +125,7 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer` | Only when `closed` |
 | notes | text | |
 | applied_at | datetime? | When it hit `done` |
+| stage_changed_at | datetime | Last stage change, which drives "days in stage" on cards |
 
 UI labels for `ready` / `done` depend on route: *Ready to send / Sent* (cold_email) versus *Ready to apply / Applied* (web_apply).
 
