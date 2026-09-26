@@ -52,6 +52,22 @@ function useRect(el: HTMLElement | null) {
   return rect
 }
 
+/**
+ * True while an app dialog/sheet is open (the tour card itself has no data-state). Polled rather
+ * than observed: a MutationObserver here feeds back on the overlay's own re-renders.
+ */
+function useDialogOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const next = !!document.querySelector('[role="dialog"][data-state="open"]')
+      setOpen((prev) => (prev === next ? prev : next))
+    }, 250)
+    return () => window.clearInterval(id)
+  }, [])
+  return open
+}
+
 export function TourOverlay({
   tour,
   index,
@@ -90,6 +106,8 @@ export function TourOverlay({
   // own Escape handling), and don't also trigger the page's Escape (closing a panel).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // A dialog/sheet opened during the tour owns the keyboard (Esc closes it, not the tour).
+      if (document.querySelector('[role="dialog"][data-state="open"]')) return
       const el = e.target as HTMLElement | null
       const typing = !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
       const handlers: Record<string, () => void> = {
@@ -106,6 +124,7 @@ export function TourOverlay({
     return () => window.removeEventListener('keydown', onKey, true)
   }, [onClose, onNext, onBack])
 
+  const dialogOpen = useDialogOpen()
   const last = index === tour.steps.length - 1
   // Clamp the spotlight to the viewport (big targets like the board).
   const spot = rect && {
@@ -114,6 +133,9 @@ export function TourOverlay({
     width: Math.min(rect.width + PAD * 2, window.innerWidth - Math.max(rect.left - PAD, 4) - 4),
     height: Math.min(rect.height + PAD * 2, window.innerHeight - Math.max(rect.top - PAD, 4) - 4),
   }
+
+  // Step aside while the user works in a dialog or sheet opened from the tour.
+  if (dialogOpen) return null
 
   return (
     <>
