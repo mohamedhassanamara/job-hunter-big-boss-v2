@@ -5,6 +5,7 @@
 """
 
 import argparse
+import unicodedata
 import zlib
 from datetime import UTC, date, datetime, timedelta
 
@@ -124,7 +125,8 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             contacts[key] = []
             for full_name, title, source in people:
                 first, last = full_name.split(" ", 1)
-                slug = f"{first}.{last}".lower().replace(" ", "")
+                slug = unicodedata.normalize("NFKD", f"{first}.{last}".lower().replace(" ", ""))
+                slug = slug.encode("ascii", "ignore").decode()
                 contact = Contact(
                     company_id=companies[key].id,
                     full_name=full_name,
