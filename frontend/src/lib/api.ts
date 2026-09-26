@@ -27,7 +27,8 @@ async function request<T>(method: string, path: string, body?: Json | FormData):
       if (typeof data.detail === 'string') message = data.detail
     } catch {
       // A non-JSON 5xx means the dev proxy couldn't reach the backend.
-      if (res.status >= 500) message = "Can't reach the API. Is the backend running?"
+      if (res.status === 502 || res.status === 504) message = "Can't reach the API. Is the backend running?"
+      else if (res.status >= 500) message = `Server error (${res.status}). Check the backend logs.`
     }
     throw new ApiError(res.status, message)
   }

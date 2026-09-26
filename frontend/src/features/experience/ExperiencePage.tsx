@@ -185,10 +185,12 @@ export default function ExperiencePage() {
         title="Experience"
         description="Your master experience: the single source for every tailored CV and fit score."
         actions={
-          <Button variant="default" onClick={() => setCreatingKind('job')}>
-            <Plus />
-            Add item
-          </Button>
+          items.length > 0 && (
+            <Button variant="default" onClick={() => setCreatingKind('job')}>
+              <Plus />
+              Add item
+            </Button>
+          )
         }
       />
       <div className="min-h-0 flex-1 overflow-y-auto">

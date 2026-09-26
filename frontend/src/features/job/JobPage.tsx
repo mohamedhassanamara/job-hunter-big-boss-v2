@@ -277,7 +277,7 @@ function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => 
                 </Button>
               </span>
             </Tooltip>
-            <Button size="sm" variant="default" onClick={onApplied}>
+            <Button size="sm" onClick={onApplied}>
               <CircleCheck />
               Mark applied
             </Button>

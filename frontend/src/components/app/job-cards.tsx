@@ -34,7 +34,7 @@ export function FitCard({ fit, className }: { fit: FitDetail | null; className?:
     )
   }
   return (
-    <div className={cn('rounded-lg border border-border bg-surface p-4', className)}>
+    <div className={cn('@container rounded-lg border border-border bg-surface p-4', className)}>
       <div className="flex items-start gap-3">
         <FitBadge fit={fit} size="lg" />
         <div className="min-w-0 flex-1">
@@ -42,7 +42,7 @@ export function FitCard({ fit, className }: { fit: FitDetail | null; className?:
           <p className="text-sm text-fg-muted">{fit.summary}</p>
         </div>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 @md:grid-cols-2">
         <div>
           <p className="mb-1.5 text-xs font-medium text-fg-subtle">Strengths</p>
           <ul className="space-y-1.5">

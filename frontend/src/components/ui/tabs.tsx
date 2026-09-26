@@ -54,7 +54,7 @@ export function SegmentedTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        'inline-flex h-full items-center gap-1.5 rounded-sm px-2.5 text-sm font-medium text-fg-muted transition-colors duration-120 hover:text-fg data-[state=active]:bg-surface data-[state=active]:text-fg data-[state=active]:shadow-sm [&_svg]:size-3.5',
+        'inline-flex h-full items-center gap-1.5 whitespace-nowrap rounded-sm px-2.5 text-sm font-medium text-fg-muted transition-colors duration-120 hover:text-fg data-[state=active]:bg-surface data-[state=active]:text-fg data-[state=active]:shadow-sm [&_svg]:size-3.5',
         className,
       )}
       {...props}

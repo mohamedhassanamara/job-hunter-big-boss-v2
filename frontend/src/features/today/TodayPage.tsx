@@ -5,6 +5,7 @@ import {
   Compass,
   FileText,
   Globe,
+  Layers,
   type LucideIcon,
   Mail,
   Pause,
@@ -12,6 +13,7 @@ import {
   Radar,
   Send,
   TriangleAlert,
+  Users,
 } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -224,6 +226,50 @@ function TodaySkeleton() {
   )
 }
 
+function Onboarding() {
+  const discovery = useDiscoveryAction()
+  const steps = [
+    { n: 1, title: 'Add your master experience', text: 'Roles, projects, skills. Every CV and fit score is built from it.' },
+    { n: 2, title: 'Import your Apollo contacts', text: 'Jobs at companies with a contact get a cold email instead of a web application.' },
+    { n: 3, title: 'Run discovery', text: 'Pulls matching jobs from your sources and scores them. After that, it runs daily.' },
+  ]
+  return (
+    <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+      <p className="text-md font-semibold tracking-tight">Set up your job hunt</p>
+      <p className="text-sm text-fg-muted">Three steps, then this page becomes your daily inbox.</p>
+      <ol className="mt-5 grid grid-cols-3 gap-4 max-lg:grid-cols-1">
+        {steps.map((s) => (
+          <li key={s.n} className="rounded-lg border border-border bg-bg-subtle p-4">
+            <span className="flex size-6 items-center justify-center rounded-full bg-primary-subtle text-xs font-semibold text-primary">
+              {s.n}
+            </span>
+            <p className="mt-3 text-sm font-medium">{s.title}</p>
+            <p className="mt-1 text-sm text-fg-muted">{s.text}</p>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-5 flex gap-2">
+        <Button variant="default" size="sm" asChild>
+          <Link to="/experience?new=1">
+            <Layers />
+            Add experience
+          </Link>
+        </Button>
+        <Button size="sm" asChild>
+          <Link to="/contacts?tab=import">
+            <Users />
+            Import contacts
+          </Link>
+        </Button>
+        <Button size="sm" onClick={discovery.trigger} disabled={discovery.pending}>
+          <Radar />
+          Run discovery
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function TodayPage() {
   const { data, isPending, error, refetch } = useToday()
   const patch = usePatchApplication()
@@ -253,13 +299,17 @@ export default function TodayPage() {
         <h1 className="text-xl font-semibold tracking-tight">{greeting()}</h1>
         <p className="text-sm text-fg-muted">
           {date} ·{' '}
-          {attention === 0
-            ? "You're all caught up."
-            : `${pluralize(attention, 'thing needs', 'things need')} your attention.`}
+          {data.last_runs.length === 0
+            ? "Let's get you set up."
+            : attention === 0
+              ? "You're all caught up."
+              : `${pluralize(attention, 'thing needs', 'things need')} your attention.`}
         </p>
       </header>
 
-      {attention === 0 && (
+      {data.last_runs.length === 0 ? (
+        <Onboarding />
+      ) : attention === 0 && (
         <div className="rounded-lg border border-border bg-surface shadow-sm">
           <EmptyState
             compact

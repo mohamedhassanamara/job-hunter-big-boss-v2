@@ -259,10 +259,10 @@ export function ReviewTab() {
         <div className="border-b border-border px-4 py-2.5">
           <Tabs value={status} onValueChange={(v) => url.set({ status: v === 'draft' ? null : v, draft: null })}>
             <SegmentedList className="w-full">
-              <SegmentedTrigger value="draft" className="flex-1 justify-center">To review</SegmentedTrigger>
-              <SegmentedTrigger value="approved" className="flex-1 justify-center">Approved</SegmentedTrigger>
-              <SegmentedTrigger value="rejected" className="flex-1 justify-center">Rejected</SegmentedTrigger>
-              <SegmentedTrigger value="all" className="flex-1 justify-center">All</SegmentedTrigger>
+              <SegmentedTrigger value="draft" className="flex-1 justify-center px-1.5">To review</SegmentedTrigger>
+              <SegmentedTrigger value="approved" className="flex-1 justify-center px-1.5">Approved</SegmentedTrigger>
+              <SegmentedTrigger value="rejected" className="flex-1 justify-center px-1.5">Rejected</SegmentedTrigger>
+              <SegmentedTrigger value="all" className="flex-1 justify-center px-1.5">All</SegmentedTrigger>
             </SegmentedList>
           </Tabs>
         </div>
@@ -280,13 +280,6 @@ export function ReviewTab() {
                 status === 'draft'
                   ? 'Drafts appear after you approve a CV for a job with a contact.'
                   : undefined
-              }
-              action={
-                status === 'draft' && (
-                  <Button size="sm" asChild>
-                    <Link to="/pipeline">Open pipeline</Link>
-                  </Button>
-                )
               }
             />
           ) : (
@@ -339,8 +332,18 @@ export function ReviewTab() {
           !error && (
             <EmptyState
               icon={Mail}
-              title="Select a draft"
-              description="Every email is reviewed here before it can be queued."
+              title={status === 'draft' ? 'Nothing to review' : 'No drafts in this view'}
+              description="Emails are drafted once a CV is approved for a job with a contact. Approved emails wait in the send queue."
+              action={
+                <div className="flex gap-2">
+                  <Button size="sm" asChild>
+                    <Link to="/pipeline">Open pipeline</Link>
+                  </Button>
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to="/outreach?tab=queue">Send queue</Link>
+                  </Button>
+                </div>
+              }
             />
           )
         )}
