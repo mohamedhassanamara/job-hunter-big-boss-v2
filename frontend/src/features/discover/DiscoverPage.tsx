@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { DiscoveryProgress } from '@/components/app/DiscoveryProgress'
 import { PageHeader } from '@/components/app/PageHeader'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -114,7 +115,7 @@ export default function DiscoverPage() {
         }
         className="pb-0"
       >
-        <Tabs value={filters.stage} onValueChange={(v) => url.set({ stage: v === 'new' ? null : v, job: null })}>
+        <Tabs data-tour="discover-tabs" value={filters.stage} onValueChange={(v) => url.set({ stage: v === 'new' ? null : v, job: null })}>
           <TabsList>
             <TabsTrigger value="new" count={counts.data?.discover_new}>
               New
@@ -128,7 +129,7 @@ export default function DiscoverPage() {
       <FilterBar filters={filters} onChange={setFilters} onClear={clearFilters} />
 
       <div className="flex min-h-0 flex-1">
-        <div className="min-w-0 flex-1 overflow-y-auto" role="listbox" aria-label="Jobs">
+        <div className="min-w-0 flex-1 overflow-y-auto" role="listbox" aria-label="Jobs" data-tour="discover-list">
           {isPending ? (
             <SkeletonRows rows={10} />
           ) : error ? (
@@ -159,10 +160,13 @@ export default function DiscoverPage() {
                 title="No jobs yet"
                 description="Run discovery to pull listings from your enabled sources. It also runs daily on its own."
                 action={
-                  <Button size="sm" variant="default" onClick={discovery.trigger} disabled={discovery.pending}>
-                    <Radar />
-                    Run discovery
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="default" onClick={discovery.trigger} disabled={discovery.pending}>
+                      <Radar />
+                      Run discovery
+                    </Button>
+                    <TourButton tour="discover" />
+                  </div>
                 }
               />
             )

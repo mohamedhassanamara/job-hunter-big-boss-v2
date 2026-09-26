@@ -20,7 +20,7 @@ export default function ContactsPage() {
         className="pb-0"
       >
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList data-tour="contacts-tabs">
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="lookups" count={lookups.data?.items.length}>
               Lookup queue

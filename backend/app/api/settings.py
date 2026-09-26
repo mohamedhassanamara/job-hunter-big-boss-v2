@@ -90,6 +90,8 @@ def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
         raise HTTPException(422, f"Unknown remote policy {body.remote_policy}") from exc
     if not 0 <= body.min_fit_score <= 100:
         raise HTTPException(422, "min_fit_score must be between 0 and 100")
+    if not 1 <= body.max_age_days <= 365:
+        raise HTTPException(422, "max_age_days must be between 1 and 365")
     profile = _profile(session)
     for key, value in body.model_dump().items():
         setattr(profile, key, value)

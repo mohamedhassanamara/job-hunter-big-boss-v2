@@ -1,6 +1,7 @@
 import { Command } from 'cmdk'
 import {
   Briefcase,
+  Compass,
   Building2,
   CornerDownLeft,
   Moon,
@@ -22,6 +23,8 @@ import { cn } from '@/lib/utils'
 import { ALL_NAV } from './nav'
 import { useTheme } from './theme'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
+import { TOUR_LIST } from '@/features/tours/tours'
+import { useTour } from './tour/tour-context'
 
 const itemClass =
   'flex h-9 cursor-default items-center gap-2.5 rounded-md px-2.5 text-sm text-fg select-none data-[selected=true]:bg-surface-hover [&_svg]:size-4 [&_svg]:text-fg-subtle [&_svg]:shrink-0'
@@ -38,6 +41,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const today = useToday()
   const queueControl = useQueueControl()
   const discovery = useDiscoveryAction()
+  const tours = useTour()
 
   const close = () => {
     onOpenChange(false)
@@ -80,6 +84,12 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       icon: resolved === 'dark' ? Sun : Moon,
       run: () => setPreference(resolved === 'dark' ? 'light' : 'dark'),
     },
+    ...TOUR_LIST.map((t) => ({
+      id: `tour-${t.id}`,
+      label: `Tour: ${t.title} (sample data)`,
+      icon: Compass,
+      run: () => tours.start(t.id),
+    })),
   ].filter((a) => matches(a.label))
 
   const nav = ALL_NAV.filter((n) => matches(`Go to ${n.label}`))

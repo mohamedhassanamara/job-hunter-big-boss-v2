@@ -43,7 +43,7 @@ export function QueueTab() {
     })
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 px-6 py-5">
+    <div data-tour="outreach-queue" className="mx-auto max-w-5xl space-y-4 px-6 py-5">
       <div className="flex items-center gap-6 rounded-lg border border-border bg-surface p-4 shadow-sm">
         <div className="space-y-1">
           <ToneBadge tone={running ? 'green' : queue.status === 'paused' ? 'amber' : 'gray'}>

@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/app/PageHeader'
 import { EmptyState, ErrorState } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
@@ -41,11 +42,13 @@ function Row({
   onEdit,
   onToggle,
   dragDisabled,
+  tour,
 }: {
   item: ExperienceItem
   onEdit: () => void
   onToggle: (active: boolean) => void
   dragDisabled: boolean
+  tour?: string
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -56,6 +59,7 @@ function Row({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
+      data-tour={tour}
       onClick={onEdit}
       className={cn(
         'group flex cursor-default items-center gap-3 border-b border-border bg-surface px-3 py-3 transition-colors duration-120 last:border-b-0 hover:bg-surface-hover',
@@ -186,7 +190,7 @@ export default function ExperiencePage() {
         description="Your master experience: the single source for every tailored CV and fit score."
         actions={
           items.length > 0 && (
-            <Button variant="default" onClick={() => setCreatingKind('job')}>
+            <Button variant="default" onClick={() => setCreatingKind('job')} data-tour="experience-add">
               <Plus />
               Add item
             </Button>
@@ -209,16 +213,19 @@ export default function ExperiencePage() {
               title="Add your experience"
               description="Every tailored CV is built from these items, and fit scores compare jobs against them."
               action={
-                <Button variant="default" size="sm" onClick={() => setCreatingKind('job')}>
-                  <Plus />
-                  Add first item
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="default" size="sm" onClick={() => setCreatingKind('job')}>
+                    <Plus />
+                    Add first item
+                  </Button>
+                  <TourButton tour="experience" />
+                </div>
               }
             />
           ) : (
             <>
               {tagCounts.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div data-tour="experience-tags" className="flex flex-wrap items-center gap-1.5">
                   <span className="mr-1 text-xs text-fg-subtle">Filter by tag</span>
                   {tagCounts.map(([tag, count]) => {
                     const on = tagFilter.includes(tag)
@@ -247,6 +254,7 @@ export default function ExperiencePage() {
                 </div>
               )}
 
+              <div data-tour="experience-groups" className="space-y-6">
               {KINDS.map(({ kind, label, singular, icon: Icon }) => {
                 const group = items.filter((i) => i.kind === kind)
                 const shown = group.filter(visible)
@@ -273,9 +281,10 @@ export default function ExperiencePage() {
                       <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd(kind)}>
                           <SortableContext items={shown.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                            {shown.map((item) => (
+                            {shown.map((item, i) => (
                               <Row
                                 key={item.id}
+                                tour={kind === 'job' && i === 0 ? 'experience-row' : undefined}
                                 item={item}
                                 dragDisabled={tagFilter.length > 0}
                                 onEdit={() => setEditing(item)}
@@ -299,6 +308,7 @@ export default function ExperiencePage() {
                   </section>
                 )
               })}
+              </div>
             </>
           )}
         </div>

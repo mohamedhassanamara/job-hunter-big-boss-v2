@@ -19,6 +19,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
 import { EmptyState, ErrorState } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -42,6 +43,7 @@ function Card({
   hrefLabel = 'View all',
   children,
   className,
+  tour,
 }: {
   icon: LucideIcon
   title: string
@@ -50,9 +52,10 @@ function Card({
   hrefLabel?: string
   children: React.ReactNode
   className?: string
+  tour?: string
 }) {
   return (
-    <section className={cn('flex flex-col rounded-lg border border-border bg-surface shadow-sm', className)}>
+    <section data-tour={tour} className={cn('flex flex-col rounded-lg border border-border bg-surface shadow-sm', className)}>
       <div className="flex h-11 items-center gap-2 border-b border-border px-4">
         <Icon className="size-4 text-fg-subtle" strokeWidth={1.75} />
         <h2 className="text-sm font-semibold">{title}</h2>
@@ -120,7 +123,7 @@ function QueueCard({ queue }: { queue: Today['queue'] }) {
       onError: (e) => toast.error(e.message),
     })
   return (
-    <Card icon={Send} title="Send queue" href="/outreach?tab=queue" hrefLabel="Open">
+    <Card icon={Send} title="Send queue" href="/outreach?tab=queue" hrefLabel="Open" tour="today-queue">
       <div className="space-y-3 p-4">
         <div className="flex items-center justify-between">
           <ToneBadge tone={running ? 'green' : queue.status === 'paused' ? 'amber' : 'gray'}>
@@ -162,7 +165,7 @@ function DiscoveryCard({ runs }: { runs: Today['last_runs'] }) {
     null,
   )
   return (
-    <Card icon={Radar} title="Last discovery">
+    <Card icon={Radar} title="Last discovery" tour="today-discovery">
       <div className="p-4">
         {runs.length === 0 ? (
           <p className="text-sm text-fg-muted">Discovery hasn't run yet.</p>
@@ -282,7 +285,7 @@ function Onboarding() {
           </li>
         ))}
       </ol>
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
         <Button variant="default" size="sm" asChild>
           <Link to="/experience?new=1">
             <Layers />
@@ -299,6 +302,7 @@ function Onboarding() {
           <Radar />
           Run discovery
         </Button>
+        <TourButton tour="today" label="Tour the app with sample data" />
       </div>
     </div>
   )
@@ -329,7 +333,7 @@ export default function TodayPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
-      <header>
+      <header data-tour="today-greeting">
         <h1 className="text-xl font-semibold tracking-tight">{greeting()}</h1>
         <p className="text-sm text-fg-muted">
           {date} ·{' '}
@@ -369,6 +373,7 @@ export default function TodayPage() {
           <Card
             icon={Compass}
             title="New high-fit jobs"
+            tour="today-high-fit"
             count={data.new_high_fit_total}
             href={`/discover?min_score=${data.min_fit_score}`}
           >
@@ -388,7 +393,7 @@ export default function TodayPage() {
             )}
           </Card>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" data-tour="today-review">
             <Card icon={FileText} title="CVs to review" count={data.cvs_to_review.length}>
               {data.cvs_to_review.length === 0 ? (
                 <Nothing text="No CVs waiting" />
@@ -426,6 +431,7 @@ export default function TodayPage() {
           <Card
             icon={Globe}
             title="Ready to apply manually"
+            tour="today-manual"
             count={data.ready_to_apply.length}
             href="/pipeline?view=table"
           >

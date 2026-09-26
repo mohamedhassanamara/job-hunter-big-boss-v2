@@ -142,7 +142,9 @@ def test_settings_and_profile(client: TestClient) -> None:
     assert r.json()["values"]["sources"]["adzuna"] is False
     profile = client.get("/api/search-profile").json()
     profile["min_fit_score"] = 70
-    assert client.put("/api/search-profile", json=profile).json()["min_fit_score"] == 70
+    profile["max_age_days"] = 14
+    saved = client.put("/api/search-profile", json=profile).json()
+    assert saved["min_fit_score"] == 70 and saved["max_age_days"] == 14
 
 
 def test_discovery_run_mock(client: TestClient) -> None:

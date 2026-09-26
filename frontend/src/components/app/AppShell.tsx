@@ -7,6 +7,8 @@ import { ALL_NAV } from './nav'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { TourProvider } from './tour/TourProvider'
+import { TourStrip } from './tour/TourStrip'
 
 const COLLAPSE_KEY = 'jh-sidebar-collapsed'
 const AUTO_COLLAPSE_QUERY = '(max-width: 1279px)'
@@ -56,9 +58,11 @@ export function AppShell() {
   })
 
   return (
+    <TourProvider>
     <div className="flex h-full min-w-[1024px]">
       <Sidebar collapsed={collapsed} onToggle={toggle} />
       <div className="flex min-w-0 flex-1 flex-col">
+        <TourStrip />
         <TopBar onSearch={() => setPaletteOpen(true)} onHelp={() => setHelpOpen(true)} />
         <main className="min-h-0 flex-1 overflow-y-auto">
           <Outlet />
@@ -68,5 +72,6 @@ export function AppShell() {
       <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
       <DiscoveryWatcher />
     </div>
+    </TourProvider>
   )
 }

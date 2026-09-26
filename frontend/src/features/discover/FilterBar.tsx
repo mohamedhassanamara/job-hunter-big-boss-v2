@@ -94,7 +94,7 @@ export function FilterBar({
   onClear: () => void
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-border bg-bg px-6 py-2.5">
+    <div data-tour="discover-filters" className="flex flex-wrap items-center gap-2 border-b border-border bg-bg px-6 py-2.5">
       <div className="relative w-64">
         <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-fg-subtle" />
         <Input

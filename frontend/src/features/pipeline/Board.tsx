@@ -97,6 +97,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
+      data-tour={`pipeline-column-${stage}`}
       className={cn(
         'flex w-64 shrink-0 flex-col rounded-lg border border-transparent bg-bg-subtle transition-colors duration-120',
         activeCard && !allowed && !isSource && 'opacity-50',
@@ -149,7 +150,7 @@ export function Board({
       onDragEnd={onDragEnd}
       onDragCancel={() => setActive(null)}
     >
-      <div className="flex h-full gap-3 overflow-x-auto px-6 py-4">
+      <div data-tour="pipeline-board" className="flex h-full gap-3 overflow-x-auto px-6 py-4">
         {STAGE_ORDER.map((stage) => (
           <Column
             key={stage}

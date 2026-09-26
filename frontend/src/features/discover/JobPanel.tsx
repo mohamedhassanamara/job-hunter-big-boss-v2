@@ -30,7 +30,7 @@ export function JobPanel({
   const { data: job, isPending, error, refetch } = useJob(jobId)
 
   return (
-    <aside className="flex h-full w-[440px] shrink-0 flex-col border-l border-border bg-surface max-xl:w-[380px]">
+    <aside data-tour="discover-panel" className="flex h-full w-[440px] shrink-0 flex-col border-l border-border bg-surface max-xl:w-[380px]">
       <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
         <span className="text-xs text-fg-subtle">
           <Kbd>J</Kbd> <Kbd>K</Kbd> to move · <Kbd>Esc</Kbd> to close
@@ -80,7 +80,7 @@ export function JobPanel({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div data-tour="discover-actions" className="flex flex-wrap items-center gap-2">
               {job.application.stage === 'new' ? (
                 <>
                   <Button variant="default" size="sm" onClick={onShortlist}>
