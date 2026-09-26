@@ -1,0 +1,209 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+@import "./tokens.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Disable Tailwind's default palette & type scale: only our tokens exist. */
+@theme {
+  --color-*: initial;
+  --text-*: initial;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-2xs: 11px;
+  --text-2xs--line-height: 16px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 20px;
+  --text-base: 14px;
+  --text-base--line-height: 22px;
+  --text-md: 16px;
+  --text-md--line-height: 24px;
+  --text-lg: 20px;
+  --text-lg--line-height: 28px;
+  --text-xl: 24px;
+  --text-xl--line-height: 32px;
+  --text-2xl: 30px;
+  --text-2xl--line-height: 36px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --animate-in-fade: fade-in 120ms ease-out;
+}
+
+/* Token → utility mapping. Components use these names only. */
+@theme inline {
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-selected: var(--surface-selected);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-overlay: var(--overlay);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-ring: var(--ring);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-solid-hover: var(--danger-solid-hover);
+
+  --color-stage-new-dot: var(--tone-slate-dot);
+  --color-stage-new-bg: var(--tone-slate-bg);
+  --color-stage-new-fg: var(--tone-slate-fg);
+  --color-stage-new-border: var(--tone-slate-border);
+  --color-stage-shortlisted-dot: var(--tone-blue-dot);
+  --color-stage-shortlisted-bg: var(--tone-blue-bg);
+  --color-stage-shortlisted-fg: var(--tone-blue-fg);
+  --color-stage-shortlisted-border: var(--tone-blue-border);
+  --color-stage-cv-ready-dot: var(--tone-violet-dot);
+  --color-stage-cv-ready-bg: var(--tone-violet-bg);
+  --color-stage-cv-ready-fg: var(--tone-violet-fg);
+  --color-stage-cv-ready-border: var(--tone-violet-border);
+  --color-stage-ready-dot: var(--tone-amber-dot);
+  --color-stage-ready-bg: var(--tone-amber-bg);
+  --color-stage-ready-fg: var(--tone-amber-fg);
+  --color-stage-ready-border: var(--tone-amber-border);
+  --color-stage-done-dot: var(--tone-teal-dot);
+  --color-stage-done-bg: var(--tone-teal-bg);
+  --color-stage-done-fg: var(--tone-teal-fg);
+  --color-stage-done-border: var(--tone-teal-border);
+  --color-stage-interview-dot: var(--tone-green-dot);
+  --color-stage-interview-bg: var(--tone-green-bg);
+  --color-stage-interview-fg: var(--tone-green-fg);
+  --color-stage-interview-border: var(--tone-green-border);
+  --color-stage-closed-dot: var(--tone-gray-dot);
+  --color-stage-closed-bg: var(--tone-gray-bg);
+  --color-stage-closed-fg: var(--tone-gray-fg);
+  --color-stage-closed-border: var(--tone-gray-border);
+  --color-fit-strong-dot: var(--tone-green-dot);
+  --color-fit-strong-bg: var(--tone-green-bg);
+  --color-fit-strong-fg: var(--tone-green-fg);
+  --color-fit-strong-border: var(--tone-green-border);
+  --color-fit-good-dot: var(--tone-teal-dot);
+  --color-fit-good-bg: var(--tone-teal-bg);
+  --color-fit-good-fg: var(--tone-teal-fg);
+  --color-fit-good-border: var(--tone-teal-border);
+  --color-fit-fair-dot: var(--tone-amber-dot);
+  --color-fit-fair-bg: var(--tone-amber-bg);
+  --color-fit-fair-fg: var(--tone-amber-fg);
+  --color-fit-fair-border: var(--tone-amber-border);
+  --color-fit-weak-dot: var(--tone-gray-dot);
+  --color-fit-weak-bg: var(--tone-gray-bg);
+  --color-fit-weak-fg: var(--tone-gray-fg);
+  --color-fit-weak-border: var(--tone-gray-border);
+  --color-success-dot: var(--success-dot);
+  --color-success-bg: var(--success-bg);
+  --color-success-fg: var(--success-fg);
+  --color-warning-dot: var(--warning-dot);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-fg: var(--warning-fg);
+  --color-danger-dot: var(--danger-dot);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-fg: var(--danger-fg);
+  --color-info-dot: var(--info-dot);
+  --color-info-bg: var(--info-bg);
+  --color-info-fg: var(--info-fg);
+  --color-tone-slate-dot: var(--tone-slate-dot);
+  --color-tone-slate-bg: var(--tone-slate-bg);
+  --color-tone-slate-fg: var(--tone-slate-fg);
+  --color-tone-slate-border: var(--tone-slate-border);
+  --color-tone-blue-dot: var(--tone-blue-dot);
+  --color-tone-blue-bg: var(--tone-blue-bg);
+  --color-tone-blue-fg: var(--tone-blue-fg);
+  --color-tone-blue-border: var(--tone-blue-border);
+  --color-tone-violet-dot: var(--tone-violet-dot);
+  --color-tone-violet-bg: var(--tone-violet-bg);
+  --color-tone-violet-fg: var(--tone-violet-fg);
+  --color-tone-violet-border: var(--tone-violet-border);
+  --color-tone-amber-dot: var(--tone-amber-dot);
+  --color-tone-amber-bg: var(--tone-amber-bg);
+  --color-tone-amber-fg: var(--tone-amber-fg);
+  --color-tone-amber-border: var(--tone-amber-border);
+  --color-tone-teal-dot: var(--tone-teal-dot);
+  --color-tone-teal-bg: var(--tone-teal-bg);
+  --color-tone-teal-fg: var(--tone-teal-fg);
+  --color-tone-teal-border: var(--tone-teal-border);
+  --color-tone-green-dot: var(--tone-green-dot);
+  --color-tone-green-bg: var(--tone-green-bg);
+  --color-tone-green-fg: var(--tone-green-fg);
+  --color-tone-green-border: var(--tone-green-border);
+  --color-tone-gray-dot: var(--tone-gray-dot);
+  --color-tone-gray-bg: var(--tone-gray-bg);
+  --color-tone-gray-fg: var(--tone-gray-fg);
+  --color-tone-gray-border: var(--tone-gray-border);
+  --color-tone-red-dot: var(--tone-red-dot);
+  --color-tone-red-bg: var(--tone-red-bg);
+  --color-tone-red-fg: var(--tone-red-fg);
+  --color-tone-red-border: var(--tone-red-border);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-lg: var(--shadow-lg);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--primary-subtle);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
