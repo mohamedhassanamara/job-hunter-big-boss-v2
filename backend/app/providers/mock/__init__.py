@@ -85,24 +85,29 @@ class MockCVGenerator:
         jobs = [e for e in experience if e.kind == "job"]
         projects = [e for e in experience if e.kind == "project"]
         skills = [e for e in experience if e.kind == "skill"]
-        edu = [e for e in experience if e.kind == "education"]
+        edu = [e for e in experience if e.kind in ("education", "certification")]
         return CVContent(
             name="Your Name",
             headline=f"{job.title.split('(')[0].strip()} · Data platforms & applied AI",
             contact=["Madrid, Spain", "hello@example.com", "linkedin.com/in/example"],
             summary=(
-                f"Data engineer focused on reliable pipelines and LLM-powered products. "
-                f"Tailored for {job.company}: {job.title}."
+                "Senior data engineer with 7+ years building batch and streaming platforms on "
+                "AWS and GCP, and the last two shipping LLM-powered features to production. "
+                "I own systems end to end, from ingestion and modelling to evaluation and cost, "
+                f"and I care about clear data contracts. Keen to bring this to {job.company}."
             ),
             experience=[
-                CVEntry(title=e.title, org=e.org or "", dates=e.dates or "", bullets=e.bullets[:4])
+                CVEntry(title=e.title, org=e.org or "", dates=e.dates or "", bullets=e.bullets[:5])
                 for e in jobs[:3]
             ],
             projects=[
-                CVEntry(title=e.title, org=e.org or "", bullets=e.bullets[:2]) for e in projects[:2]
+                CVEntry(title=e.title, org=e.org or "", bullets=e.bullets[:2]) for e in projects[:3]
             ],
             skills=[CVSkillGroup(group=e.title, items=e.tags[:8]) for e in skills[:4]],
-            education=[CVEntry(title=e.title, org=e.org or "", dates=e.dates or "") for e in edu],
+            education=[
+                CVEntry(title=e.title, org=e.org or "", dates=e.dates or "", bullets=e.bullets[:1])
+                for e in edu
+            ],
         )
 
 

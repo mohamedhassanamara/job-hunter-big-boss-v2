@@ -30,6 +30,10 @@ All colors are OKLCH. Neutrals carry a faint cool tint (hue 270) so they sit wel
 | `--fg-muted` | `text-fg-muted` | `oklch(0.47 0.012 270)` | `oklch(0.73 0.01 270)` | Secondary text, labels |
 | `--fg-subtle` | `text-fg-subtle` | `oklch(0.6 0.01 270)` | `oklch(0.58 0.01 270)` | Meta text, placeholders, icons |
 
+### Paper
+
+`--paper`, `--paper-fg`, `--paper-muted`, `--paper-rule`, `--paper-accent` (utilities `bg-paper`, `text-paper-fg`…) are used only by the CV preview. They stay white/ink in **both** themes, because the preview represents the printed PDF. The preview also uses print-scale arbitrary font sizes (`text-[11px]` etc.), since it simulates the LaTeX page. This is the only exception to the type scale.
+
 ### Brand (primary)
 
 One indigo-violet hue (275). Used for the primary action, focus, links, and selection accents only.

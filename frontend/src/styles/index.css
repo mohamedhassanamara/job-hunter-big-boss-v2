@@ -55,6 +55,11 @@
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
   --color-overlay: var(--overlay);
+  --color-paper: var(--paper);
+  --color-paper-fg: var(--paper-fg);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-rule: var(--paper-rule);
+  --color-paper-accent: var(--paper-accent);
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
