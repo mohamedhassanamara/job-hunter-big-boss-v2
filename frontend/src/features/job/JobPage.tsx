@@ -42,7 +42,7 @@ import { SegmentedList, SegmentedTrigger, Tabs } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { ApiError } from '@/lib/api'
-import { absoluteDate, relativeTime, STAGE_LABELS } from '@/lib/format'
+import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
 import { useGenerateDraft } from '@/lib/queries/workflow'
 import type { CloseReason, DraftStatus, JobDetail, Route, Stage } from '@/lib/types'
@@ -524,7 +524,7 @@ export default function JobPage() {
           <CVSection job={job} />
           <EmailSection job={job} />
           <NotesCard key={job.id} job={job} />
-          <Section title="Listing" action={<ExternalListingButton url={job.url} label="Original" />}>
+          <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
             <div className="p-4">
               <Prose text={job.description} />
             </div>

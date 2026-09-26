@@ -1,6 +1,7 @@
 import { Compass, Radar, SearchX } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import { DiscoveryProgress } from '@/components/app/DiscoveryProgress'
 import { PageHeader } from '@/components/app/PageHeader'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
@@ -123,6 +124,7 @@ export default function DiscoverPage() {
           </TabsList>
         </Tabs>
       </PageHeader>
+      <DiscoveryProgress />
       <FilterBar filters={filters} onChange={setFilters} onClear={clearFilters} />
 
       <div className="flex min-h-0 flex-1">

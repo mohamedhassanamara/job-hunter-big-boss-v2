@@ -1,17 +1,24 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { pluralize } from '@/lib/format'
-import { useRunDiscovery } from '@/lib/queries/workflow'
+import { keys } from '@/lib/queries/keys'
+import { useDiscoveryStatus, useStartDiscovery } from '@/lib/queries/workflow'
 
+/** Start a discovery run. Progress and the summary toast come from <DiscoveryWatcher/>. */
 export function useDiscoveryAction() {
-  const run = useRunDiscovery()
-  const trigger = () =>
-    toast.promise(run.mutateAsync(), {
-      loading: 'Running discovery across enabled sources…',
-      success: (r) =>
-        r.new_jobs
-          ? `${pluralize(r.new_jobs, 'new job')} found and scored`
-          : 'No new jobs this time',
-      error: (e: Error) => `Discovery failed: ${e.message}`,
+  const start = useStartDiscovery()
+  const status = useDiscoveryStatus()
+  const qc = useQueryClient()
+  const running = !!status.data?.running
+
+  const trigger = () => {
+    if (running) return
+    start.mutate(undefined, {
+      onSuccess: () => {
+        toast('Discovery started', { description: 'Pulling jobs from your enabled sources…' })
+        void qc.invalidateQueries({ queryKey: keys.discoveryStatus })
+      },
+      onError: (e) => toast.error(e.message),
     })
-  return { trigger, pending: run.isPending }
+  }
+  return { trigger, pending: start.isPending || running }
 }

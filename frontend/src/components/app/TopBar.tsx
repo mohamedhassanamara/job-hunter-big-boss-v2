@@ -1,4 +1,4 @@
-import { CircleHelp, Radar, Search } from 'lucide-react'
+import { CircleHelp, LoaderCircle, Radar, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -23,8 +23,8 @@ export function TopBar({ onSearch, onHelp }: { onSearch: () => void; onHelp: () 
       <div className="ml-auto flex items-center gap-1">
         <Tooltip content="Pull new jobs from all enabled sources (mock in phase 0)">
           <Button variant="ghost" size="sm" onClick={discovery.trigger} disabled={discovery.pending}>
-            <Radar className={discovery.pending ? 'animate-pulse' : undefined} />
-            Run discovery
+            {discovery.pending ? <LoaderCircle className="animate-spin" /> : <Radar />}
+            {discovery.pending ? 'Discovering…' : 'Run discovery'}
           </Button>
         </Tooltip>
         <ThemeToggle />

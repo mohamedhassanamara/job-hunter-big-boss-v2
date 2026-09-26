@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
-import { absoluteDate, relativeTime } from '@/lib/format'
+import { absoluteDate, relativeTime, SOURCE_LABELS } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
 
 export function JobPanel({
@@ -105,7 +105,7 @@ export function JobPanel({
                   </Button>
                 </>
               )}
-              <ExternalListingButton url={job.url} />
+              <ExternalListingButton url={job.url} label={`Open on ${SOURCE_LABELS[job.source]}`} />
             </div>
 
             <JobFlags job={job} />
