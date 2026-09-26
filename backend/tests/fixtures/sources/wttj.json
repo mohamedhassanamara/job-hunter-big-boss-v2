@@ -1,0 +1,3005 @@
+{
+ "results": [
+  {
+   "hits": [
+    {
+     "contract_type": "full_time",
+     "slug": "senior-data-engineer-platform_madrid_jxfn7aiu",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "punctual",
+     "salary_period": null,
+     "summary": "Join Ebury, a fast-growing fintech company, as a Senior Data Platform Engineer. In this role, you will lead the evolution of Ebury's core data platform, transforming raw data into a reliable, scalable asset for teams worldwide. You will work directly with modern cloud architectures and a high-performing engineering team. The position is based in Madrid with a hybrid setup (4 days in-office, 1 day remote).",
+     "organization": {
+      "name": "Ebury",
+      "slug": "ebury-1"
+     },
+     "published_at": "2026-09-26T00:22:34Z",
+     "salary_currency": null,
+     "profile": null,
+     "name": "Senior Data Engineer - Platform ",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Lead the evolution of Ebury's core data platform, transforming raw data into a reliable, scalable asset for teams worldwide.",
+      "Architect robust, open-source-friendly frameworks and establish data governance that directly fuels Ebury's strategic global growth.",
+      "Collaborate with cross-functional teams to empower them to make faster, sharper decisions backed by accessible, high-quality data."
+     ],
+     "objectID": "ad1a1c2b-2d06-4084-91de-a88760c73ccf"
+    },
+    {
+     "contract_type": "freelance",
+     "salary_maximum": null,
+     "published_at": "2026-09-22T08:00:03Z",
+     "salary_period": "daily",
+     "slug": "freelance-senior-data-solution-engineer_madrid",
+     "key_missions": [
+      "Own around 2 custom client projects per month, end-to-end, from needs qualification to final restitution.",
+      "Build the deliverables yourself, in Python (pandas) notebooks, SmartDash dashboards, mockups and SQL (BigQuery / Snowflake).",
+      "Qualify client needs with our Account Executives and turn them into a scoped, sellable analysis."
+     ],
+     "salary_currency": "EUR",
+     "salary_minimum": 450.0,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "language": "en",
+     "profile": null,
+     "name": "Freelance - Senior Data Solution Engineer",
+     "organization": {
+      "name": "MYTRAFFIC",
+      "slug": "mytraffic"
+     },
+     "summary": "Join MyTraffic, Europe's leading location intelligence platform, as a freelance Senior Data Solution Engineer. In this role, you will own custom data projects end-to-end, delivering around 2 client projects per month. You will work closely with the Custom Solutions team, Account Executives, Product, and Data teams. This is a 4 to 5 month mission, fully remote from Barcelona or Madrid.",
+     "objectID": "66bb9bb2-9f3c-442b-8b77-31cf733d4b24"
+    },
+    {
+     "slug": "staff-backend-engineer-databases-analytics_es_4p56rlko",
+     "language": "en",
+     "organization": {
+      "name": "Grafana Labs",
+      "slug": "grafana-labs"
+     },
+     "summary": "Join Grafana Labs, a leading observability tools company, as a Staff Backend Engineer. In this role, you will design and build the core backend architecture for an AI-native data intelligence system. You will have the opportunity to work in a highly collaborative environment, take ownership of your projects, and make a significant impact on the company's success. Enjoy a range of benefits, including 30 days of paid vacation, health coverage, retirement planning, and professional development opportunities.",
+     "published_at": "2026-09-23T00:19:58Z",
+     "salary_currency": "EUR",
+     "remote": "fulltime",
+     "salary_minimum": 94025.0,
+     "key_missions": [
+      "Concevoir et expédier l'architecture backend principale qui alimente l'ingestion, le stockage de contexte, les API de récupération et les intégrations.",
+      "Aider à définir et à construire l'architecture d'un service multi-tenant, y compris l'isolement des locataires, le suivi de l'utilisation, les quotas.",
+      "Construire des API et des interfaces de service qui permettent aux agents d'IA, aux outils MCP, aux CLIs et aux applications internes de récupérer le contexte pertinent."
+     ],
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": " - This is an early-stage role on a high-autonomy team, so you should be comfortable working through ambiguity, making pragmatic architectural decisions, and building systems that can evolve from internal dogfooding to production-grade SaaS\n- Experience using observability tools to understand and troubleshoot system behavior\n- Collaborative attitude: You communicate effectively with your peers. You’re open to feedback, and you bring a solutions-oriented mindset to the table\n- AI experience with a practical mindset: You’re familiar with AI technologies and frameworks, and you focus on delivering high-quality solutions that work in the real world, not just in theory\n- Proven track record of delivering software that made it into production and is actively used by users\n- Quick iteration and experimentation: You’re comfortable releasing prototypes, collecting feedback, and iterating with a pragmatic mindset\n- Proven initiative: You take ownership and drive projects forward, pushing boundaries to find the most impactful solutions. You can deal with ambiguity and are able to define scope where things are loosely defined\n- Experience with LLMs, prompt engineering, and building applications powered by GenAI\n- Strong engineering skills: Solid experience building production-grade, user-facing software systems. You’re a self-starter, capable of tackling complex engineering problems and making UI design decisions with minimal supervision\n- Exposure to working in cloud-native environments (e.g., AWS, GCP, Azure)\n- Experience building tools for data engineering\n- Experience as a data analyst or work with data platforms (e.g., Looker, Tableau, PowerBI, Snowflake, DataBricks)\n- Experience building or working with agent frameworks or multi‑agent workflows",
+     "name": "Staff Backend Engineer (Databases Analytics)",
+     "contract_type": "full_time",
+     "salary_maximum": 112830.0,
+     "salary_period": "yearly",
+     "objectID": "5320874a-6981-4611-95e7-39775de3429d"
+    },
+    {
+     "salary_period": "yearly",
+     "salary_minimum": 2500.0,
+     "summary": "Rejoignez notre équipe en tant qu'Ingénieur Data. Vous serez responsable de la mise en place de plateformes Data Fabric, de l'établissement d'une gouvernance des données, de l'intégration et de l'exploitation de solutions PIM/DAM/MDM, et du développement de notre expertise pour de futures typologies de projet. Vous collaborerez avec les équipes métiers et techniques sur des projets variés et contribuerez aux phases d'avant-vente.",
+     "offices": [
+      {
+       "state": "Catalonia",
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Barcelona",
+       "local_district": "Barcelona",
+       "local_city": "Barcelona",
+       "local_state": "Catalunya"
+      }
+     ],
+     "slug": "vie-ingenieur-data_barcelona",
+     "language": "fr",
+     "contract_type": "vie",
+     "salary_currency": "EUR",
+     "remote": "punctual",
+     "salary_maximum": null,
+     "key_missions": [
+      "Concevoir, développer et maintenir des pipelines de données, assurer la qualité, la structuration et la disponibilité des données.",
+      "Définir les rôles et les responsabilités en matière de gouvernance des données, mettre en place des bonnes pratiques de gouvernance.",
+      "Participer à l'intégration et à l'exploitation de solutions PIM / DAM / MDM, et développer notre expertise pour de futures typologies de projet."
+     ],
+     "profile": "* Formation en ingénierie data Bac+5\n    \n* Expérience en ingénierie des données (ETL, modélisation…)\n    \n* Connaissances en développement back end : APIs\n    \n* Connaissances en data platforms : Fabric / Azure, Snowflake, Big Query\n    \n* Connaissances techniques : Python, SQL\n    \n* Autonomie, rigueur et esprit dʼéquipe\n    \n\nPourquoi nous rejoindre ?\n\n* Projets variés et à fort impact\n    \n* Rôle important à jouer dans le développement de lʼéquipe Data\n    \n* Environnement technique stimulant\n    \n* Possibilités dʼévolution",
+     "name": "VIE - Ingénieur Data",
+     "published_at": "2026-09-17T10:03:21Z",
+     "organization": {
+      "name": "Hello Pomelo",
+      "slug": "hello-pomelo"
+     },
+     "objectID": "4dedb2d6-342e-4799-a4f9-e915cb7a247c"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "engineer-ai-platform_madrid_6a34yq2d",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "punctual",
+     "salary_period": null,
+     "summary": "Join Ebury, a fast-growing fintech company, as a Senior Data Engineer - AI Platform. In this hybrid role, you will work closely with the Data Platform team and cross-functional domain teams to design and deliver platform capabilities that enable Ebury to ship AI and agentic products safely and at scale. You will be responsible for designing and delivering core components of Ebury's Agentic Data Plane, building platform primitives for secure tool use coordination, providing end-to-end observability for agentic products, integrating the ADP with the Data Platform's governed foundations, collaborating with domain teams, and driving innovation.",
+     "organization": {
+      "name": "Ebury",
+      "slug": "ebury-1"
+     },
+     "published_at": "2026-09-17T00:21:19Z",
+     "salary_currency": null,
+     "profile": null,
+     "name": "Engineer - AI Platform ",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Design and deliver core components of Ebury's Agentic Data Plane, including agent-to-agent (A2A) communication, the Agent Tool Registry, and governed data access layers.",
+      "Build platform primitives for secure tool use coordination, including \"on behalf of\" (OBO) patterns, centralized policy guardrails, and audit logging with full replayability.",
+      "Provide end-to-end observability for agentic products: data dependencies, traces, evaluation signals, and accountability as a day-one requirement."
+     ],
+     "objectID": "5911111e-65e4-436d-8802-2e4edcc6be55"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-data-engineer-platform_valencia_gdbfci7d",
+     "salary_maximum": null,
+     "organization": {
+      "name": "Ebury",
+      "slug": "ebury-1"
+     },
+     "remote": "punctual",
+     "salary_minimum": null,
+     "salary_period": null,
+     "published_at": "2026-09-16T00:21:23Z",
+     "salary_currency": null,
+     "profile": null,
+     "name": "Senior Data Engineer - Analytics Platform ",
+     "offices": [
+      {
+       "state": null,
+       "city": "Valencia",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join Ebury, a fast-growing fintech company, as a Senior Data Engineer in our Madrid office. In this role, you will own and evolve Ebury's analytics platform, define and manage the software development lifecycle for analyst workflows, and support the Data Analyst community. You will collaborate closely with the rest of the Data Platform team and drive continuous improvement by evaluating emerging BI and analytics tooling.",
+     "key_missions": [
+      "Own and evolve Ebury's analytics platform end-to-end, with Sigma as the core BI and visualization tool.",
+      "Define and manage the SDLC for analyst workflows across dbt and BigQuery: development standards, testing, code review, CI/CD, and release processes.",
+      "Build the frameworks and guardrails that enable self-service analytics — ensuring dashboards and datasets are discoverable, documented, governed, and trustworthy."
+     ],
+     "language": "en",
+     "objectID": "9300e9f1-486c-4d09-a891-520bbe3d1bfe"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "data-engineering-manager_barcelona_obf36vcv",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "unknown",
+     "salary_period": null,
+     "summary": "Join our team as a Data Engineering Manager, where you will lead a skilled team of data engineers in building and maintaining complex data pipelines that handle large data streams. You will be responsible for the architecture, design, implementation, maintenance, and scaling of our data pipelines, and will collaborate closely with product, other engineering teams, support, and business teams. This is a high-impact role that directly impacts hotels worldwide and requires a combination of strong technical experience and operational and people management excellence.",
+     "organization": {
+      "name": "Lighthouse",
+      "slug": "lighthouse"
+     },
+     "published_at": "2026-09-12T00:13:30Z",
+     "salary_currency": null,
+     "profile": " - You get energized from optimizing technical architectures, structure, tooling, support and other processes\n- You are a forward-thinking builder who views AI as a core component of modern architecture. You have a proven interest (or experience) in working with LLMs, agentic workflows, or AI-assisted coding tools to ship higher-quality code, faster\n- Professional proficiency in Python for large-scale data processing and pipeline development\n- You have a proactive, \"can-do\" attitude, viewing challenges as opportunities and inspiring a positive, solution-oriented mindset within your team\n- Fluency in English, with excellent communication and stakeholder management skills\n- You are an experienced people leader with a track record of managing engineering teams, with a passion for coaching and mentoring engineers and driving their technical and professional growth\n- You come from a strong hands-on background in data engineering, with deep experience in ETL/ELT, batch and streaming pipelines, complex data transformations, and data modelling\n- You excel at seeing the bigger picture, breaking down large architectural projects into clear, manageable tasks, and accurately estimating effort\n- Strong knowledge of data cloud technologies, data streaming systems (like Google Cloud Pub/Sub or Kafka), and cloud database solutions (like BigQuery, Spanner, Snowflake, or Databricks)\n- Technologies you will work with: Python, Google Cloud Platform (GCP), BigQuery, Spanner, Pub/Sub, Kubernetes\n- Not ticking every box? No problem! We value diverse backgrounds and unique skill sets, and we encourage individuals from all walks of life to apply. If your experience looks a little different from what we've described, but you're passionate about what we do and are a quick learner, we'd love to hear from you!\n- Experience within the hospitality technology sector or similar industries (e.g. airline industry)\n- Experience building integrations with third-party APIs and external data sources",
+     "name": "Data Engineering Manager",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Lead and manage a team of data engineers, fostering a culture of technical excellence and long-term career growth.",
+      "Drive the architecture, design, implementation, maintenance, improvements, and scaling of the streaming and batch data pipelines.",
+      "Collaborate closely with product, other engineering teams, support, and business teams to ensure successful delivery of data products."
+     ],
+     "objectID": "a0a55aae-e9e5-420a-94d5-1b3a250e1ecf"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "data-engineer_es_tj6z3fmx",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "unknown",
+     "salary_period": null,
+     "summary": "Join Bynder as a Data Engineer and play a crucial role in developing data pipelines and building self-serve data tools for internal stakeholders and customers. You will work closely with Data Analysts, Data Scientists, Software Engineers, and DevOps Engineers, and see the direct impact of your work on improving the Bynder product and providing insights to internal stakeholders. You will also take a leading role in improving our data architecture, developing and maintaining our data platform infrastructure in the cloud, and supporting the entire Product & Engineering organization in their data needs.",
+     "organization": {
+      "name": "Bynder",
+      "slug": "bynder"
+     },
+     "published_at": "2026-09-12T00:07:29Z",
+     "salary_currency": null,
+     "profile": " - Experienced fully in AI Native development\n- Using industry standard data pipelining tools (Spark, Kafka)\n- Minimum of 5+ years of Data Engineering experience and furthermore hands-on experienced in:\n- Using infrastructure-as-code solutions (Terraform)\n- Designing Data Platforms and taking architectural decisions, leading the way towards better data ecosystems\n- Knowledge and experience in Data Mesh\n- Using data/task orchestration tools (Airflow)\n- Cloud computing-based data cloud solutions (Snowflake)\n- Partnering with cross-functional teams of engineers, data scientists and devops in defining a modern data architecture\n- Developing data flows for the processing of data at scale\n- Knowledge and experience in Data Governance and Data Lineage best practices\n- Working with AWS (S3, Glue, Athena, EMR, etc.)\n- A growth mindset and the determination to improve yourself and others\n- Great communication skills in English\n- A critical thinking mindset and the courage to speak your mind",
+     "name": "Data Engineer",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Develop and maintain data pipelines and self-serve data tools for internal stakeholders and customers.",
+      "Take a leading role in the improvement of data architecture by applying Data Mesh principles and implementing best practices.",
+      "Support the entire Product & Engineering organization in their data needs by developing custom ETL pipelines and optimizing data for analysis."
+     ],
+     "objectID": "2cc71783-9c0e-4d2c-a6de-7180c8e6ddb3"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "data-engineer_paris_JOKO_K6yZbxR",
+     "salary_maximum": 100200.0,
+     "organization": {
+      "name": "Joko",
+      "slug": "joko"
+     },
+     "remote": "partial",
+     "salary_minimum": 70000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-08T22:03:40Z",
+     "salary_currency": "EUR",
+     "profile": null,
+     "name": "Data Engineer",
+     "offices": [
+      {
+       "state": "Catalonia",
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Barcelona",
+       "local_district": "Barcelona",
+       "local_city": "Barcelona",
+       "local_state": "Catalunya"
+      },
+      {
+       "state": "Ile-de-France",
+       "city": "Paris",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Paris",
+       "local_district": "Paris",
+       "local_city": "Paris",
+       "local_state": "Île-de-France"
+      }
+     ],
+     "summary": "Join Joko, a tech company on a mission to help consumers save time and money when shopping online or in-store. As a Data Engineer, you will own and scale our data infrastructure, working closely with Data Analysts, Product Managers, and Engineers. You will lead the evolution of our stack, power AI initiatives, design and maintain data pipelines, ensure data quality and observability, manage data access and governance, and implement documentation and knowledge sharing.",
+     "key_missions": [
+      "Lead the evolution of the data stack to make it more scalable, reliable, and cost-efficient, anticipating growth in data volume and complexity.",
+      "Design and maintain data pipelines, building robust processes to ingest data from multiple sources and orchestrate them efficiently.",
+      "Implement monitoring, testing, and alerting systems to ensure the freshness, reliability, and accuracy of data across the company."
+     ],
+     "language": "en",
+     "objectID": "ec13de0c-e6a2-4d1d-b1de-c172ad089ce3"
+    },
+    {
+     "organization": {
+      "name": "Quadient",
+      "slug": "quadient"
+     },
+     "language": "en",
+     "slug": "data-analytics-engineer_madrid",
+     "published_at": "2026-09-08T22:02:01Z",
+     "salary_maximum": null,
+     "key_missions": [
+      "Design and build scalable marketing data models, covering multi-touch attribution, digital and offline touchpoints, account-based marketing, funnel analytics and marketing impact.",
+      "Develop and manage DBT projects, from staging and intermediate models through to trusted, business-ready data marts.",
+      "Partner with Marketing and Operations teams to translate business questions into meaningful metrics, KPIs and reporting solutions."
+     ],
+     "remote": "unknown",
+     "summary": "Join Quadient, a company dedicated to supporting businesses in their digital transformation and growth journey. As a Marketing Analytics Engineer, you will play a crucial role in building data models and pipelines that help our Marketing teams understand performance, customer journeys, and the impact of their investments. You will work closely with Marketing and Operations teams to translate business questions into meaningful metrics, KPIs, and reporting solutions.",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "salary_period": null,
+     "profile": "\n\n<ul><li>Around <strong>3–5 years of experience in Analytics Engineering, Data Analytics Engineering or a similar role</strong>.</li><li>Strong hands-on experience with <strong>DBT</strong>, including data modelling, testing, documentation, lineage and Git-based development workflows.</li><li>Experience with modern cloud data warehouses, ideally <strong>Google BigQuery</strong>, and strong SQL skills.</li><li>Good understanding of analytical data modelling concepts such as <strong>facts, dimensions, star/snowflake schemas and metrics layers</strong>.</li><li>Experience working with <strong>marketing data</strong>, including tracking, advertising platforms, attribution and campaign performance.</li><li>Experience designing and optimizing <strong>Multi-Touch Attribution (MTA)</strong> models and connecting marketing investment with revenue, ROI and ROAS.</li><li>Understanding of complex <strong>B2B marketing journeys</strong>, including different sales motions and sales-cycle lengths.</li><li>Comfortable partnering with both technical and non-technical stakeholders and translating business needs into robust data solutions.</li></ul><p>Knowledge gaps can be filled. Even if you&#xa0;don’t&#xa0;satisfy every single requirement or meet every qualification listed, we still want to hear from you.&#xa0;</p>\n\n<h2>Additional Information</h2>\n\n<div sr-tagline=\"\"></p><p><strong>Rewards &amp; Benefits</strong>&#xa0;&#xa0;</p><ul><li><strong>Flexible Work:</strong> Embrace a hybrid work model blending office and remote setup for a balanced lifestyle.&#xa0;&#xa0;</li><li><strong>Endless Learning:</strong> Access global opportunities for growth through our 24/7 online learning platform.&#xa0;&#xa0;</li><li><strong>Inclusive Community:</strong> Join our Empowered Communities and engage in our Philanthropy program.&#xa0;&#xa0;</li><li><strong>Comprehensive Rewards: </strong>Enjoy competitive Total Rewards covering wellness, work/life balance, and more, including a generous referral scheme.&#xa0;&#xa0;</li><li><strong>Caring for Wellbeing:</strong> Access our complimentary employee assistance program for mental health support.&#xa0;&#xa0;</li></ul><p><strong>Smart Work at Quadient&#xa0;</strong><br>\nAt Quadient, our Smart Work approach fosters connection, collaboration, and innovation while offering flexibility based on role requirements. Whether on-site, hybrid, or remote, our work environments are designed to support productivity and engagement. Hybrid employees balance remote and in-office work, on-site roles contribute daily to our vibrant workplace culture, and remote employees stay connected through virtual collaboration and in-person events. No matter where you work, you’ll be part of a dynamic, people-first community that drives success together.&#xa0;</p><p><strong>Be yourself at Quadient&#xa0;</strong>&#xa0;<br>\nOur values define how we work as a team: Empowerment, Passion, Inspiration and Community.&#xa0; They inspire us to be EPIC. Together. What makes Quadient different is how different we are. We’re a team of individuals with one goal but many perspectives. When you connect with Quadient, you become part of a community that cares - in a culture that embraces differences and values every voice.&#xa0;&#xa0;</p><p>We will consider any reasonable modifications to the interview process. If you require any assistance with the application process, please email us at career@quadient.com&#xa0;&#xa0;</p><p><em>Quadient is an Equal Employment Opportunity Employer. *: We firmly believe in zero discrimination in employment on any basis, including race, color, religion, sex, national origin, age, disability, veteran or military status, genetic information, citizenship status, and any other characteristics protected by local, state, or federal law.&#xa0;</em></p><p><strong>People. Connected.&#xa0;</strong></p>",
+     "name": "Data Analytics Engineer",
+     "contract_type": "full_time",
+     "salary_minimum": null,
+     "salary_currency": null,
+     "objectID": "66fe2141-798f-4dd4-af11-029753f3d3f0"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-machine-learning-engineer_barcelona_rduth5ar",
+     "salary_maximum": null,
+     "organization": {
+      "name": "BizAway",
+      "slug": "bizaway"
+     },
+     "remote": "partial",
+     "salary_minimum": null,
+     "salary_period": null,
+     "published_at": "2026-08-29T00:04:40Z",
+     "salary_currency": null,
+     "profile": " - If you like challenges and would love to be part of one of the fastest-growing B2B scale-ups, then BizAway is the company you have been looking for. 🤩\n- Ability to work independently and take ownership of projects end-to-end\n- Familiarity with APIs and model serving (batch and/or real-time inference)\n- Familiarity with Large Language Models and their use within end-to-end AI workflows\n- Experience developing and deploying ML models in production environments\n- Strong proficiency in Python and common ML libraries (e.g. scikit-learn, TensorFlow, PyTorch)\n- Strong problem-solving skills and ability to translate business problems into ML solutions\n- 5-8 years of experience in Machine Learning, Applied Data Science, or similar roles\n- Solid understanding of core ML techniques (supervised and unsupervised learning)\n- Master’s degree in Computer Science, Engineering, Mathematics, or a related field. A PhD in a relevant discipline is a plus\n- Experience with feature engineering and working with real-world datasets\n- English proficiency (written and spoken, minimum B2 level)\n- Experience with experimentation frameworks (A/B testing) and impact measurement\n- Experience with cloud platforms (AWS preferred) and containerization (Docker, Kubernetes)\n- Knowledge of MLOps practices (model deployment, versioning, monitoring, retraining)",
+     "name": "Senior Machine Learning Engineer",
+     "offices": [
+      {
+       "state": null,
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join BizAway, a fast-growing B2B scale-up, as a Senior Machine Learning Engineer. In this role, you will design, develop, and deploy ML-powered data products, collaborate with Data Analysts and Data Engineers, and own the full lifecycle of ML models. You will also contribute to defining best practices for ML development and promote a pragmatic approach to AI/ML within the company. Enjoy a full-time position with benefits including health insurance, employee welfare, a multicultural environment, remote work flexibility, and equity in the company.",
+     "key_missions": [
+      "Designing, developing, and deploying ML-powered data products that enhance business value.",
+      "Collaborating with Data Analysts and Data Engineers to ensure robust data pipelines and production-ready systems.",
+      "Owning the full lifecycle of ML models, from problem framing and experimentation to deployment, monitoring, and continuous improvement."
+     ],
+     "language": "en",
+     "objectID": "d509d7df-448c-4d2e-b7d7-2e83b74ab654"
+    },
+    {
+     "organization": {
+      "name": "SOGECLAIR",
+      "slug": "groupe-sogeclair"
+     },
+     "language": "en",
+     "slug": "fatigue-dt-engineer-m-w-d_seville",
+     "published_at": "2026-08-26T03:00:23Z",
+     "salary_maximum": null,
+     "key_missions": [
+      "Perform fatigue and damage tolerance analyses of metallic and composite aircraft structures, assess crack initiation and growth.",
+      "Generate fatigue substantiation reports and inspection threshold assessments, support structural modifications and repairs.",
+      "Collaborate with multidisciplinary teams, ensuring compliance with engineering standards and best practices."
+     ],
+     "remote": "no",
+     "summary": "Join SOGECLAIR, a leading engineering company specializing in high technologies. As a Fatigue & DT Engineer, you will perform fatigue and damage tolerance analyses of aircraft structures, assess crack initiation and growth, and generate substantiation reports. You should have a minimum of 5 years of experience in the aerospace industry, a degree in aerospace or mechanical engineering, and proficiency in English and Spanish.",
+     "offices": [
+      {
+       "state": "Andalucia",
+       "city": "Seville",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Seville",
+       "local_district": "Sevilla",
+       "local_city": "Sevilla",
+       "local_state": "Andalucía"
+      }
+     ],
+     "salary_period": null,
+     "profile": null,
+     "name": "Fatigue & DT Engineer (m/w/d)",
+     "contract_type": "full_time",
+     "salary_minimum": null,
+     "salary_currency": null,
+     "objectID": "a20b0f66-147f-4363-86b9-4914c23b76bb"
+    }
+   ],
+   "nbHits": 202,
+   "page": 0,
+   "nbPages": 17,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "Data Engineer",
+   "params": "query=Data+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22offices.country_code%3AES%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 2,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "extensions": 1,
+    "fetch": {
+     "total": 1
+    },
+    "total": 2
+   },
+   "serverTimeMS": 6
+  },
+  {
+   "hits": [
+    {
+     "published_at": "2026-09-05T04:01:15Z",
+     "slug": "system-engineer-data-cloud-security_milan_ND_o2G0QVp",
+     "contract_type": "full_time",
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Cybersecurity System Engineer da inserire in attività di System Integration e Managed Security Services (MSS) in ambito Data & Cloud Security. In questo ruolo, supporterai la progettazione e realizzazione di infrastrutture di sicurezza per clienti enterprise, lavorerai su soluzioni CNAPP per la protezione di ambienti cloud e parteciperai ad attività di analisi tecnica, configurazione, testing, troubleshooting e documentazione.",
+     "language": "it",
+     "salary_maximum": null,
+     "remote": "partial",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "key_missions": [
+      "Supportare la progettazione e realizzazione di infrastrutture di sicurezza per clienti enterprise, in affiancamento a figure senior di Security Architecture.",
+      "Attività su soluzioni CNAPP per la protezione di ambienti cloud, workload, container e configurazioni infrastrutturali.",
+      "Coinvolgimento in ambito PKI, Certificate Lifecycle Management e crittografia, inclusa la gestione del ciclo di vita dei certificati e l’evoluzione verso scenari post-quantum."
+     ],
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "profile": null,
+     "name": "System Engineer – Data & Cloud Security",
+     "salary_minimum": null,
+     "salary_period": null,
+     "salary_currency": null,
+     "objectID": "1cfa231b-7a7b-4422-ba00-289db2222daa"
+    },
+    {
+     "language": "en",
+     "salary_period": null,
+     "salary_minimum": null,
+     "key_missions": [
+      "Costruire pipeline di dati su larga scala, batch e in tempo reale, utilizzando framework di elaborazione dei dati sulla piattaforma cloud GCP.",
+      "Utilizzare un approccio analitico e basato sui dati per comprendere a fondo le esigenze aziendali in rapida evoluzione.",
+      "Collaborare con il team per valutare le esigenze aziendali e le priorità, interagire con i partner aziendali chiave e affrontare le esigenze del team relative ai sistemi e alla gestione dei dati."
+     ],
+     "slug": "gcp-data-engineer-data-architect_milan_ND_aZJwYL6",
+     "summary": "Join NTT Data, a global leader in business and technology services. As a GCP Data Engineer/Data Architect, you will design, build, and operationalize data processing systems with a focus on security, compliance, scalability, and efficiency. You will work with a team to evaluate business needs, participate in project planning, and drive a deep understanding of the fast-changing business landscape. The ideal candidate will have a bachelor's degree in computer science or a relevant field, at least 5-10 years of experience in a data engineering role, and expertise in software engineering using Scala/Java/Python.",
+     "contract_type": "full_time",
+     "remote": "partial",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "published_at": "2026-08-29T04:00:48Z",
+     "profile": null,
+     "name": "GCP Data Engineer/Data Architect",
+     "salary_currency": null,
+     "salary_maximum": null,
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "objectID": "a9530dd7-03df-4382-b37a-d046c7b18491"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_maximum": null,
+     "published_at": "2026-08-27T04:00:46Z",
+     "salary_period": null,
+     "slug": "aws-data-engineer_milan_ND_qd01NRj",
+     "key_missions": [
+      "Collaborate with business analysts and solution architects to understand use cases, data needs, and outcome objectives.",
+      "Deliver data acquisition, transformations and improvement, cleansing, conversion, compression, and loading of data into data lakes.",
+      "Define and document best practices and strategies regarding application deployment and infrastructure maintenance."
+     ],
+     "salary_currency": null,
+     "salary_minimum": null,
+     "remote": "partial",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "language": "en",
+     "profile": null,
+     "name": "AWS Data Engineer",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "summary": "Join NTT Data, a global leader in business and technology services. As an AWS Data Engineer, you will work on AWS Data Platform projects, collaborating with business analysts and solution architects to understand use cases, data needs, and outcome objectives. Your responsibilities will include data acquisition, transformations, cleansing, conversion, compression, and loading of data into data lakes for analytics and machine learning models. You will also be involved in infrastructure migration, monitoring stack setup, service capacity planning, CI/CD pipeline implementation, and writing infrastructure as code.",
+     "objectID": "ce38dfb7-b8aa-4563-a5ab-5e07ee99b8d4"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_minimum": null,
+     "published_at": "2026-07-31T04:01:22Z",
+     "slug": "big-data-expert_milan_ND_OD38gpa",
+     "salary_currency": null,
+     "remote": "partial",
+     "language": "it",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_maximum": null,
+     "key_missions": [
+      "Analizzare, progettare ed implementare applicazioni complesse basate su tecnologie Big Data lavorando in team.",
+      "Valutare gli impatti e stimare l'impegno (in termini di tempi e costi) di realizzazione di nuove applicazioni.",
+      "Supportare negli aspetti di disegno e di definizione di scelte tecnologiche tenendo conto del contesto di applicazione."
+     ],
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "profile": null,
+     "name": "Big Data Expert",
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Big Data Expert con almeno 2 anni di esperienza nelle tecnologie richieste. La posizione è aperta a diversi livelli di seniority e offre l'opportunità di lavorare su progetti complessi basati su tecnologie Big Data.",
+     "salary_period": null,
+     "objectID": "2751fdde-6781-4110-a3dd-9c6cf73c139d"
+    },
+    {
+     "salary_maximum": null,
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "published_at": "2026-07-31T04:01:19Z",
+     "slug": "senior-associate-data-centre-technical-services-systems-integration-specialist_milan",
+     "salary_period": null,
+     "summary": "Unisciti a NTT DATA, un leader globale nei servizi di business e tecnologia. Stiamo cercando un Data Center Engineer per il nostro team di Professional Services. Il candidato ideale avrà esperienza nella gestione e implementazione di infrastrutture Data Center e sarà in grado di risolvere problemi di media complessità. La posizione richiede disponibilità a trasferte nazionali e internazionali.",
+     "salary_minimum": null,
+     "remote": "partial",
+     "language": "it",
+     "contract_type": "full_time",
+     "salary_currency": null,
+     "key_missions": [
+      "Implementazione e gestione di un'infrastruttura Data Center, inclusi server, storage, SAN e networking.",
+      "Gestione e configurazione di server Dell PowerEdge e Cisco UCS, gestione storage NetApp e infrastrutture SAN.",
+      "Supporto a progetti di migrazione, consolidamento e modernizzazione verso cloud ibrido."
+     ],
+     "profile": null,
+     "name": "Data Center Engineer",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "objectID": "ef6f969f-f576-4ecf-992e-7c5e7a187ba4"
+    },
+    {
+     "salary_maximum": null,
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "published_at": "2026-07-31T04:01:11Z",
+     "slug": "data-center-engineer_milan",
+     "salary_period": null,
+     "summary": "Unisciti al nostro team come Data Center Engineer. Sarai responsabile dell'implementazione e gestione delle infrastrutture IT, interfacciandoti con i clienti e collaborando con Project Manager, Sales e Presales. Richiediamo certificazioni Cisco CCNA/CCNP e una buona conoscenza dell'inglese. Sede di lavoro: Milano, con possibilità di smart working.",
+     "salary_minimum": null,
+     "remote": "partial",
+     "language": "it",
+     "contract_type": "full_time",
+     "salary_currency": null,
+     "key_missions": [
+      "Implementazione e gestione di un'infrastruttura Data Center, inclusi server, storage, SAN e networking.",
+      "Gestione e configurazione di server Dell PowerEdge e Cisco UCS, storage NetApp e infrastrutture SAN.",
+      "Supporto a progetti di migrazione, consolidamento e modernizzazione verso cloud ibrido."
+     ],
+     "profile": null,
+     "name": "Data Center Engineer",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "objectID": "9ac7a2fb-48da-443e-80dd-5518dd2531d4"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "azure-data-engineer_milan_ND_JM2L7Q8",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "partial",
+     "salary_period": null,
+     "summary": "Join NTT Data, a global leader in business and technology services. As an Azure Data Engineer, you will support customers in Big Data projects, working closely with business analysts and solution architects. You will be responsible for data acquisition, transformations, cleansing, conversion, compression, and loading of data into data lakes. The ideal candidate will have experience in a cloud native environment, knowledge of Big Data architectures, and proficiency in programming languages such as Java, Scala, and Python.",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "published_at": "2026-07-31T04:01:03Z",
+     "salary_currency": null,
+     "profile": null,
+     "name": "Azure Data Engineer",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Support customers in Big Data projects, working in partnership with business analysts and solution architects to understand use cases, data needs, and outcome objectives.",
+      "Deliver data acquisition, transformations and improvement, cleansing, conversion, compression, and loading of data into data lakes in order to be consumed by analytics and machine learning models.",
+      "Build and deliver proofs-of-concept, in order to address specific business needs, using the most appropriate techniques, data sources and technologies."
+     ],
+     "objectID": "ca6be3a8-7ce8-4013-b264-2ca74813484e"
+    },
+    {
+     "summary": "Inizia la tua carriera come Network Engineer in NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Non è necessaria esperienza pregressa, ma è richiesta una laurea magistrale in Ingegneria delle Telecomunicazioni o in Ingegneria Elettronica/Informatica con indirizzo Telecomunicazioni. Sarai inserito nel centro di competenza \"Network Engineering\" e parteciperai a progetti innovativi con un focus sulla Radio Access Network 4G/5G. La sede di lavoro è Milano, con possibilità di lavoro ibrido.",
+     "salary_minimum": null,
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "slug": "new-graduate-network-engineer_milan_ND_yxkZa5Q",
+     "key_missions": [
+      "Contribuire alla definizione, redazione e aggiornamento della documentazione tecnica relativa agli elementi di rete RAN in ambito Operatori Mobili.",
+      "Partecipare alle attività di test (laboratorio e/o campo) sugli elementi di rete mobile, con particolare focus sulla Radio Access Network 4G/5G.",
+      "Effettuare attività di troubleshooting su problematiche di rete, analizzando log, tracce di segnalazione e KPI, proponendo possibili soluzioni."
+     ],
+     "salary_period": null,
+     "contract_type": "full_time",
+     "remote": "partial",
+     "salary_maximum": null,
+     "published_at": "2026-09-02T04:00:48Z",
+     "language": "it",
+     "salary_currency": null,
+     "profile": null,
+     "name": "New Graduate - Network Engineer",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "objectID": "265b1219-0dc1-4da1-9234-bf20d6819b09"
+    },
+    {
+     "summary": "Join NTT Data, a global leader in business and technology services. As an AWS Data Architect, you will support customers in AWS Data Platform projects, working closely with business analysts and solution architects. You will create and maintain optimal data pipeline architecture, design and optimize data models, and mentor other engineers. The ideal candidate will have at least 5 years of experience with AWS, knowledge of Big Data Architectures, and experience in building and delivering proofs-of-concept.",
+     "salary_maximum": null,
+     "language": "en",
+     "slug": "aws-data-architect_milan_ND_3e7lr2y",
+     "salary_period": null,
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "remote": "partial",
+     "salary_currency": null,
+     "contract_type": "full_time",
+     "profile": null,
+     "name": "AWS - Data Architect",
+     "published_at": "2026-08-28T04:01:29Z",
+     "key_missions": [
+      "Creare e mantenere un'architettura ottimale per i pipeline di dati, progettando e implementando soluzioni di ingestione dei dati su AWS.",
+      "Progettare e ottimizzare i modelli di dati su AWS Cloud utilizzando i data store AWS come Redshift, DynamoDB, RDS, S3.",
+      "Partecipare a workshop di design con i clienti e fornire tradeoff e raccomandazioni per la costruzione di soluzioni."
+     ],
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_minimum": null,
+     "objectID": "7bc55089-55f7-42a2-9308-0ecf968bce0d"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "salesforce-senior-solution-engineer_milan",
+     "published_at": "2026-09-26T04:01:03Z",
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Salesforce Senior Solution Engineer con esperienza nello sviluppo di applicazioni su piattaforma Salesforce, conoscenza del contesto Life Sciences e capacità di lavorare in team internazionali e multidisciplinari.",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "language": "it",
+     "salary_currency": null,
+     "salary_maximum": null,
+     "salary_minimum": null,
+     "remote": "partial",
+     "key_missions": [
+      "Analisi tecnica, sviluppo e integrazione di soluzioni Salesforce, collaborando con team funzionali e tecnici.",
+      "Contribuire alla qualità del codice, alla definizione delle migliori soluzioni architetturali e al supporto delle fasi progettuali.",
+      "Collaborare con clienti, partner e colleghi di tutto il mondo per creare soluzioni innovative capaci di avere un impatto reale sulla società."
+     ],
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "profile": null,
+     "name": "Salesforce Senior Solution Engineer",
+     "salary_period": null,
+     "objectID": "239bc9d1-c982-4b31-b123-d2396adb569a"
+    },
+    {
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Junior Cybersecurity System Engineer con una forte motivazione a crescere nel campo della cybersecurity. La posizione offre un percorso di formazione e affiancamento con risorse senior, sviluppando competenze tecniche e operative di base nella sicurezza informatica. La sede di lavoro è a Milano o Roma, con possibilità di lavoro ibrido.",
+     "language": "it",
+     "salary_currency": null,
+     "salary_minimum": null,
+     "slug": "junior-cybersecurity-system-engineer_milan_ND_j2ValLm",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "key_missions": [
+      "Supporto alla gestione e configurazione dei sistemi, esecuzione di task operativi e attività di monitoraggio.",
+      "Sviluppo di semplici script Python per automazione di base e supporto alla produzione di documentazione tecnica.",
+      "Apprendimento di metodologie, strumenti e processi di sicurezza, con particolare attenzione alla cybersecurity."
+     ],
+     "salary_period": null,
+     "remote": "partial",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_maximum": null,
+     "contract_type": "full_time",
+     "profile": null,
+     "name": "Junior Cybersecurity System Engineer",
+     "published_at": "2026-09-23T04:01:29Z",
+     "objectID": "9555ef16-fa20-4f7c-94c2-f6a32bcf26f5"
+    },
+    {
+     "salary_currency": null,
+     "salary_maximum": null,
+     "published_at": "2026-09-23T04:01:28Z",
+     "salary_minimum": null,
+     "key_missions": [
+      "Supportare il team nella realizzazione di soluzioni Salesforce, contribuendo allo sviluppo di componenti applicative, configurazioni e integrazioni.",
+      "Lavorare a stretto contatto con figure senior e funzionali, acquisendo progressivamente autonomia nella gestione delle attività assegnate.",
+      "Interesse ad approfondire Data Cloud/Data 360 e Agentforce, e partecipare attivamente a progetti innovativi e sfidanti."
+     ],
+     "slug": "salesforce-advanced-solution-engineer_milan",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Salesforce Advanced Solution Engineer con almeno un anno di esperienza nello sviluppo Salesforce. In questo ruolo, supporterai il team nella realizzazione di soluzioni Salesforce, contribuendo allo sviluppo di componenti applicative, configurazioni e integrazioni. Avrai l'opportunità di lavorare su progetti innovativi e sfidanti, con particolare focus su attività di sviluppo e system integration.",
+     "salary_period": null,
+     "remote": "partial",
+     "profile": null,
+     "name": "Salesforce Advanced Solution Engineer",
+     "contract_type": "full_time",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "language": "it",
+     "objectID": "341e15e7-0d11-4671-8744-658c7e40de87"
+    }
+   ],
+   "nbHits": 56,
+   "page": 0,
+   "nbPages": 5,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "Data Engineer",
+   "params": "query=Data+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22offices.country_code%3AIT%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 1,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "total": 1
+   },
+   "serverTimeMS": 9
+  },
+  {
+   "hits": [
+    {
+     "contract_type": "full_time",
+     "salary_maximum": 387100.0,
+     "published_at": "2026-09-25T00:17:54Z",
+     "salary_period": "yearly",
+     "slug": "director-of-data-storage-reliability-engineering_santa-clara-ca_wsjgfmyc",
+     "key_missions": [
+      "Lead the Data & Storage Reliability Engineering organization to improve reliability, resilience, performance, scalability, observability, and customer experience across ServiceNow's database, storage, and supporting platform infrastructure.",
+      "Build, develop, and scale high-performing engineering teams focused on reliability engineering, observability, performance engineering, diagnostics, automation, production analytics, migration readiness, resilience engineering, and prevention engineering.",
+      "Establish a strong engineering-first culture centered on data-driven decision making, continuous improvement, operational excellence, customer experience, and systemic risk reduction."
+     ],
+     "salary_currency": "USD",
+     "salary_minimum": 221200.0,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": null,
+       "city": "Santa Clara, CA",
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "language": "en",
+     "profile": " - 8+ years of engineering leadership experience, including leading managers and globally distributed teams\n- Experience partnering closely with production operations, customer escalation teams, reliability organizations, and software engineering teams to drive systemic improvements based on operational learnings\n- Extensive experience leading Reliability Engineering, Platform Engineering, Database Engineering, Infrastructure Engineering, Production Engineering, Performance Engineering, or related technical organizations\n- Experience driving engineering initiatives through data, metrics, customer impact analysis, and measurable business outcomes\n- 15+ years of experience in software engineering, platform engineering, reliability engineering, infrastructure engineering, database engineering, distributed systems, product management, or large-scale SaaS environments\n- Proven experience identifying systemic issues and converting operational insights into strategic engineering improvements\n- Strong product mindset with demonstrated experience treating technical capabilities as products with roadmaps, priorities, customers, adoption goals, and measurable business outcomes\n- Experience in leveraging or critically thinking about how to integrate AI into work processes, decision-making, or problem-solving. This may include using AI-powered tools, automating workflows, analyzing AI-driven insights, or exploring AI's potential impact on the function or industry\n- Experience leveraging AI technologies to improve decision-making, analytics, engineering workflows, operational efficiency, reliability insights, automation, or customer outcomes\n- Strong understanding of reliability engineering principles, observability, scalability, resiliency, operational excellence, and performance engineering\n- Experience translating production insights, customer pain points, operational challenges, reliability risks, and platform telemetry into prioritized engineering investments and long-term roadmaps\n- Experience operating a portfolio of engineering investments, balancing short-term customer needs with long-term reliability, performance, scalability, and resilience objectives\n- Deep expertise in distributed systems, databases, storage technologies, cloud infrastructure, and large-scale SaaS architectures\n- Experience building and operating observability, telemetry, diagnostics, reliability, or performance capabilities at scale\n- Bachelor's degree in Computer Science, Engineering, or a related technical field, or equivalent practical experience\n- Exceptional communication, stakeholder management, and leadership skills\n- Experience defining product strategies, developing roadmaps, prioritizing investments, and aligning stakeholders across multiple organizations without direct authority\n- Experience partnering closely with Product Management organizations to influence roadmaps and deliver customer-centric outcomes\n- Previous Product Management experience in a platform, infrastructure, cloud, database, storage, or SaaS environment\n- Experience applying product management disciplines such as roadmap planning, prioritization, customer-centric thinking, outcome measurement, and portfolio management to engineering organizations\n- Experience operating large-scale enterprise database and storage platforms supporting mission-critical workloads\n- Experience building and scaling Reliability Engineering, Performance Engineering, Platform Engineering, SRE, or Production Engineering organizations\n- Experience with observability platforms, telemetry systems, diagnostics frameworks, and production analytics\n- Experience with migration readiness, resiliency validation, reliability testing, operational risk reduction, and large-scale cloud transformations\n- Experience leveraging AI technologies to improve anomaly detection, forecasting, incident analysis, prioritization, and engineering productivity\n- Strong understanding of distributed systems architecture, cloud platform operations, and hyperscale environments\n- Experience developing executive-facing reliability scorecards, engineering metrics, and business impact reporting\n- Experience influencing platform architecture, database strategy, storage strategy, and long-term engineering roadmaps\n- Experience with Linux-based production environments and large-scale cloud infrastructure\n- Experience supporting enterprise database technologies such as MySQL, MariaDB, PostgreSQL, Oracle, SQL Server, or cloud-native database platforms\n- Familiarity with ServiceNow platform architecture and large-scale SaaS operations",
+     "name": "Director of Data & Storage Reliability Engineering",
+     "organization": {
+      "name": "ServiceNow",
+      "slug": "servicenow"
+     },
+     "summary": "Join ServiceNow as the Director of Data & Storage Reliability Engineering. In this role, you will lead the organization responsible for improving reliability, resilience, performance, scalability, observability, and customer experience across ServiceNow's database, storage, and supporting platform infrastructure. You will build and develop high-performing engineering teams, establish a strong engineering-first culture, and drive engineering improvements that eliminate issues before they impact customers. You will also partner closely with various teams to ensure reliability and performance considerations are incorporated throughout the software development lifecycle.",
+     "objectID": "80c0aeb3-cbdb-4b31-9bdc-db410df2f9c4"
+    },
+    {
+     "salary_maximum": 364795.0,
+     "salary_minimum": 177185.0,
+     "slug": "staff-software-engineer-observability_paris_smfnbemp",
+     "organization": {
+      "name": "Pinterest",
+      "slug": "pinterest"
+     },
+     "salary_currency": "USD",
+     "remote": "fulltime",
+     "language": "en",
+     "contract_type": "full_time",
+     "summary": "Join Pinterest as a Staff Software Engineer on the Observability team. In this role, you will design and build infrastructure and tools for visibility into Pinterest's large-scale distributed systems. You will define and execute the observability roadmap, architect and scale distributed observability infrastructure, and establish observability standards across the organization. You will also mentor engineers, lead architectural reviews, and collaborate with cross-functional teams. The ideal candidate has a strong background in data engineering, observability domain knowledge, and a product mindset.",
+     "key_missions": [
+      "Definir y ejecutar la hoja de ruta de la observabilidad, tratándola como un producto. Comprender las necesidades del equipo de ingeniería y traducirlas en soluciones técnicas con un impacto medible.",
+      "Arquitectar, construir y escalar la infraestructura de observabilidad distribuida (métricas, registros, trazas) para manejar volúmenes masivos en los sistemas distribuidos de Pinterest.",
+      "Establecer estándares y patrones de observabilidad en toda la organización, facilitando a los equipos la instrumentación de sus servicios y la obtención de información procesable."
+     ],
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "San Francisco",
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": " - Experience with machine learning or anomaly detection applied to observability use cases\n- Data Engineering Skills: Strong background in building data pipelines, working with time-series databases, columnar storage, stream processing (Kafka, Flink, etc.), and data modeling at scale\n- Observability Domain Knowledge: Hands-on experience with modern observability tools and practices including metrics, logging, tracing, and profiling. Familiarity with OpenTelemetry, Prometheus, Grafana, or similar technologies\n- Track record of driving adoption of internal platforms through excellent documentation, UX, and developer advocacy\n- Bachelor’s degree in Computer Science, Engineering, or a related field, or equivalent experience\n- Contributions to open-source observability projects, a plus\n- Product Mindset: Demonstrated ability to work backwards from customer needs —understanding user needs, prioritizing features, measuring success, and iterating based on feedback. Experience building internal platforms or tools with strong adoption\n- Familiarity with cloud-native architectures and technologies (Kubernetes, service mesh, etc.)\n- Systems Thinking: Ability to see the big picture while managing complex technical details, balancing trade-offs between cost, performance, and reliability\n- Programming Proficiency: Expert-level coding skills in languages like Java, Python, Go, or Scala with ability to write production-quality code\n- Distributed Systems Expertise: 7+ years of experience designing and operating large-scale distributed systems with deep understanding of consistency, availability, scalability, and failure modes\n- Strong communication skills with ability to influence stakeholders at all levels\n- Experience building observability platforms from the ground up or significantly scaling existing solutions",
+     "name": "Staff Software Engineer (Observability)",
+     "published_at": "2026-09-25T00:15:37Z",
+     "salary_period": "yearly",
+     "objectID": "07908793-a7ac-4b38-b6dc-2af880c6c4db"
+    },
+    {
+     "language": "en",
+     "salary_period": "yearly",
+     "salary_minimum": 150000.0,
+     "key_missions": [
+      "Architect, build, and optimize production AI systems while maintaining a strong hands-on technical presence.",
+      "Design reliable agents and orchestration, planning, tool use, memory, and state, with safe, permission-aware boundaries.",
+      "Derive requirements and executable specs from source, metadata, tests, and runtime behavior, and map them onto Appian's object model."
+     ],
+     "slug": "lead-applied-ai-engineer_us_js6tnt5m",
+     "summary": "Join Appian Engineering as a Lead Applied AI Engineer, where you'll build AI systems that understand and model enterprise applications. You'll work in a collaborative, fast-paced environment focused on technical precision and high code quality. Your responsibilities will include developing clean software, building production agents, extracting specifications from existing systems, modeling application intelligence, proving correctness with evaluation, optimizing performance and scale, mentoring junior engineers, and influencing technical documentation.",
+     "contract_type": "full_time",
+     "remote": "fulltime",
+     "organization": {
+      "name": "Appian",
+      "slug": "appian"
+     },
+     "published_at": "2026-09-25T00:00:21Z",
+     "profile": " - Exceptional ability to communicate highly technical architectures verbally, visually, and in writing to diverse engineering audiences\n- Strong distributed-systems background, including retries, idempotency, partial failure, long-running tasks, and recovery\n- 7+ years of relevant software development experience with a BS (or 5+ years of experience paired with a Master of Science in Computer Science or a related field)\n- Bachelor of Science degree in Computer Science or a related technical/analytical discipline\n- Demonstrated experience using AI coding assistants and a strong ability to evaluate, coach others on, and selectively apply AI-generated code in a production engineering context\n- Strong software engineering, data-pipeline, and observability skills, comfortable owning a production service end to end\n- Experience with legacy codebase and workflow modernization\n- Expertise in code search, repository intelligence, or developer tools\n- We value experience with enterprise platforms such as Salesforce or ServiceNow, as these skills translate well into our Enterprise-Grade Orchestration environment",
+     "name": "Lead Applied AI Engineer",
+     "salary_currency": "USD",
+     "salary_maximum": 300000.0,
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "objectID": "cf73334f-61f8-4c1a-a97f-7e28ea697cd4"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "principal-ai-ml-engineering-lead_us_unv5c6tw",
+     "salary_maximum": 275000.0,
+     "organization": {
+      "name": "Vida Health",
+      "slug": "vida-health"
+     },
+     "remote": "fulltime",
+     "salary_minimum": 250000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-24T00:20:42Z",
+     "salary_currency": "USD",
+     "profile": " - Solid data engineering: SQL, pipeline tooling such as dbt, and data warehousing\n- Bachelor's Degree at a minimum\n- 7-10+ years of experience in building and scaling production-grade machine learning or AI systems\n- Strong cloud experience, ideally on Google Cloud (Vertex AI, BigQuery, Cloud Run, Pub/Sub, Cloud SQL, GKE), with AWS or Azure equivalents also welcome\n- Substantial hands-on experience building and deploying AI/ML systems in production, including MLOps, model serving and inference infrastructure, feature and data pipelines, and integrating models into real applications\n- DevOps and reliability skills: CI/CD, Terraform or a similar tool, containers and Kubernetes, and production observability\n- Demonstrated experience as a generalist Software Engineer across backend, infrastructure, and data\n- A security mindset and comfort working in a regulated environment with sensitive data. Familiarity with HIPAA or HITRUST is a plus\n- Comfortable with ambiguity and a bias for shipping. You can go deep in one area and still move fluidly across the stack\n- Experience with LLM applications, including retrieval, evaluation, guardrails, and knowledge graphs\n- Experience with privacy enhancing technologies\n- Experience with GraphQL or a federated serving layer\n- Experience in healthcare or another regulated data domain\n- Experience with entity resolution or master data management",
+     "name": "Principal AI/ML Engineering Lead",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join our team as a Principal AI/ML Engineering Lead, where you will contribute to the platform build, strengthen DevOps and reliability, partner with Security and IT, lay the groundwork for the AI/ML platform, and keep protected health information inside controlled boundaries. You will work with existing team leads to raise the AI and ML fluency of the platform, security, and DevOps teams. Additional responsibilities may be assigned as needed.",
+     "key_missions": [
+      "Contribuer à la construction de la plateforme, y compris l'ingestion de données, la transformation, un modèle de données canonique et la résolution d'entités.",
+      "Renforcer DevOps et la fiabilité, y compris CI/CD, infrastructure en tant que code, gestion des environnements et observabilité.",
+      "Collaborer avec la sécurité et l'informatique pour assurer la classification des données et l'application des contrôles d'accès."
+     ],
+     "language": "en",
+     "objectID": "9faede2c-80fd-4798-819d-2163dc0ed6b2"
+    },
+    {
+     "organization": {
+      "name": "ONE",
+      "slug": "one"
+     },
+     "language": "en",
+     "slug": "site-reliability-engineering-lead_us_k7qioily",
+     "published_at": "2026-09-24T00:14:51Z",
+     "salary_maximum": 280000.0,
+     "key_missions": [
+      "Lead a small, senior Site Reliability Engineering (SRE) team, providing planning, clarity, and career growth while focusing on high-leverage reliability work.",
+      "Stay hands-on in writing production code, building automation, tooling, and contributing to the team's codebase, setting the technical bar by example.",
+      "Define service ownership, alerting, dashboards, runbooks, and deploy and rollback safety, and run regular service-health reviews for the systems your team supports."
+     ],
+     "remote": "fulltime",
+     "summary": "Join OnePay as a Site Reliability Engineering Lead, where you will lead a small, senior SRE team and be a hands-on technical leader. You will write code, build automation and tooling, and set the reliability standards for the services you support. This is a builder's leadership role, where you will be measured by what you and your team ship, as well as the operating model you put around it. You will report to the Head of Platform and Data Engineering and help keep OnePay dependable for millions of Americans.",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_period": "yearly",
+     "profile": " - Recent people leadership. You have managed a small engineering team within roughly the last few years and want to keep leading while staying technical\n- You still code today. Strong software engineering foundation, and you write production-quality code in a modern language such as Python or Go. You are comfortable being assessed on your coding\n- Real reliability depth for production systems and services at scale, ideally in a consumer, fintech, or other high-availability environment\n- Calm, credible communication with your team, partner teams, and during live incidents\n- Genuinely hands-on with observability, alerting, safe deploys, automation, and incident command. You build these things, not just specify them\n- You built your foundation at a high-bar, high-scale engineering organization with a strong engineering culture",
+     "name": "Site Reliability Engineering Lead",
+     "contract_type": "full_time",
+     "salary_minimum": 250000.0,
+     "salary_currency": "USD",
+     "objectID": "49774bb2-53bd-4cf4-a798-d18f2a524348"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_maximum": null,
+     "published_at": "2026-09-24T00:09:45Z",
+     "salary_period": null,
+     "slug": "senior-software-engineer-ai-native-data-warehouse_ca_twcqksqu",
+     "key_missions": [
+      "Concevoir, construire et exploiter des systèmes de production qui alimentent les flux de travail essentiels pour les clients financiers institutionnels.",
+      "Diriger des projets complexes de manière autonome, collaborer étroitement avec les ingénieurs, les produits, le design et l'assurance qualité pour livrer des systèmes fiables et bien conçus.",
+      "Participer à l'amélioration de la vitesse d'ingénierie et de la qualité opérationnelle grâce à l'automatisation, à la documentation et aux améliorations continues."
+     ],
+     "salary_currency": null,
+     "salary_minimum": null,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Canada",
+       "country_code": "CA",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "language": "en",
+     "profile": " - Strong ownership mindset, with the ability to drive projects independently while collaborating effectively across teams\n- Comfort working full-stack when the problem calls for it (TypeScript/React experience a plus)\n- Hands-on experience building or integrating AI/LLM-powered systems in production (e.g., RAG pipelines, agent frameworks, evaluation workflows, guardrails, prompt/tool orchestration, or model observability)\n- Experience with cloud-native technologies such as AWS, Docker, and Kubernetes, and infrastructure as code\n- Strong understanding of CI/CD, observability, and operating services in production\n- Bachelor's degree in Computer Science or equivalent work experience\n- Ability to break down complex technical problems and deliver pragmatic, maintainable solutions\n- Experience with relational/NoSQL databases, including schema design, query optimization, and data modeling\n- 7+ years of experience in backend and/or full-stack software engineering\n- Clear communication skills, with the ability to explain technical tradeoffs to engineering and cross-functional partners\n- Comfort operating in ambiguous, fast-evolving technical territory where best practices and patterns are still being established\n- Hands-on experience with AI-native development tools (e.g., Cursor, Augment), and demonstrated AI Fluency: a deliberate point of view on when AI is (and isn't) the right tool, adapted code review practices for AI-generated code, and safeguards against over-reliance on AI tooling\n- Strong backend engineering experience with Python and frameworks such as FastAPI, Flask, Pyramid, or Django\n- If you think this role sounds like a fit, we encourage you to apply even if you don't meet every qualification\n- Experience shipping AI-forward data pipeline or warehousing solutions\n- Strong data warehousing or data engineering expertise (Redshift, Snowflake, BigQuery, Databricks)\n- Comfort navigating ambiguity in an early-stage, less spec-heavy environment",
+     "name": "Senior Software Engineer (AI-Native Data Warehouse)",
+     "organization": {
+      "name": "Juniper Square",
+      "slug": "juniper-square"
+     },
+     "summary": "Join Juniper Square as a Senior Software Engineer, where you'll design, build, and operate production systems for institutional financial clients. You'll work on Dex, an AI-native data warehouse, and own projects end-to-end, from technical design to implementation and ongoing iteration. You'll also improve engineering velocity and operational quality through automation and continuous improvements.",
+     "objectID": "69a58a8b-efd8-4bb6-ad2a-492de5541a97"
+    },
+    {
+     "contract_type": "freelance",
+     "salary_maximum": null,
+     "published_at": "2026-09-22T08:00:03Z",
+     "salary_period": "daily",
+     "slug": "freelance-senior-data-solution-engineer_madrid",
+     "key_missions": [
+      "Own around 2 custom client projects per month, end-to-end, from needs qualification to final restitution.",
+      "Build the deliverables yourself, in Python (pandas) notebooks, SmartDash dashboards, mockups and SQL (BigQuery / Snowflake).",
+      "Qualify client needs with our Account Executives and turn them into a scoped, sellable analysis."
+     ],
+     "salary_currency": "EUR",
+     "salary_minimum": 450.0,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "language": "en",
+     "profile": null,
+     "name": "Freelance - Senior Data Solution Engineer",
+     "organization": {
+      "name": "MYTRAFFIC",
+      "slug": "mytraffic"
+     },
+     "summary": "Join MyTraffic, Europe's leading location intelligence platform, as a freelance Senior Data Solution Engineer. In this role, you will own custom data projects end-to-end, delivering around 2 client projects per month. You will work closely with the Custom Solutions team, Account Executives, Product, and Data teams. This is a 4 to 5 month mission, fully remote from Barcelona or Madrid.",
+     "objectID": "66bb9bb2-9f3c-442b-8b77-31cf733d4b24"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_maximum": null,
+     "published_at": "2026-09-23T09:20:27Z",
+     "salary_period": null,
+     "slug": "data-engineer-confirme_aix-en-provence_CAPGE_zr8j4Ky",
+     "key_missions": [
+      "Acquisition des données, stockage optimisé, traitements et analyses.",
+      "Proposer de nouvelles lectures de données via un travail de fouille sur les gisements d’information.",
+      "Contribuer au partage et à la capitalisation des savoirs et des pratiques au sein de la communauté data."
+     ],
+     "salary_currency": null,
+     "salary_minimum": null,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": "Provence-Alpes-Cote d'Azur",
+       "city": "Aix-en-Provence",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Bouches-du-Rhône",
+       "local_district": "Bouches-du-Rhône",
+       "local_city": "Aix-en-Provence",
+       "local_state": "Provence-Alpes-Côte d'Azur"
+      }
+     ],
+     "language": "fr",
+     "profile": "<span>Description du profil :<br><br></span>  <strong>Profil</strong>   <p> </p> <p>En tant que Data Analyst au sein d'une équipe multidisciplinaire, vous interviendrez  sur les différentes phases d'un projet avec les outils suivants :</p> <ul> <li>ETL (Talend, Informatica ou SSIS),</li> <li>Traitement de données Spark, Python, Scala...</li> <li>Bases de données (Oracle, SQL Server, Postgres),</li> <li>Datalake / Big Data : Horton Works, Cloudera, ELK,...</li> <li>Data Viz &amp; IA / Machine Learning : Qlik, Tableau, Power BI, Python, </li> </ul>  <br><br><span>Nous proposons :<br><br></span><p> </p><p> </p>",
+     "name": "Data Engineer confirmé",
+     "organization": {
+      "name": "Capgemini",
+      "slug": "capgemini"
+     },
+     "summary": "Rejoignez Capgemini, un leader mondial du conseil, de la technologie et des services numériques. En tant que Data Engineer confirmé, vous serez intégré à notre Service Line Data Value et participerez à toutes les phases d'un projet BI/Big Data, de l'acquisition des données à la mise en forme et au développement de rapports/dashboards. Vous aurez également l'opportunité de proposer de nouvelles lectures de données et de contribuer au partage et à la capitalisation des savoirs au sein de la communauté data de Capgemini.",
+     "objectID": "efedf697-3deb-4413-a094-4791887f56b1"
+    },
+    {
+     "contract_type": "apprenticeship",
+     "slug": "alternant-data-engineer-h-f",
+     "salary_maximum": null,
+     "language": "fr",
+     "remote": "fulltime",
+     "salary_period": "yearly",
+     "summary": "Rejoins Haiku, une startup innovante dans le domaine de l'IA et du SaaS. En tant que Data Engineer en alternance, tu travailleras sur l'ingestion, l'extraction et l'indexation des données. Tu collaboreras étroitement avec les équipes produit, AI, backend et les experts métier.",
+     "organization": {
+      "name": "Haiku",
+      "slug": "clerk"
+     },
+     "published_at": "2026-09-22T12:36:17Z",
+     "salary_currency": "EUR",
+     "profile": "### **Expériences & études**\n\n* Tu prépares un **Bac +5** (école d'ingénieur, master en informatique, data ou équivalent) et tu cherches une alternance de 12 à 24 mois.\n    \n* Tu as déjà codé du **Python et du SQL** en dehors des cours : un projet perso, un stage, une contribution.\n    \n* Un premier contact avec des données en **production** ou avec du **scraping** est un plus.\n    \n* Tu as envie de travailler dans un **environnement SaaS** orienté produit, où ce que tu livres est utilisé rapidement et massivement.\n    \n\n### **Compétences requises**\n\n* Bon niveau en **Python** pour le traitement et l’ingénierie des données.\n    \n* Compréhension général du fonctionnement des **pipelines data**.\n    \n* Bonnes bases en **SQL**.\n    \n* Volonté de **coder avec l'IA**.\n    \n* Curiosité pour les données brutes et le monde **juridique**.\n    \n* **Rigueur** : tu vérifies avant d'annoncer que c'est fini, tu mesures, tu écris ce que tu as fait.\n    \n* Sensibilité aux enjeux de **qualité, fiabilité et traçabilité** des données.\n    \n* Capacité à **travailler en équipe** et à **communiquer** clairement, y compris pour dire tôt que tu bloques.\n    \n* Anglais écrit : le **code et les PR sont en anglais**, le reste de la vie d'équipe en français.\n    \n* Bonus : Elasticsearch, Celery, Docker et Kubernetes, GCP.",
+     "name": "Alternance Data Engineer (H/F)",
+     "offices": [
+      {
+       "state": "Nouvelle-Aquitaine",
+       "city": "Bègles",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Gironde",
+       "local_district": "Gironde",
+       "local_city": "Bègles",
+       "local_state": "Nouvelle-Aquitaine"
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Collecter et intégrer des données massives issues de sources hétérogènes (API, fichiers, bases externes, scraping).",
+      "Surveiller la qualité des données : écrire les requêtes qui comparent ce qui a été collecté et ce qui est réellement cherchable, trouver les trous, les corriger.",
+      "Améliorer l'outillage de l'équipe : console de suivi du pipeline, scripts de rejeu, évaluation automatique de la qualité d'indexation."
+     ],
+     "objectID": "89a3218f-c56f-44cb-85ab-7450ca899a8b"
+    },
+    {
+     "slug": "staff-backend-engineer-databases-analytics_ie_hd6es7qs",
+     "language": "en",
+     "organization": {
+      "name": "Grafana Labs",
+      "slug": "grafana-labs"
+     },
+     "summary": "Join Grafana Labs, a leading observability tools company, as a Staff Backend Engineer. In this role, you will design and build the core backend architecture for an AI-native data intelligence system. You will have a high degree of autonomy and ownership, and the opportunity to shape the technical direction of a new product area. Enjoy a fully remote work environment, generous vacation and healthcare benefits, and a focus on professional development.",
+     "published_at": "2026-09-23T00:19:59Z",
+     "salary_currency": "EUR",
+     "remote": "fulltime",
+     "salary_minimum": 117600.0,
+     "key_missions": [
+      "Concevoir et expédier l'architecture backend qui alimente l'ingestion, le stockage de contexte, les API de récupération et les intégrations.",
+      "Aider à définir et à construire l'architecture pour un service multi-locataire, y compris l'isolement des locataires, le suivi de l'utilisation, les quotas.",
+      "Construire des API et des interfaces de service qui permettent aux agents d'IA, aux outils MCP, aux CLIs et aux applications internes de récupérer le contexte pertinent."
+     ],
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Ireland",
+       "country_code": "IE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": " - Experience using observability tools to understand and troubleshoot system behavior\n- Exposure to working in cloud-native environments (e.g., AWS, GCP, Azure)\n- Proven initiative: You take ownership and drive projects forward, pushing boundaries to find the most impactful solutions. You can deal with ambiguity and are able to define scope where things are loosely defined\n- Collaborative attitude: You communicate effectively with your peers. You’re open to feedback, and you bring a solutions-oriented mindset to the table\n- Proven track record of delivering software that made it into production and is actively used by users\n- Quick iteration and experimentation: You’re comfortable releasing prototypes, collecting feedback, and iterating with a pragmatic mindset\n- AI experience with a practical mindset: You’re familiar with AI technologies and frameworks, and you focus on delivering high-quality solutions that work in the real world, not just in theory\n- Experience with LLMs, prompt engineering, and building applications powered by GenAI\n- Strong engineering skills: Solid experience building production-grade, user-facing software systems. You’re a self-starter, capable of tackling complex engineering problems and making UI design decisions with minimal supervision\n- Experience building tools for data engineering\n- Experience as a data analyst or work with data platforms (e.g., Looker, Tableau, PowerBI, Snowflake, DataBricks)\n- Experience building or working with agent frameworks or multi‑agent workflows",
+     "name": "Staff Backend Engineer (Databases, Analytics)",
+     "contract_type": "full_time",
+     "salary_maximum": 141120.0,
+     "salary_period": "yearly",
+     "objectID": "fc56bc14-8dd0-441a-b6eb-522bf304f494"
+    },
+    {
+     "slug": "staff-backend-engineer-databases-analytics_es_4p56rlko",
+     "language": "en",
+     "organization": {
+      "name": "Grafana Labs",
+      "slug": "grafana-labs"
+     },
+     "summary": "Join Grafana Labs, a leading observability tools company, as a Staff Backend Engineer. In this role, you will design and build the core backend architecture for an AI-native data intelligence system. You will have the opportunity to work in a highly collaborative environment, take ownership of your projects, and make a significant impact on the company's success. Enjoy a range of benefits, including 30 days of paid vacation, health coverage, retirement planning, and professional development opportunities.",
+     "published_at": "2026-09-23T00:19:58Z",
+     "salary_currency": "EUR",
+     "remote": "fulltime",
+     "salary_minimum": 94025.0,
+     "key_missions": [
+      "Concevoir et expédier l'architecture backend principale qui alimente l'ingestion, le stockage de contexte, les API de récupération et les intégrations.",
+      "Aider à définir et à construire l'architecture d'un service multi-tenant, y compris l'isolement des locataires, le suivi de l'utilisation, les quotas.",
+      "Construire des API et des interfaces de service qui permettent aux agents d'IA, aux outils MCP, aux CLIs et aux applications internes de récupérer le contexte pertinent."
+     ],
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": " - This is an early-stage role on a high-autonomy team, so you should be comfortable working through ambiguity, making pragmatic architectural decisions, and building systems that can evolve from internal dogfooding to production-grade SaaS\n- Experience using observability tools to understand and troubleshoot system behavior\n- Collaborative attitude: You communicate effectively with your peers. You’re open to feedback, and you bring a solutions-oriented mindset to the table\n- AI experience with a practical mindset: You’re familiar with AI technologies and frameworks, and you focus on delivering high-quality solutions that work in the real world, not just in theory\n- Proven track record of delivering software that made it into production and is actively used by users\n- Quick iteration and experimentation: You’re comfortable releasing prototypes, collecting feedback, and iterating with a pragmatic mindset\n- Proven initiative: You take ownership and drive projects forward, pushing boundaries to find the most impactful solutions. You can deal with ambiguity and are able to define scope where things are loosely defined\n- Experience with LLMs, prompt engineering, and building applications powered by GenAI\n- Strong engineering skills: Solid experience building production-grade, user-facing software systems. You’re a self-starter, capable of tackling complex engineering problems and making UI design decisions with minimal supervision\n- Exposure to working in cloud-native environments (e.g., AWS, GCP, Azure)\n- Experience building tools for data engineering\n- Experience as a data analyst or work with data platforms (e.g., Looker, Tableau, PowerBI, Snowflake, DataBricks)\n- Experience building or working with agent frameworks or multi‑agent workflows",
+     "name": "Staff Backend Engineer (Databases Analytics)",
+     "contract_type": "full_time",
+     "salary_maximum": 112830.0,
+     "salary_period": "yearly",
+     "objectID": "5320874a-6981-4611-95e7-39775de3429d"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-staff-ai-data-engineer_us_wyjspioj",
+     "salary_maximum": 280000.0,
+     "language": "en",
+     "remote": "fulltime",
+     "salary_period": "yearly",
+     "summary": "Join Stellar Health as a Senior Staff AI Data Engineer, where you'll lead the transformation of analytics and reporting through AI. You'll own and drive two key components of our analytics strategy: AI for analytics and reporting, and our data architecture. Your work will compress time-to-insight and improve the quality of insights. You'll set the strategy for AI in analytics, own tool selection and architecture, design evaluation and guardrail systems, and define how analytics use cases are proposed and governed. You'll also debug complex failures, build for unpredictable futures, and mentor others in AI-assisted analytics.",
+     "organization": {
+      "name": "Stellar Health",
+      "slug": "stellar-health"
+     },
+     "published_at": "2026-09-23T00:18:22Z",
+     "salary_currency": "USD",
+     "profile": " - Strong dbt + cloud warehouse (Snowflake preferred) chops; opinionated about semantic layers and metadata\n- Comfortable communicating externally: blog posts, talks, OSS contributions, customer-facing thought leadership\n- Track record of driving wide-team consensus on technical direction - not just shipping, but getting other teams to adopt the pattern\n- 8+ years across data platform, ML platform, or developer-tooling - including time as the senior technical voice for a major data/ML/AI surface\n- Production experience architecting LLM systems: agents, evals, RAG, MCP, tool use, multi-step workflows, and the failure modes of each\n- Bonus: Claude Code / Agent SDK, healthcare/claims data, prior 0→1 platform builds\n- Equally credible in a strategy conversation about where AI takes our analytics next and in developing a new data model the following day\n- Decisions have direct, long-term consequences for Stellar's ability to operate on its data\n- Architect-mentor, not solo IC. Your impact is measured in what the whole analytics org can do, not just what you ship",
+     "name": "Senior Staff AI Data Engineer",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": 250000.0,
+     "key_missions": [
+      "Lead the development and implementation of AI strategies for analytics and reporting, including tool selection, administration, and architecture.",
+      "Drive the evolution of data architecture to support AI use cases, collaborating with analytics engineers to enhance dbt + Snowflake models.",
+      "Mentor and guide the analytics engineering team, promoting best practices in AI-assisted analytics and driving consensus on technical direction."
+     ],
+     "objectID": "4604e985-0b41-4cc6-859a-e50879dd42f2"
+    }
+   ],
+   "nbHits": 1886,
+   "page": 0,
+   "nbPages": 84,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "Data Engineer",
+   "params": "query=Data+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22remote%3Afulltime%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 4,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "fetch": {
+     "scanning": 2,
+     "total": 3
+    },
+    "total": 4
+   },
+   "serverTimeMS": 14
+  },
+  {
+   "hits": [
+    {
+     "organization": {
+      "name": "Dynatrace",
+      "slug": "dynatrace"
+     },
+     "language": "en",
+     "slug": "seniro-customer-success-engineer-spanish-and-italian-speaking_barcelona",
+     "published_at": "2026-09-24T22:01:06Z",
+     "salary_maximum": null,
+     "key_missions": [
+      "Establecer y mantener relaciones post-venta con los clientes estratégicos de Dynatrace, actuando como asesor de confianza.",
+      "Diagnosticar y proporcionar soluciones a problemas de configuración complejos con las soluciones de Dynatrace y las integraciones no relacionadas.",
+      "Proporcionar formación en línea a grupos de usuarios para apoyar la adopción organizativa y participar en actividades de descubrimiento y educación."
+     ],
+     "remote": "partial",
+     "summary": "Join Dynatrace as a Senior Customer Success Engineer, where you will build and maintain post-sales relationships with our highest strategic customers. You will serve as a trusted advisor, ensuring the successful deployment and adoption of all Dynatrace products. Your role will involve triaging and diagnosing complex configuration issues, strategizing on technical objectives, providing advice as a subject matter expert, and advocating for the customer. You will also provide web-based training, engage with customer support and product management, and participate in business reviews.",
+     "offices": [
+      {
+       "state": "Catalonia",
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Barcelona",
+       "local_district": "Barcelona",
+       "local_city": "Barcelona",
+       "local_state": "Catalunya"
+      }
+     ],
+     "salary_period": null,
+     "profile": null,
+     "name": "Senior Customer Success Engineer, Spanish and Italian speaking",
+     "contract_type": "full_time",
+     "salary_minimum": null,
+     "salary_currency": null,
+     "objectID": "3c840130-9c43-4c1a-96f6-ce5fee5bd93e"
+    },
+    {
+     "organization": {
+      "name": "Galadrim",
+      "slug": "galadrim"
+     },
+     "language": "es",
+     "slug": "software-engineer-practicas-de-fin-de-master-madrid_madrid",
+     "salary_period": "monthly",
+     "contract_type": "internship",
+     "remote": "punctual",
+     "salary_currency": "EUR",
+     "key_missions": [
+      "Asumir la responsabilidad de trabajar en proyectos de desarrollo Full Stack, tanto web como móvil, desde el primer día.",
+      "Adquirir experiencia y habilidades en el stack técnico utilizado por la empresa, incluyendo tecnologías como PostgreSQL, Node.js, JavaScript/TypeScript, React/React Native, y AWS.",
+      "Participar en la estructuración del equipo, incluyendo la selección, gestión y desarrollo de herramientas internas, a medida que asumes más responsabilidades."
+     ],
+     "profile": "### **Este puesto es para ti si**\n\n* Tienes 0+ años de experiencia. (Sí, has leído bien ¡0 años!)\n    \n* Te encantan las interfaces modernas, fluidas y *pixel-perfect*.\n    \n* No te asusta bucear en reglas de negocio complejas para traducirlas en algoritmos eficientes y optimizados.\n    \n* Utilizas de forma fluida editores de código con IA como Cursor o Claude Code para incrementar tu agilidad y velocidad de ejecución, manteniendo siempre el control total de tu *codebase*.\n    \n* Tienes don de gentes y te motiva acompañar a los comerciales a reuniones para explicar conceptos técnicos de forma clara.\n    \n* Disfrutas del trabajo en equipo, pero tienes autonomía total en tus tareas.\n    \n* Buscas la excelencia técnica en todo lo que haces con una base sólida de ingeniería.\n    \n* Dominas el español a nivel nativo y el inglés con fluidez. ¡Bonus si hablas francés!",
+     "name": "Software Engineer  - Prácticas de fin de máster (Madrid)",
+     "salary_minimum": 1000.0,
+     "published_at": "2026-09-26T08:00:07Z",
+     "summary": "Únete a Galadrim, una empresa en crecimiento en el sector tecnológico. Buscamos desarrolladores Full Stack para trabajar en proyectos emocionantes y asumir un papel de liderazgo técnico a medida que crezca el equipo. Ofrecemos un entorno de trabajo híbrido en Madrid, con oportunidades de desarrollo profesional y beneficios atractivos.",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "salary_maximum": 12000.0,
+     "objectID": "3c3b1a67-520c-4d0b-afd6-07a7de6f1725"
+    },
+    {
+     "key_missions": [
+      "Desarrollar soluciones de inteligencia artificial y asumir la parte Full Stack de los proyectos.",
+      "Trabajar en proyectos reales para clientes, con el apoyo de un mentor técnico y participar en conferencias y workshops.",
+      "Asumir más responsabilidades en la estructuración del equipo y contribuir al crecimiento de la actividad en España."
+     ],
+     "salary_currency": "EUR",
+     "salary_maximum": 35000.0,
+     "language": "es",
+     "contract_type": "full_time",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "slug": "ai-engineer-madrid_madrid",
+     "published_at": "2026-09-25T08:00:02Z",
+     "salary_period": "yearly",
+     "remote": "punctual",
+     "organization": {
+      "name": "Galadrim",
+      "slug": "galadrim"
+     },
+     "summary": "Únete a Galadrim, una empresa innovadora en el campo de la inteligencia artificial. Buscamos desarrolladores apasionados por la IA para trabajar en proyectos emocionantes y desafiantes. Tendrás la oportunidad de combinar IA con desarrollo end-to-end y asumir un mayor liderazgo técnico a medida que crezca el equipo. Ofrecemos un entorno de trabajo híbrido en Madrid, con un salario competitivo y beneficios adicionales.",
+     "salary_minimum": 30000.0,
+     "profile": "### Este puesto es para ti si\n\n* Tienes 0+ años de experiencia. (Sí, has leído bien ¡0 años!)\n    \n* Te **apasiona la IA** y sigues de cerca los últimos avances (LLM, modelos de difusión, agentes, etc.).\n    \n* Te encantan las interfaces modernas, fluidas y *pixel-perfect*.\n    \n* No te asusta bucear en reglas de negocio complejas para diseñar soluciones de IA pragmáticas e iterativas.\n    \n* Utilizas de forma fluida editores de código con IA como Cursor o Claude Code para incrementar tu agilidad y velocidad de ejecución, manteniendo siempre el control total de tu *codebase*.\n    \n* Tienes don de gentes y te motiva acompañar a los comerciales a reuniones para explicar conceptos técnicos de forma clara.\n    \n* Disfrutas del trabajo en equipo, pero tienes autonomía total en tus tareas.\n    \n* Buscas la excelencia técnica en todo lo que haces, y tienes una base sólida de ingeniería.\n    \n* Dominas el español a nivel nativo y el inglés con fluidez. ¡Bonus si hablas francés!",
+     "name": "AI Engineer - Madrid",
+     "objectID": "dfe3fe15-ad37-4d9d-99dd-640f9820cf26"
+    },
+    {
+     "organization": {
+      "name": "Galadrim",
+      "slug": "galadrim"
+     },
+     "language": "es",
+     "slug": "software-engineer-full-stack-madrid_madrid",
+     "salary_period": "yearly",
+     "contract_type": "full_time",
+     "remote": "punctual",
+     "salary_currency": "EUR",
+     "key_missions": [
+      "Asumir la responsabilidad de trabajar en proyectos de desarrollo Full Stack, tanto web como móvil, desde el primer día.",
+      "Dominar el stack técnico y la metodología de la empresa, y asumir más responsabilidades en la estructuración del equipo.",
+      "Implicarse directamente en el crecimiento de la actividad de la empresa en España a largo plazo."
+     ],
+     "profile": "### Este puesto es para ti si\n\n* Tienes 0+ años de experiencia. (Sí, has leído bien ¡0 años!)\n    \n* Te encantan las interfaces modernas, fluidas y *pixel-perfect*.\n    \n* No te asusta bucear en reglas de negocio complejas para traducirlas en algoritmos eficientes y optimizados.\n    \n* Utilizas de forma fluida editores de código con IA como Cursor o Claude Code para incrementar tu agilidad y velocidad de ejecución, manteniendo siempre el control total de tu *codebase*.\n    \n* Tienes don de gentes y te motiva acompañar a los comerciales a reuniones para explicar conceptos técnicos de forma clara.\n    \n* Disfrutas del trabajo en equipo, pero tienes autonomía total en tus tareas.\n    \n* Buscas la excelencia técnica en todo lo que haces con una base sólida de ingeniería.\n    \n* Dominas el español a nivel nativo y el inglés con fluidez. ¡Bonus si hablas francés!",
+     "name": "Software Engineer - Madrid",
+     "salary_minimum": 30000.0,
+     "published_at": "2026-09-24T08:00:05Z",
+     "summary": "Únete a Galadrim, una empresa en crecimiento en el sector tecnológico. Buscamos desarrolladores y desarrolladoras Full Stack para trabajar en proyectos emocionantes en Madrid. Ofrecemos un entorno de trabajo híbrido, con la opción de trabajar de forma remota hasta que abramos nuestras oficinas en Madrid en 2026.",
+     "offices": [
+      {
+       "state": "Community of Madrid",
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": "Madrid",
+       "local_district": "Madrid",
+       "local_city": "Madrid",
+       "local_state": "Comunidad de Madrid"
+      }
+     ],
+     "salary_maximum": 35000.0,
+     "objectID": "4a63f550-4817-4ec7-982f-dc2ba558b2bd"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-data-engineer-platform_madrid_jxfn7aiu",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "punctual",
+     "salary_period": null,
+     "summary": "Join Ebury, a fast-growing fintech company, as a Senior Data Platform Engineer. In this role, you will lead the evolution of Ebury's core data platform, transforming raw data into a reliable, scalable asset for teams worldwide. You will work directly with modern cloud architectures and a high-performing engineering team. The position is based in Madrid with a hybrid setup (4 days in-office, 1 day remote).",
+     "organization": {
+      "name": "Ebury",
+      "slug": "ebury-1"
+     },
+     "published_at": "2026-09-26T00:22:34Z",
+     "salary_currency": null,
+     "profile": null,
+     "name": "Senior Data Engineer - Platform ",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Lead the evolution of Ebury's core data platform, transforming raw data into a reliable, scalable asset for teams worldwide.",
+      "Architect robust, open-source-friendly frameworks and establish data governance that directly fuels Ebury's strategic global growth.",
+      "Collaborate with cross-functional teams to empower them to make faster, sharper decisions backed by accessible, high-quality data."
+     ],
+     "objectID": "ad1a1c2b-2d06-4084-91de-a88760c73ccf"
+    },
+    {
+     "slug": "senior-full-stack-go-engineer_berlin_js7x7wx4",
+     "organization": {
+      "name": "topi",
+      "slug": "topi"
+     },
+     "published_at": "2026-09-25T00:13:10Z",
+     "language": "en",
+     "salary_currency": null,
+     "salary_maximum": null,
+     "salary_minimum": null,
+     "remote": "unknown",
+     "summary": "Join our team as a Senior Full Stack Go Engineer, where you will architect features from the database to the browser. You will primarily focus on the Go backend, APIs, data models, and system design, but will also work on the React/TypeScript frontend as needed. You will have a significant voice in shaping our technical direction and product.",
+     "key_missions": [
+      "Architecting features from the database to the browser, with a focus on the Go backend and APIs.",
+      "Designing and implementing clean APIs in Go while ensuring seamless integration into a performant React frontend.",
+      "Maintaining high standards for code quality and performance across the entire stack, from backend microservices to frontend component libraries."
+     ],
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Berlin",
+       "country": "Germany",
+       "country_code": "DE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Berlin",
+       "country": "Germany",
+       "country_code": "DE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": " - We are looking for a Senior Fullstack Engineer with deep expertise in Go to join a diverse, product-minded team that values collaboration, impact, and continuous learning\n- Engineers are expected to be comfortable navigating the entire stack (both Frontend and Backend)\n- This is a role for an engineer who lives in the backend but enjoys reaching across the stack\n- System Ownership: A \"DevOps\" mindset, comfortable with CI/CD, automated testing, and version control\n- The Frontend: Motivated and willing to work in our React/TypeScript frontend, with enough baseline ability to ship features there when a story calls for it. Prior hands-on React/TypeScript experience is a plus, not a must\n- Experience: at least 6+ years of professional software engineering experience in a production environment\n- Communication: Fluent English and the ability to explain complex technical trade-offs to non-technical stakeholders\n- The Backend: Proven experience architecting and maintaining high-scale web APIs. You've shipped Go in production for 2+ years and are comfortable owning backend system design end-to-end",
+     "name": "Senior Full Stack Go Engineer",
+     "contract_type": "full_time",
+     "salary_period": null,
+     "objectID": "22dcd594-9b12-4031-8c50-4394a40e4758"
+    },
+    {
+     "organization": {
+      "name": "Elastic",
+      "slug": "elastic"
+     },
+     "language": "en",
+     "slug": "senior-information-security-infrastructure-engineer-security-architecture-infosec_madrid_qdkq33ea",
+     "published_at": "2026-09-25T00:09:33Z",
+     "salary_maximum": 106000.0,
+     "key_missions": [
+      "Ingest security telemetry into Elasticsearch consistently and maintain the underlying Elastic clusters.",
+      "Build and maintain ingestion of security-relevant data into Elasticsearch, integrating with third-party and cloud provider APIs.",
+      "Monitor and upgrade Elastic Cloud on Kubernetes clusters regularly, managing capacity and shards."
+     ],
+     "remote": "fulltime",
+     "summary": "Join our InfoSec - Security Architecture team as a Senior Information Security Infrastructure Engineer. In this role, you will be responsible for ingesting security telemetry into Elasticsearch, maintaining the health of Elastic clusters, managing cloud infrastructure with Terraform, and ensuring data quality and reliability. You will have the opportunity to work on meaningful projects that directly impact our security posture and collaborate with a skilled team passionate about information security.",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_period": "yearly",
+     "profile": " - API integration - consuming REST APIs for data ingestion: authentication, pagination, rate limiting concurrency, and error handling\n- Ability to operate Elastic and Elasticsearch in production. This includes managing ingest pipelines, index templates, mappings, and queries, while ensuring that clusters are healthy and upgraded. Experience with ECK or Elasticsearch on Kubernetes is strongly preferred\n- Kubernetes - deploying and operating workloads (scheduled jobs, Helm charts, operators); troubleshooting pods/jobs in a cluster\n- Proven track record of using AI to accelerate development, debug complex systems, and accelerate operations, while still owning the final outcomes\n- Terraform - managing cloud and Elasticsearch resources as code\n- Eligibility to work in Department of Defense (DoD) Impact Level 4 or above cloud service environments\n- Python scripting - able to read, write, and modify ingestion/automation scripts. Scripting-level, not full software-engineering depth\n- Experience with cloud providers\n- Hands-on experience with cloud providers, preferably GCP, and working with audit and logging data\n- Knowledge of GitHub, PR-based workflows, GitHub Actions and Continuous Integration (CI)\n- Ability to develop and use dashboard/visualization tools\n- Knowledge of SOC operations and incident response (IR) workflows, including the use of security telemetry during investigations",
+     "name": "Senior Information Security Infrastructure Engineer (Security Architecture - InfoSec)",
+     "contract_type": "full_time",
+     "salary_minimum": 67000.0,
+     "salary_currency": "EUR",
+     "objectID": "9b1af20e-0cd6-4370-918c-a912a55d0311"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-software-engineer-prism-security_madrid_xjikfvvx",
+     "salary_maximum": 106000.0,
+     "organization": {
+      "name": "Elastic",
+      "slug": "elastic"
+     },
+     "remote": "fulltime",
+     "salary_minimum": 67000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-25T00:09:32Z",
+     "salary_currency": "EUR",
+     "profile": " - Successfully led projects from conception to deployment\n- Deep TypeScript and JavaScript skills, especially with React and Node.js\n- Several years of experience building and maintaining production software\n- A proven track record of using AI to accelerate development, debug complex systems, and optimize code, while still owning the final outcomes\n- You can work autonomously, drive decisions and results in a distributed team by leveraging asynchronous, direct, and transparent communication\n- The ability to collaborate across functions and teams and seamlessly transition between different projects, codebases, or teams based on business priorities\n- Experience with Kibana, Elasticsearch, or Elastic Security\n- Knowledge with performance profiling and optimization techniques\n- Experience with SIEM/UEBA\n- Experience building AI-assisted or agent-guided workflows with human controls",
+     "name": "Senior Software Engineer (Prism, Security)",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join the Prism team at Elastic Security as a Senior Software Engineer. You will lead technical work in building systems that turn raw data into a trustworthy picture of users, hosts, and services in a customer's environment. You will partner with product, design, and engineering to turn hard, ambiguous problems into reliable, performant systems. You will own small-to-medium projects from technical design through production, write high-quality TypeScript and React code, and build telemetry, tests, and safeguards. You will also review code, support teammates, and improve team practices.",
+     "key_missions": [
+      "Lead technical work across the area of building systems that turn raw data into a trustworthy picture of users, hosts, and services.",
+      "Own small-to-medium projects from technical design through production, including data modeling, background tasks, and APIs.",
+      "Write high-quality TypeScript and React code, with Node.js services and APIs where needed, and build telemetry, tests, and safeguards."
+     ],
+     "language": "en",
+     "objectID": "72b9c5a0-1004-4826-a3b8-eb05e03d9f83"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "principal-software-engineer-builder-experience-platform-engineering-productivity_madrid_y35n75re",
+     "salary_maximum": 127200.0,
+     "language": "en",
+     "remote": "fulltime",
+     "salary_period": "yearly",
+     "summary": "Join our Platform Engineering Productivity team as a Principal Software Engineer. In this role, you will ensure high-quality delivery of Elastic products while improving the software development and release process for engineers across the organization. You will work on various initiatives, including improving CI infrastructure, managing systems for releasable artifacts, enabling ephemeral developer environments, and defining release quality gates. You will also review code, collaborate with engineering and product teams, drive technical communication, create and maintain technical documentation, and mentor engineers.",
+     "organization": {
+      "name": "Elastic",
+      "slug": "elastic"
+     },
+     "published_at": "2026-09-25T00:09:32Z",
+     "salary_currency": "EUR",
+     "profile": " - Ability to move fluidly across projects, priorities, and evolving team structures\n- Experience with CI/CD systems, GIT and modern development and release practices\n- Enthusiasm for working with a globally distributed team and comfort in navigating ambiguity\n- Solid understanding of the full software development lifecycle, including build, package, test, release, and quality strategy\n- Experience designing scalable systems and improving developer productivity through tooling and automation\n- Hands-on AI fluency, including integrating LLM APIs into production workflows and applying prompt engineering to domain-specific problems\n- Excellent written and verbal technical communication skills\n- Experience with cloud infrastructure and developer platforms, including tools such as Terraform, Kubernetes, Docker, configuration management tools, and major cloud providers\n- Deep experience in one or more programming languages such as Python, Go, Bash, Java, or Scala\n- A track record of improving engineering practices such as code review quality, standards, and team efficiency",
+     "name": "Principal Software Engineer (Builder Experience, Platform Engineering Productivity)",
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": 80400.0,
+     "key_missions": [
+      "Assurer la livraison des produits Elastic aux clients avec une haute qualité tout en rendant le processus de développement et de publication plus efficace pour les ingénieurs.",
+      "Construire et améliorer les frameworks, les composants réutilisables et les directives opérationnelles qui aident les équipes à posséder l'ensemble du cycle de vie du développement logiciel pour leurs services.",
+      "Collaborer avec les équipes d'ingénierie et de produit pour s'aligner sur les exigences, la stratégie de test et les objectifs de livraison."
+     ],
+     "objectID": "55b78ded-b93b-4df3-b3dd-7aabdb4c655e"
+    },
+    {
+     "contract_type": "internship",
+     "slug": "ai-engineer-internal-agents-automations_barcelona_sypr57j2",
+     "salary_maximum": 48000.0,
+     "organization": {
+      "name": "Haddock",
+      "slug": "haddock"
+     },
+     "remote": "partial",
+     "salary_minimum": 32000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-24T00:12:30Z",
+     "salary_currency": "EUR",
+     "profile": " - 👉 You're analytical and quantitative: you measure before optimizing, but you never let analysis slow down shipping\n- 👉 You're truly AI-native: you follow new models, frameworks, and techniques, and you continuously refine how you use them in practice\n- 👉 Fluent in Spanish and comfortable in English. Most of your stakeholders work in Spanish, so this one matters\n- 👉 You think in systems, not tasks. When you watch someone do something by hand, your instinct is to ask what the process really is, and then whether it should exist at all\n- 👉 You're also AI-native in how you build: you use modern AI-powered dev tools (Claude Code, Cursor, Codex or similar) and assemble your own agents and workflows to move faster\n- 👉 You're comfortable with product engineering. TypeScript or Python, and you're comfortable with APIs, webhooks, jobs, queues, databases, and shipping a frontend when the workflow needs one. The prompt is often the smallest part of the problem, and you own the service around it rather than handing it to someone else to maintain\n- 👉 1+ years of hands-on experience building AI systems or automations that real people use every day\n- 👉 You have business empathy. You can sit with a CX agent or a salesperson, understand their workflow, and turn it into a system. You enjoy talking to people, not only to a terminal\n- AI observability platforms like langfuse (tracing, metrics, evals for LLM apps and agents)\n- Having automated a real business process end to end, and having the numbers to prove what it saved\n- RAG systems and vector databases\n- Deep hands-on work with the APIs of HubSpot, Zendesk, Slack or Notion\n- Designing or working with MCPs\n- Building and orchestrating multi-agent systems\n- Designing and running evaluations",
+     "name": "AI Engineer (Internal Agents & Automations)",
+     "offices": [
+      {
+       "state": null,
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join Haddock, a fast-growing company in the restaurant industry, as an AI Engineer focused on internal agents and automations. In this role, you will identify processes that can be automated, build the agents and own the software they live in, and maintain and improve our own AI frameworks. You will have the opportunity to make a significant impact on the company's operations and growth.",
+     "key_missions": [
+      "Hunt for leverage by understanding the processes that consume the most hours across various departments and determine what is worth automating.",
+      "Build and own the agents and the software they operate in, ensuring that all aspects of the agent's functionality are covered, from the AI layer to the surrounding infrastructure.",
+      "Own the systems and integrations, including HubSpot, Zendesk, Slack, Notion, and others, and take responsibility for migrating or reconfiguring tools as needed."
+     ],
+     "language": "en",
+     "objectID": "c63a0ea8-3a4d-46bf-87f3-6c7a53a8f0d4"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_maximum": 65000.0,
+     "published_at": "2026-09-24T00:12:30Z",
+     "salary_period": "yearly",
+     "slug": "ai-engineer-product_barcelona_wwe7ab44",
+     "key_missions": [
+      "Architect and ship AI solutions for restaurateurs, balancing latency, cost, and accuracy.",
+      "Own AI observability end to end: monitor billions of traces, design evaluation frameworks, and close the improvement loop as fast as possible.",
+      "Build the harness. A model on its own is not a product. The tools it can call, the data it can read, the guardrails, the place where a human steps in."
+     ],
+     "salary_currency": "EUR",
+     "salary_minimum": 45000.0,
+     "remote": "partial",
+     "offices": [
+      {
+       "state": null,
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "language": "en",
+     "profile": " - 👉 You've worked with an eval system to measure and improve model performance, rather than a handful of test prompts and a good feeling\n- 👉 You combine engineering rigor with product thinking. You design, debug, and improve end-to-end systems that solve real problems\n- 👉 You're truly AI-native: you follow new models, papers, and techniques, and you continuously refine how you use them in practice\n- 👉 You're also AI-native in how you build: you use modern AI-powered dev tools (Claude Code, Cursor, Codex or similar) and assemble your own agents and workflows to move faster\n- 👉 2+ years of hands-on experience with GenAI and 3+ years of engineering experience overall. One year of very intense AI work also counts, if it's backed by solid software or data science experience\n- 👉 Fluent in Spanish and comfortable in English\n- 👉 You've run GenAI in production at real scale. As a reference: an agent or workflow doing at least 5,000 executions a month, and you were the one accountable for it. Experiments don't count\n- AI observability platforms like langfuse (tracing, metrics, evals for LLM apps and agents)\n- Designing and running evaluations\n- Multimodal LLMs, especially vision models for OCR document understanding\n- Building and orchestrating multi-agent systems\n- RAG systems and vector databases\n- Designing or working with MCPs",
+     "name": "AI Engineer (Product)",
+     "organization": {
+      "name": "Haddock",
+      "slug": "haddock"
+     },
+     "summary": "Join our team as an AI Engineer, where you'll be at the forefront of developing innovative AI solutions for the restaurant industry. You'll work on document understanding, conversational agents, end-to-end workflows, product and format matching, and more. Your expertise in AI and engineering will help us scale our solutions and solve real customer pain points.",
+     "objectID": "7009185e-9d51-4650-bd0b-9b5cff66d9ab"
+    },
+    {
+     "organization": {
+      "name": "Elastic",
+      "slug": "elastic"
+     },
+     "key_missions": [
+      "Reverse engineer malware, conduct threat hunting, and perform vulnerability research to discover novel adversary behavior.",
+      "Operate global data systems to identify and mitigate threats, and turn every discovery into a shipped protection.",
+      "Build your public research reputation by publishing on Elastic Security Labs, releasing tools and detection artifacts to public GitHub repositories, and presenting at conferences."
+     ],
+     "published_at": "2026-09-24T00:09:57Z",
+     "slug": "senior-security-research-engineer-security-operations-and-novel-adversary-research_madrid_vtefpw5x",
+     "summary": "Join Elastic Security's SONAR team as a Senior Security Research Engineer. In this role, you will conduct advanced malware reverse engineering, threat hunting, and vulnerability research. You will turn your discoveries into protections for customers, publish your research publicly, and collaborate with other teams within Elastic Security. The position offers flexible location and schedule, fully paid health coverage, generous vacation days, and other benefits.",
+     "salary_maximum": 106000.0,
+     "language": "en",
+     "salary_period": "yearly",
+     "salary_minimum": 67000.0,
+     "offices": [
+      {
+       "state": null,
+       "city": "Madrid",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "remote": "fulltime",
+     "profile": " - If you have a passion for taking apart what adversaries build, and would enjoy the challenge of getting that understanding into customers' hands quickly, join our growing team!\n- Proven ability to seamlessly transition between different projects, codebases, or scrum teams based on dynamic business priorities\n- Working knowledge of the fundamentals: Windows and Linux internals, network protocols including HTTP and TLS, and enough applied cryptography to recognize what is protecting a configuration blob\n- 6+ years of professional experience reverse engineering malware and researching adversary tradecraft, static and dynamic, across multiple executable formats (PE, ELF, Mach-O) and architectures (x86-64, ARM), including obfuscated and packed code that defeats automated tooling\n- You have a proven track record of using AI to accelerate development, debug complex systems, and optimize code, while still owning the final outcomes\n- Technical writing ability. You can turn a long investigation into a clear, public analysis that other defenders can act on\n- YARA authorship and hunting at scale. You write signatures that hold up against the next variant, and you can find a weak signal in a very large telemetry dataset\n- Python development experience for research tooling and automation, plus the ability to read C and C++. Malware arrives in Rust, Go, and NodeJS too, so you are willing to learn a new runtime when a sample demands it\n- A collaborative mentality, an eagerness to learn new skills and emerging technologies, and a passion for protecting the world's data from attack!\n- Vulnerability research or novel technique discovery, with a track record of responsible disclosure\n- Participation in CTFs such as FLARE-ON or NetWars\n- Standing in the community: maintaining an open-source security tool, speaking at conferences (e.g., Black Hat, DEF CON, CODE BLUE, Virus Bulletin), or an established publication record\n- Attribution tradecraft, including joint investigations with external intelligence partners and platforms such as MISP or OpenCTI\n- Behavioral detection engineering beyond signatures, or applying machine learning to malware classification\n- Familiarity with the Elastic Stack (Elasticsearch, Kibana) and Elastic Security",
+     "name": "Senior Security Research Engineer (Security Operations and Novel Adversary Research)",
+     "salary_currency": "EUR",
+     "contract_type": "full_time",
+     "objectID": "d83ba0b3-2353-453e-b797-7a0e2f60a9b4"
+    }
+   ],
+   "nbHits": 378,
+   "page": 0,
+   "nbPages": 32,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "AI Engineer",
+   "params": "query=AI+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22offices.country_code%3AES%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 2,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "fetch": {
+     "total": 1
+    },
+    "total": 2
+   },
+   "serverTimeMS": 16
+  },
+  {
+   "hits": [
+    {
+     "summary": "Join Ecosistem Group, a part of the SUEZ Group, as a Technical Support Engineer in the Graduate Expert Project – Hazardous Waste Activities. You will provide technical support to hazardous waste treatment and recovery facilities in Italy, manage industrial projects, and contribute to process optimization. This position offers the opportunity to make a significant impact on environmental protection and waste management.",
+     "salary_minimum": null,
+     "offices": [
+      {
+       "state": "Calabria",
+       "city": "Lamezia Terme",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Catanzaro",
+       "local_district": "Catanzaro",
+       "local_city": "Lamezia Terme",
+       "local_state": "Calabria"
+      }
+     ],
+     "slug": "graduate-expert-hazardous-waste-activities-technical-support-engineer_lamezia-terme",
+     "key_missions": [
+      "Provide technical support to hazardous waste treatment and recovery facilities in Italy, and contribute to process optimization.",
+      "Perform a key technical role in managing the company’s industrial projects, working on cross-functional technical issues between Italy and France.",
+      "Actively contribute to the technical risk assessment of projects, and conduct a critical review of technical documentation from technology partners."
+     ],
+     "salary_period": null,
+     "contract_type": "graduate_program",
+     "remote": "unknown",
+     "salary_maximum": null,
+     "published_at": "2026-09-26T10:02:15Z",
+     "language": "en",
+     "salary_currency": null,
+     "profile": "<font>\n  We look for passionate candidates willing to engage in a long-term journey.\n  <br/>\n  <br/>\n  You will join an international group of men and women committed to develop more efficient technologies and circular solutions, creating value from waste.\n  <br/>\n  <br/>\n  You have a master’s degree or a PhD in Chemical Engineering, Chemistry or Industrial Chemistry.\n  <br/>\n  You have a strong understanding and exposure to Thermodynamic related subjects:\n  <br/>\n  • Lower Heating Value characterization of solid waste mixing,\n  <br/>\n  • Process engineering in Syn Gas production and transformation\n  <br/>\n  • Familiarity in gas purification unit treatment in chemical and petrochemical processes (i.e. Ethanol and Methanol production)\n  <br/>\n  • Familiarity with physico-chemical fluid treatment processes (e.g. oxidation, precipitation, chelation, evaporation, ultrafiltration, demulsification).\n  <br/>\n  <br/>\n  You have a fluent level of Italian and you are fluent in English.\n  <br/>\n  <br/>\n  Join us to become an expert in Hazardous waste treatment.\n</font>\n",
+     "name": "Graduate Expert – Hazardous waste activities – Technical Support Engineer",
+     "organization": {
+      "name": "SUEZ",
+      "slug": "suez"
+     },
+     "objectID": "69c2355c-81fb-446e-a7b0-9f0e79ded13d"
+    },
+    {
+     "summary": "Join MSX International, the leading global provider of outsourced business solutions for the automotive industry. As a Field Service Engineer, you will provide technical support to dealerships and service centers across Italy, diagnose complex vehicle issues, and support technicians in resolving technical concerns. This role requires strong diagnostic expertise, excellent communication skills, and the ability to build productive relationships with dealership personnel.",
+     "language": "en",
+     "slug": "field-service-engineer_rome_MI_NZDGV6L",
+     "contract_type": "full_time",
+     "salary_currency": "EUR",
+     "remote": "unknown",
+     "organization": {
+      "name": "MSX International",
+      "slug": "msx-international"
+     },
+     "salary_minimum": 38000.0,
+     "key_missions": [
+      "Support dealerships and workshops with vehicle diagnostics and troubleshooting activities.",
+      "Perform root cause analysis on complex technical issues and use diagnostic equipment to identify faults.",
+      "Provide on-site technical assistance and coaching to service technicians, and deliver technical guidance and training."
+     ],
+     "offices": [
+      {
+       "state": "Emilia-Romagna",
+       "city": "Modena",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Modena",
+       "local_district": "Modena",
+       "local_city": "Modena",
+       "local_state": "Emilia Romagna"
+      }
+     ],
+     "profile": "\n<p>Required Qualifications</p><ul><li>Technical Diploma or Degree in Mechanical Engineering, Automotive Engineering, Mechatronics, or a related field.</li><li>Minimum 2-3 years of experience in vehicle diagnostics, technical support, workshop operations, or field service.</li><li>Strong knowledge of automotive mechanical, electrical, and electronic systems.</li><li>Experience using diagnostic tools, testers, and troubleshooting methodologies.</li><li>Ability to analyze technical data and identify root causes.</li><li>Fluent Italian and professional English (B1/B2 minimum).</li><li>Valid driving licence.</li><li>Availability to travel extensively.</li></ul><p>Preferred Qualifications</p><ul><li>Experience supporting dealer networks, workshops, or aftersales operations.</li><li>Previous experience within the automotive industry.</li><li>Technical certifications in diagnostics or vehicle systems.</li></ul><p>Soft Skills</p><ul><li>Strong problem-solving mindset.</li><li>Excellent communication and relationship-building skills.</li><li>Customer-oriented approach.</li><li>Ability to manage multiple priorities effectively.</li><li>Autonomous and proactive working style.</li><li>Strong organizational skills and attention to detail.</li></ul>\n<h2>Additional Information</h2>\n<p><strong>What We Offer</strong></p><ul><li>Competitive salary package (€38,000 - €40,000 gross annual salary).</li><li>Company car.</li><li>Company laptop and mobile phone.</li><li>Accommodation and meals covered during business travel.</li><li>Continuous technical training and professional development opportunities.</li><li>Dynamic and collaborative working environment.</li><li>Opportunity to develop expertise in advanced vehicle diagnostics and technical support.</li><li>Career growth opportunities within Technical Services, Aftersales, Customer Operations, and Management functions.</li></ul><p>MSX is an equal opportunities employer and encourages applications from suitably qualified and eligible candidates regardless of sex, race, disability, neurodiversity or other personal characteristics and backgrounds, age, sexual orientation, gender reassignment, religion or belief, or marital and parental status. As users of the Disability Confident scheme, we interview all disabled applicants who meet the minimum criteria for the vacancy. </p>",
+     "name": "Automotive Field Service Engineer (Flying Doctor)",
+     "salary_maximum": 40000.0,
+     "published_at": "2026-09-24T22:05:19Z",
+     "salary_period": "yearly",
+     "objectID": "2f33773a-9bab-4eea-8236-d57bf80830d1"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "salesforce-senior-solution-engineer_milan",
+     "published_at": "2026-09-26T04:01:03Z",
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Salesforce Senior Solution Engineer con esperienza nello sviluppo di applicazioni su piattaforma Salesforce, conoscenza del contesto Life Sciences e capacità di lavorare in team internazionali e multidisciplinari.",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "language": "it",
+     "salary_currency": null,
+     "salary_maximum": null,
+     "salary_minimum": null,
+     "remote": "partial",
+     "key_missions": [
+      "Analisi tecnica, sviluppo e integrazione di soluzioni Salesforce, collaborando con team funzionali e tecnici.",
+      "Contribuire alla qualità del codice, alla definizione delle migliori soluzioni architetturali e al supporto delle fasi progettuali.",
+      "Collaborare con clienti, partner e colleghi di tutto il mondo per creare soluzioni innovative capaci di avere un impatto reale sulla società."
+     ],
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "profile": null,
+     "name": "Salesforce Senior Solution Engineer",
+     "salary_period": null,
+     "objectID": "239bc9d1-c982-4b31-b123-d2396adb569a"
+    },
+    {
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Junior Cybersecurity System Engineer con una forte motivazione a crescere nel campo della cybersecurity. La posizione offre un percorso di formazione e affiancamento con risorse senior, sviluppando competenze tecniche e operative di base nella sicurezza informatica. La sede di lavoro è a Milano o Roma, con possibilità di lavoro ibrido.",
+     "language": "it",
+     "salary_currency": null,
+     "salary_minimum": null,
+     "slug": "junior-cybersecurity-system-engineer_milan_ND_j2ValLm",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "key_missions": [
+      "Supporto alla gestione e configurazione dei sistemi, esecuzione di task operativi e attività di monitoraggio.",
+      "Sviluppo di semplici script Python per automazione di base e supporto alla produzione di documentazione tecnica.",
+      "Apprendimento di metodologie, strumenti e processi di sicurezza, con particolare attenzione alla cybersecurity."
+     ],
+     "salary_period": null,
+     "remote": "partial",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_maximum": null,
+     "contract_type": "full_time",
+     "profile": null,
+     "name": "Junior Cybersecurity System Engineer",
+     "published_at": "2026-09-23T04:01:29Z",
+     "objectID": "9555ef16-fa20-4f7c-94c2-f6a32bcf26f5"
+    },
+    {
+     "salary_currency": null,
+     "salary_maximum": null,
+     "published_at": "2026-09-23T04:01:28Z",
+     "salary_minimum": null,
+     "key_missions": [
+      "Supportare il team nella realizzazione di soluzioni Salesforce, contribuendo allo sviluppo di componenti applicative, configurazioni e integrazioni.",
+      "Lavorare a stretto contatto con figure senior e funzionali, acquisendo progressivamente autonomia nella gestione delle attività assegnate.",
+      "Interesse ad approfondire Data Cloud/Data 360 e Agentforce, e partecipare attivamente a progetti innovativi e sfidanti."
+     ],
+     "slug": "salesforce-advanced-solution-engineer_milan",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Salesforce Advanced Solution Engineer con almeno un anno di esperienza nello sviluppo Salesforce. In questo ruolo, supporterai il team nella realizzazione di soluzioni Salesforce, contribuendo allo sviluppo di componenti applicative, configurazioni e integrazioni. Avrai l'opportunità di lavorare su progetti innovativi e sfidanti, con particolare focus su attività di sviluppo e system integration.",
+     "salary_period": null,
+     "remote": "partial",
+     "profile": null,
+     "name": "Salesforce Advanced Solution Engineer",
+     "contract_type": "full_time",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "language": "it",
+     "objectID": "341e15e7-0d11-4671-8744-658c7e40de87"
+    },
+    {
+     "summary": "Unisciti a NTT DATA, un'azienda globale leader nei servizi di business e tecnologici. Stiamo cercando un Senior Cybersecurity System Engineer con almeno 8 anni di esperienza nel settore. Il candidato ideale avrà una solida conoscenza di sistemi Linux e Windows, tecnologie di virtualizzazione e containerizzazione, networking e sicurezza informatica. La posizione offre la possibilità di lavorare in modalità ibrida da Milano o Roma.",
+     "language": "it",
+     "salary_currency": null,
+     "salary_minimum": null,
+     "slug": "senior-cybersecurity-system-engineer_milan_ND_GP4wQL7",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "key_missions": [
+      "Progettazione e integrazione di soluzioni di sicurezza, automazione di processi operativi e di sicurezza.",
+      "Definizione di architetture tecniche e standard di configurazione, analisi dei requisiti e traduzione in soluzioni tecniche.",
+      "Revisione e validazione tecnica del lavoro di risorse meno senior, produzione di documentazione di alto livello."
+     ],
+     "salary_period": null,
+     "remote": "partial",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_maximum": null,
+     "contract_type": "full_time",
+     "profile": null,
+     "name": "Senior Cybersecurity System Engineer",
+     "published_at": "2026-09-23T04:01:24Z",
+     "objectID": "301ef502-e89c-4e0b-a3a2-0afa574e13f7"
+    },
+    {
+     "summary": "Unisciti a NTT DATA, un leader globale nei servizi di business e tecnologia. Come Remote Field Service Engineer (L1), sarai parte di un team italiano che fornisce supporto a diversi clienti nazionali e internazionali su molteplici tecnologie e infrastrutture. Le tue responsabilità includeranno il monitoraggio dei sistemi, la gestione degli incidenti e delle richieste di servizio, il troubleshooting di primo livello e l'analisi dei log.",
+     "language": "it",
+     "slug": "remote-field-service-engineer-l1_milan",
+     "contract_type": "full_time",
+     "salary_currency": null,
+     "remote": "partial",
+     "organization": {
+      "name": "NTT DATA",
+      "slug": "ntt-ltd"
+     },
+     "salary_minimum": null,
+     "key_missions": [
+      "Monitoraggio dei sistemi cliente e supporto sistemistico su ambienti Microsoft Windows e Linux.",
+      "Gestione degli Incident e delle richieste di servizio tramite sistema di trouble ticketing, esecuzione di attività sistemistiche.",
+      "Supporto alle attività di Change Management, verifica dei log e raccolta delle informazioni necessarie all'analisi degli incident."
+     ],
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "profile": null,
+     "name": "Remote Field Service Engineer (L1)",
+     "salary_maximum": null,
+     "published_at": "2026-09-23T04:01:11Z",
+     "salary_period": null,
+     "objectID": "5656557b-4a58-459c-94de-b64371b9e64f"
+    },
+    {
+     "organization": {
+      "name": "Hostaway",
+      "slug": "hostaway"
+     },
+     "key_missions": [
+      "Design and build services that integrate AI into customer-facing features, ensuring seamless functionality within the SaaS ecosystem.",
+      "Develop performant and scalable APIs and backend services that connect AI outputs to SaaS functionality, collaborating with frontend engineers.",
+      "Implement observability, monitoring, and error handling for AI services in production, contributing to the stability and maintainability of the integration."
+     ],
+     "published_at": "2026-09-18T00:04:47Z",
+     "slug": "senior-backend-engineer-ai-platform_vienna_huuy7joi",
+     "salary_minimum": null,
+     "salary_maximum": null,
+     "summary": "Join Hostaway, a leading SaaS platform for property management. As a Senior Backend Engineer on our AI Team, you will integrate AI services into our product, develop APIs and backend services, and collaborate with product and design teams to create intuitive AI-driven user experiences. You will also implement observability, monitoring, and error handling for AI services in production. This role offers company stock options, career advancement opportunities, and a dynamic international culture.",
+     "language": "en",
+     "remote": "fulltime",
+     "salary_period": null,
+     "offices": [
+      {
+       "state": null,
+       "city": "London",
+       "country": "United Kingdom",
+       "country_code": "GB",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Barcelona",
+       "country": "Spain",
+       "country_code": "ES",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Bucharest",
+       "country": "Romania",
+       "country_code": "RO",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Lisbonne",
+       "country": "Portugal",
+       "country_code": "PT",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Warsaw",
+       "country": "Poland",
+       "country_code": "PL",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Amsterdam",
+       "country": "Netherlands",
+       "country_code": "NL",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Vilnius",
+       "country": "Lithuania",
+       "country_code": "LT",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Riga",
+       "country": "Latvia",
+       "country_code": "LV",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Rome",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Dublin",
+       "country": "Ireland",
+       "country_code": "IE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Athens",
+       "country": "Greece",
+       "country_code": "GR",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Berlin",
+       "country": "Germany",
+       "country_code": "DE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Paris",
+       "country": "France",
+       "country_code": "FR",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Helsinki",
+       "country": "Denmark",
+       "country_code": "DK",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Tallin",
+       "country": "Estonia",
+       "country_code": "EE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Prague",
+       "country": "Czech Republic",
+       "country_code": "CZ",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Zagreb",
+       "country": "Croatia",
+       "country_code": "HR",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      },
+      {
+       "state": null,
+       "city": "Vienna",
+       "country": "Austria",
+       "country_code": "AT",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "contract_type": "full_time",
+     "profile": " - Comfortable working alongside Python-based AI services and bridging stacks\n- Familiarity with LLM/AI tools (LangChain, Vercel AI SDK, MCP servers)\n- Nice to have: experience with PHP + Golang\n- Strong Python proficiency\n- 5+ years in backend engineering, ideally SaaS\n- Strong collaboration skills - able to integrate work with platform and product teams\n- Experience with REST APIs and SaaS integrations",
+     "name": "Senior Backend Engineer (AI Platform)",
+     "salary_currency": null,
+     "objectID": "fbc2df94-44a0-4581-90ea-52b23e9e5ac1"
+    },
+    {
+     "salary_period": "yearly",
+     "key_missions": [
+      "Lead client meetings, on-site and remote, with frequent travel to customer sites.",
+      "Oversee on-site product installation and train customer teams, ensuring their satisfaction.",
+      "Diagnose and resolve customer feedback on Inbolt products, working closely with the engineering team."
+     ],
+     "language": "it",
+     "remote": "fulltime",
+     "salary_minimum": null,
+     "summary": "Join Inbolt, a company specializing in computer vision solutions for industrial robotics. As a Robotics Application Engineer, you will be the key link between our technology and our industrial clients, deploying our solutions directly on factory floors and ensuring their smooth operation. Your responsibilities will include leading client meetings, overseeing product installation, deploying and monitoring production systems, and diagnosing customer feedback. You will enjoy benefits such as a stock-options package, health coverage, and travel opportunities.",
+     "slug": "robotics-application-engineer-italy_milano",
+     "contract_type": "full_time",
+     "published_at": "2026-09-15T12:25:38Z",
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "salary_maximum": null,
+     "profile": "Inbolt values **end-to-end ownership**, **high rigor**, and a **hands-on curiosity**. We move fast while staying precise, with a proactive, autonomous, results-driven mindset and strong collaboration with engineering teams.\n\n### 🔎 Preferred experience\n\n* Based in North Italy\n    \n* Fluent Italian, professional working English\n    \n* Willingness to travel extensively (valid passport required)\n    \n* 3–5 years of experience in industrial robotics, systems integration, or customer deployment\n    \n* Good Python programming skills\n    \n* Experience programming industrial robots (FANUC, ABB, UR, or equivalent)\n    \n* Comfortable with project management and computer vision fundamentals\n    \n* High standards for code quality and stability\n    \n* Strong problem-solving skills; background in deep-tech / manufacturing is a plus\n    \n\n### 💫 Additional Plus\n\n* CAD modelling\n    \n* 3D printing",
+     "name": "Robotics Application Engineer Italy",
+     "salary_currency": "EUR",
+     "organization": {
+      "name": "Inbolt",
+      "slug": "inbolt"
+     },
+     "objectID": "3e5573f4-ff4d-432e-b340-a08d0a94cd29"
+    },
+    {
+     "salary_maximum": null,
+     "published_at": "2026-09-12T10:02:32Z",
+     "organization": {
+      "name": "SUEZ",
+      "slug": "suez"
+     },
+     "salary_currency": null,
+     "slug": "waste-management-process-engineer_milan",
+     "key_missions": [
+      "Sviluppare ingegneria (processo e attrezzature) principalmente per progetti di infrastrutture per fanghi e rifiuti.",
+      "Guidare la roadmap di sostenibilità e le iniziative di sviluppo sostenibile nell'area aziendale, riferendo al Direttore delle Operazioni.",
+      "Contribuire alle iniziative di decarbonizzazione per i clienti, in cooperazione con i manager dei progetti infrastrutturali."
+     ],
+     "language": "en",
+     "summary": "Join SUEZ, a global leader in smart and sustainable resource management. As a Waste Management Process Engineer, you will develop engineering solutions for sludge and waste infrastructure projects, lead sustainability initiatives, and contribute to decarbonization efforts. You should have a background in process engineering with experience in waste and sludge thermal treatment, and be fluent in Italian and proficient in English.",
+     "remote": "punctual",
+     "salary_period": null,
+     "contract_type": "full_time",
+     "profile": "<p>\n  <font>\n    <span>\n      <strong>\n        General Requirements:\n      </strong>\n      <br/>\n      Process engineer with an environmental background and experience in waste and sludge thermal treatment.\n      <br/>\n      5+ year job experience at least\n    </span>\n  </font>\n</p>\n<p>\n  <font>\n    <span>\n      <br/>\n      <strong>\n        Education Requirements:\n      </strong>\n      <br/>\n      M.Sc. in Chemical/Energy / Environment engineering or equivalent.\n      <br/>\n      <br/>\n      <strong>\n        Languages required:\n      </strong>\n      <br/>\n      Italian: Fluent\n      <br/>\n      English: Good Proficiency\n      <br/>\n      French: Good proficiency would      be appreciated (Plus)\n      <br/>\n      <br/>\n      <strong>\n        Required Technical Skills:\n      </strong>\n      <br/>\n      • Robust knowledge in Process Engineering applied to waste treatment.\n      <br/>\n      • Proficient in the process knowledge of gasification and combustion of solid wastes and sludge mud. • Basic knowledge in environmental impact assessment (with focus on GHG emission assessment).\n      <br/>\n      • Familiarity with the latest technologies in waste transformation, such as waste to chemicals and waste to fuels.\n      <br/>\n      • Microsoft Office (Excel and PowerPoint in particular).\n    </span>\n  </font>\n</p>\n<p>\n  <font>\n    <span>\n      <br/>\n      <strong>\n        Required Behavior Skills:\n      </strong>\n      <br/>\n      • Excellent in coordination, team working, and communication.\n      <br/>\n      • Organized and autonomous.\n      <br/>\n      • Curiosity, desire to learn.\n    </span>\n  </font>\n</p>\n",
+     "name": "Waste Management Process Engineer",
+     "salary_minimum": null,
+     "offices": [
+      {
+       "state": "Lombardy",
+       "city": "Milan",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Milan",
+       "local_district": "Milano",
+       "local_city": "Milano",
+       "local_state": "Lombardia"
+      }
+     ],
+     "objectID": "45bdbdc0-4f58-4fd0-9a97-f1619249f80f"
+    },
+    {
+     "published_at": "2026-09-14T13:46:15Z",
+     "language": "it",
+     "salary_currency": null,
+     "slug": "senior-solution-engineer_rome",
+     "contract_type": "full_time",
+     "summary": "Unisciti a Entain, un gruppo internazionale che mette le persone al primo posto. Come Senior Solution Engineer, lavorerai nel team IT e ti occuperai di supporto tecnico, design, collaborazione trasversale, evoluzione tecnologica e coordinamento tecnico dei progetti. Offriamo un ambiente di lavoro dinamico e inclusivo, con un modello di smart working consolidato e numerosi benefici.",
+     "key_missions": [
+      "Supporto tecnico a Tech Lead e team di sviluppo, affiancando nella definizione delle soluzioni tecnologiche.",
+      "Contributo alle attività di design, collaborando alla definizione dell'architettura e guidando la definizione del Low Level Design.",
+      "Favorire l'allineamento tecnico tra i team di lavoro, interagendo con Architettura, Platform, Security, Infrastructure, Delivery e QA."
+     ],
+     "salary_maximum": null,
+     "salary_minimum": null,
+     "remote": "unknown",
+     "organization": {
+      "name": "Entain",
+      "slug": "entain"
+     },
+     "salary_period": null,
+     "profile": null,
+     "name": " Senior Solution Engineer",
+     "offices": [
+      {
+       "state": "Latium",
+       "city": "Rome",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Rome",
+       "local_district": "Roma",
+       "local_city": "Roma",
+       "local_state": "Lazio"
+      }
+     ],
+     "objectID": "183a7dce-8927-4f0c-b457-58d7b92bb83d"
+    },
+    {
+     "slug": "senior-it-network-engineer_rome",
+     "language": "it",
+     "organization": {
+      "name": "Entain",
+      "slug": "entain"
+     },
+     "summary": "Unisciti a Entain, un gruppo internazionale che mette le persone al primo posto. Come Senior IT Network Engineer, lavorerai nel team Infrastructure e ti occuperai della progettazione e implementazione di architetture di rete ibride, gestione della connettività sicura tra data center e cloud provider, configurazione e gestione di soluzioni di sicurezza di rete, sviluppo di automazioni e supporto al deployment delle applicazioni.",
+     "published_at": "2026-09-14T13:44:08Z",
+     "salary_currency": "EUR",
+     "remote": "unknown",
+     "salary_minimum": 55000.0,
+     "key_missions": [
+      "Progettare e implementare architetture di rete ibride scalabili, resilienti e ad alte prestazioni.",
+      "Gestire la connettività sicura e ottimizzata tra data center aziendali e cloud provider, implementando policy di sicurezza avanzate.",
+      "Sviluppare automazioni tramite Infrastructure as Code (Terraform) e Configuration Management (Ansible)."
+     ],
+     "offices": [
+      {
+       "state": "Latium",
+       "city": "Rome",
+       "country": "Italy",
+       "country_code": "IT",
+       "district": "Rome",
+       "local_district": "Roma",
+       "local_city": "Roma",
+       "local_state": "Lazio"
+      }
+     ],
+     "profile": null,
+     "name": "Senior IT Network Engineer",
+     "contract_type": "full_time",
+     "salary_maximum": 65000.0,
+     "salary_period": "yearly",
+     "objectID": "8a20e67f-78bc-47c4-abc6-f6fc3702537a"
+    }
+   ],
+   "nbHits": 91,
+   "page": 0,
+   "nbPages": 8,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "AI Engineer",
+   "params": "query=AI+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22offices.country_code%3AIT%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 1,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "total": 1
+   },
+   "serverTimeMS": 19
+  },
+  {
+   "hits": [
+    {
+     "slug": "software-engineer-fullstack-compte-pro-h-f_bron_DOUGS_1MQ2A3O",
+     "organization": {
+      "name": "Dougs",
+      "slug": "dougs"
+     },
+     "published_at": "2026-09-26T02:00:18Z",
+     "language": "fr",
+     "salary_currency": "EUR",
+     "salary_maximum": 55000.0,
+     "salary_minimum": 50000.0,
+     "remote": "fulltime",
+     "summary": "Rejoins Dougs, une entreprise innovante qui réinvente l'accompagnement des entrepreneurs. En tant que Software Engineer Fullstack, tu contribueras à moderniser la comptabilité et à faciliter le quotidien des dirigeants. Tu travailleras avec une stack technique moderne et en constante évolution, et tu auras un impact direct sur l'expérience utilisateur et les résultats de l'entreprise.",
+     "key_missions": [
+      "Concevoir, développer, tester et faire évoluer le périmètre de la comptabilité et des finances.",
+      "Créer de nouvelles fonctionnalités robustes, lisibles et maintenables, et contribuer aux revues de code.",
+      "Participer à la veille technologique, à l’amélioration continue de la stack et des pratiques."
+     ],
+     "offices": [
+      {
+       "state": "Auvergne-Rhone-Alpes",
+       "city": "Bron",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Rhône",
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "profile": null,
+     "name": "Software Engineer Fullstack - Compte Pro H/F",
+     "contract_type": "full_time",
+     "salary_period": "yearly",
+     "objectID": "405e4224-89e1-4182-b6d7-0f19a99ce7db"
+    },
+    {
+     "contract_type": "full_time",
+     "language": "fr",
+     "organization": {
+      "name": "Dougs",
+      "slug": "dougs"
+     },
+     "slug": "ai-agent-engineer-h-f_bron_DOUGS_7MaPewM",
+     "published_at": "2026-09-26T02:00:17Z",
+     "salary_maximum": 60000.0,
+     "salary_currency": "EUR",
+     "salary_minimum": 45000.0,
+     "remote": "fulltime",
+     "summary": "Rejoins Dougs, une entreprise innovante qui réinvente l'accompagnement des entrepreneurs. En tant qu'AI Agent Engineer, tu auras un impact direct sur notre stratégie d'innovation en transformant les problématiques métier en agents autonomes. Tu travailleras en étroite collaboration avec les équipes métiers et techniques, et tu auras la possibilité de faire évoluer l'IA au sein de l'entreprise.",
+     "profile": null,
+     "name": "AI Agent Engineer H/F",
+     "offices": [
+      {
+       "state": "Auvergne-Rhone-Alpes",
+       "city": "Bron",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Rhône",
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "key_missions": [
+      "Comprendre les besoins métier et leurs enjeux, échanger avec les différentes équipes pour identifier leurs défis et opportunités sur lesquelles l’IA peut apporter de la valeur.",
+      "Concevoir et mettre en œuvre des agents autonomes, développer les \"tools\" et API manquants nécessaires aux agents pour interagir avec notre écosystème.",
+      "Mettre en place des outils de monitoring pour suivre la performance des agents et la fiabilité des tools développés, assurer la maintenance et garantir la qualité."
+     ],
+     "salary_period": "yearly",
+     "objectID": "6139b20b-14e7-4227-8fc1-e8437d137926"
+    },
+    {
+     "organization": {
+      "name": "Dougs",
+      "slug": "dougs"
+     },
+     "language": "fr",
+     "summary": "Rejoins Dougs, une entreprise innovante qui réinvente l'accompagnement des entrepreneurs. En tant que Software Engineer Fullstack, tu travailleras sur une stack moderne et flexible, en collaboration étroite avec l'équipe d'Operation Specialist. Tu seras responsable du développement, de l'amélioration de la stack technique et de l'organisation de l'équipe.",
+     "slug": "software-engineer-fullstack-cross-functional-team-h-f_bron_DOUGS_jPMJqaZ",
+     "published_at": "2026-09-26T02:00:10Z",
+     "salary_period": "yearly",
+     "contract_type": "full_time",
+     "remote": "fulltime",
+     "salary_currency": "EUR",
+     "salary_minimum": 45000.0,
+     "key_missions": [
+      "Développer en respectant les pratiques de qualité, résilience, performance et scalabilité.",
+      "Être force de proposition pour challenger et apporter des axes d’amélioration sur le produit et les process imaginés par l’équipe d’Operation specialist.",
+      "Contribuer à l’amélioration de notre stack technique et à l’organisation de l’équipe."
+     ],
+     "profile": null,
+     "name": "Software Engineer Fullstack - Cross-functional Team H/F",
+     "salary_maximum": 55000.0,
+     "offices": [
+      {
+       "state": "Auvergne-Rhone-Alpes",
+       "city": "Bron",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Rhône",
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "objectID": "e4664625-ec61-40fa-8889-3b2ea097b5b4"
+    },
+    {
+     "contract_type": "full_time",
+     "language": "fr",
+     "organization": {
+      "name": "Dougs",
+      "slug": "dougs"
+     },
+     "slug": "senior-software-engineer-squad-portail-facturation-h-f_bron_DOUGS_m2xJZGJ",
+     "published_at": "2026-09-26T02:00:08Z",
+     "salary_maximum": 55000.0,
+     "salary_currency": "EUR",
+     "salary_minimum": 50000.0,
+     "remote": "fulltime",
+     "summary": "Rejoins Dougs, une entreprise innovante qui réinvente l'accompagnement des entrepreneurs. En tant que Senior Software Engineer, tu travailleras sur l'outil de facturation, en utilisant des technologies modernes et en contribuant à la réforme de la facturation électronique.",
+     "profile": null,
+     "name": "Senior Software Engineer - Squad Portail Facturation H/F",
+     "offices": [
+      {
+       "state": "Auvergne-Rhone-Alpes",
+       "city": "Bron",
+       "country": "France",
+       "country_code": "FR",
+       "district": "Rhône",
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "key_missions": [
+      "Concevoir, développer, tester et faire évoluer le périmètre de l'outil de facturation.",
+      "Créer des fonctionnalités robustes, lisibles et maintenables, et laisser la codebase plus propre que tu ne l'as trouvée.",
+      "Contribuer aux revues de code et proposer des améliorations produit comme techniques."
+     ],
+     "salary_period": "yearly",
+     "objectID": "b2052e5f-8cf6-4812-a5cb-57abc74a9e50"
+    },
+    {
+     "salary_maximum": null,
+     "organization": {
+      "name": "H Company",
+      "slug": "h-company"
+     },
+     "slug": "forward-deployed-engineer_paris_HC_ZMKOmWq",
+     "summary": "Join H Company, a pioneering AI research and product company, as a Founding Forward Deployed Engineer. In this role, you will be responsible for understanding and identifying customer tasks to automate, integrating with customer systems, and collaborating closely with product, research, and engineering teams. You should have at least 3 years of experience in AI and software engineering, proficiency in Python, and excellent communication skills. This position can be based in San Francisco, Austin, or New York.",
+     "salary_period": null,
+     "published_at": "2026-09-24T00:00:43Z",
+     "offices": [
+      {
+       "state": "California",
+       "city": "San Francisco",
+       "country": "United States",
+       "country_code": "US",
+       "district": "San Francisco",
+       "local_district": "San Francisco",
+       "local_city": "San Francisco",
+       "local_state": "California"
+      }
+     ],
+     "key_missions": [
+      "Comprendre et identifier les tâches multi-étapes les plus importantes et les plus impactantes du client à automatiser.",
+      "Intégrer de manière transparente les systèmes du client, y compris, mais sans s'y limiter, les bases de données, les API tierces et les outils internes.",
+      "Collaborer étroitement avec les équipes produit, recherche et ingénierie pour façonner la feuille de route et aligner les priorités en fonction des résultats sur le terrain."
+     ],
+     "remote": "fulltime",
+     "profile": null,
+     "name": "Founding Forward Deployed Engineer - US",
+     "salary_currency": null,
+     "salary_minimum": null,
+     "contract_type": "full_time",
+     "language": "en",
+     "objectID": "ebafc094-f6c6-4a40-8aa2-c092abbf68cb"
+    },
+    {
+     "summary": "Join Grafana Labs as an Engineering Manager for our Observability department. In this role, you will manage and develop a remote team of backend and frontend engineers, collaborate with go-to-market teams, and work closely with product and engineering leadership. You will guide the team throughout the project lifecycle, foster a psychologically safe environment, and contribute to projects outside your team's scope. Enjoy benefits such as 30 days of paid vacation, healthcare coverage, retirement planning, professional development opportunities, and a fully remote work environment.",
+     "contract_type": "full_time",
+     "key_missions": [
+      "Manage and develop a team of backend and frontend engineers, providing regular feedback and supporting each person’s growth through career conversations.",
+      "Collaborate closely with go-to-market teams to ensure customers and prospects are successful with their Observability collection journey.",
+      "Provide guidance throughout the project lifecycle from early ideation through planning, execution and post-launch, guiding the team to deliver high-quality results consistently."
+     ],
+     "slug": "engineering-manager-observability_de_xd6vif6i",
+     "published_at": "2026-09-26T00:21:44Z",
+     "salary_maximum": 137000.0,
+     "remote": "fulltime",
+     "salary_minimum": 109000.0,
+     "salary_period": "yearly",
+     "profile": " - You may not meet every requirement, and that’s okay. If this role excites you, we’d love you to raise your hand for what could be a truly career-defining opportunity\n- Comfort with AI-assisted tooling. We embrace AI and agentic development so we expect you to be curious and comfortable using AI-powered tools and ideally have practical experience folding them into a team’s workflow\n- Comfortable collaborating across time zones and cultures in a fully remote environment, using clear, empathetic communication to build trust, connection, and psychological safety\n- Deeply customer-focused, consistently grounding decisions and technical choices in user needs and real-world impact\n- You will be comfortable working with engineering teams who have a strong sense of autonomy in their decision-making, be it technical or product focused\n- Demonstrated ability to manage complexity, align stakeholders, and elevate team performance to deliver meaningful, high-quality results\n- While you’re great with people and adept at managing relationships, you still keep up-to-date with the latest technical trends and shifts in order to maintain and enhance your understanding of the challenges your teams face\n- Experience in either of these areas is a strong advantage: Observability (especially OpenTelemetry), or building a central control plane that manages fleets of collectors\n- Solid understanding of distributed systems principles, including scalability, fault tolerance, consistency, and observability",
+     "name": "Engineering Manager (Observability)",
+     "organization": {
+      "name": "Grafana Labs",
+      "slug": "grafana-labs"
+     },
+     "language": "en",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Germany",
+       "country_code": "DE",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_currency": "EUR",
+     "objectID": "1bee7ab9-c484-4e74-8d3e-42c0c30074b4"
+    },
+    {
+     "organization": {
+      "name": "Super",
+      "slug": "super"
+     },
+     "language": "en",
+     "summary": "Join our team as an Intermediate Full Stack Software Engineer, where you will be a key technical contributor in building features for our fintech, travel, and SuperApp products. You will work with React on the frontend and Python and Node.js microservices on the backend, while also contributing to the services and frameworks that power those experiences. This role offers the opportunity for growth along the IC path into Senior and Staff Software Engineer roles or toward Engineering Management.",
+     "slug": "intermediate-full-stack-software-engineer_ca_2nt6zsel",
+     "published_at": "2026-09-26T00:20:32Z",
+     "salary_period": "yearly",
+     "contract_type": "full_time",
+     "remote": "fulltime",
+     "salary_currency": "USD",
+     "salary_minimum": 114000.0,
+     "key_missions": [
+      "Contribuer de manière technique clé à une équipe en développant des fonctionnalités pour des produits fintech, de voyage et/ou SuperApp.",
+      "Travailler principalement avec React sur le frontend et Python et Node.js sur le backend, en utilisant des technologies telles que GitLab, AWS, Postgres, Redis, Datadog, Amplitude et Snowflake.",
+      "Participer à la livraison de projets de bout en bout dans un environnement itératif, en utilisant des outils d'IA pour accélérer le développement, le débogage et l'itération."
+     ],
+     "profile": " - Interested in building products in a startup environment, moving quickly, using data to inform decisions, wearing multiple hats, and continuously learning\n- Experience building web services and working with modern web technologies\n- Actively using AI in your development workflow today, including for coding, debugging, and problem-solving, and can validate and iterate on AI-generated output with sound engineering judgment\n- Comfortable contributing across both backend and frontend parts of the stack, with the balance influenced by business needs and individual strengths or interests\n- Demonstrates ownership, curiosity, and follow-through, with the ability to make steady contributions and help drive work to completion\n- 3+ years of professional software development experience, including experience with Python or Node.js on the backend and a modern frontend JavaScript framework such as React, Vue, or Angular\n- Strong communicator who works effectively on an agile team and contributes to standups, sprint ceremonies, quarterly planning, and collaboration with internal and external stakeholders\n- Experience working across a broad modern stack, including technologies such as React, Python, Node.js, GitLab, AWS, Docker, Postgres, Redis, Datadog, Amplitude, and Snowflake\n- Strength in SQL and analytics, with familiarity in DevOps concepts and practices\n- Experience operating in a startup environment\n- Experience working closely with business stakeholders\n- Experience writing end-to-end or browser-based tests\n- Experience helping drive AI adoption beyond personal use, including improvements to team workflows, developer productivity, or product capabilities",
+     "name": "Intermediate Full Stack Software Engineer",
+     "salary_maximum": 158000.0,
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "Canada",
+       "country_code": "CA",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "objectID": "6ab019ee-b61a-45ee-a37b-5dd93eb84232"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "software-engineer-mit-new-grad-engine_us_njuxv7cy",
+     "salary_maximum": null,
+     "language": "en",
+     "remote": "fulltime",
+     "salary_period": null,
+     "summary": "Join SingleStore, a leading real-time technology company, as a Software Engineer. As a new graduate, you will have the opportunity to work on cutting-edge technologies, collaborate with various teams, and contribute to the product life cycle. You will receive a comprehensive benefits package, including customizable health plans, flexible time off, stock grants, and more.",
+     "organization": {
+      "name": "SingleStore",
+      "slug": "singlestore"
+     },
+     "published_at": "2026-09-26T00:19:04Z",
+     "salary_currency": null,
+     "profile": " - Enrolled in a B.S. Degree in Computer Science, Computer Engineering, Electrical Engineering, or related disciplineDeep understanding of C.S. fundamentalsStrong programming skills with C++ or CPassionate about building highly reliable softwareFirm grasp of algorithms and data structures\n- Understanding of core C.S. fundamentals, in particular operating systems, distributed systems, concurrency, multithreading, and server architectures",
+     "name": "Software Engineer (MIT, New Grad, Engine)",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_minimum": null,
+     "key_missions": [
+      "Collaborate with cross-functional teams to design, develop, and implement software solutions that meet business needs.",
+      "Take ownership of projects from conception to deployment, ensuring high-quality code and adherence to best practices.",
+      "Participate in code reviews, testing, and debugging to improve software performance and reliability."
+     ],
+     "objectID": "8be1187d-e4e6-4fcf-ab76-f1d390a1b9a2"
+    },
+    {
+     "organization": {
+      "name": "SingleStore",
+      "slug": "singlestore"
+     },
+     "language": "en",
+     "slug": "mit-software-engineer-intern-helios_us_adm2tie3",
+     "published_at": "2026-09-26T00:19:04Z",
+     "salary_maximum": null,
+     "key_missions": [
+      "Participer activement à toutes les étapes du cycle de vie du produit, de l'écriture de nouvelles fonctionnalités aux tests logiciels.",
+      "Collaborer avec des équipes interfonctionnelles pour maximiser l'impact et célébrer les réussites ensemble.",
+      "Travailler sur des projets déployés en continu en production, en acquérant une compréhension significative du produit et de l'entreprise."
+     ],
+     "remote": "fulltime",
+     "summary": "Join SingleStore as a Software Engineer Intern for a 12-week program where you'll work on real-time technology that is revolutionizing business operations. You'll have the opportunity to own your projects end-to-end, collaborate with various teams, and gain a significant understanding of both the product and the business. Enjoy a range of benefits including customizable health plans, flexible time off, stock grants, and more.",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "salary_period": null,
+     "profile": " - Deep understanding of C.S. fundamentalsStrong programming skills with JavaScript, Golang or TypeScript\n- Enrolled in a B.S. Degree in Computer Science, Electrical Engineering, Computer Engineering, or related discipline\n- Firm grasp of algorithms and data structures\n- Passionate about building highly reliable software",
+     "name": "MIT, Software Engineer Intern (Helios)",
+     "contract_type": "internship",
+     "salary_minimum": null,
+     "salary_currency": null,
+     "objectID": "286078b6-e98d-48c0-abe4-e9d18ba625ea"
+    },
+    {
+     "contract_type": "full_time",
+     "salary_maximum": 202100.0,
+     "published_at": "2026-09-26T00:19:01Z",
+     "salary_period": "yearly",
+     "slug": "senior-software-engineer_us_edoivvn4",
+     "key_missions": [
+      "Posséder l'ensemble des fonctionnalités, de la planification au déploiement, en mettant l'accent sur l'intégration des API externes.",
+      "Mettre à jour les modèles de données en fonction des besoins des utilisateurs et résoudre les bugs en production.",
+      "Collaborer étroitement avec les équipes produit, design et autres ingénieurs pour assurer une communication efficace."
+     ],
+     "salary_currency": "USD",
+     "salary_minimum": 151000.0,
+     "remote": "fulltime",
+     "offices": [
+      {
+       "state": null,
+       "city": null,
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "language": "en",
+     "profile": " - The ideal candidate will have experience with Python, extensive database knowledge, and a track record of delivering features from planning to production\n- Serious Python skills for APIs, reporting, and data processing (we use Django and Celery)\n- The ability to balance speed with quality (we move fast, but we don't break things)\n- A collaborative approach - we pair program, jump into huddles, and actually help each other\n- A track record of shipping complex features end-to-end\n- Experience with relational databases and ORMs (we're on PostgreSQL with Django's ORM)\n- Experience with Django and PostgreSQL (our current backend stack)\n- TypeScript/JavaScript and Web development knowledge (for when backend isn't challenging enough)\n- A history of improving development processes and tools\n- AWS, Terraform, and Docker experience (we're cloud-native)",
+     "name": "Senior Software Engineer",
+     "organization": {
+      "name": "ServiceTitan",
+      "slug": "servicetitan"
+     },
+     "summary": "Join Conduit Tech as a Senior Software Engineer, where you'll play a critical role in building features for our core product, focusing on the backend. You'll own entire features from planning through deployment, update data models, build reliable integrations with external service APIs, fix production bugs, and ensure application security and performance. Enjoy flexible time off, fully paid medical coverage, 401(k) match, and more.",
+     "objectID": "60690002-df31-40a4-959d-3e675fa54c81"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-gtm-engineer-outbound_new-york_n6lvp4s7",
+     "salary_maximum": 182000.0,
+     "organization": {
+      "name": "SentinelOne",
+      "slug": "sentinelone"
+     },
+     "remote": "fulltime",
+     "salary_minimum": 132000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-26T00:18:57Z",
+     "salary_currency": "USD",
+     "profile": " - Demonstrated experience designing, building, and deploying AI agents (prospecting agents, call-summary agents, deal-signal agents) that changed real pipeline or cycle-time outcomes\n- A builder's instinct paired with GTM judgment: you understand quota, pipeline coverage, and deal stages, and you prioritize by revenue impact\n- Working proficiency in at least one of SQL, Python, or JavaScript, enough to build lightweight tools, integrations, and workflows\n- 6 or more years across sales development, sales operations, revenue operations, or systems/solutions engineering, with hands-on time building automation or AI into outbound or sales workflows\n- Strong prompt architecture skills and practical experience with agent frameworks, orchestration platforms such as n8n and Make, and API/MCP integrations\n- Fluency with the outbound stack and how rep-facing data moves through it, including sales engagement platforms such as Outreach and Salesloft; conversation intelligence such as Gong and Chorus; CRM in Salesforce; forecasting in Clari; enrichment and prospecting through ZoomInfo, Clearbit, and LinkedIn Sales Navigator; and meeting scheduling through Chili Piper\n- Experience building evaluation frameworks for AI systems (prompt evals, benchmarking, regression testing), and practical experience fine-tuning or heavily customizing models for production use cases\n- Familiarity with forecasting methodologies and pipeline hygiene practices\n- A B2B or enterprise SaaS background, including familiarity with brand-safety and compliance constraints on automated outputs\n- Comfort coaching non-technical teammates through AI adoption and anticipating resistance without relying on positional authority",
+     "name": "Senior GTM Engineer (Outbound)",
+     "offices": [
+      {
+       "state": null,
+       "city": "New-York",
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join our team as a Senior GTM Engineer (Outbound) and play a crucial role in automating prospecting and optimizing sales workflows. You will build agents that research accounts, create lists, and draft personalized outreach at scale for SDRs. Additionally, you will design workflows that optimize send times, cadence steps, and messaging based on engagement data. You will also integrate various sales engagement tools and support forecasting and pipeline hygiene through automation. This is a unique opportunity to make a significant impact on our sales processes and drive revenue growth.",
+     "key_missions": [
+      "Automatiser le processus de prospection en construisant des agents qui recherchent des comptes, établissent des listes et rédigent des messages personnalisés à grande échelle pour les SDRs.",
+      "Construire une intelligence de séquençage, concevoir des flux de travail qui optimisent les temps d'envoi, les étapes de cadence et les messages en fonction des données d'engagement.",
+      "Surveiller les signaux d'affaires en construisant des agents qui exploitent les enregistrements d'appels et l'activité CRM pour détecter les indicateurs de risque, les signaux d'achat et les recommandations d'action."
+     ],
+     "language": "en",
+     "objectID": "c7038b8e-fc7e-4ae0-9023-edfb9bb16c3d"
+    },
+    {
+     "contract_type": "full_time",
+     "slug": "senior-gtm-engineer-inbound_new-york_hsuzlbcg",
+     "salary_maximum": 182000.0,
+     "organization": {
+      "name": "SentinelOne",
+      "slug": "sentinelone"
+     },
+     "remote": "fulltime",
+     "salary_minimum": 132000.0,
+     "salary_period": "yearly",
+     "published_at": "2026-09-26T00:18:57Z",
+     "salary_currency": "USD",
+     "profile": " - Fluency with the modern GTM stack and how data moves through it (CRM, marketing automation, enrichment, outreach, analytics), and comfort owning integrations and pipelines between them\n- Strong prompt architecture skills and practical experience with agent frameworks, orchestration platforms (e.g., n8n, Make), and API/MCP integrations\n- A builder's instinct paired with GTM judgment: you understand funnels, ICP, and buying signals, and you decide what is worth automating based on revenue impact, not novelty\n- 6 or more years across growth/GTM marketing, marketing/revenue operations, systems, or solutions engineering, including hands-on time building automation or AI into real GTM work\n- Demonstrated experience designing, building, and deploying AI agents and agentic workflows that changed real work, not just using AI tools but building with them\n- Working proficiency in at least one of SQL, Python, or JavaScript, enough to build lightweight tools, integrations, and workflows\n- A B2B and enterprise SaaS background, with familiarity with brand-safety and compliance constraints on automated outputs\n- Comfort coaching non-technical teammates through AI adoption and anticipating resistance without relying on positional authority\n- Experience building evaluation frameworks for AI systems (prompt evals, benchmarking, regression testing)\n- Practical experience fine-tuning or heavily customizing models for production use cases",
+     "name": "Senior GTM Engineer (Inbound)",
+     "offices": [
+      {
+       "state": null,
+       "city": "New-York",
+       "country": "United States",
+       "country_code": "US",
+       "district": null,
+       "local_district": null,
+       "local_city": null,
+       "local_state": null
+      }
+     ],
+     "summary": "Join our team as a Senior GTM Engineer (Inbound) and take charge of optimizing lead response times, building AI agents, personalizing conversion paths, and owning the lead lifecycle stack. You will also automate content and SEO operations, measure quality, implement guardrails, and coach and document processes. This role offers a range of benefits, including medical, dental, and vision coverage, unlimited time off, and a 401K plan.",
+     "key_missions": [
+      "Accélérer la réponse aux leads entrants en construisant des automatisations qui les acheminent, les notent et y répondent en quelques minutes.",
+      "Concevoir et déployer des agents d'IA pour travailler en continu en haut de l'entonnoir de conversion.",
+      "Intégrer la personnalisation du site Web, les formulaires dynamiques et les recommandations de contenu en fonction de l'intention du visiteur."
+     ],
+     "language": "en",
+     "objectID": "5efde675-9fde-4d2d-b16b-10a096d10977"
+    }
+   ],
+   "nbHits": 3402,
+   "page": 0,
+   "nbPages": 84,
+   "hitsPerPage": 12,
+   "exhaustiveNbHits": true,
+   "exhaustiveTypo": true,
+   "exhaustive": {
+    "nbHits": true,
+    "typo": true
+   },
+   "query": "AI Engineer",
+   "params": "query=AI+Engineer&hitsPerPage=12&facetFilters=%5B%5B%22remote%3Afulltime%22%5D%5D&attributesToRetrieve=%5B%22objectID%22%2C+%22name%22%2C+%22slug%22%2C+%22organization.name%22%2C+%22organization.slug%22%2C+%22offices%22%2C+%22remote%22%2C+%22published_at%22%2C+%22summary%22%2C+%22key_missions%22%2C+%22profile%22%2C+%22language%22%2C+%22contract_type%22%2C+%22salary_minimum%22%2C+%22salary_maximum%22%2C+%22salary_currency%22%2C+%22salary_period%22%5D&attributesToHighlight=%5B%5D",
+   "index": "wttj_jobs_production_en",
+   "renderingContent": {},
+   "extensions": {
+    "queryCategorization": {}
+   },
+   "processingTimeMS": 4,
+   "processingTimingsMS": {
+    "_request": {
+     "roundTrip": 46
+    },
+    "fetch": {
+     "scanning": 2,
+     "total": 3
+    },
+    "total": 4
+   },
+   "serverTimeMS": 24
+  }
+ ]
+}

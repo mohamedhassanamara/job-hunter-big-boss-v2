@@ -65,3 +65,35 @@ def test_remotive_mapper() -> None:
             assert j.country == "US"
         if region in ("Worldwide", "Europe") or "," in region:
             assert j.country is None
+
+
+def test_wttj_mapper() -> None:
+    from app.providers.sources.wttj import parse_wttj
+
+    payload = load("wttj")
+    jobs = parse_wttj(payload, {"ES", "IT"})
+    assert_common(jobs, Source.wttj)
+    hits = {h["objectID"]: h for r in payload["results"] for h in r["hits"]}
+    assert len(jobs) == len(hits)  # same job in several queries → stored once
+    for j in jobs:
+        hit = hits[j.external_id]
+        assert j.url == (
+            "https://www.welcometothejungle.com/en/companies/"
+            f"{hit['organization']['slug']}/jobs/{hit['slug']}"
+        )
+        expected = {"fulltime": "remote", "partial": "hybrid", "punctual": "hybrid", "no": "onsite"}
+        assert j.remote_type == expected.get(hit.get("remote"), "unknown")
+        if hit.get("key_missions"):
+            assert "## Key missions" in j.description
+    assert any(j.country == "ES" for j in jobs) and any(j.country == "IT" for j in jobs)
+
+
+def test_wttj_queries_cover_roles_countries_and_remote() -> None:
+    from app.providers.base import ProfileSpec
+    from app.providers.sources.wttj import build_queries
+
+    queries = build_queries(ProfileSpec(roles=["Data Engineer", "ML Engineer"],
+                                        locations=["ES", "PT", "FR", "IT"]))
+    assert len(queries) == 2 * (4 + 1)
+    assert all(q["indexName"] == "wttj_jobs_production_en" for q in queries)
+    assert any("remote%3Afulltime" in q["params"] for q in queries)
