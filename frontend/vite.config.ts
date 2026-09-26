@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },
   },
+  // Local single-user app: one bundle is fine.
+  build: { chunkSizeWarningLimit: 1500 },
   server: {
     port: 5173,
     proxy: { '/api': 'http://localhost:8000' },

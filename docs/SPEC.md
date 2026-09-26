@@ -57,11 +57,13 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   - *Ready to apply manually:* stage `ready` with route `web_apply` → the Job page (shows the "Open listing" and "Download CV" actions and a "Mark applied" button).
   - *Send queue:* status, next send time, count pending, and an inline Pause/Resume.
 - **Last discovery:** per-source result of the latest run (new / duplicates / failed) + a "Run discovery now" button.
-- *Empty:* "You're all caught up", with a "Browse Discover" action. *Loading:* card skeletons. *Error:* card-level error with retry.
+- *Brand-new workspace* (discovery never ran): a 3-step onboarding card (add experience → import contacts → run discovery).
+- *Empty:* "You're all caught up", with a "Browse Discover" action. *Loading:* card skeletons. *Error:* page-level error with retry.
 
 ### 3.2 Discover (`/discover`)
 *Purpose:* triage newly discovered jobs.
-- **Toolbar:** a search input (title/company), filters (Stage: New by default | All open; Source; Remote type; Country; Min fit; Posted within; Hide duplicates), and sort (Best fit, Newest). Active filters show as removable chips, with a "Clear all" option. Filters live in the URL.
+- **Tabs:** New (default, with count) · All open · All.
+- **Toolbar:** a search input (title/company), filters (Source; Remote type; Country; Min fit; Posted within; Hide duplicates), and sort (Best fit, Newest). Active filters show as removable chips, with a "Clear all" option. Filters live in the URL.
 - **List rows:** fit badge, title, company, source badge, location + remote badge, and relative posted date. Flags: duplicate, already contacted. Hover shows quick actions (shortlist / dismiss).
 - **Side panel** (`?job=<id>`): title/company/location header, actions (Shortlist, Dismiss, Open full page, Open listing ↗), fit card (score, band, summary, strengths ✓, gaps △), contact status (tier badge + contact or "no contact → web apply"), flags, and the description.
 - *Actions:* shortlist (→ `shortlisted`, toast, auto-advance to the next item), dismiss (→ closed/dismissed, toast with Undo, auto-advance).
@@ -71,7 +73,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 ### 3.3 Pipeline (`/pipeline`)
 *Purpose:* see and move everything I'm pursuing.
 - **Board view** (default): 7 columns with a count per column. Cards show the title, company, fit badge, route icon (mail / globe), and days in stage. Cards can be dragged between columns, but only allowed transitions are accepted (the target highlights; a disallowed move snaps back with a toast explanation). Clicking a card opens the Job page.
-- The **Closed** column hides dismissed jobs unless "Show dismissed" is on.
+- The **Closed** column hides dismissed jobs unless "Show dismissed" is on. Dropping a card on Closed asks for a reason (rejected, no response, withdrew, offer, not a fit).
 - **Table view** (`?view=table`): sortable columns (Job, Company, Stage, Route, Fit, Contact, Updated), j/k selection, s/d shortcuts, and Enter to open.
 - *Empty:* "Nothing in your pipeline yet. Shortlist jobs from Discover", with a "Go to Discover" action. *Loading:* column skeletons. *Error:* retry.
 
@@ -97,7 +99,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 
 ### 3.7 Contacts (`/contacts`)
 - **Companies tab:** a searchable company list with contact count, contacted flag, and open-jobs count. Selecting a company shows its contacts (name, title, email, source tier badge, LinkedIn).
-- **Import tab:** Apollo CSV import in 3 steps: (1) dropzone / file picker, (2) column mapping preview with the first 5 rows and detected fields, (3) summary (new / updated / skipped). In phase 0 the backend returns a mock preview.
+- **Import tab:** Apollo CSV import in 3 steps: (1) dropzone / file picker (plus "Try a sample file"), (2) column mapping with auto-detected fields and the first 5 rows, (3) summary (new / updated / skipped). In phase 0 the preview parses the real file, but the import itself is a mock that writes nothing.
 - **Lookup queue** (section): jobs with `lookup_queued` and the daily cap indicator (e.g. 3/10 today).
 - *Empty:* "No contacts yet. Import your Apollo export to resolve contacts automatically", with "Import CSV".
 
@@ -116,7 +118,7 @@ Sections in a left sub-nav:
 - **Schedule:** discovery time of day (APScheduler, local time).
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
 - **Email (SMTP):** Gmail address, from name, and send interval / cap (read-only defaults). The app password is set in `.env` and shown as "configured / not configured".
-- **Data:** DB path, "Reset demo data" (dev only).
+- **Data:** DB path, plus "Reset demo data" and "Start with an empty workspace" (dev only, with a confirmation dialog).
 - Each section saves independently, with a toast.
 
 ## 4. Phase 0 scope
