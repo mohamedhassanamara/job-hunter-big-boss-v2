@@ -18,6 +18,8 @@ export const keys = {
   settings: ['settings'] as const,
   searchProfile: ['search-profile'] as const,
   search: (q: string) => ['search', q] as const,
+  discoveryStatus: ['discovery-status'] as const,
+  sources: ['sources'] as const,
 }
 
 /** Workflow mutations touch many views; in a local single-user app we simply refresh them all. */
