@@ -90,3 +90,12 @@ def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
 def discovery_run(session: SessionDep) -> DiscoveryResult:
     runs, new_jobs = run_discovery(session)
     return DiscoveryResult(runs=[run_out(r) for r in runs], new_jobs=new_jobs)
+
+
+@router.post("/dev/reset", status_code=204)
+def reset_demo(empty: bool = False) -> None:
+    """Dev aid: reset the DB to the demo dataset, or to an empty workspace (to see empty states)."""
+    from app.db import engine
+    from app.seed.seed import seed
+
+    seed(engine, empty=empty)
