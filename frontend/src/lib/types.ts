@@ -320,16 +320,37 @@ export interface LookupQueue {
 }
 
 // Settings
+export type RunStatus = 'pending' | 'running' | 'success' | 'partial' | 'failed' | 'skipped'
+
+export interface FilteredSample {
+  title: string
+  company: string
+  location: string
+  reason: string
+  url: string
+}
+
 export interface SourceRun {
   id: number
+  discovery_run_id: number | null
   source: Source
-  status: 'running' | 'success' | 'partial' | 'failed'
+  status: RunStatus
   started_at: string
   finished_at: string | null
   fetched_count: number
+  kept_count: number
+  filtered_count: number
   new_count: number
+  updated_count: number
   duplicate_count: number
   error: string | null
+  details: {
+    requests?: number
+    warnings?: string[]
+    reasons?: Record<string, number>
+    samples?: FilteredSample[]
+    dry_run?: boolean
+  }
 }
 
 export interface SearchProfile {
@@ -340,6 +361,7 @@ export interface SearchProfile {
   locations: string[]
   remote_policy: 'any' | 'remote_ok' | 'remote_only'
   min_fit_score: number
+  max_age_days: number
 }
 
 export interface SettingsView {
@@ -348,11 +370,54 @@ export interface SettingsView {
   smtp_password_configured: boolean
   database_path: string
   last_runs: SourceRun[]
+  next_run_at: string | null
 }
 
-export interface DiscoveryResult {
-  runs: SourceRun[]
-  new_jobs: number
+export interface DiscoveryRun {
+  id: number
+  trigger: 'manual' | 'scheduled' | 'test'
+  status: RunStatus
+  started_at: string
+  finished_at: string | null
+  totals: Partial<Record<'fetched' | 'kept' | 'filtered' | 'new' | 'updated' | 'duplicate' | 'failed', number>>
+  sources: SourceRun[]
+}
+
+export interface DiscoveryStatus {
+  running: boolean
+  run: DiscoveryRun | null
+}
+
+export interface SourceInfo {
+  source: Source
+  name: string
+  enabled: boolean
+  configured: boolean
+  config_hint: string | null
+  cooldown_hours: number
+  cooldown_remaining_minutes: number | null
+  last_run: SourceRun | null
+}
+
+export interface SampleJob {
+  title: string
+  company: string
+  location: string
+  remote_type: RemoteType
+  url: string
+  reason: string | null
+}
+
+export interface SourceTestResult {
+  source: Source
+  fetched: number
+  kept: number
+  filtered: number
+  requests: number
+  reasons: Record<string, number>
+  warnings: string[]
+  kept_samples: SampleJob[]
+  filtered_samples: SampleJob[]
 }
 
 // Today / meta

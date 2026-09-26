@@ -1,4 +1,4 @@
-import { CircleCheck, Database, TriangleAlert } from 'lucide-react'
+import { CircleCheck, Database } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -9,10 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Tooltip } from '@/components/ui/tooltip'
-import { COUNTRY_LABELS, relativeTime, SOURCE_LABELS } from '@/lib/format'
+import { absoluteDate, COUNTRY_LABELS } from '@/lib/format'
 import { useResetData, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
-import type { SearchProfile, SettingsView, Source } from '@/lib/types'
+import type { SearchProfile, SettingsView } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export function Card({
@@ -99,8 +98,11 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
       <Field label="Boost keywords" hint="Raise relevance when present">
         <TagInput tags={p.keywords} onChange={(keywords) => set({ keywords })} />
       </Field>
-      <Field label="Exclude keywords" hint="Skip listings containing these">
-        <TagInput tags={p.excluded_keywords} onChange={(excluded_keywords) => set({ excluded_keywords })} placeholder="php, intern…" />
+      <Field
+        label="Exclude title keywords"
+        hint="Jobs whose title contains one of these are filtered out. Seniority is never filtered unless you add it here."
+      >
+        <TagInput tags={p.excluded_keywords} onChange={(excluded_keywords) => set({ excluded_keywords })} placeholder="intern, stage…" />
       </Field>
       <Field label="Countries">
         <div className="flex flex-wrap gap-1.5">
@@ -135,6 +137,19 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
           className="w-72"
         />
       </Field>
+      <Field label="Max job age" hint="Skip listings posted longer ago than this">
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            min={1}
+            max={120}
+            value={p.max_age_days}
+            onChange={(e) => set({ max_age_days: Math.max(1, Number(e.target.value) || 1) })}
+            className="w-20"
+          />
+          <span className="text-sm text-fg-muted">days</span>
+        </div>
+      </Field>
       <Field label="Highlight threshold" hint="Min fit for Today's highlights">
         <div className="flex items-center gap-3">
           <input
@@ -150,61 +165,6 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
           <span className="w-8 text-sm font-medium tabular-nums">{p.min_fit_score}</span>
         </div>
       </Field>
-    </Card>
-  )
-}
-
-const SOURCE_NOTES: Record<Source, string> = {
-  adzuna: 'Official API · broad EU coverage',
-  remotive: 'Public API · remote-only roles',
-  arbeitnow: 'Public API · EU tech jobs',
-  wttj: 'Welcome to the Jungle · FR/ES startups',
-}
-
-export function SourcesSection({ settings }: { settings: SettingsView }) {
-  const save = useSaveSetting()
-  const flags = settings.values.sources as Record<Source, boolean>
-  const runs = Object.fromEntries(settings.last_runs.map((r) => [r.source, r]))
-  const toggle = (s: Source, on: boolean) =>
-    save.mutate(
-      { key: 'sources', value: { ...flags, [s]: on } },
-      { onSuccess: () => toast.success(`${SOURCE_LABELS[s]} ${on ? 'enabled' : 'disabled'}`), onError: (e) => toast.error(e.message) },
-    )
-  return (
-    <Card title="Sources" description="Where discovery pulls listings from. Toggles save immediately.">
-      <div className="-mx-5 -my-4 divide-y divide-border">
-        {(Object.keys(SOURCE_LABELS) as Source[]).map((s) => {
-          const run = runs[s]
-          return (
-            <div key={s} className="flex items-center gap-4 px-5 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{SOURCE_LABELS[s]}</p>
-                <p className="text-xs text-fg-muted">{SOURCE_NOTES[s]}</p>
-              </div>
-              {run && (
-                <Tooltip content={run.error}>
-                  <span className="flex items-center gap-1.5 text-xs text-fg-muted">
-                    {run.status === 'success' ? (
-                      <CircleCheck className="size-3.5 text-success-dot" />
-                    ) : (
-                      <TriangleAlert className="size-3.5 text-warning-dot" />
-                    )}
-                    Last run {relativeTime(run.finished_at ?? run.started_at)} · {run.new_count} new
-                  </span>
-                </Tooltip>
-              )}
-              <Switch checked={flags[s] ?? true} onCheckedChange={(on) => toggle(s, on)} aria-label={`Enable ${SOURCE_LABELS[s]}`} />
-            </div>
-          )
-        })}
-        <div className="flex items-center gap-4 px-5 py-3 opacity-60">
-          <div className="flex-1">
-            <p className="text-sm font-medium">LinkedIn</p>
-            <p className="text-xs text-fg-muted">Not automated, by design. Browse it yourself.</p>
-          </div>
-          <Switch checked={false} disabled aria-label="LinkedIn (not available)" />
-        </div>
-      </div>
     </Card>
   )
 }
@@ -230,13 +190,20 @@ export function ScheduleSection({ settings }: { settings: SettingsView }) {
         <Switch checked={draft.value.enabled} onCheckedChange={(enabled) => draft.setValue({ ...draft.value, enabled })} />
       </Field>
       <Field label="Run at">
-        <Input
-          type="time"
-          value={draft.value.time}
-          disabled={!draft.value.enabled}
-          onChange={(e) => draft.setValue({ ...draft.value, time: e.target.value })}
-          className="w-32"
-        />
+        <div className="flex items-center gap-3">
+          <Input
+            type="time"
+            value={draft.value.time}
+            disabled={!draft.value.enabled}
+            onChange={(e) => draft.setValue({ ...draft.value, time: e.target.value })}
+            className="w-32"
+          />
+          <span className="text-xs text-fg-muted">
+            {settings.next_run_at && initial.enabled
+              ? `Next run: ${absoluteDate(settings.next_run_at)}`
+              : 'Not scheduled'}
+          </span>
+        </div>
       </Field>
     </Card>
   )

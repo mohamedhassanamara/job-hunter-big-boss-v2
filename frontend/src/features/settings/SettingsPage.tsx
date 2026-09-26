@@ -11,8 +11,8 @@ import {
   ModelsSection,
   ProfileSection,
   ScheduleSection,
-  SourcesSection,
 } from './sections'
+import { SourcesSection } from './SourcesSection'
 
 const SECTIONS = [
   { id: 'profile', label: 'Search profile', icon: SlidersHorizontal },

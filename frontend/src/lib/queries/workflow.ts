@@ -5,11 +5,14 @@ import type {
   CVContent,
   CVStudio,
   CVVersion,
-  DiscoveryResult,
+  DiscoveryStatus,
   Draft,
   NavCounts,
   Queue,
   SearchHit,
+  Source,
+  SourceInfo,
+  SourceTestResult,
   Today,
 } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
@@ -35,14 +38,33 @@ export function useSearch(q: string) {
   })
 }
 
-export function useRunDiscovery() {
+/** Polls fast (1s) while a run is active, slowly (30s) otherwise so scheduled runs show up. */
+export function useDiscoveryStatus() {
+  return useQuery({
+    queryKey: keys.discoveryStatus,
+    queryFn: () => api.get<DiscoveryStatus>('/discovery/status'),
+    refetchInterval: (query) => (query.state.data?.running ? 1000 : 30_000),
+    retry: false,
+  })
+}
+
+export function useStartDiscovery() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: () => api.post<DiscoveryResult>('/discovery/run'),
-    onSettled: () => {
-      invalidateWork(qc)
-      void qc.invalidateQueries({ queryKey: keys.settings })
-    },
+    mutationFn: () => api.post<{ run_id: number }>('/discovery/run'),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.discoveryStatus }),
+  })
+}
+
+export function useSources() {
+  return useQuery({ queryKey: keys.sources, queryFn: () => api.get<SourceInfo[]>('/sources') })
+}
+
+export function useTestSource() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (source: Source) => api.post<SourceTestResult>(`/sources/${source}/test`),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.sources }),
   })
 }
 

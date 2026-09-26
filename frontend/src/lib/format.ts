@@ -122,3 +122,38 @@ export function pluralize(n: number, one: string, many = `${one}s`): string {
 export function fitBand(score: number): FitBand {
   return score >= 80 ? 'strong' : score >= 65 ? 'good' : score >= 50 ? 'fair' : 'weak'
 }
+
+/** Human label for a pre-filter reason code (see backend services/prefilter.py). */
+export function reasonLabel(reason: string): string {
+  const [code, arg] = reason.split(':', 2)
+  switch (code) {
+    case 'title_no_role_match':
+      return "Title doesn't match a target role"
+    case 'title_excluded':
+      return `Title contains “${arg}”`
+    case 'location_outside':
+      return arg === 'unknown'
+        ? 'Location unknown / outside targets'
+        : `Outside target countries (${COUNTRY_LABELS[arg] ?? arg})`
+    case 'too_old':
+      return 'Posted too long ago'
+    case 'not_remote':
+      return 'Not remote'
+    case 'incomplete':
+      return 'Missing title, company or link'
+    default:
+      return reason
+  }
+}
+
+/** "34 fetched · 12 new · 9 filtered · 3 duplicates" */
+export function runSummary(t: Partial<Record<string, number>>): string {
+  const parts = [
+    `${t.fetched ?? 0} fetched`,
+    `${t.new ?? 0} new`,
+    `${t.filtered ?? 0} filtered`,
+    pluralize(t.duplicate ?? 0, 'duplicate'),
+  ]
+  if (t.updated) parts.splice(2, 0, `${t.updated} updated`)
+  return parts.join(' · ')
+}
