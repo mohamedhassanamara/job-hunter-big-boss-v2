@@ -36,6 +36,11 @@ def main(names: list[str]) -> None:
             first_page_only = profile.model_copy(update={"max_age_days": 0})
             payload = ArbeitnowSource().fetch_payloads(first_page_only)[0]
             payload["data"] = relevant_first(payload["data"], "title")
+        elif name == "remotive":
+            from app.providers.sources.remotive import RemotiveSource
+
+            # One request only: Remotive asks for <= 4 requests/day.
+            payload = RemotiveSource(categories=["data"], limit=KEEP).fetch_payloads(profile)[0]
         else:
             raise SystemExit(f"unknown source {name}")
         path = OUT / f"{name}.json"

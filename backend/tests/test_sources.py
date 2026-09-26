@@ -46,3 +46,22 @@ def test_arbeitnow_mapper() -> None:
     assert any(j.country == "DE" for j in jobs)
     # Paragraph/bullet structure survives the HTML cleanup.
     assert any("\n- " in j.description or j.description.startswith("- ") for j in jobs)
+
+
+def test_remotive_mapper() -> None:
+    from app.providers.sources.remotive import parse_remotive
+
+    payload = load("remotive")
+    jobs = parse_remotive(payload)
+    assert_common(jobs, Source.remotive)
+    assert all(j.remote_type == RemoteType.remote for j in jobs)
+    assert all(j.url.startswith("https://remotive.com/") for j in jobs)  # link back (ToS)
+    by_id = {j.external_id: j for j in jobs}
+    for item in payload["jobs"]:
+        j = by_id[str(item["id"])]
+        assert j.location == (item["candidate_required_location"] or "Remote").strip()
+        region = item["candidate_required_location"]
+        if region == "USA":
+            assert j.country == "US"
+        if region in ("Worldwide", "Europe") or "," in region:
+            assert j.country is None
