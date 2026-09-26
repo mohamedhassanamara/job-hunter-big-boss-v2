@@ -13,10 +13,14 @@ transitions), `docs/DESIGN.md` (tokens and UI rules). Keep them updated when beh
 make setup     # first time: uv venv (Python 3.12) + pip deps, npm install, migrate, seed
 make dev       # API on :8000 (docs at /docs) + web on :5173, Ctrl-C stops both
 make seed      # reset DB contents to mock data
+make seed-empty  # empty workspace (onboarding + empty states)
 make migrate   # alembic upgrade head
 make test      # backend pytest
-make lint      # ruff + tsc + eslint + design-token guard
+make lint      # ruff + tsc + oxlint + design-token guard
+make build     # frontend production build
 ```
+Dev aids: `MOCK_LATENCY_MS=1500 make dev` slows every API response (check skeletons). Stopping only the
+backend shows error states. Settings → Data (or `POST /api/dev/reset[?empty=true]`) resets the data from the UI.
 Python is managed by `uv` (`uv python install 3.12`). The venv is `backend/.venv`. The DB is `data/jobhunter.db`.
 The Vite dev server proxies `/api` → `http://localhost:8000`.
 
@@ -62,12 +66,24 @@ frontend/src/lib/        api client, types, queries, formatting utils
 docs/                    SPEC, DATA_MODEL, DESIGN
 ```
 
+## Frontend building blocks (reuse before writing new ones)
+
+- `hooks/useSearchParamState`: filters, tabs and selection live in the URL (`?job=`, `?view=`, `?tab=`).
+- `hooks/useListKeyboard`: j/k/Enter plus action keys. It tracks the selection in a ref because keys can
+  arrive faster than re-renders, so read the *live* selection in handlers, not render-time state.
+- `hooks/useHotkeys`: global keys and `g x` sequences. Shortcuts are skipped in inputs and while a dialog/menu is open.
+- `hooks/useTriageActions`: shortlist/dismiss with an Undo toast (8s). `components/app/CloseDialog`: close reasons.
+- `components/app/badges`: Stage/Fit/Source/Remote/ContactTier/Tone badges. `states`: EmptyState/ErrorState/SkeletonRows.
+- `components/app/job-cards`: FitCard, ContactCard, JobFlags. `Prose` renders listing markdown safely. `TagInput`.
+- Autosave pattern (notes, CV, drafts): local state, a 700ms debounced mutation, and a "Saving… / All changes saved" label.
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.
 - API: JSON in snake_case (TS types use snake_case too, so there is no mapping layer). Lists return `{items, total}` when paginated.
 - No real network or LLM calls unless the task explicitly implements that provider. Tests never hit the network.
-- TypeScript: strict. Components are PascalCase files, hooks are `useX.ts`, and screens live under `features/`. Use the `@/` alias for `src/`.
+- TypeScript: strict, linted with oxlint (no warnings allowed). Components are PascalCase files, hooks are `useX.ts`, and screens live under `features/`. Use the `@/` alias for `src/`. Keep component files exporting only components (fast refresh), and put helpers in `.ts` files.
+- UI primitives in `components/ui/` are hand-written shadcn-style wrappers over `radix-ui`. `components.json` exists, so `npx shadcn add x` works, but restyle the result to tokens.
 - Commits: small, imperative, prefixed (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
 
 ## Design rules (non-negotiable, see docs/DESIGN.md)
