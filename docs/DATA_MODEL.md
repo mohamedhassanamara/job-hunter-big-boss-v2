@@ -146,7 +146,7 @@ Timeline and stage history.
 | Column | Type | Notes |
 |---|---|---|
 | application_id | FK | |
-| kind | enum `stage_change \| note \| cv_generated \| cv_approved \| draft_created \| draft_approved \| sent \| applied \| contact_resolved` | |
+| kind | enum `discovered \| stage_change \| note \| cv_generated \| cv_approved \| draft_created \| draft_approved \| sent \| applied \| contact_resolved` | |
 | from_stage / to_stage | str? | For stage_change |
 | message | str? | Human-readable line |
 | payload | JSON | Extra data |

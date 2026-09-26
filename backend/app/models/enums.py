@@ -76,6 +76,7 @@ class CloseReason(StrEnum):
 
 
 class EventKind(StrEnum):
+    discovered = "discovered"
     stage_change = "stage_change"
     note = "note"
     cv_generated = "cv_generated"
