@@ -1,5 +1,9 @@
 # Data model
 
+Two SQLite files share this schema: `data/jobhunter.db` (the real workspace, only real data) and
+`data/demo.db` (the tour sandbox, rebuilt from fixtures at each tour start). The API picks one per
+request from the `X-Workspace` header.
+
 SQLite via SQLModel. Schema changes go through Alembic (`backend/alembic/versions`). Models live in
 `backend/app/models/`, with one module per aggregate.
 
@@ -32,22 +36,34 @@ What discovery looks for.
 | name | str | e.g. "Data/AI Engineering, South EU" |
 | roles | JSON list[str] | Title keywords: "data engineer", "ai engineer", … |
 | keywords | JSON list[str] | Boosting keywords (spark, dbt, llm…) |
-| excluded_keywords | JSON list[str] | "senior manager", "php", … |
+| excluded_keywords | JSON list[str] | **Title** keywords the pre-filter drops (default: intern, stage, alternance…). No seniority words by default |
 | locations | JSON list[str] | ISO country codes: ES, PT, FR, IT |
 | remote_policy | enum `any \| remote_ok \| remote_only` | |
 | min_fit_score | int | Jobs below this are hidden from Today's highlights |
+| max_age_days | int | Pre-filter drops listings posted longer ago (default 30) |
 | is_active | bool | Exactly one profile is active in v2 |
 
-### source_run
-One execution of one source for one profile. Powers the "last discovery" card and debugging.
+### discovery_run
+One press of "Run discovery", one scheduled run, or one dry-run test. Groups a `source_run` per source.
 | Column | Type | Notes |
 |---|---|---|
+| trigger | enum `manual \| scheduled \| test` | |
+| status | enum `running \| success \| partial \| failed` | `partial` when some sources failed |
+| started_at / finished_at | datetime | |
+| totals | JSON | `{fetched, kept, filtered, new, updated, duplicate, failed}` |
+
+### source_run
+One execution of one source within a discovery run. Powers Settings → Sources, the Today banner and tuning.
+| Column | Type | Notes |
+|---|---|---|
+| discovery_run_id | FK discovery_run? | |
 | source | enum `adzuna \| remotive \| arbeitnow \| wttj` | |
 | profile_id | FK search_profile | |
 | started_at / finished_at | datetime | |
-| status | enum `running \| success \| partial \| failed` | |
-| fetched_count / new_count / duplicate_count | int | |
-| error | str? | |
+| status | enum `pending \| running \| success \| failed \| skipped` | `skipped` = inside the source's cooldown |
+| fetched / kept / filtered / new / updated / duplicate _count | int | kept = passed the pre-filter; new/updated/duplicate = ingest outcome |
+| error | str? | Full error, or the not-configured/cooldown reason |
+| details | JSON | `{requests, warnings[], reasons{code: n}, samples[{title, company, location, reason, url}]}`; `dry_run: true` for tests |
 
 ### company
 | Column | Type | Notes |
@@ -73,7 +89,8 @@ One execution of one source for one profile. Powers the "last discovery" card an
 | description | text | Plain text / markdown |
 | salary_text | str? | |
 | posted_at | datetime? | |
-| discovered_at | datetime | |
+| discovered_at | datetime | First seen |
+| last_seen_at | datetime? | Updated every time a run sees the listing again (idempotent upsert) |
 | dedupe_key | str (indexed) | `normalized_company|normalized_title|country` |
 | duplicate_of_id | FK job? | Set when the same dedupe_key already exists from another source |
 

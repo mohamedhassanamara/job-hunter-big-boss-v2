@@ -150,7 +150,15 @@ Headings use `tracking-tight` (−0.01em). Body text uses normal tracking.
 8. **Density:** 13px default text, generous whitespace *between* groups, tight *within* groups.
 9. **Dark mode** is a first-class theme, not an afterthought. Check both themes for every screen.
 
-## 6. Shared app components (`src/components/app/`)
+## 6. Guided tours
+
+- **Spotlight:** the target gets a 2px `outline-primary` ring. Everything else is dimmed with `--overlay` (a 9999px box-shadow). It's non-blocking, so the page stays usable.
+- **Step card:** `surface-raised`, `rounded-xl`, `shadow-lg`, `w-80`. It shows the title, one or two sentences, progress dots, and Back/Next (primary). → / ← / Esc work.
+- **Tour strip:** an info-tone bar above the top bar ("Tour: X · Sample data…", Exit tour). It is always visible during a tour, so sample data is never mistaken for real data.
+- **Layers:** overlay `z-60`, strip `z-62`, step card `z-63`.
+- **Copy:** name the value, not the widget ("Always the next step", not "This is a button"). Keep it to 3–6 steps per feature.
+
+## 7. Shared app components (`src/components/app/`)
 
 `AppShell`, `Sidebar`, `TopBar`, `PageHeader` (title, description, actions slot), `EmptyState`,
 `ErrorState`, `Skeleton*`, `FitBadge`, `StageBadge`, `SourceBadge`, `RemoteBadge`, `ContactTierBadge`,
