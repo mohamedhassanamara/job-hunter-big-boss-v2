@@ -6,8 +6,10 @@ from app.models.enums import Source
 from app.providers.base import JobSource
 from app.providers.sources.arbeitnow import ArbeitnowSource
 from app.providers.sources.remotive import RemotiveSource
+from app.providers.sources.wttj import WTTJSource
 
 REAL_SOURCES: dict[Source, Callable[[], JobSource]] = {
     Source.arbeitnow: ArbeitnowSource,
     Source.remotive: RemotiveSource,
+    Source.wttj: WTTJSource,
 }

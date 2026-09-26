@@ -41,6 +41,13 @@ def main(names: list[str]) -> None:
 
             # One request only: Remotive asks for <= 4 requests/day.
             payload = RemotiveSource(categories=["data"], limit=KEEP).fetch_payloads(profile)[0]
+        elif name == "wttj":
+            from app.providers.sources import wttj
+
+            wttj.HITS_PER_QUERY = 12
+            small = profile.model_copy(update={"roles": ["Data Engineer", "AI Engineer"],
+                                               "locations": ["ES", "IT"]})
+            payload = wttj.WTTJSource().fetch_payload(small)
         else:
             raise SystemExit(f"unknown source {name}")
         path = OUT / f"{name}.json"
