@@ -209,6 +209,8 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                 notes=jf.notes,
                 stage_changed_at=stage_changed,
                 applied_at=None,
+                created_at=discovered,
+                updated_at=stage_changed,
             )
             s.add(application)
             s.flush()
@@ -305,6 +307,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                         status=status,
                         generator_model="claude-sonnet-5 (mock)",
                         created_at=base_at + timedelta(minutes=version * 20),
+                        updated_at=base_at + timedelta(minutes=version * 20),
                     )
                 )
                 s.add(
@@ -357,10 +360,11 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                 model="claude-haiku-4-5 (mock)",
                 edited=key == "kelpie-staff",
                 created_at=created,
+                updated_at=created,
             )
             if status == DraftStatus.rejected:
                 draft.subject = f"Quick question about the {job.title} role"
-                draft.created_at = created - timedelta(hours=5)
+                draft.created_at = draft.updated_at = created - timedelta(hours=5)
             s.add(draft)
             s.flush()
             s.add(
