@@ -16,6 +16,8 @@ def test_html_to_text_plain_text_and_inline_bullets() -> None:
     assert html_to_text("Intro line\n• one\n• two") == "Intro line\n\n- one\n- two"
     assert html_to_text("<p>• first</p><p>• second</p>") == "- first\n- second"
     assert html_to_text(None) == ""
+    escaped = "&lt;p&gt;Hi &amp;amp; bye&lt;/p&gt;&lt;ul&gt;&lt;li&gt;x&lt;/li&gt;&lt;/ul&gt;"
+    assert html_to_text(escaped) == "Hi & bye\n\n- x"
     assert "<" not in html_to_text("<p>a <span>b</span></p><br/>")
 
 
