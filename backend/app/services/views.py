@@ -56,8 +56,11 @@ def fit_brief(fit: FitScore | None) -> FitBrief | None:
     return FitBrief(score=fit.score, band=fit_band(fit.score)) if fit else None
 
 
+_STAGE_ORDER = list(Stage)
+
+
 def allowed_stages(app: Application) -> list[str]:
-    return [s.value for s in ALLOWED[Stage(app.stage)]]
+    return [s.value for s in sorted(ALLOWED[Stage(app.stage)], key=_STAGE_ORDER.index)]
 
 
 def application_brief(app: Application) -> ApplicationBrief:
