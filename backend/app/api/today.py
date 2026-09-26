@@ -158,10 +158,7 @@ def nav_counts(session: SessionDep) -> NavCounts:
 
     return NavCounts(
         discover_new=count(
-            select(func.count())
-            .select_from(Application)
-            .join(Job, col(Job.id) == col(Application.job_id))
-            .where(Application.stage == Stage.new, col(Job.duplicate_of_id).is_(None))
+            select(func.count()).select_from(Application).where(Application.stage == Stage.new)
         ),
         pipeline_active=count(
             select(func.count())
