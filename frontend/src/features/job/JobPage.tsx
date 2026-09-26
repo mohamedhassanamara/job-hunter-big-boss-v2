@@ -456,7 +456,7 @@ export default function JobPage() {
         Back
       </button>
 
-      <header className="flex items-start justify-between gap-6 border-b border-border pb-5">
+      <header data-tour="job-header" className="flex items-start justify-between gap-6 border-b border-border pb-5">
         <div className="min-w-0 space-y-2">
           <h1 className="text-xl font-semibold tracking-tight">{job.title}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -476,7 +476,7 @@ export default function JobPage() {
         <div className="flex shrink-0 items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" aria-label="Change stage" className="pl-2">
+              <Button variant="secondary" aria-label="Change stage" className="pl-2" data-tour="job-stage">
                 <StageBadge stage={app.stage} label={app.stage_label} />
                 <ChevronDown className="size-3.5! text-fg-subtle" />
               </Button>
@@ -512,7 +512,7 @@ export default function JobPage() {
               </SegmentedList>
             </Tabs>
           )}
-          {primary}
+          <span data-tour="job-next">{primary}</span>
         </div>
       </header>
 
@@ -520,7 +520,9 @@ export default function JobPage() {
         <div className="space-y-4">
           <JobFlags job={job} />
           <WebApplyCallout job={job} onApplied={() => setStage('done', undefined, 'Marked as applied')} />
-          <FitCard fit={job.fit_detail} />
+          <div data-tour="job-fit">
+            <FitCard fit={job.fit_detail} />
+          </div>
           <CVSection job={job} />
           <EmailSection job={job} />
           <NotesCard key={job.id} job={job} />
@@ -532,7 +534,9 @@ export default function JobPage() {
         </div>
 
         <aside className="space-y-4">
-          <ContactCard job={job} />
+          <div data-tour="job-contact">
+            <ContactCard job={job} />
+          </div>
           <div className="rounded-lg border border-border bg-surface p-4">
             <p className="mb-2 text-xs font-medium text-fg-subtle">Company</p>
             <p className="text-sm font-medium">{job.company.name}</p>
@@ -558,7 +562,9 @@ export default function JobPage() {
               </div>
             )}
           </div>
-          <Timeline events={job.events} />
+          <div data-tour="job-timeline">
+            <Timeline events={job.events} />
+          </div>
         </aside>
       </div>
 

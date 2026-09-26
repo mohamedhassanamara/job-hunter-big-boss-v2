@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { StageDot, ToneBadge } from '@/components/app/badges'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -146,9 +147,12 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
         title="No contacts yet"
         description="Import your Apollo export so jobs can be matched to a person automatically."
         action={
-          <Button variant="default" size="sm" onClick={onImport}>
-            Import CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="default" size="sm" onClick={onImport}>
+              Import CSV
+            </Button>
+            <TourButton tour="contacts" />
+          </div>
         }
       />
     )
@@ -156,7 +160,7 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
 
   return (
     <div className="flex h-full min-h-0">
-      <div className="flex w-[340px] shrink-0 flex-col border-r border-border bg-bg">
+      <div data-tour="contacts-companies" className="flex w-[340px] shrink-0 flex-col border-r border-border bg-bg">
         <div className="space-y-2 border-b border-border p-3">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-fg-subtle" />
@@ -210,7 +214,7 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
           )}
         </div>
       </div>
-      <div className="min-w-0 flex-1 overflow-y-auto">
+      <div data-tour="contacts-detail" className="min-w-0 flex-1 overflow-y-auto">
         {selected !== null ? (
           <CompanyDetailPane key={selected} id={selected} />
         ) : (

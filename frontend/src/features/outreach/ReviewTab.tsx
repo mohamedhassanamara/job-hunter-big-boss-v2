@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, ToneBadge, type Tone } from '@/components/app/badges'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
@@ -162,7 +163,7 @@ function DraftEditor({
                 <RefreshCw className={regenerate.isPending ? 'animate-spin' : undefined} />
                 Regenerate
               </Button>
-              <Button variant="default" onClick={onApprove}>
+              <Button variant="default" onClick={onApprove} data-tour="outreach-approve">
                 <CircleCheck />
                 Approve & queue
                 <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
@@ -255,7 +256,7 @@ export function ReviewTab() {
 
   return (
     <div className="flex h-full min-h-0">
-      <div className="flex w-[360px] shrink-0 flex-col border-r border-border bg-bg max-xl:w-[300px]">
+      <div data-tour="outreach-list" className="flex w-[360px] shrink-0 flex-col border-r border-border bg-bg max-xl:w-[300px]">
         <div className="border-b border-border px-4 py-2.5">
           <Tabs value={status} onValueChange={(v) => url.set({ status: v === 'draft' ? null : v, draft: null })}>
             <SegmentedList className="w-full">
@@ -319,7 +320,7 @@ export function ReviewTab() {
           </p>
         )}
       </div>
-      <div className="min-w-0 flex-1 bg-surface">
+      <div data-tour="outreach-editor" className="min-w-0 flex-1 bg-surface">
         {selected ? (
           <DraftEditor
             key={selected.id}
@@ -339,9 +340,7 @@ export function ReviewTab() {
                   <Button size="sm" asChild>
                     <Link to="/pipeline">Open pipeline</Link>
                   </Button>
-                  <Button size="sm" variant="ghost" asChild>
-                    <Link to="/outreach?tab=queue">Send queue</Link>
-                  </Button>
+                  <TourButton tour="outreach" />
                 </div>
               }
             />

@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { CloseDialog } from '@/components/app/CloseDialog'
 import { PageHeader } from '@/components/app/PageHeader'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,7 +94,7 @@ export default function PipelinePage() {
         title="Pipeline"
         description={data ? `${pluralize(active, 'active application')} · ${view === 'board' ? 'drag cards to move them' : 'click a column to sort'}` : 'Everything you are pursuing'}
         actions={
-          <Tabs value={view} onValueChange={(v) => url.set({ view: v === 'board' ? null : v })}>
+          <Tabs data-tour="pipeline-view" value={view} onValueChange={(v) => url.set({ view: v === 'board' ? null : v })}>
             <SegmentedList>
               <SegmentedTrigger value="board">
                 <Columns3 />
@@ -119,7 +120,7 @@ export default function PipelinePage() {
             className="h-7 pl-8"
           />
         </div>
-        <label className="flex items-center gap-2 text-sm text-fg-muted">
+        <label data-tour="pipeline-dismissed" className="flex items-center gap-2 text-sm text-fg-muted">
           <Switch checked={showDismissed} onCheckedChange={(v) => url.set({ dismissed: v ? '1' : null })} />
           Show dismissed
         </label>
@@ -136,9 +137,12 @@ export default function PipelinePage() {
             title="Nothing in your pipeline yet"
             description="Shortlist jobs from Discover and they'll show up here."
             action={
-              <Button asChild size="sm" variant="default">
-                <Link to="/discover">Go to Discover</Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild size="sm" variant="default">
+                  <Link to="/discover">Go to Discover</Link>
+                </Button>
+                <TourButton tour="pipeline" />
+              </div>
             }
           />
         ) : cards.length === 0 ? (

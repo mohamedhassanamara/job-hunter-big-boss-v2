@@ -68,6 +68,7 @@ export function CVPreview({ content, onFit }: { content: CVContent; onFit?: (fit
       <div className="flex items-center justify-between text-xs">
         <span className="text-fg-subtle">Preview · A4 (placeholder for the compiled PDF)</span>
         <span
+          data-tour="cv-fit"
           className={cn(
             'inline-flex items-center gap-1 font-medium',
             fit === 'fits' ? 'text-success-fg' : 'text-warning-fg',

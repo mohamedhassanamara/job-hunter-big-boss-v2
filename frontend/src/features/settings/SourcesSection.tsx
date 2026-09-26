@@ -37,7 +37,7 @@ function Counts({ run }: { run: NonNullable<SourceInfo['last_run']> }) {
     ['filtered', run.filtered_count],
     ['new', run.new_count],
     ['updated', run.updated_count],
-    ['duplicates', run.duplicate_count],
+    [run.duplicate_count === 1 ? 'duplicate' : 'duplicates', run.duplicate_count],
   ]
   return (
     <span className="text-xs text-fg-muted tabular-nums">

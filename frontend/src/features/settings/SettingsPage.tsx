@@ -50,7 +50,7 @@ export default function SettingsPage() {
               </button>
             ))}
           </nav>
-          <div className="min-w-0 flex-1">
+          <div data-tour="settings-card" className="min-w-0 flex-1">
             {error ? (
               <ErrorState error={error} onRetry={() => (settings.error ? settings.refetch() : profile.refetch())} />
             ) : !settings.data || !profile.data ? (

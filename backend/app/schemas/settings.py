@@ -29,6 +29,7 @@ class SearchProfileIO(BaseModel):
     locations: list[str]
     remote_policy: str
     min_fit_score: int
+    max_age_days: int = 30
 
 
 class SettingsOut(BaseModel):

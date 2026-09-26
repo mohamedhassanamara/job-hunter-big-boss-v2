@@ -8,13 +8,31 @@ export class ApiError extends Error {
 
 type Json = Record<string, unknown> | unknown[]
 
+/**
+ * Which backend workspace requests go to. `demo` is the tour sandbox (sample data only);
+ * everything else always hits the real workspace.
+ */
+export type Workspace = 'real' | 'demo'
+let workspace: Workspace = 'real'
+
+export function setWorkspace(next: Workspace) {
+  workspace = next
+}
+
+export function getWorkspace(): Workspace {
+  return workspace
+}
+
 async function request<T>(method: string, path: string, body?: Json | FormData): Promise<T> {
   const isForm = body instanceof FormData
   let res: Response
   try {
+    const headers: Record<string, string> = {}
+    if (body && !isForm) headers['Content-Type'] = 'application/json'
+    if (workspace === 'demo') headers['X-Workspace'] = 'demo'
     res = await fetch(`/api${path}`, {
       method,
-      headers: body && !isForm ? { 'Content-Type': 'application/json' } : undefined,
+      headers,
       body: body ? (isForm ? body : JSON.stringify(body)) : undefined,
     })
   } catch {

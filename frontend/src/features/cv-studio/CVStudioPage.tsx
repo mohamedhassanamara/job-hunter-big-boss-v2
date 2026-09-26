@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { StageBadge, ToneBadge } from '@/components/app/badges'
 import { EmptyState, ErrorState } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -46,7 +47,7 @@ function Workspace({ version, onFit }: { version: CVVersion; onFit: (f: PageFit)
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-      <div className="min-h-0 overflow-y-auto border-r border-border bg-surface">
+      <div data-tour="cv-editor" className="min-h-0 overflow-y-auto border-r border-border bg-surface">
         <div className="flex h-10 items-center justify-between border-b border-border px-5 text-xs">
           <span className="font-medium text-fg-muted">Structured content</span>
           {readOnly ? (
@@ -62,7 +63,7 @@ function Workspace({ version, onFit }: { version: CVVersion; onFit: (f: PageFit)
         </div>
         <CVEditor content={content} onChange={onChange} readOnly={readOnly} />
       </div>
-      <div className="min-h-0 overflow-y-auto bg-bg-subtle px-8 py-6">
+      <div data-tour="cv-preview" className="min-h-0 overflow-y-auto bg-bg-subtle px-8 py-6">
         <div className="mx-auto max-w-[620px]">
           <CVPreview content={content} onFit={onFit} />
         </div>
@@ -162,6 +163,7 @@ export default function CVStudioPage() {
         {job.data && <StageBadge stage={job.data.application.stage} label={job.data.application.stage_label} />}
         {versions.length > 0 && version && (
           <>
+            <span data-tour="cv-versions">
             <Select
               aria-label="Version"
               value={String(version.id)}
@@ -172,10 +174,12 @@ export default function CVStudioPage() {
               }))}
               className="w-60"
             />
+            </span>
             <Button onClick={runGenerate} disabled={generate.isPending}>
               <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
               Regenerate
             </Button>
+            <span data-tour="cv-approve">
             {version.status === 'approved' ? (
               <ToneBadge tone="green" dot={false} className="h-8 px-3 text-sm">
                 <CircleCheck className="size-4" />
@@ -195,6 +199,7 @@ export default function CVStudioPage() {
                 </span>
               </Tooltip>
             )}
+            </span>
           </>
         )}
       </div>
@@ -216,10 +221,13 @@ export default function CVStudioPage() {
           title={generate.isPending ? 'Generating your CV…' : 'No CV for this job yet'}
           description="A one-page CV tailored to this listing, built from your master experience. You review and edit it before anything is used."
           action={
-            <Button variant="default" onClick={runGenerate} disabled={generate.isPending}>
-              <Sparkles />
-              Generate CV
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="default" onClick={runGenerate} disabled={generate.isPending}>
+                <Sparkles />
+                Generate CV
+              </Button>
+              <TourButton tour="cv" />
+            </div>
           }
         />
       ) : (
