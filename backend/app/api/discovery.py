@@ -75,7 +75,10 @@ def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInf
     for src, impl in impls.items():
         last = session.exec(
             select(SourceRun)
-            .where(SourceRun.source == src, SourceRun.status != RunStatus.pending)
+            .where(
+                SourceRun.source == src,
+                col(SourceRun.status).not_in([RunStatus.pending, RunStatus.skipped]),
+            )
             .order_by(col(SourceRun.started_at).desc())
         ).first()
         hint = impl.configured()

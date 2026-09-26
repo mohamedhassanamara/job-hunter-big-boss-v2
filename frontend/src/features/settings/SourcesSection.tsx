@@ -69,7 +69,7 @@ function ReasonTable({ reasons }: { reasons: Record<string, number> }) {
 function SampleList({ jobs, showReason }: { jobs: SampleJob[]; showReason?: boolean }) {
   if (!jobs.length) return <p className="text-sm text-fg-subtle">None.</p>
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border">
+    <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
       {jobs.map((j, i) => (
         <li key={`${j.url}-${i}`} className="flex items-start gap-3 px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -211,10 +211,16 @@ function SourceRow({ info, onToggle }: { info: SourceInfo; onToggle: (on: boolea
         </div>
       )}
 
+      {cooling && (
+        <p className="text-xs text-fg-subtle">
+          Cooling down: next fetch allowed in {cooling >= 60 ? `${Math.floor(cooling / 60)}h ${cooling % 60}m` : `${cooling} min`}. Runs before then skip this source.
+        </p>
+      )}
+
       {run && (
         <div className="space-y-2">
           {run.status !== 'failed' && run.status !== 'skipped' && <Counts run={run} />}
-          {run.error && (
+          {run.error && !(run.error.startsWith('Not configured') && !info.configured) && (
             <div
               className={cn(
                 'flex items-start gap-2 rounded-md px-3 py-2 text-xs',
@@ -242,12 +248,14 @@ function SourceRow({ info, onToggle }: { info: SourceInfo; onToggle: (on: boolea
                 Filter report · {pluralize(run.filtered_count, 'job')} filtered
               </button>
               {reportOpen && (
-                <div className="mt-2 grid gap-3 rounded-lg border border-border bg-bg-subtle p-3 lg:grid-cols-[240px_1fr]">
+                <div className="mt-2 grid gap-3 rounded-lg border border-border bg-bg-subtle p-3 lg:grid-cols-[240px_minmax(0,1fr)]">
                   <ReasonTable reasons={reasons} />
-                  <SampleList
-                    jobs={samples.slice(0, 12).map((s) => ({ ...s, remote_type: 'unknown' as const }))}
-                    showReason
-                  />
+                  <div className="min-w-0">
+                    <SampleList
+                      jobs={samples.slice(0, 12).map((s) => ({ ...s, remote_type: 'unknown' as const }))}
+                      showReason
+                    />
+                  </div>
                 </div>
               )}
             </div>
