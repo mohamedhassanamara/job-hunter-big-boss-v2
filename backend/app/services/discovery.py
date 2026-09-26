@@ -168,6 +168,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
             )
             sr.details = {
                 "requests": source.requests,
+                "warnings": list(getattr(source, "warnings", [])),
                 "reasons": result.reason_counts(),
                 "samples": [
                     {

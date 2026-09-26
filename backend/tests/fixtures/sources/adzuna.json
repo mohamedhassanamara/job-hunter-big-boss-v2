@@ -1,0 +1,46 @@
+{
+ "_note": "SYNTHETIC fixture shaped after the documented Adzuna /search response. Re-record with `scripts/record_fixtures.py adzuna` once ADZUNA_APP_ID/KEY are set.",
+ "_country": "ES",
+ "count": 3,
+ "mean": 52000,
+ "results": [
+  {
+   "__CLASS__": "Adzuna::API::Response::Job",
+   "id": "4871230001",
+   "title": "Senior <strong>Data</strong> <strong>Engineer</strong> (Hybrid)",
+   "description": "Buscamos un/a <strong>Data Engineer</strong> para nuestro equipo en Madrid. Stack: Spark, dbt, Airflow y AWS. Modelo híbrido, 2 días en oficina…",
+   "redirect_url": "https://www.adzuna.es/land/ad/4871230001?se=abc&v=def",
+   "created": "2026-09-24T08:15:00Z",
+   "company": {"__CLASS__": "Adzuna::API::Response::Company", "display_name": "Nimbus Analytics S.L."},
+   "location": {"__CLASS__": "Adzuna::API::Response::Location", "display_name": "Madrid, Comunidad de Madrid", "area": ["España", "Comunidad de Madrid", "Madrid"]},
+   "category": {"__CLASS__": "Adzuna::API::Response::Category", "label": "Empleos de TI", "tag": "it-jobs"},
+   "contract_time": "full_time",
+   "salary_min": 55000,
+   "salary_max": 65000,
+   "salary_is_predicted": "0"
+  },
+  {
+   "__CLASS__": "Adzuna::API::Response::Job",
+   "id": "4871230002",
+   "title": "Machine Learning Engineer - 100% Remote",
+   "description": "We are hiring an ML Engineer to build recommendation systems. Fully remote within Spain. Python, PyTorch, Kubernetes…",
+   "redirect_url": "https://www.adzuna.es/land/ad/4871230002?se=abc&v=def",
+   "created": "2026-09-25T10:00:00Z",
+   "company": {"display_name": "Quartzo Data"},
+   "location": {"display_name": "Barcelona, Cataluña", "area": ["España", "Cataluña", "Barcelona"]},
+   "salary_min": 48000,
+   "salary_max": 48000,
+   "salary_is_predicted": "1"
+  },
+  {
+   "__CLASS__": "Adzuna::API::Response::Job",
+   "id": "4871230003",
+   "title": "Analytics Engineer",
+   "description": "Join our data team to model our warehouse with dbt and BigQuery…",
+   "redirect_url": "https://www.adzuna.es/land/ad/4871230003?se=abc&v=def",
+   "created": "2026-09-20T09:30:00Z",
+   "company": {"display_name": "Sierra Grid"},
+   "location": {"display_name": "Valencia", "area": ["España", "Comunidad Valenciana", "Valencia"]}
+  }
+ ]
+}

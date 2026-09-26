@@ -97,3 +97,25 @@ def test_wttj_queries_cover_roles_countries_and_remote() -> None:
     assert len(queries) == 2 * (4 + 1)
     assert all(q["indexName"] == "wttj_jobs_production_en" for q in queries)
     assert any("remote%3Afulltime" in q["params"] for q in queries)
+
+
+def test_adzuna_mapper() -> None:
+    # NOTE: synthetic fixture (no API keys yet) — re-record once ADZUNA_APP_ID/KEY exist.
+    from app.providers.sources.adzuna import parse_adzuna
+
+    payload = load("adzuna")
+    jobs = parse_adzuna(payload, payload.get("_country", "ES"))
+    assert_common(jobs, Source.adzuna)
+    assert len(jobs) == len(payload["results"])
+    assert all("<strong>" not in j.title for j in jobs)  # search highlights stripped
+    assert all(j.country for j in jobs)
+    assert all(j.url.startswith("https://www.adzuna.") for j in jobs)
+
+
+def test_adzuna_skips_portugal_with_warning() -> None:
+    from app.providers.base import ProfileSpec
+    from app.providers.sources.adzuna import AdzunaSource
+
+    src = AdzunaSource()
+    assert src.targets(ProfileSpec(locations=["ES", "PT", "FR", "IT"])) == ["ES", "FR", "IT"]
+    assert src.warnings == ["Adzuna has no PT endpoint; skipped"]
