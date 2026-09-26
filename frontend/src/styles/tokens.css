@@ -1,0 +1,161 @@
+/*
+ * Design tokens — the ONLY place raw color values live. See docs/DESIGN.md.
+ * Light is the default; `.dark` on <html> switches theme (set by ThemeProvider).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals & surfaces */
+  --bg: oklch(0.985 0.002 270);
+  --bg-subtle: oklch(0.972 0.003 270);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(1 0 0);
+  --surface-hover: oklch(0.962 0.004 270);
+  --surface-selected: oklch(0.948 0.018 275);
+  --border: oklch(0.918 0.004 270);
+  --border-strong: oklch(0.86 0.006 270);
+  --fg: oklch(0.22 0.012 270);
+  --fg-muted: oklch(0.47 0.012 270);
+  --fg-subtle: oklch(0.6 0.01 270);
+  --overlay: oklch(0.2 0.01 270 / 0.28);
+
+  /* Brand */
+  --primary: oklch(0.54 0.2 275);
+  --primary-hover: oklch(0.49 0.21 275);
+  --primary-fg: oklch(0.99 0 0);
+  --primary-subtle: oklch(0.955 0.03 275);
+  --ring: oklch(0.6 0.18 275 / 0.45);
+  --danger-solid: oklch(0.58 0.2 25);
+  --danger-solid-hover: oklch(0.53 0.2 25);
+
+  /* Tone families: dot · bg (tint) · fg (text on tint) · border */
+  --tone-slate-dot: oklch(0.62 0.03 260);
+  --tone-slate-bg: oklch(0.955 0.008 260);
+  --tone-slate-fg: oklch(0.42 0.03 260);
+  --tone-slate-border: oklch(0.88 0.012 260);
+
+  --tone-blue-dot: oklch(0.6 0.15 250);
+  --tone-blue-bg: oklch(0.955 0.03 250);
+  --tone-blue-fg: oklch(0.44 0.14 250);
+  --tone-blue-border: oklch(0.87 0.06 250);
+
+  --tone-violet-dot: oklch(0.58 0.17 295);
+  --tone-violet-bg: oklch(0.955 0.03 295);
+  --tone-violet-fg: oklch(0.44 0.16 295);
+  --tone-violet-border: oklch(0.87 0.06 295);
+
+  --tone-amber-dot: oklch(0.72 0.15 75);
+  --tone-amber-bg: oklch(0.962 0.04 85);
+  --tone-amber-fg: oklch(0.47 0.11 60);
+  --tone-amber-border: oklch(0.88 0.07 80);
+
+  --tone-teal-dot: oklch(0.62 0.11 185);
+  --tone-teal-bg: oklch(0.955 0.025 185);
+  --tone-teal-fg: oklch(0.43 0.08 190);
+  --tone-teal-border: oklch(0.87 0.05 185);
+
+  --tone-green-dot: oklch(0.6 0.15 150);
+  --tone-green-bg: oklch(0.955 0.035 150);
+  --tone-green-fg: oklch(0.42 0.11 150);
+  --tone-green-border: oklch(0.87 0.07 150);
+
+  --tone-gray-dot: oklch(0.66 0 0);
+  --tone-gray-bg: oklch(0.955 0.002 270);
+  --tone-gray-fg: oklch(0.47 0.005 270);
+  --tone-gray-border: oklch(0.88 0.004 270);
+
+  --tone-red-dot: oklch(0.6 0.19 25);
+  --tone-red-bg: oklch(0.955 0.025 25);
+  --tone-red-fg: oklch(0.47 0.16 25);
+  --tone-red-border: oklch(0.87 0.06 25);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 270 / 0.06), 0 0 0 1px oklch(0.2 0.01 270 / 0.02);
+  --shadow-lg: 0 12px 32px -8px oklch(0.2 0.01 270 / 0.18), 0 2px 6px oklch(0.2 0.01 270 / 0.06);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: oklch(0.165 0.005 270);
+  --bg-subtle: oklch(0.15 0.005 270);
+  --surface: oklch(0.195 0.006 270);
+  --surface-raised: oklch(0.225 0.007 270);
+  --surface-hover: oklch(0.245 0.007 270);
+  --surface-selected: oklch(0.27 0.035 275);
+  --border: oklch(0.275 0.007 270);
+  --border-strong: oklch(0.35 0.009 270);
+  --fg: oklch(0.955 0.004 270);
+  --fg-muted: oklch(0.73 0.01 270);
+  --fg-subtle: oklch(0.58 0.01 270);
+  --overlay: oklch(0.05 0.005 270 / 0.6);
+
+  --primary: oklch(0.67 0.17 275);
+  --primary-hover: oklch(0.72 0.16 275);
+  --primary-fg: oklch(0.16 0.02 275);
+  --primary-subtle: oklch(0.28 0.06 275);
+  --ring: oklch(0.7 0.16 275 / 0.5);
+  --danger-solid: oklch(0.64 0.19 25);
+  --danger-solid-hover: oklch(0.68 0.18 25);
+
+  --tone-slate-dot: oklch(0.68 0.03 260);
+  --tone-slate-bg: oklch(0.27 0.012 260);
+  --tone-slate-fg: oklch(0.82 0.02 260);
+  --tone-slate-border: oklch(0.38 0.015 260);
+
+  --tone-blue-dot: oklch(0.7 0.13 250);
+  --tone-blue-bg: oklch(0.28 0.05 250);
+  --tone-blue-fg: oklch(0.84 0.08 250);
+  --tone-blue-border: oklch(0.4 0.08 250);
+
+  --tone-violet-dot: oklch(0.7 0.14 295);
+  --tone-violet-bg: oklch(0.28 0.055 295);
+  --tone-violet-fg: oklch(0.84 0.08 295);
+  --tone-violet-border: oklch(0.4 0.08 295);
+
+  --tone-amber-dot: oklch(0.78 0.14 75);
+  --tone-amber-bg: oklch(0.29 0.045 70);
+  --tone-amber-fg: oklch(0.86 0.1 80);
+  --tone-amber-border: oklch(0.42 0.07 70);
+
+  --tone-teal-dot: oklch(0.72 0.1 185);
+  --tone-teal-bg: oklch(0.27 0.035 190);
+  --tone-teal-fg: oklch(0.84 0.07 185);
+  --tone-teal-border: oklch(0.4 0.05 190);
+
+  --tone-green-dot: oklch(0.72 0.14 150);
+  --tone-green-bg: oklch(0.27 0.045 150);
+  --tone-green-fg: oklch(0.84 0.1 150);
+  --tone-green-border: oklch(0.4 0.07 150);
+
+  --tone-gray-dot: oklch(0.6 0 0);
+  --tone-gray-bg: oklch(0.26 0.004 270);
+  --tone-gray-fg: oklch(0.76 0.006 270);
+  --tone-gray-border: oklch(0.37 0.006 270);
+
+  --tone-red-dot: oklch(0.68 0.17 25);
+  --tone-red-bg: oklch(0.28 0.06 25);
+  --tone-red-fg: oklch(0.84 0.09 25);
+  --tone-red-border: oklch(0.42 0.09 25);
+
+  --shadow-sm: 0 0 0 1px oklch(0 0 0 / 0.2);
+  --shadow-lg: 0 16px 40px -8px oklch(0 0 0 / 0.55), 0 0 0 1px oklch(1 0 0 / 0.04);
+}
+
+/* Semantic aliases (theme-independent: they point at tone families) */
+:root {
+  /* Feedback */
+  --success-dot: var(--tone-green-dot);
+  --success-bg: var(--tone-green-bg);
+  --success-fg: var(--tone-green-fg);
+  --warning-dot: var(--tone-amber-dot);
+  --warning-bg: var(--tone-amber-bg);
+  --warning-fg: var(--tone-amber-fg);
+  --danger-dot: var(--tone-red-dot);
+  --danger-bg: var(--tone-red-bg);
+  --danger-fg: var(--tone-red-fg);
+  --info-dot: var(--tone-blue-dot);
+  --info-bg: var(--tone-blue-bg);
+  --info-fg: var(--tone-blue-fg);
+}
