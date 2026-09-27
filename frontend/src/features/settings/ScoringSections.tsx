@@ -174,8 +174,17 @@ interface ScoringValue {
   maybe_threshold: number
 }
 
+const DEFAULT_SCORING: ScoringValue = {
+  weights: { role_match: 0.3, skills_match: 0.3, seniority_fit: 0.15, location_eligibility: 0.15, language_requirements: 0.1 },
+  hard_flag_cap: 35,
+  concurrency: 1,
+  good_threshold: 70,
+  maybe_threshold: 45,
+}
+
 export function ScoringSection({ settings }: { settings: SettingsView }) {
-  const initial = settings.values.scoring as unknown as ScoringValue
+  const stored = settings.values.scoring as unknown as Partial<ScoringValue> | undefined
+  const initial: ScoringValue = { ...DEFAULT_SCORING, ...stored, weights: { ...DEFAULT_SCORING.weights, ...stored?.weights } }
   const profile = useSearchProfile()
   const [v, setV] = useState<ScoringValue>(initial)
   const [threshold, setThreshold] = useState<number | null>(null)

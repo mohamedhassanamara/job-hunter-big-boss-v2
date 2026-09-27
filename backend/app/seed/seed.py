@@ -501,12 +501,19 @@ def reset_sandbox() -> None:
 
 
 def ensure_defaults(engine: Engine) -> None:
-    """Give a brand-new real workspace its search profile and settings. Idempotent: never
-    overwrites or adds data once a profile exists."""
+    """Give a brand-new real workspace its search profile and settings, and add any setting keys
+    introduced by newer versions (e.g. `scoring`). Never overwrites existing values or data."""
     with Session(engine) as s:
-        if s.exec(select(SearchProfile)).first() is not None:
+        if s.exec(select(SearchProfile)).first() is None:
+            s.close()
+            seed(engine, empty=True)
             return
-    seed(engine, empty=True)
+        existing = {row.key for row in s.exec(select(AppSetting)).all()}
+        missing = [k for k in fx.SETTINGS if k not in existing]
+        for key in missing:
+            s.add(AppSetting(key=key, value=fx.SETTINGS[key]))
+        if missing:
+            s.commit()
 
 
 def main() -> None:
