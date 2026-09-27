@@ -1,7 +1,9 @@
 """Turn an LLM FitAssessment into a stored fit score — all the arithmetic lives here, in code:
 
 - score = round(10 · Σ wᵢ·sᵢ / Σ wᵢ) from the 0-10 sub-scores and configurable weights
-- hard red flags (verified, and disqualifying for this candidate) cap the score
+- hard red flags (verified, and disqualifying for this candidate) cap the score: work
+  authorization when the candidate needs sponsorship, nationality-restricted roles, and a
+  required language the candidate doesn't speak at a working level
 - evidence quotes are checked against the job text; unverifiable quotes are marked
 - confidence comes from how much of the listing we actually saw
 """
@@ -33,19 +35,54 @@ NEUTRAL = 5
 MAX_DESCRIPTION = 6000
 
 
+# Language names (folded) as they appear in listings, in English, French, German, Spanish, Dutch.
+LANGUAGE_WORDS: dict[str, list[str]] = {
+    "english": ["english", "anglais", "englisch", "ingles", "inglese", "engels"],
+    "french": ["french", "francais", "franzosisch", "frances", "francese", "frans"],
+    "german": ["german", "deutsch", "allemand", "aleman", "tedesco", "duits"],
+    "dutch": ["dutch", "flemish", "nederlands", "vlaams", "neerlandais", "niederlandisch",
+              "neerlandes", "olandese"],
+    "spanish": ["spanish", "espagnol", "spanisch", "espanol", "castellano", "spagnolo", "spaans"],
+    "italian": ["italian", "italien", "italienisch", "italiano", "italiaans"],
+    "portuguese": ["portuguese", "portugais", "portugiesisch", "portugues", "portoghese"],
+    "arabic": ["arabic", "arabe", "arabisch", "arabo"],
+}
+# Levels good enough for a job that "requires" the language (CEFR B2+ or the LinkedIn equivalent).
+WORKING_LEVELS = {"native", "bilingual", "full professional", "professional working",
+                  "c2", "c1", "b2"}
+_ANY_OF = (" or ", " ou ", " oder ", " o ")  # not Dutch "of": clashes with English "of"
+
+
+def languages_mentioned(text: str) -> set[str]:
+    folded = f" {fold(text)} "
+    return {lang for lang, words in LANGUAGE_WORDS.items()
+            if any(f" {w} " in folded for w in words)}
+
+
 @dataclass(frozen=True)
 class ScoringConfig:
     weights: dict[str, float]
     hard_flag_cap: int = DEFAULT_CAP
     work_authorization: str = "needs_sponsorship"
+    # Languages the candidate speaks at a working level (folded names, e.g. {"french"}).
+    working_languages: frozenset[str] = frozenset()
+    nationality: str = ""
 
     @classmethod
     def from_settings(cls, scoring: dict[str, Any] | None, profile: dict[str, Any] | None):
-        scoring = scoring or {}
+        scoring, profile = scoring or {}, profile or {}
+        working = frozenset(
+            lang
+            for entry in profile.get("languages") or []
+            if fold(str(entry.get("level", ""))) in WORKING_LEVELS
+            for lang in languages_mentioned(str(entry.get("language", "")))
+        )
         return cls(
             weights={**DEFAULT_WEIGHTS, **(scoring.get("weights") or {})},
             hard_flag_cap=int(scoring.get("hard_flag_cap", DEFAULT_CAP)),
-            work_authorization=(profile or {}).get("work_authorization", "needs_sponsorship"),
+            work_authorization=profile.get("work_authorization", "needs_sponsorship"),
+            working_languages=working,
+            nationality=fold(str(profile.get("nationality") or "")),
         )
 
 
@@ -60,12 +97,32 @@ def weighted_score(sub_scores: dict[str, int], weights: dict[str, float]) -> int
     return max(0, min(100, round(10 * value / total)))
 
 
-def flag_severity(flag_type: str, verified: bool, config: ScoringConfig) -> str:
+def language_blocks(text: str, config: ScoringConfig) -> bool:
+    """Does a quoted language requirement exclude the candidate? "Dutch or French" is met by
+    either language; otherwise every named language is needed. No recognisable language → we
+    can't check it, so it doesn't block."""
+    required = languages_mentioned(text)
+    if not required:
+        return False
+    folded = f" {fold(text)} "
+    missing = required - config.working_languages
+    if "/" in text or any(sep in folded for sep in _ANY_OF):
+        return missing == required  # none of the alternatives is spoken
+    return bool(missing)
+
+
+def flag_severity(flag_type: str, verified: bool, config: ScoringConfig, text: str = "") -> str:
     """'hard' flags cap the score. Only verified quotes can be hard: a hallucinated
-    disqualifier must never sink a job."""
+    disqualifier must never sink a job. `text` is the flag's description plus its quote."""
     if not verified:
         return "soft"
     if flag_type in _AUTH_FLAGS and config.work_authorization == "needs_sponsorship":
+        return "hard"
+    if flag_type == "nationality_restricted":
+        # "UAE nationals only", Emiratization roles… unless the candidate holds that nationality.
+        own = config.nationality and f" {config.nationality} " in f" {fold(text)} "
+        return "soft" if own else "hard"
+    if flag_type == "language_required" and language_blocks(text, config):
         return "hard"
     return "soft"
 
@@ -155,7 +212,9 @@ def build_record(
                 "text": flag.text.strip(),
                 "evidence": flag.evidence.strip(),
                 "evidence_verified": verified,
-                "severity": flag_severity(flag.type, verified, config),
+                "severity": flag_severity(
+                    flag.type, verified, config, f"{flag.text} {flag.evidence}"
+                ),
             }
         )
     raw = {d: s["score"] for d, s in subs.items()}
@@ -173,7 +232,13 @@ def build_record(
 def recompute(sub_scores: dict[str, Any], red_flags: list[dict], config: ScoringConfig):
     """New weights/cap/work authorization → new score from stored sub-scores (no LLM call)."""
     flags = [
-        {**f, "severity": flag_severity(f["type"], f.get("evidence_verified", False), config)}
+        {
+            **f,
+            "severity": flag_severity(
+                f["type"], f.get("evidence_verified", False), config,
+                f"{f.get('text', '')} {f.get('evidence', '')}",
+            ),
+        }
         for f in red_flags
     ]
     raw = {d: int(v.get("score", 0)) for d, v in sub_scores.items()}
