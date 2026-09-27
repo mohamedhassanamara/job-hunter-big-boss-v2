@@ -28,6 +28,7 @@ def list_jobs(
     hide_duplicates: bool = False,
     label: Literal["unlabeled", "good", "maybe", "no"] | None = None,
     flags: Literal["hide_hard", "only_flagged"] | None = None,
+    track: Annotated[list[str] | None, Query()] = None,
     sort: Literal["fit", "newest"] = "fit",
 ) -> JobList:
     items = job_items(session, session.exec(select(Job)).all())
@@ -48,6 +49,8 @@ def list_jobs(
         if remote and i.remote_type not in remote:
             return False
         if country and (i.country or "REMOTE") not in country:
+            return False
+        if track and (i.matched_track or "NONE") not in track:
             return False
         score = i.fit.score if i.fit else None
         if min_score is not None and (score is None or score < min_score):
