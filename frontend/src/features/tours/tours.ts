@@ -112,11 +112,11 @@ export const TOURS: Record<TourId, Tour> = {
       return item ? `/jobs/${item.job_id}/cv` : '/pipeline'
     },
     steps: [
-      { target: 'cv-editor', title: 'Structured, editable content', body: 'Every section is editable: reorder entries and bullets, and trim what does not fit this job. Drafts autosave.', placement: 'right' },
-      { target: 'cv-preview', title: 'One universal template', body: 'Every CV uses the same LaTeX template and is always exactly one page.', placement: 'left' },
-      { target: 'cv-fit', title: 'Page-fit check', body: 'Warns about overflow or too much white space. Overflow blocks approval.', placement: 'bottom' },
-      { target: 'cv-versions', title: 'Versions', body: 'Regenerate creates a new draft, and older versions are kept for reference.' },
-      { target: 'cv-approve', title: 'Approve', body: 'Approving moves the job to CV ready and offers the next step: draft the email, or apply on the web.' },
+      { target: 'cv-editor', title: 'Only your experience', body: 'Claude picks and rewords bullets from your Experience for this job; titles, companies and dates come straight from your data. Every number and skill is checked against the source, and problems are listed at the top.', placement: 'right' },
+      { target: 'cv-editor', title: 'Force in, leave out, edit', body: 'The eye toggles a bullet, project or certification. Edit any text inline. The page re-fits in code, without calling Claude again. Every role stays on the CV so your timeline has no gaps.', placement: 'right' },
+      { target: 'cv-preview', title: 'The real PDF', body: 'Rendered from a style-only LaTeX template and fitted to exactly one full page: low-value bullets are dropped when it overflows, more are added when it is short.', placement: 'left' },
+      { target: 'cv-versions', title: 'Versions and templates', body: 'Regenerate makes a new draft; older versions are kept. With several templates you can switch style per CV.' },
+      { target: 'cv-approve', title: 'Approve', body: 'Approving moves the job to CV ready and offers the next step: draft the email, or apply on the web. Download uses your filename pattern.' },
     ],
   },
   outreach: {
@@ -163,6 +163,8 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'settings-card', title: 'Search profile', body: 'Roles, countries, remote preference and max age drive discovery. Title exclusions filter noise, and seniority is never filtered unless you add it.', placement: 'left' },
       { target: 'settings-tracks', title: 'Roles & tracks', body: 'Group the job titles you want into tracks (Data/AI, Mobile…) with your years in each. Sources search every title in French, Spanish, German, Italian and Dutch too, and the scorer judges role and seniority against the track a job matched.', placement: 'left' },
       { target: 'settings-card', title: 'Sources', body: 'Each source shows its last run, counts and errors, plus a Test button (dry run) and a filter report for tuning. Company job boards takes a list of employers you can extend: pick their job-board platform and paste the id from their careers URL.', route: '/settings?section=sources', placement: 'left' },
+      { target: 'settings-cv-emphasis', title: 'CV per track', body: 'Choose which skill groups and tags lead the CV for each track (Data/AI, Mobile…), and how downloads are named.', route: '/settings?section=cv', placement: 'left' },
+      { target: 'settings-templates', title: 'CV templates', body: 'Templates are style only. Add your own (.tex.j2 + config); it must compile to one page with sample data before you can pick it.', route: '/settings?section=templates', placement: 'left' },
       { target: 'settings-card', title: 'Daily schedule', body: 'Discovery runs automatically at this time every day. The Run discovery button works anytime.', route: '/settings?section=schedule', placement: 'left' },
     ],
   },

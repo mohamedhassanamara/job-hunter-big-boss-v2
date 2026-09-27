@@ -204,28 +204,31 @@ export interface ApplicationPatch {
 // CV
 export type CVStatus = 'draft' | 'approved' | 'superseded'
 
-export interface CVEntry {
+export interface CVRole {
+  item_id: number | null
   title: string
   org: string
   location: string
-  dates: string
+  start: string
+  end: string
   bullets: string[]
 }
 
-export interface CVSkillGroup {
-  group: string
-  items: string[]
+export interface CVDocument {
+  summary: string
+  skills: { category: string; items: string[] }[]
+  roles: CVRole[]
+  projects: { item_id: number | null; name: string; stack: string[]; label: string; bullets: string[] }[]
+  certifications: { item_id: number | null; name: string; issuer: string; credential_id: string; url: string }[]
+  education: { item_id: number | null; school: string; degree: string; location: string; start: string; end: string }[]
+  volunteering: CVRole[]
 }
 
-export interface CVContent {
-  name: string
-  headline: string
-  contact: string[]
-  summary: string
-  experience: CVEntry[]
-  projects: CVEntry[]
-  skills: CVSkillGroup[]
-  education: CVEntry[]
+export interface CVViolation {
+  type: string
+  severity: 'error' | 'warning'
+  message: string
+  where: string
 }
 
 export interface CVVersion {
@@ -233,11 +236,62 @@ export interface CVVersion {
   application_id: number
   version: number
   status: CVStatus
-  content: CVContent
+  content: CVDocument
   page_count: number | null
+  fill: number | null
+  fit_passes: number
+  template: string
   generator_model: string
+  violations: CVViolation[]
+  duration_ms: number | null
+  error: string | null
+  has_pdf: boolean
   created_at: string
   updated_at: string
+}
+
+export interface CVUsageBullet {
+  key: string
+  text: string
+  source: string
+  priority: number
+  shown: boolean
+}
+
+export interface CVUsageEntry {
+  key: string
+  item_id: number
+  title: string
+  org: string | null
+  relevance: number
+  shown: boolean
+  bullets: CVUsageBullet[]
+}
+
+export interface CVUsage {
+  summary: { text: string; full: string; short: string }
+  roles: CVUsageEntry[]
+  projects: CVUsageEntry[]
+  certifications: { key: string; item_id: number; title: string; org: string | null; shown: boolean }[]
+  force_in: string[]
+  force_out: string[]
+}
+
+export interface ReadinessItem {
+  key: string
+  severity: 'blocker' | 'warning'
+  message: string
+}
+
+export interface CVTemplateInfo {
+  name: string
+  description: string
+  paper: string
+  builtin: boolean
+  valid: boolean
+  pages: number | null
+  error: string | null
+  is_default: boolean
 }
 
 export interface CVStudio {
@@ -245,10 +299,22 @@ export interface CVStudio {
   job_id: number
   job_title: string
   company_name: string
+  matched_track: string | null
   stage: Stage
   route: Route
   has_contact: boolean
   versions: CVVersion[]
+  readiness: ReadinessItem[]
+  templates: CVTemplateInfo[]
+  usage: CVUsage | null
+  download_name: string | null
+}
+
+export interface CVPatchInput {
+  force_in?: string[]
+  force_out?: string[]
+  text?: Record<string, string>
+  template?: string
 }
 
 export interface CVApproveResult {

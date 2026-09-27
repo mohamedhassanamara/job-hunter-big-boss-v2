@@ -62,6 +62,15 @@ export const api = {
   del: <T>(path: string) => request<T>('DELETE', path),
 }
 
+/** A GET URL for places that can't send headers (iframe, download link): the workspace goes in
+ * the query string. */
+export function apiUrl(path: string, params: Record<string, string | number | boolean> = {}): string {
+  const all: Record<string, string> = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))
+  if (workspace === 'demo') all.workspace = 'demo'
+  const query = new URLSearchParams(all).toString()
+  return `/api${path}${query ? `?${query}` : ''}`
+}
+
 /** Build a query string, skipping empty values and repeating array params. */
 export function qs(params: Record<string, string | number | boolean | string[] | null | undefined>) {
   const sp = new URLSearchParams()

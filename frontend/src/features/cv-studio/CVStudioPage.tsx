@@ -1,4 +1,4 @@
-import { ArrowLeft, CircleCheck, FileText, Lock, RefreshCw, Sparkles } from 'lucide-react'
+import { ArrowLeft, CircleCheck, Download, FileText, LoaderCircle, RefreshCw, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -9,64 +9,82 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
+import { apiUrl } from '@/lib/api'
 import { relativeTime } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
-import { useApproveCV, useCVStudio, useGenerateCV, useGenerateDraft, useSaveCV } from '@/lib/queries/workflow'
-import type { CVContent, CVVersion } from '@/lib/types'
-import { CVEditor } from './CVEditor'
-import { CVPreview, type PageFit } from './CVPreview'
+import { useApproveCV, useCVStudio, useGenerateCV, useGenerateDraft, usePatchCV } from '@/lib/queries/workflow'
+import type { CVPatchInput, CVStudio, CVVersion } from '@/lib/types'
+import { CVContentPanel } from './CVContentPanel'
 
 const STATUS_LABEL = { draft: 'Draft', approved: 'Approved', superseded: 'Superseded' } as const
 
-function Workspace({ version, onFit }: { version: CVVersion; onFit: (f: PageFit) => void }) {
-  const save = useSaveCV()
-  const [content, setContent] = useState<CVContent>(version.content)
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const timer = useRef<number | undefined>(undefined)
-  const readOnly = version.status !== 'draft'
+function FitBadge({ version }: { version: CVVersion }) {
+  if (version.error) return <ToneBadge tone="red">LaTeX error</ToneBadge>
+  if (version.page_count == null) return <ToneBadge tone="gray">Not compiled</ToneBadge>
+  const pct = version.fill != null ? Math.round(version.fill * 100) : null
+  const ok = version.page_count === 1
+  return (
+    <Tooltip content={`${version.fit_passes} fit pass${version.fit_passes === 1 ? '' : 'es'} · template ${version.template}${version.duration_ms ? ` · ${Math.round(version.duration_ms / 1000)}s` : ''}`}>
+      <span>
+        <ToneBadge tone={ok ? 'green' : 'red'}>
+          {version.page_count} page{version.page_count === 1 ? '' : 's'}
+          {pct != null && ok ? ` · ${pct}% full` : ''}
+        </ToneBadge>
+      </span>
+    </Tooltip>
+  )
+}
 
-  useEffect(() => () => window.clearTimeout(timer.current), [])
-
-  const onChange = (next: CVContent) => {
-    setContent(next)
-    setSaveState('saving')
-    window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => {
-      save.mutate(
-        { id: version.id, content: next },
-        {
-          onSuccess: () => setSaveState('saved'),
-          onError: (e) => {
-            setSaveState('idle')
-            toast.error(`Couldn't save: ${e.message}`)
-          },
+function Workspace({ studio, version }: { studio: CVStudio; version: CVVersion }) {
+  const patch = usePatchCV()
+  const readOnly = version.status === 'superseded'
+  const onPatch = (body: CVPatchInput) =>
+    patch.mutate(
+      { id: version.id, ...body },
+      {
+        onSuccess: (v) => {
+          if (v.id !== version.id) toast.success(`Changes saved as a new draft (v${v.version})`)
         },
-      )
-    }, 700)
-  }
-
+        onError: (e) => toast.error(e.message),
+      },
+    )
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-      <div data-tour="cv-editor" className="min-h-0 overflow-y-auto border-r border-border bg-surface">
-        <div className="flex h-10 items-center justify-between border-b border-border px-5 text-xs">
-          <span className="font-medium text-fg-muted">Structured content</span>
-          {readOnly ? (
-            <span className="inline-flex items-center gap-1 text-fg-subtle">
-              <Lock className="size-3" />
-              {version.status === 'approved' ? 'Approved versions are locked' : 'Superseded, read only'}
-            </span>
-          ) : (
-            <span className="text-fg-subtle">
-              {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'All changes saved' : 'Edits autosave'}
-            </span>
-          )}
+      <div data-tour="cv-editor" className="min-h-0 overflow-y-auto border-r border-border bg-bg">
+        <div className="sticky top-0 z-10 flex h-10 items-center justify-between border-b border-border bg-bg px-5 text-xs">
+          <span className="font-medium text-fg-muted">From your experience pool</span>
+          <span className="text-fg-subtle">
+            {patch.isPending ? 'Re-fitting the page…' : readOnly ? 'Superseded, read only' : version.status === 'approved' ? 'Changes create a new draft' : 'Toggle or edit: the page re-fits'}
+          </span>
         </div>
-        <CVEditor content={content} onChange={onChange} readOnly={readOnly} />
+        {studio.usage ? (
+          <CVContentPanel version={version} usage={studio.usage} readiness={studio.readiness} readOnly={readOnly} busy={patch.isPending} onPatch={onPatch} />
+        ) : (
+          <p className="px-5 py-4 text-sm text-fg-muted">This version has no generator plan. Regenerate to edit it.</p>
+        )}
       </div>
-      <div data-tour="cv-preview" className="min-h-0 overflow-y-auto bg-bg-subtle px-8 py-6">
-        <div className="mx-auto max-w-[620px]">
-          <CVPreview content={content} onFit={onFit} />
-        </div>
+      <div data-tour="cv-preview" className="relative min-h-0 bg-bg-subtle">
+        {version.error ? (
+          <div className="p-6">
+            <ErrorState error={new Error(version.error.split('\n')[0])} />
+            <pre className="mt-3 max-h-80 overflow-auto rounded-md bg-surface p-3 text-2xs text-fg-muted">{version.error}</pre>
+          </div>
+        ) : (
+          <iframe
+            key={`${version.id}-${version.updated_at}`}
+            title="CV preview"
+            src={`${apiUrl(`/cv/${version.id}/pdf`, { v: version.updated_at })}#view=FitH&toolbar=0`}
+            className="h-full w-full border-0"
+          />
+        )}
+        {patch.isPending && (
+          <div className="absolute inset-0 flex items-center justify-center bg-bg/60">
+            <span className="inline-flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-sm shadow-sm">
+              <LoaderCircle className="size-4 animate-spin text-primary" />
+              Recompiling…
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -81,36 +99,40 @@ export default function CVStudioPage() {
   const appId = job.data?.application.id ?? NaN
   const studio = useCVStudio(appId)
   const generate = useGenerateCV()
+  const patch = usePatchCV()
   const approve = useApproveCV()
   const generateDraft = useGenerateDraft()
-  const patch = usePatchApplication()
+  const patchApp = usePatchApplication()
   const [selected, setSelected] = useState<number | null>(null)
-  const [fit, setFit] = useState<PageFit>('fits')
   const autoGenerated = useRef(false)
 
   const versions = studio.data?.versions ?? []
-  const version = versions.find((v) => v.id === selected) ?? versions[0]
+  const version = versions.find((v) => v.id === selected) ?? versions.find((v) => v.status !== 'superseded') ?? versions[0]
+  const templates = (studio.data?.templates ?? []).filter((t) => t.valid)
+  const blockers = (studio.data?.readiness ?? []).filter((r) => r.severity === 'blocker')
 
   const runGenerate = useCallback(() => {
     if (!Number.isFinite(appId)) return
-    const t = toast.loading('Generating a tailored CV…')
-    generate.mutate(appId, {
-      onSuccess: (v) => {
-        setSelected(v.id)
-        toast.success(`CV v${v.version} ready for review`, { id: t })
+    const t = toast.loading('Tailoring your CV with Claude…', { description: 'Usually under a minute. The page is then fitted in code.' })
+    generate.mutate(
+      { appId },
+      {
+        onSuccess: (v) => {
+          setSelected(v.id)
+          toast.success(`CV v${v.version} ready for review`, { id: t, description: `${v.page_count} page · ${Math.round((v.fill ?? 0) * 100)}% full · ${Math.round((v.duration_ms ?? 0) / 1000)}s` })
+        },
+        onError: (e) => toast.error(e.message, { id: t }),
       },
-      onError: (e) => toast.error(e.message, { id: t }),
-    })
+    )
   }, [appId, generate])
 
-  // Arriving with ?generate=1 and no versions yet → generate once.
   useEffect(() => {
-    if (params.get('generate') && studio.data && versions.length === 0 && !autoGenerated.current) {
+    if (params.get('generate') && studio.data && versions.length === 0 && !autoGenerated.current && !blockers.length) {
       autoGenerated.current = true
       setParams({}, { replace: true })
       runGenerate()
     }
-  }, [params, studio.data, versions.length, runGenerate, setParams])
+  }, [params, studio.data, versions.length, runGenerate, setParams, blockers.length])
 
   const onApprove = () => {
     if (!version) return
@@ -124,14 +146,8 @@ export default function CVStudioPage() {
             label: toEmail ? 'Draft email' : 'Mark ready to apply',
             onClick: () =>
               toEmail
-                ? generateDraft.mutate(appId, {
-                    onSuccess: (d) => navigate(`/outreach?draft=${d.id}`),
-                    onError: (e) => toast.error(e.message),
-                  })
-                : patch.mutate(
-                    { id: appId, patch: { stage: 'ready' } },
-                    { onSuccess: () => navigate(`/jobs/${jobId}`), onError: (e) => toast.error(e.message) },
-                  ),
+                ? generateDraft.mutate(appId, { onSuccess: (d) => navigate(`/outreach?draft=${d.id}`), onError: (e) => toast.error(e.message) })
+                : patchApp.mutate({ id: appId, patch: { stage: 'ready' } }, { onSuccess: () => navigate(`/jobs/${jobId}`), onError: (e) => toast.error(e.message) }),
           },
         })
       },
@@ -141,6 +157,7 @@ export default function CVStudioPage() {
 
   const error = job.error ?? studio.error
   const loading = job.isPending || (Number.isFinite(appId) && studio.isPending)
+  const onePage = version?.page_count === 1 && !version.error
 
   return (
     <div className="flex h-full flex-col">
@@ -157,48 +174,58 @@ export default function CVStudioPage() {
             CV Studio{job.data && <span className="font-normal text-fg-muted"> · {job.data.title}</span>}
           </p>
           <p className="truncate text-xs text-fg-subtle">
-            {job.data ? `${job.data.company.name} · one universal LaTeX template, exactly one page` : ' '}
+            {job.data ? `${job.data.company.name}${studio.data?.matched_track ? ` · ${studio.data.matched_track} track` : ''} · exactly one page, facts from your experience only` : ' '}
           </p>
         </div>
         {job.data && <StageBadge stage={job.data.application.stage} label={job.data.application.stage_label} />}
-        {versions.length > 0 && version && (
+        {version && (
           <>
+            <FitBadge version={version} />
             <span data-tour="cv-versions">
-            <Select
-              aria-label="Version"
-              value={String(version.id)}
-              onValueChange={(v) => setSelected(Number(v))}
-              options={versions.map((v) => ({
-                value: String(v.id),
-                label: `v${v.version} · ${STATUS_LABEL[v.status]} · ${relativeTime(v.created_at)}`,
-              }))}
-              className="w-60"
-            />
+              <Select
+                aria-label="Version"
+                value={String(version.id)}
+                onValueChange={(v) => setSelected(Number(v))}
+                options={versions.map((v) => ({ value: String(v.id), label: `v${v.version} · ${STATUS_LABEL[v.status]} · ${relativeTime(v.created_at)}` }))}
+                className="w-56"
+              />
             </span>
-            <Button onClick={runGenerate} disabled={generate.isPending}>
-              <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
-              Regenerate
-            </Button>
-            <span data-tour="cv-approve">
-            {version.status === 'approved' ? (
-              <ToneBadge tone="green" dot={false} className="h-8 px-3 text-sm">
-                <CircleCheck className="size-4" />
-                Approved
-              </ToneBadge>
-            ) : (
-              <Tooltip content={fit === 'overflow' ? 'Trim content until it fits one page' : null}>
-                <span>
-                  <Button
-                    variant="default"
-                    onClick={onApprove}
-                    disabled={approve.isPending || version.status !== 'draft' || fit === 'overflow'}
-                  >
-                    <CircleCheck />
-                    Approve
-                  </Button>
-                </span>
-              </Tooltip>
+            {templates.length > 1 && (
+              <Select
+                aria-label="Template"
+                value={version.template}
+                onValueChange={(template) => patch.mutate({ id: version.id, template }, { onError: (e) => toast.error(e.message) })}
+                options={templates.map((t) => ({ value: t.name, label: `Template: ${t.name}` }))}
+                className="w-44"
+              />
             )}
+            <Button onClick={runGenerate} disabled={generate.isPending || blockers.length > 0}>
+              <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
+              {generate.isPending ? 'Generating…' : 'Regenerate'}
+            </Button>
+            <Tooltip content={studio.data?.download_name ?? 'Download PDF'}>
+              <Button variant="ghost" size="icon" asChild disabled={!onePage}>
+                <a href={apiUrl(`/cv/${version.id}/pdf`, { download: true })} aria-label="Download PDF">
+                  <Download />
+                </a>
+              </Button>
+            </Tooltip>
+            <span data-tour="cv-approve">
+              {version.status === 'approved' ? (
+                <ToneBadge tone="green" dot={false} className="h-8 px-3 text-sm">
+                  <CircleCheck className="size-4" />
+                  Approved
+                </ToneBadge>
+              ) : (
+                <Tooltip content={!onePage ? 'The CV must be exactly one page to approve' : null}>
+                  <span>
+                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || version.status !== 'draft' || !onePage}>
+                      <CircleCheck />
+                      Approve
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
             </span>
           </>
         )}
@@ -211,28 +238,38 @@ export default function CVStudioPage() {
             <Skeleton className="h-40" />
             <Skeleton className="h-40" />
           </div>
-          <Skeleton className="aspect-[1/1.414] w-full max-w-[620px]" />
+          <Skeleton className="aspect-[1/1.294] w-full max-w-[620px]" />
         </div>
       ) : error ? (
         <ErrorState error={error} onRetry={() => (job.error ? job.refetch() : studio.refetch())} />
       ) : !version ? (
         <EmptyState
           icon={FileText}
-          title={generate.isPending ? 'Generating your CV…' : 'No CV for this job yet'}
-          description="A one-page CV tailored to this listing, built from your master experience. You review and edit it before anything is used."
+          title={generate.isPending ? 'Tailoring your CV…' : 'No CV for this job yet'}
+          description={
+            blockers.length
+              ? blockers.map((b) => b.message).join(' ')
+              : 'One page, tailored to this listing from your experience pool. Nothing is invented: every fact is checked against what you entered.'
+          }
           action={
             <div className="flex gap-2">
-              <Button variant="default" onClick={runGenerate} disabled={generate.isPending}>
-                <Sparkles />
-                Generate CV
-              </Button>
+              {blockers.some((b) => b.key === 'full_name') ? (
+                <Button variant="default" asChild>
+                  <Link to="/settings?section=candidate">Open Candidate settings</Link>
+                </Button>
+              ) : (
+                <Button variant="default" onClick={runGenerate} disabled={generate.isPending || blockers.length > 0}>
+                  <Sparkles />
+                  Generate CV
+                </Button>
+              )}
               <TourButton tour="cv" />
             </div>
           }
         />
-      ) : (
-        <Workspace key={version.id} version={version} onFit={setFit} />
-      )}
+      ) : studio.data ? (
+        <Workspace key={version.id} studio={studio.data} version={version} />
+      ) : null}
     </div>
   )
 }
