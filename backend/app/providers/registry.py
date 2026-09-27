@@ -29,9 +29,14 @@ def job_sources(enabled: list[Source], *, mock: bool | None = None) -> dict[Sour
     return {s: MockJobSource(s) if use_mock else real_source(s) for s in enabled}
 
 
-@lru_cache
-def fit_scorer() -> FitScorer:
-    return MockFitScorer()
+def fit_scorer(*, mock: bool | None = None, model: str = "qwen2.5:7b") -> FitScorer:
+    """Real workspace: Ollama. Tests and the tour sandbox: the deterministic mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        return MockFitScorer()
+    from app.providers.ollama import OllamaFitScorer
+
+    return OllamaFitScorer(model)
 
 
 @lru_cache

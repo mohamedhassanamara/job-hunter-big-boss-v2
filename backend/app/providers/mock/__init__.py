@@ -11,11 +11,12 @@ from app.providers.base import (
     CVSkillGroup,
     DraftResult,
     ExperienceSnapshot,
-    FitResult,
+    FitAssessment,
     JobSnapshot,
     ProfileSpec,
     RawJob,
     RenderedCV,
+    SubScore,
 )
 
 
@@ -64,24 +65,33 @@ class MockJobSource:
 
 
 class MockFitScorer:
+    """Deterministic stand-in for the LLM (sandbox, tests). Evidence quotes are taken from the
+    job text so they verify like real ones."""
+
     model = "mock-scorer"
 
-    def score(self, job: JobSnapshot, experience: list[ExperienceSnapshot]) -> FitResult:
-        tags = {t.lower() for e in experience for t in e.tags}
-        text = f"{job.title} {job.description}".lower()
-        hits = sorted(t for t in tags if t in text)
-        base = 45 + (_seed(job.title, job.company) % 30)
-        score = min(97, base + 4 * len(hits))
-        strengths = [f"Hands-on {t} experience matches the listing" for t in hits[:3]] or [
-            "Core data engineering background is relevant"
-        ]
-        gaps = ["No explicit mention of the team's primary cloud"] if score < 80 else []
-        return FitResult(
-            score=score,
-            strengths=strengths,
-            gaps=gaps,
-            summary=f"{'Strong' if score >= 80 else 'Partial'} match for {job.title}.",
-            model=self.model,
+    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+        seed = _seed(job.title, job.company)
+        text = job.description or job.title
+        quote = " ".join(text.split()[:8])
+        title = job.title.lower()
+        role = 9 if any(w in title for w in ("data", "ml", "ai", "analytics", "machine")) else 3
+        senior = 3 if any(w in title for w in ("staff", "principal", "head", "lead")) else 8
+        location = 9 if job.remote_type == "remote" else 6
+
+        def sub(score: int, reason: str) -> SubScore:
+            return SubScore(score=score, reason=reason, evidence=quote)
+
+        return FitAssessment(
+            role_match=sub(role, "Title and responsibilities match a target role."),
+            skills_match=sub(4 + seed % 6, "Some overlap with the listed stack."),
+            seniority_fit=sub(senior, "Level inferred from the title."),
+            location_eligibility=sub(location, "Work mode versus your targets."),
+            language_requirements=sub(8, "No language requirement stated."),
+            red_flags=[],
+            strengths=["Relevant data engineering background"],
+            gaps=["Cloud provider differs"] if seed % 2 else [],
+            summary=f"{'Strong' if role > 6 else 'Weak'} match for {job.title}.",
         )
 
 
