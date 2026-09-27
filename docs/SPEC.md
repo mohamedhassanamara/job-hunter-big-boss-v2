@@ -135,8 +135,8 @@ Sections in a left sub-nav:
 - **Pipeline per source:**
   1. Fetch with a polite client (timeouts, retries with backoff, Retry-After, per-source spacing, User-Agent).
   2. Normalize: HTML becomes clean text, and country and remote type are detected.
-  3. **Pre-filter** by the search profile: role match (multilingual, synonyms), title exclude keywords, target countries or compatible remote region, remote policy, max age. Every drop has a reason code.
-  4. **Ingest** idempotently: an update by `(source, external_id)`, cross-source duplicates flagged via a normalized dedupe key, and new jobs get a (mock) fit score and an application.
+  3. **Pre-filter** by the search profile: role match against your **tracks** (each role title and its FR/ES/DE/IT/NL variants; the matched track/role is recorded on the job), title exclude keywords, target countries or compatible remote region, remote policy, max age. Every drop has a reason code.
+  4. **Ingest** additively: a job seen again only gets `last_seen_at` updated (content, score, label, stage and notes never change); cross-source duplicates are flagged via a normalized dedupe key; new jobs get an application. After every run (manual or scheduled) only jobs that have **never been scored** enter the scoring queue.
 - **Runs:**
   - One at a time (409 otherwise), in the background.
   - One failing source never breaks the others.
@@ -149,7 +149,8 @@ Sections in a left sub-nav:
 
 ## 5. Fit scoring (Phase 2)
 
-- **Model:** local Ollama (default `qwen2.5:7b`, Settings → Models). Structured JSON output, one corrective retry, then the score is stored as **failed with the error**. It never falls back to a default number. A missing model or an Ollama that's down pauses the queue with one clear message and the `ollama pull` command.
+- **Model:** Ollama Cloud first (`gemma4:31b-cloud`), local fallback (`gemma4:12b`), both in Settings → Models. Local models use native structured output; cloud models get the schema in the prompt plus validation (one corrective retry). It never falls back to a default number. A missing model or an Ollama that's down pauses the queue with one clear message and the `ollama pull` command.
+- **Tracks:** role_match and seniority are judged against the track the job matched and your years in that track (prompt v3), so 2+ years of Flutter counts fully for Mobile roles.
 - **The LLM returns** five 0–10 sub-scores, each with a reason and a verbatim evidence quote:
   - role_match
   - skills_match (against your experience items)
@@ -157,11 +158,15 @@ Sections in a left sub-nav:
   - location_eligibility (work authorization, "must be based in"; you're in Tunisia and need sponsorship)
   - language_requirements (against Settings → Candidate languages)
 
-  It also returns typed red flags, ≤3 strengths, ≤3 gaps and a one-sentence summary.
+  It also answers an explicit yes/no **flag check** per disqualifier type (turned into red flags in code), ≤3 strengths, ≤3 gaps and a one-sentence summary.
 - **The code computes the 0–100 score** from weights (Settings → Scoring). Verified, disqualifying red flags cap it (default 35): work authorization / no sponsorship / must be based in (when the candidate needs sponsorship), nationality-restricted roles ("UAE nationals only", Emiratization/Qatarization/Kuwaitization…; unless it's the candidate's nationality), and a required language the candidate doesn't speak at a working level (B2+ or Professional working; "Dutch or French" is met by either). A flag whose quote isn't in the listing can never be hard. Quotes are checked against the listing text and marked "unverified" when not found.
 - **Confidence:** high (full listing), medium (summary, e.g. WTTJ search index) or low (snippet), downgraded when the text is short. For non-high confidence: **Fetch full listing** (one job, our honest User-Agent, JSON-LD `JobPosting`). If a site blocks automated access, **Paste description** is offered instead.
 - **Cache and staleness:** cache key = content + experience version + model + prompt version, so nothing is rescored unless something changed. Experience or candidate edits mark scores **stale**, and "Rescore stale" is a user action. Weight, cap and work-authorization changes recompute scores instantly from stored sub-scores, with no model calls.
-- **Queue:** runs in the background after discovery (1–2 workers, per-job timeout), shows progress and an ETA in Discover, and can be cancelled.
+- **Queue:** persistent (resumes after a restart), runs in the background after discovery, shows progress, model, parallelism and an ETA in Discover, and can be cancelled.
+  - "Too many concurrent requests" (429) is never a failure: the same job goes back to the front, new calls pause with backoff + jitter, and parallelism drops by one (min/max in Settings); it climbs back after a streak of successes.
+  - A cloud **usage limit** switches the rest of the run to the local model, with a notice in Discover and on Today; the next run tries cloud again.
+  - Other errors: up to 3 attempts, then failed; failed jobs get one more try at the end of the run.
+- **Rescoring existing scores** only on explicit action: per-job Rescore, or "Rescore all / stale" behind a confirm dialog (count, model, estimated time).
 - **Labels and eval:** Good / Maybe / No per job (keys 1/2/3), separate from the pipeline stage. `make eval` scores the labeled jobs and reports bucket accuracy, a confusion matrix, Spearman correlation, per-label means, the worst disagreements with the model's reasons, and timing. Reports are saved per model and prompt version under `data/eval/`.
 - **Prompt:** `backend/app/prompts/fit_score.md`, versioned. A test fails if the body changes without a version bump.
 

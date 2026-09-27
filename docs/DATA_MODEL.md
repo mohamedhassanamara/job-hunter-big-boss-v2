@@ -34,7 +34,8 @@ What discovery looks for.
 | Column | Type | Notes |
 |---|---|---|
 | name | str | e.g. "Data/AI Engineering, South EU" |
-| roles | JSON list[str] | Title keywords: "data engineer", "ai engineer", … |
+| tracks | JSON | `[{name, years_experience, roles: [{title, variants: {en,fr,es,de,it,nl: [..]}}]}]`, edited in Settings → Search profile. The only source of roles: queries, pre-filter and the scorer all read it (`services/roles.py` holds language data only) |
+| roles | JSON list[str] | All role titles, derived from `tracks` on save |
 | keywords | JSON list[str] | Boosting keywords (spark, dbt, llm…) |
 | excluded_keywords | JSON list[str] | **Title** keywords the pre-filter drops (default: intern, stage, alternance…). No seniority words by default |
 | locations | JSON list[str] | Target ISO country codes, edited in Settings (any code from `GET /api/countries`, i.e. `services/geo.COUNTRY_ALIASES`). Nothing else hardcodes a country list. |
@@ -124,6 +125,12 @@ The master experience that CVs are generated from.
 | is_active | bool | Inactive items are never used in CVs or scoring |
 | is_placeholder | bool | Test-CV data. Warned about in the UI and removable in one click. Editing an item makes it yours |
 
+### scoring_run / scoring_task (persistent queue)
+| Table | Columns | Notes |
+|---|---|---|
+| scoring_run | trigger, started_at, finished_at, primary_model, fallback_model, fallback_reason/at, done, failed, retried_429, quota_hits, concurrency_min/max | One pass of the queue. `fallback_reason` = a cloud usage limit switched the rest of the run to the local model |
+| scoring_task | run_id, job_id, force, position, status `queued\|in_progress\|done\|failed\|cancelled`, attempts, final_retry, last_error, model_used | Survives restarts: at startup in_progress → queued and the queue resumes. Concurrency 429s never count as attempts |
+
 ### fit_score
 One scoring attempt. History is kept, and the latest row per job is authoritative.
 | Column | Type | Notes |
@@ -138,7 +145,7 @@ One scoring attempt. History is kept, and the latest row per job is authoritativ
 | strengths / gaps | JSON list[str] | ≤3 each |
 | summary | str | One sentence |
 | confidence | str | high / medium / low (from job.description_level) |
-| model / prompt_version | str | e.g. `qwen2.5:7b`, `fit_score/v1`. A null prompt_version means a legacy mock score (treated as unscored) |
+| model / prompt_version | str | e.g. `gemma4:31b-cloud`, `fit_score/v3` (shown in the fit badge tooltip and FitCard). A null prompt_version means a legacy mock score (treated as unscored) |
 | content_hash / experience_version / cache_key | str | Cache: same key and status ok means no rescoring. Stale when experience_version ≠ current |
 | duration_ms | int? | |
 
