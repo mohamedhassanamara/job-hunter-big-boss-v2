@@ -28,6 +28,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
+    "cv",
 }
 
 
@@ -60,6 +61,25 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     )
 
 
+def _check_cv(value: dict) -> None:
+    from app.services.cv_templates import validate
+
+    name = value.get("default_template") or "default"
+    try:
+        status = validate(name)
+    except KeyError as exc:
+        raise HTTPException(422, f"Unknown template {name}") from exc
+    if not status.valid:
+        raise HTTPException(422, f"Template {name} isn't valid yet: {status.error}")
+    pattern = str(value.get("filename_pattern") or "")
+    if pattern and "{" in pattern:
+        import string
+
+        fields = {f for _, f, _, _ in string.Formatter().parse(pattern) if f}
+        if unknown := fields - {"full_name", "company", "job_title", "version"}:
+            raise HTTPException(422, f"Unknown filename fields: {', '.join(sorted(unknown))}")
+
+
 def _check_boards(value: dict) -> None:
     rows = value.get("boards")
     if not isinstance(rows, list):
@@ -77,6 +97,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         raise HTTPException(404, f"Unknown setting {key}")
     if key == "company_boards":
         _check_boards(body.value)
+    if key == "cv":
+        _check_cv(body.value)
     row = session.exec(select(AppSetting).where(AppSetting.key == key)).first()
     if row is None:
         row = AppSetting(key=key, value={})

@@ -140,36 +140,52 @@ class FitAssessment(BaseModel):
         return {d: getattr(self, d) for d in DIMENSIONS}
 
 
-class CVEntry(BaseModel):
-    title: str
-    org: str = ""
-    location: str = ""
-    dates: str = ""
-    bullets: list[str] = []
+class PlanBullet(BaseModel):
+    source_index: int = Field(description="Index of the fact this bullet rewords")
+    text: str = Field(description="The reworded bullet (same facts and numbers as the source)")
+    priority: int = Field(ge=1, description="1 = most relevant to this job")
 
 
-class CVSkillGroup(BaseModel):
-    group: str
-    items: list[str]
+class PlanEntry(BaseModel):
+    item_id: int
+    relevance: int = Field(ge=1, le=10, description="How relevant this entry is to the job")
+    bullets: list[PlanBullet] = []
 
 
-class CVContent(BaseModel):
-    """The structured CV that the universal LaTeX template renders."""
-
-    name: str
-    headline: str
-    contact: list[str] = []
-    summary: str = ""
-    experience: list[CVEntry] = []
-    projects: list[CVEntry] = []
-    skills: list[CVSkillGroup] = []
-    education: list[CVEntry] = []
+class PlanProject(PlanEntry):
+    stack: list[str] = Field(default=[], description="Tech shown next to the name, from its tags")
 
 
-class RenderedCV(BaseModel):
-    tex: str
-    pdf_path: str | None
-    page_count: int
+class PlanSkillGroup(BaseModel):
+    item_id: int = Field(description="Skill group id")
+    items: list[str] = Field(description="Skills of that group, most relevant first")
+
+
+class CVPlan(BaseModel):
+    """What the CV generator returns: selection, order and rewording, referencing pool ids.
+    Never titles, companies, dates or locations (those come from the pool rows)."""
+
+    summary: str
+    summary_short: str = Field(description="A shorter version of the summary (for tight pages)")
+    summary_source_ids: list[int] = []
+    skills: list[PlanSkillGroup] = []
+    roles: list[PlanEntry] = Field(default=[], description="EVERY role, all its facts ranked")
+    projects: list[PlanProject] = Field(default=[], description="Relevant projects, ranked")
+    certification_ids: list[int] = []
+    education_ids: list[int] = []
+    volunteering: list[PlanEntry] = []
+
+
+class CVRequest(BaseModel):
+    """Input for one tailored CV."""
+
+    job: dict[str, Any]  # title, company, description, matched_track, strengths, gaps
+    pool: dict[str, Any]  # services.cv_pool.prompt_pool()
+    emphasis: dict[str, Any] = {}  # Settings → CV track emphasis for the job's track
+
+
+class CVGenerationFailed(RuntimeError):
+    """The CV generator couldn't produce a valid plan; the message is shown to the user."""
 
 
 class DraftResult(BaseModel):
@@ -209,16 +225,14 @@ class FitScorer(Protocol):
 class CVGenerator(Protocol):
     model: str
 
-    def generate(self, job: JobSnapshot, experience: list[ExperienceSnapshot]) -> CVContent: ...
-
-
-class CVRenderer(Protocol):
-    def render(self, content: CVContent, out_name: str) -> RenderedCV: ...
+    def generate(self, request: CVRequest) -> CVPlan:
+        """Raises CVGenerationFailed with a human-readable reason."""
+        ...
 
 
 class EmailDrafter(Protocol):
     def draft(
-        self, job: JobSnapshot, contact: ContactSnapshot, cv: CVContent | None
+        self, job: JobSnapshot, contact: ContactSnapshot, cv: dict[str, Any] | None
     ) -> DraftResult: ...
 
 

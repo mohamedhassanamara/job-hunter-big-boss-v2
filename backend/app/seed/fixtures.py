@@ -495,6 +495,9 @@ EXPERIENCE: list[dict] = [
 SETTINGS: dict[str, dict] = {
     "sources": {"adzuna": True, "remotive": True, "arbeitnow": True, "wttj": True,
                 "boards": True, "bayt": True},
+    # CV (Settings → CV and Templates). track_emphasis: track name → {skill_groups, tags}.
+    "cv": {"default_template": "default", "filename_pattern": "{full_name}_CV_{company}.pdf",
+           "track_emphasis": {}},
     # Company job boards (Settings → Sources). Starter list: Gulf/MENA employers whose public
     # boards were verified on 2026-09-27; edit freely. ats: greenhouse|lever|ashby|workable|
     # smartrecruiters, token: the company's board id in that ATS.
