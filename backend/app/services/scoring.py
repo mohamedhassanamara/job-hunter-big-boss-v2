@@ -305,6 +305,7 @@ class ScoringQueue:
         self._queued: set[int] = set()
         self._current: dict[int, str] = {}
         self._workers: list[threading.Thread] = []
+        self._scorer: FitScorer | None = None
         self._cancel = False
         self.done = 0
         self.failed = 0
@@ -342,6 +343,7 @@ class ScoringQueue:
             if self._alive() or not self._pending:
                 return
             scorer, concurrency = self._make_scorer()
+            self._scorer = scorer
             health = getattr(scorer, "health", None)
             if health is not None:
                 status = health()
@@ -384,6 +386,8 @@ class ScoringQueue:
                 "avg_seconds": round(avg, 1) if avg else None,
                 "eta_seconds": round(avg * remaining / workers) if avg and remaining else None,
                 "last_error": self.last_error,
+                # Invalid-JSON counters from the current scorer (Ollama only), for monitoring.
+                "output_stats": dict(getattr(self._scorer, "stats", {}) or {}),
             }
 
     def wait(self, timeout: float = 30) -> bool:

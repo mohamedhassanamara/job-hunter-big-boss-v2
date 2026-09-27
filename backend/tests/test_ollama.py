@@ -49,11 +49,29 @@ def test_valid_structured_output() -> None:
     assert scorer.last_duration_ms is not None
 
 
-def test_cloud_style_fenced_output_and_schema_in_prompt() -> None:
-    """Cloud models ignore `format`: the schema must be in the prompt and fences stripped."""
+def test_local_model_uses_structured_output_without_thinking() -> None:
+    calls: list = []
+    scorer = scorer_with([chat(json.dumps(valid_payload()))], calls)
+    scorer.assess("sys", "user", JOB)
+    body = calls[0]
+    assert body["think"] is False
+    assert body["format"]["type"] == "object"
+    assert body["messages"][0]["content"] == "sys"  # schema enforced by `format`, not the prompt
+    assert scorer.stats == {"calls": 1, "invalid": 0, "valid_first_try": 1,
+                            "valid_after_retry": 0, "failed_invalid": 0}
+
+
+def test_cloud_model_gets_schema_in_prompt_and_fence_is_stripped() -> None:
+    """Cloud models ignore `format`: the schema goes in the prompt, fences are stripped."""
     calls: list = []
     fenced = "```json\n" + json.dumps(valid_payload()) + "\n```"
-    scorer = scorer_with([chat(fenced)], calls)
+    queue = iter([chat(fenced)])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return next(queue)
+
+    scorer = OllamaFitScorer("gemma4:31b-cloud", transport=httpx.MockTransport(handler))
     assert scorer.assess("sys", "user", JOB).skills_match.score == 7
     system = calls[0]["messages"][0]["content"]
     assert system.startswith("sys") and '"role_match"' in system and "no code fence" in system
@@ -87,6 +105,7 @@ def test_invalid_output_is_retried_once_with_the_error() -> None:
     assert scorer.assess("sys", "user", JOB).role_match.score == 7
     feedback = calls[1]["messages"][-1]["content"]
     assert "invalid" in feedback and "role_match" in feedback
+    assert scorer.stats["invalid"] == 1 and scorer.stats["valid_after_retry"] == 1
 
 
 def test_invalid_twice_fails_with_visible_error() -> None:
