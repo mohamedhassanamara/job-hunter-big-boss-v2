@@ -97,10 +97,10 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
         <Input value={c.full_name} onChange={(e) => set({ full_name: e.target.value })} className="w-80" />
       </Field>
       <Field label="Based in" hint="City and country">
-        <Input value={c.based_in} onChange={(e) => set({ based_in: e.target.value })} placeholder="Tunis, Tunisia" className="w-80" />
+        <Input value={c.based_in} onChange={(e) => set({ based_in: e.target.value })} placeholder="City, Country" className="w-80" />
       </Field>
       <Field label="Nationality" hint="Roles restricted to other nationalities (e.g. “UAE nationals only”) are capped">
-        <Input value={c.nationality ?? ''} onChange={(e) => set({ nationality: e.target.value })} placeholder="Tunisian" className="w-80" />
+        <Input value={c.nationality ?? ''} onChange={(e) => set({ nationality: e.target.value })} placeholder="e.g. Portuguese" className="w-80" />
       </Field>
       <Field label="Work authorization" hint="Decides which red flags disqualify a job">
         <Select

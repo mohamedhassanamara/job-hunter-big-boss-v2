@@ -17,7 +17,7 @@ from app.models import AppSetting, ExperienceItem
 TEST_PROFILE = {
     "full_name": "Test Candidate",
     "email": "",
-    "based_in": "Tunis, Tunisia",
+    "based_in": "City, Country",
     "work_authorization": "needs_sponsorship",
     "languages": [
         {"language": "Arabic", "level": "Native"},
@@ -41,7 +41,7 @@ def _d(value: str | None) -> date | None:
 TEST_ITEMS: list[dict] = [
     {
         "kind": "job", "title": "Backend Software Engineer", "org": "Fintech startup (test)",
-        "location": "Tunis, Tunisia", "start_date": "2024-01-01", "end_date": None,
+        "location": "City, Country", "start_date": "2024-01-01", "end_date": None,
         "summary": "Python backend for a payments product; owns the analytics data feeds.",
         "bullets": [
             "Built REST APIs in FastAPI and PostgreSQL serving ~50k daily requests",
@@ -54,7 +54,7 @@ TEST_ITEMS: list[dict] = [
     },
     {
         "kind": "job", "title": "Mobile Developer", "org": "Digital agency (test)",
-        "location": "Tunis, Tunisia", "start_date": "2022-09-01", "end_date": "2023-12-31",
+        "location": "City, Country", "start_date": "2022-09-01", "end_date": "2023-12-31",
         "summary": "Flutter and Kotlin apps for retail and media clients.",
         "bullets": [
             "Shipped 5 Flutter apps to the App Store and Google Play",
@@ -122,7 +122,7 @@ TEST_ITEMS: list[dict] = [
     },
     {
         "kind": "education", "title": "Engineering degree in Computer Science",
-        "org": "Tunisian engineering school (test)", "location": "Tunisia",
+        "org": "Engineering school (test)", "location": "Country",
         "start_date": "2017-09-01", "end_date": "2022-06-30", "summary": None,
         "bullets": ["Final project: recommendation engine for a local e-commerce site"],
         "tags": [],

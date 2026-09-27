@@ -527,6 +527,8 @@ SETTINGS: dict[str, dict] = {
     "profile": {
         "full_name": "",
         "email": "",
+        "phone": "",
+        "links": [],  # [{"type": "linkedin|github|portfolio|other", "label": "", "url": ""}]
         "based_in": "",
         "nationality": "",
         "work_authorization": "needs_sponsorship",  # needs_sponsorship | eu_authorized

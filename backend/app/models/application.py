@@ -53,6 +53,16 @@ class CVVersion(TableBase, table=True):
     page_count: int | None = None
     status: CVStatus = enum_field(CVStatus.draft)
     generator_model: str = "mock"
+    template: str = "default"
+    # The generator's ranked selection (pool item ids, reworded bullets with priorities) and the
+    # user's overrides (forced in/out, edited text); `content` is the rendered CVDocument.
+    plan: dict[str, Any] = json_field(dict)
+    overrides: dict[str, Any] = json_field(dict)
+    fill: float | None = None  # how full the page is (0-1)
+    fit_passes: int = 0
+    violations: list[dict[str, Any]] = json_field()  # fabrication/number checks, shown in the UI
+    duration_ms: int | None = None
+    error: str | None = Field(default=None, sa_type=Text)
 
 
 class OutreachDraft(TableBase, table=True):
