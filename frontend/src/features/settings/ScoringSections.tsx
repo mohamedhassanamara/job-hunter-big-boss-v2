@@ -39,9 +39,19 @@ function SaveBar({ dirty, saving, onSave, onReset }: { dirty: boolean; saving: b
 
 // ------------------------------------------------------------------------------ Candidate
 
+type LinkType = 'linkedin' | 'github' | 'portfolio' | 'other'
+
+interface CandidateLink {
+  type: LinkType
+  label: string
+  url: string
+}
+
 interface Candidate {
   full_name: string
   email: string
+  phone?: string
+  links?: CandidateLink[]
   based_in: string
   nationality?: string
   work_authorization: 'needs_sponsorship' | 'eu_authorized'
@@ -59,7 +69,7 @@ const LEVELS = [
 
 export function CandidateSection({ settings }: { settings: SettingsView }) {
   const stored = settings.values.profile as unknown as Candidate
-  const initial: Candidate = { ...stored, languages: stored.languages ?? [] }
+  const initial: Candidate = { ...stored, languages: stored.languages ?? [], links: stored.links ?? [], phone: stored.phone ?? '' }
   const [c, setC] = useState<Candidate>(initial)
   const save = useSaveSetting()
   const dirty = JSON.stringify(c) !== JSON.stringify(initial)
@@ -68,7 +78,7 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
   return (
     <Card
       title="Candidate"
-      description="How the fit scorer sees you. Used with your experience items in every score."
+      description="Your CV header (name, contact, links; empty fields are left out of the CV) and how the fit scorer sees you."
       footer={
         <SaveBar
           dirty={dirty}
@@ -79,7 +89,7 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
               // Once you edit the test profile, it's yours.
               { key: 'profile', value: { ...c, is_placeholder: false } as unknown as Record<string, unknown> },
               {
-                onSuccess: () => toast.success('Candidate profile saved', { description: 'Existing scores are now stale; rescore from Discover.' }),
+                onSuccess: () => toast.success("Candidate profile saved", { description: "Header fields only change your CVs. Location, languages, authorization and headline also mark scores stale." }),
                 onError: (e) => toast.error(e.message),
               },
             )
@@ -93,11 +103,48 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           This is the test profile. Replace it with your details; saving makes it yours.
         </p>
       )}
-      <Field label="Name">
-        <Input value={c.full_name} onChange={(e) => set({ full_name: e.target.value })} className="w-80" />
+      <Field label="Full name" hint="Required for CVs">
+        <Input value={c.full_name} onChange={(e) => set({ full_name: e.target.value })} className="w-80" aria-label="Full name" />
       </Field>
-      <Field label="Based in" hint="City and country">
-        <Input value={c.based_in} onChange={(e) => set({ based_in: e.target.value })} placeholder="City, Country" className="w-80" />
+      <Field label="Location" hint="City and country: CV header, and where the scorer thinks you live">
+        <Input value={c.based_in} onChange={(e) => set({ based_in: e.target.value })} placeholder="City, Country" className="w-80" aria-label="Location" />
+      </Field>
+      <Field label="Phone" hint="Optional, shown in the CV header">
+        <Input value={c.phone ?? ''} onChange={(e) => set({ phone: e.target.value })} placeholder="+00 000 000 000" className="w-80" aria-label="Phone" />
+      </Field>
+      <Field label="Email" hint="Optional, shown in the CV header">
+        <Input type="email" value={c.email ?? ''} onChange={(e) => set({ email: e.target.value })} placeholder="you@example.com" className="w-80" aria-label="Email" />
+      </Field>
+      <Field label="Links" hint="Shown in the CV header with their icon, in this order">
+        <div className="space-y-2">
+          {(c.links ?? []).map((l, i) => {
+            const update = (patch: Partial<CandidateLink>) => set({ links: (c.links ?? []).map((x, j) => (j === i ? { ...x, ...patch } : x)) })
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <Select
+                  aria-label="Link type"
+                  value={l.type}
+                  onValueChange={(type) => update({ type: type as LinkType })}
+                  options={[
+                    { value: 'linkedin', label: 'LinkedIn' },
+                    { value: 'github', label: 'GitHub' },
+                    { value: 'portfolio', label: 'Portfolio' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  className="w-32"
+                />
+                <Input value={l.url} onChange={(e) => update({ url: e.target.value })} placeholder="https://" className="w-64" aria-label="Link URL" />
+                <Input value={l.label} onChange={(e) => update({ label: e.target.value })} placeholder="Label (optional)" className="w-44" aria-label="Link label" />
+                <Button size="icon-sm" variant="ghost" aria-label="Remove link" onClick={() => set({ links: (c.links ?? []).filter((_, j) => j !== i) })}>
+                  <Trash2 />
+                </Button>
+              </div>
+            )
+          })}
+          <Button size="xs" variant="ghost" onClick={() => set({ links: [...(c.links ?? []), { type: 'linkedin', label: '', url: '' }] })}>
+            <Plus /> Add link
+          </Button>
+        </div>
       </Field>
       <Field label="Nationality" hint="Roles restricted to other nationalities (e.g. “UAE nationals only”) are capped">
         <Input value={c.nationality ?? ''} onChange={(e) => set({ nationality: e.target.value })} placeholder="e.g. Portuguese" className="w-80" />

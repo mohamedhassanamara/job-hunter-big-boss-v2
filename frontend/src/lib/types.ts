@@ -13,7 +13,7 @@ export interface CompanyBoard {
 export type RemoteType = 'remote' | 'hybrid' | 'onsite' | 'unknown'
 export type FitBand = 'strong' | 'good' | 'fair' | 'weak' | 'failed' | 'pending'
 export type CloseReason = 'dismissed' | 'rejected' | 'withdrawn' | 'no_response' | 'offer'
-export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering'
+export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering' | 'summary'
 
 export interface CompanyRef {
   id: number
@@ -317,6 +317,8 @@ export interface ExperienceInput {
   bullets: string[]
   tags: string[]
   is_active: boolean
+  url?: string | null
+  credential_id?: string | null
 }
 
 export interface ExperienceItem extends ExperienceInput {
