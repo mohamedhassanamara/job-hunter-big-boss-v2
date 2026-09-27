@@ -6,6 +6,7 @@ failure is recorded on its SourceRun and never stops the others.
 
 import logging
 import threading
+from collections.abc import Callable
 from datetime import timedelta
 from logging.handlers import RotatingFileHandler
 
@@ -120,7 +121,7 @@ def cooldown_remaining(s: Session, source: JobSource, exclude_run: int = -1) -> 
     return remaining if remaining.total_seconds() > 0 else None
 
 
-def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
+def _run_source(engine: Engine, run_id: int, source: JobSource) -> list[int]:
     log = _logger()
     with Session(engine) as s:
         sr = s.exec(
@@ -145,7 +146,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
                 s.add(sr)
                 s.commit()
                 log.info("%s skipped: cooldown", source.source)
-                return
+                return []
 
             profile_id, profile = active_profile(s)
             raw = source.fetch(profile)
@@ -183,6 +184,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
             for d in result.dropped:
                 log.info("%s filtered [%s] %s | %s | %s", source.source, d.reason, d.job.title,
                          d.job.company, d.job.location)
+            return stats.job_ids
         except Exception as exc:  # one source must never break the others
             s.rollback()
             sr = s.get(SourceRun, sr.id)
@@ -192,13 +194,21 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
             s.add(sr)
             s.commit()
             log.exception("%s failed", source.source)
+            return []
 
 
-def execute_run(engine: Engine, run_id: int, sources: dict[Source, JobSource]) -> None:
-    """Run every source of a begun run, then finalize it. Always releases the lock."""
+def execute_run(
+    engine: Engine,
+    run_id: int,
+    sources: dict[Source, JobSource],
+    on_jobs: Callable[[list[int]], None] | None = None,
+) -> None:
+    """Run every source of a begun run, then finalize it. Always releases the lock.
+    `on_jobs` receives the new/changed job ids (the scoring queue)."""
+    job_ids: list[int] = []
     try:
         for source in sources.values():
-            _run_source(engine, run_id, source)
+            job_ids += _run_source(engine, run_id, source)
         with Session(engine) as s:
             run = s.get(DiscoveryRun, run_id)
             assert run is not None
@@ -219,23 +229,37 @@ def execute_run(engine: Engine, run_id: int, sources: dict[Source, JobSource]) -
             s.commit()
     finally:
         _lock.release()
+    if on_jobs and job_ids:
+        try:
+            on_jobs(job_ids)
+        except Exception:
+            _logger().exception("could not queue scoring")
 
 
 def run_discovery(
-    engine: Engine, sources: dict[Source, JobSource], trigger: RunTrigger = RunTrigger.manual
+    engine: Engine,
+    sources: dict[Source, JobSource],
+    trigger: RunTrigger = RunTrigger.manual,
+    on_jobs: Callable[[list[int]], None] | None = None,
 ) -> int:
     """Synchronous run (scheduler, tests)."""
     run_id = begin_run(engine, trigger, list(sources))
-    execute_run(engine, run_id, sources)
+    execute_run(engine, run_id, sources, on_jobs)
     return run_id
 
 
 def start_run_in_background(
-    engine: Engine, sources: dict[Source, JobSource], trigger: RunTrigger = RunTrigger.manual
+    engine: Engine,
+    sources: dict[Source, JobSource],
+    trigger: RunTrigger = RunTrigger.manual,
+    on_jobs: Callable[[list[int]], None] | None = None,
 ) -> int:
     run_id = begin_run(engine, trigger, list(sources))
     threading.Thread(
-        target=execute_run, args=(engine, run_id, sources), name=f"discovery-{run_id}", daemon=True
+        target=execute_run,
+        args=(engine, run_id, sources, on_jobs),
+        name=f"discovery-{run_id}",
+        daemon=True,
     ).start()
     return run_id
 

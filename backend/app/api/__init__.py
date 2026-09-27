@@ -8,6 +8,7 @@ from app.api import (
     experience,
     jobs,
     outreach,
+    scoring,
     settings,
     today,
 )
@@ -20,5 +21,7 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-for module in (today, jobs, applications, cv, outreach, experience, contacts, settings, discovery):
+for module in (
+    today, jobs, applications, cv, outreach, experience, contacts, settings, discovery, scoring,
+):
     router.include_router(module.router)

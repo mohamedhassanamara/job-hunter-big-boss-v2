@@ -18,6 +18,7 @@ from app.schemas.settings import (
 from app.seed.seed import reset_sandbox, seed
 from app.services import scheduler
 from app.services.discovery import is_running
+from app.services.scoring import recompute_all
 
 router = APIRouter(tags=["settings"])
 
@@ -65,6 +66,10 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
     session.commit()
     if key == "schedule":
         scheduler.configure(body.value)
+    if key in ("scoring", "profile"):
+        # Weights, the hard-flag cap and work authorization only change arithmetic: recompute
+        # every stored score from its sub-scores (no LLM). Profile edits also make scores stale.
+        recompute_all(session.get_bind())  # type: ignore[arg-type]
     return get_settings_view(session)
 
 

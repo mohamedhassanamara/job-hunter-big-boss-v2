@@ -14,7 +14,7 @@ from app.schemas.settings import (
     SourceRunOut,
     SourceTestResult,
 )
-from app.services import discovery
+from app.services import discovery, scoring
 from app.services.ingest import SOURCE_NAMES
 
 router = APIRouter(tags=["discovery"])
@@ -48,7 +48,8 @@ def start_discovery(
     if not sources:
         raise HTTPException(422, "Every source is disabled. Enable one in Settings → Sources.")
     try:
-        run_id = discovery.start_run_in_background(engine, sources)
+        queue = scoring.workspace_queue(workspace)
+        run_id = discovery.start_run_in_background(engine, sources, on_jobs=queue.enqueue)
     except discovery.RunInProgress as exc:
         raise HTTPException(409, str(exc)) from exc
     return DiscoveryStarted(run_id=run_id)
