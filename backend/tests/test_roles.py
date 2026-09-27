@@ -67,7 +67,8 @@ def test_first_track_wins_and_is_recorded_by_the_prefilter() -> None:
 def test_query_phrases_follow_the_country_language() -> None:
     profile = ProfileSpec(tracks=TRACKS)
     fr = query_phrases(profile, "FR")
-    assert fr[0] == "Flutter Developer" and "Développeur Flutter" in fr
+    assert fr[:4] == ["Flutter Developer", "Mobile Developer", "Data Engineer", "AI Engineer"]
+    assert "Développeur Flutter" in fr[4:]  # every track's titles first, then translations
     assert not any("Entwickler" in p for p in fr)
     assert any("Entwickler" in p for p in query_phrases(profile, "DE"))
     assert query_phrases(profile, "AE") == [p for p in query_phrases(profile, "AE")

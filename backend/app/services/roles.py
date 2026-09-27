@@ -199,16 +199,23 @@ def with_suggested_variants(tracks: list[dict[str, Any]]) -> list[dict[str, Any]
 
 
 def query_phrases(profile: Any, country: str | None = None) -> list[str]:
-    """Search phrases for a source query: every role title plus its variants in the languages
-    of `country` (all languages when None), de-duplicated, in track/role order."""
+    """Search phrases for a source query, de-duplicated. Every track's role titles come first
+    (track order), then the variants in the languages of `country` (all when None). So a
+    per-source cap trims translations before it drops a whole track."""
     langs = ("en", *COUNTRY_LANGS.get((country or "").upper(), ())) if country else LANGS
+    roles = [r for t in tracks_of(profile) for r in t.get("roles") or []]
     out, seen = [], set()
-    for track in tracks_of(profile):
-        for role in track.get("roles") or []:
-            for phrase in role_phrases(role, langs):
-                if fold(phrase) not in seen:
-                    seen.add(fold(phrase))
-                    out.append(phrase)
+
+    def add(phrase: str) -> None:
+        if phrase.strip() and fold(phrase) not in seen:
+            seen.add(fold(phrase))
+            out.append(phrase.strip())
+
+    for role in roles:
+        add(role.get("title") or "")
+    for role in roles:
+        for phrase in role_phrases(role, langs)[1:]:
+            add(phrase)
     return out
 
 
