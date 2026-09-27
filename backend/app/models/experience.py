@@ -21,3 +21,5 @@ class ExperienceItem(TableBase, table=True):
     tags: list[str] = json_field()
     position: int = 0
     is_active: bool = True
+    # Test-CV data the user asked for; shown with a warning and removable in one click.
+    is_placeholder: bool = False

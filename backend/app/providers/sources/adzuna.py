@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from app.config import get_settings
-from app.models.enums import RemoteType, Source
+from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient
 from app.services.geo import country_from_text, fold
@@ -66,6 +66,7 @@ def parse_adzuna(payload: dict[str, Any], country: str) -> list[RawJob]:
                 remote_type=_remote_type(title, description),
                 description=description,
                 salary_text=_salary(item),
+                description_level=DescriptionLevel.snippet,
                 posted_at=datetime.fromisoformat(created.replace("Z", "+00:00"))
                 if created
                 else None,

@@ -58,7 +58,11 @@ def ingest(
             select(Job).where(Job.source == raw.source, Job.external_id == raw.external_id)
         ).first()
         if existing:
+            # A fetched full listing is better than what the source's feed gives: keep it.
+            keep_full = existing.full_fetched_at is not None
             for name in _MUTABLE:
+                if keep_full and name == "description":
+                    continue
                 value = getattr(raw, name)
                 if value is not None and getattr(existing, name) != value:
                     setattr(existing, name, value)

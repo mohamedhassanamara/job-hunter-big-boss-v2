@@ -6,7 +6,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
-from app.models.enums import RemoteType, Source
+from app.models.enums import DescriptionLevel, RemoteType, Source
 
 
 class RawJob(BaseModel):
@@ -21,6 +21,8 @@ class RawJob(BaseModel):
     description: str = ""
     salary_text: str | None = None
     posted_at: datetime | None = None
+    # How complete `description` is (drives scoring confidence).
+    description_level: DescriptionLevel = DescriptionLevel.full
 
 
 class ProfileSpec(BaseModel):

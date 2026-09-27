@@ -35,6 +35,12 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     connectable = make_engine(_url())
     with connectable.connect() as connection:
+        # SQLite batch migrations rebuild tables; FK enforcement would block dropping a table
+        # other tables reference. Must be set outside a transaction.
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        # Commit the implicit transaction the PRAGMA opened; otherwise Alembic sees an
+        # existing transaction, doesn't manage it, and batch operations are silently lost.
+        connection.commit()
         context.configure(
             connection=connection, target_metadata=target_metadata, render_as_batch=True
         )

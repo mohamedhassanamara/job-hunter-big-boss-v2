@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
+import { TestDataBanner } from '@/components/app/TestDataBanner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -346,6 +347,7 @@ export default function TodayPage() {
       </header>
 
       <SourceAlerts />
+      <TestDataBanner showLink />
 
       {data.last_runs.length === 0 ? (
         <Onboarding />
