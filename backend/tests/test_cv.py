@@ -23,12 +23,15 @@ from app.services.cv_render import CompileResult, CVProfile, load_template
 # ------------------------------------------------------------------------------ Claude CLI
 
 
-def fake_run(stdout: dict | str, returncode: int = 0, calls: list | None = None):
+def fake_run(stdout: dict | str, returncode: int = 0, calls: list | None = None,
+             auth: str = "none"):
+    """A stream-json transcript: init event (with the auth source), then the result."""
     def run(cmd, **kw):  # noqa: ANN001, ANN202
         if calls is not None:
             calls.append((cmd, kw))
-        out = stdout if isinstance(stdout, str) else json.dumps(stdout)
-        return SimpleNamespace(stdout=out, stderr="", returncode=returncode)
+        init = json.dumps({"type": "system", "subtype": "init", "apiKeySource": auth})
+        body = stdout if isinstance(stdout, str) else json.dumps({"type": "result", **stdout})
+        return SimpleNamespace(stdout=f"{init}\n{body}\n", stderr="", returncode=returncode)
     return run
 
 
@@ -50,6 +53,7 @@ def test_cli_call_is_isolated_and_structured() -> None:
     assert cmd[cmd.index("--model") + 1] == "claude-sonnet-5"
     assert "--system-prompt" in cmd and "--strict-mcp-config" in cmd
     assert "EXPERIENCE POOL" in kw["input"] and kw["timeout"] > 0 and kw["cwd"]  # temp dir
+    assert gen.auth_source == "none"
     schema = json.loads(cmd[cmd.index("--json-schema") + 1])
     assert schema == plan_schema() and "$defs" not in json.dumps(schema)
 
@@ -67,6 +71,19 @@ def test_cli_failures_are_visible(stdout, code: int, message: str) -> None:  # n
     gen = ClaudeCVGenerator(runner=fake_run(stdout, code))
     with pytest.raises(CVGenerationFailed, match=message):
         gen.generate(REQUEST)
+
+
+def test_refuses_api_key_auth_and_strips_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    gen = ClaudeCVGenerator(runner=fake_run({"is_error": False, "structured_output": PLAN},
+                                            auth="ANTHROPIC_API_KEY"))
+    with pytest.raises(CVGenerationFailed, match="API key"):
+        gen.generate(REQUEST)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "parent")
+    monkeypatch.setenv("CLAUDECODE", "1")
+    env = ClaudeCVGenerator.child_env()
+    assert "ANTHROPIC_API_KEY" not in env and "CLAUDE_CODE_SESSION_ID" not in env
+    assert "CLAUDECODE" not in env and "PATH" in env
 
 
 def test_cli_timeout() -> None:
