@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
   CVApproveResult,
-  CVContent,
+  CVPatchInput,
   CVStudio,
+  CVTemplateInfo,
   CVVersion,
   DiscoveryStatus,
   Draft,
@@ -88,23 +89,47 @@ export function useCVStudio(appId: number) {
 export function useGenerateCV() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (appId: number) => api.post<CVVersion>(`/applications/${appId}/cv/generate`),
+    mutationFn: ({ appId, template }: { appId: number; template?: string }) =>
+      api.post<CVVersion>(`/applications/${appId}/cv/generate`, { template: template ?? null }),
     onSettled: () => invalidateWork(qc),
   })
 }
 
-export function useSaveCV() {
+/** Force items in/out, edit text or switch template: re-fits and re-renders (no Claude call). */
+export function usePatchCV() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, content }: { id: number; content: CVContent }) =>
-      api.patch<CVVersion>(`/cv/${id}`, { content: content as unknown as Record<string, unknown> }),
-    onSuccess: (version) => {
-      qc.setQueryData<CVStudio>(keys.cv(version.application_id), (old) =>
-        old
-          ? { ...old, versions: old.versions.map((v) => (v.id === version.id ? version : v)) }
-          : old,
-      )
-    },
+    mutationFn: ({ id, ...patch }: CVPatchInput & { id: number }) =>
+      api.patch<CVVersion>(`/cv/${id}`, patch as Record<string, unknown>),
+    onSuccess: (version) => void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) }),
+  })
+}
+
+export function useCVTemplates() {
+  return useQuery({ queryKey: keys.cvTemplates, queryFn: () => api.get<CVTemplateInfo[]>('/cv/templates') })
+}
+
+export function useAddCVTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { name: string; tex: string; config: string }) => api.post<CVTemplateInfo>('/cv/templates', body),
+    onSettled: () => void qc.invalidateQueries({ queryKey: keys.cvTemplates }),
+  })
+}
+
+export function useValidateCVTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (name: string) => api.post<CVTemplateInfo>(`/cv/templates/${encodeURIComponent(name)}/validate`),
+    onSettled: () => void qc.invalidateQueries({ queryKey: keys.cvTemplates }),
+  })
+}
+
+export function useDeleteCVTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (name: string) => api.del<void>(`/cv/templates/${encodeURIComponent(name)}`),
+    onSettled: () => void qc.invalidateQueries({ queryKey: keys.cvTemplates }),
   })
 }
 

@@ -34,7 +34,11 @@ demo_engine = make_engine(get_settings().demo_database_url)
 
 
 def workspace_of(request: Request) -> Workspace:
-    return "demo" if request.headers.get(WORKSPACE_HEADER, "").lower() == "demo" else "real"
+    """X-Workspace header; `?workspace=demo` on GET requests too, for URLs that can't carry
+    headers (a PDF in an <iframe>, a download link)."""
+    header = request.headers.get(WORKSPACE_HEADER, "").lower()
+    query = request.query_params.get("workspace", "").lower() if request.method == "GET" else ""
+    return "demo" if "demo" in (header, query) else "real"
 
 
 def engine_for(workspace: Workspace) -> Engine:

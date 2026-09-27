@@ -39,7 +39,7 @@ export function Card({
   )
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[200px_1fr] items-start gap-4">
       <div className="pt-1.5">
@@ -51,7 +51,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-function SaveBar({ dirty, saving, onSave, onReset }: { dirty: boolean; saving: boolean; onSave: () => void; onReset: () => void }) {
+export function SaveBar({ dirty, saving, onSave, onReset }: { dirty: boolean; saving: boolean; onSave: () => void; onReset: () => void }) {
   return (
     <>
       {dirty && <span className="mr-auto text-xs text-fg-subtle">Unsaved changes</span>}
