@@ -49,7 +49,11 @@ interface Candidate {
   is_placeholder?: boolean
 }
 
-const LEVELS = ['Native', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1'].map((l) => ({ value: l, label: l }))
+// CEFR levels plus the LinkedIn proficiency scale, for people who never took a CEFR test.
+const LEVELS = [
+  'Native', 'Full professional', 'Professional working', 'Limited working', 'Elementary',
+  'C2', 'C1', 'B2', 'B1', 'A2', 'A1',
+].map((l) => ({ value: l, label: l }))
 
 export function CandidateSection({ settings }: { settings: SettingsView }) {
   const stored = settings.values.profile as unknown as Candidate
