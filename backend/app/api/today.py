@@ -22,8 +22,12 @@ from app.schemas.today import (
     QueueSummary,
     SearchHit,
     SearchOut,
+    StatsSummary,
     TodayOut,
+    UpcomingInterview,
 )
+from app.schemas.tracking import ReminderOut
+from app.services import tracking
 from app.services.views import job_items, pipeline_cards
 
 router = APIRouter(tags=["today"])
@@ -101,7 +105,13 @@ def today(session: SessionDep) -> TodayOut:
             Application.stage == Stage.ready, Application.route == Route.web_apply
         )
     ).all()
-    interviews = session.exec(select(Application).where(Application.stage == Stage.interview)).all()
+    upcoming = [
+        UpcomingInterview(
+            interview_id=i.id, application_id=a.id, job_id=j.id, job_title=j.title,
+            company_name=c.name, round=i.round, type=i.type, scheduled_at=i.scheduled_at,
+        )
+        for i, a, j, c in tracking.upcoming_interviews(session)
+    ]
 
     queue = session.exec(select(SendQueue)).first()
     q_items = (
@@ -139,7 +149,9 @@ def today(session: SessionDep) -> TodayOut:
             for d in drafts
         ],
         ready_to_apply=pipeline_cards(session, ready_web),
-        interviews=pipeline_cards(session, interviews),
+        reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],
+        upcoming_interviews=upcoming,
+        stats_summary=StatsSummary(**tracking.stats_summary(session)),
         queue=QueueSummary(
             status=queue.status if queue else "idle",
             next_send_at=queue.next_send_at if queue else None,
