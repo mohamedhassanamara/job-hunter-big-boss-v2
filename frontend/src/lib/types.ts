@@ -268,8 +268,21 @@ export interface CVUsageEntry {
   bullets: CVUsageBullet[]
 }
 
+export interface CVSummaryCitation {
+  id: number
+  title: string
+  kind: string
+}
+
 export interface CVUsage {
-  summary: { text: string; full: string; short: string }
+  summary: {
+    text: string
+    full: string
+    short: string
+    edited: boolean
+    sentences: { text: string; citations: CVSummaryCitation[] }[]
+    grounding: { attempts: number; fallback: string | null; rejected: { text: string; reasons: string[] }[][] } | null
+  }
   roles: CVUsageEntry[]
   projects: CVUsageEntry[]
   certifications: { key: string; item_id: number; title: string; org: string | null; shown: boolean }[]

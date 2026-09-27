@@ -12,11 +12,30 @@ from sqlmodel import Session, col, select
 from app.config import DATA_DIR
 from app.models import Application, AppSetting, Company, CVVersion, FitScore, Job
 from app.models.enums import CVStatus, EventKind
-from app.providers.base import CVGenerationFailed, CVGenerator, CVPlan, CVRequest
+from app.providers.base import (
+    CVGenerationFailed,
+    CVGenerator,
+    CVPlan,
+    CVRequest,
+    SummarySentence,
+)
 from app.services import pipeline
 from app.services.cv_build import FitState, fit_to_page
-from app.services.cv_check import check_plan
-from app.services.cv_pool import Pool, cv_profile, load_pool, prompt_pool, readiness
+from app.services.cv_check import (
+    canonicalize,
+    check_plan,
+    feedback,
+    ground_sentences,
+    violation,
+)
+from app.services.cv_pool import (
+    Pool,
+    cv_profile,
+    load_pool,
+    prompt_pool,
+    readiness,
+    years_facts,
+)
 from app.services.cv_render import CVDocument, compile_tex, load_template, render_tex
 from app.services.cv_templates import validate
 
@@ -66,7 +85,15 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
         },
         pool=prompt_pool(pool),
         emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
+        facts={"years": years_facts(pool, _tracks(s))},
     )
+
+
+def _tracks(s: Session) -> list[dict[str, Any]]:
+    from app.models import SearchProfile
+
+    profile = s.exec(select(SearchProfile).where(SearchProfile.is_active)).first()
+    return list(profile.tracks or []) if profile else []
 
 
 def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_name: str,
@@ -104,9 +131,12 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
         request = build_request(s, app, pool)
     try:
         plan = generator.generate(request)
+        plan, issues = check_plan(plan, pool)
+        plan, summary_issues, grounding = ground_summary(plan, pool, request, generator)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
-    plan, issues = check_plan(plan, pool)
+    plan = canonicalize(plan, pool)
+    issues += summary_issues
     with Session(engine) as s:
         app = s.get(Application, app_id)
         existing = versions(s, app_id)
@@ -118,6 +148,7 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
                       status=CVStatus.draft, generator_model=generator.model,
                       violations=issues)
         v.plan = {"prompt_version": getattr(generator, "prompt_version", None),
+                  "summary_grounding": grounding,
                   "cost_usd": getattr(generator, "last_cost_usd", None),
                   "generation_ms": getattr(generator, "last_duration_ms", None)}
         s.add(v)
@@ -134,6 +165,58 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
         s.commit()
         s.refresh(v)
         return v
+
+
+def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGenerator,
+                   ) -> tuple[CVPlan, list[dict[str, Any]], dict[str, Any]]:
+    """Every summary sentence must cite pool items and say only what they say. Rejected
+    sentences → the summary is regenerated once (told why) → still rejected → the user's summary
+    snippet verbatim (or, with no snippet, only the grounded sentences)."""
+    allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
+    report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None}
+    good, bad = ground_sentences(plan.summary_sentences, pool, allowed)
+    short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed)
+    if bad or short_bad:
+        report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
+                                   for s, r in bad + short_bad])
+        retry = generator.generate_summary(request, feedback(bad + short_bad))
+        report["attempts"] = 2
+        good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed)
+        short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed)
+        if bad2:
+            report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
+                                       for s, r in bad2])
+        if not bad2 and good2:
+            good, bad = good2, []
+        else:
+            good = good2 if len(good2) >= len(good) else good
+        if not short_bad2 and short2:
+            short_good, short_bad = short2, []
+    issues: list[dict[str, Any]] = []
+    snippets = pool.of("summary")
+    if bad:
+        cited = [pool.get(i, "summary") for s in plan.summary_sentences for i in s.citations]
+        snippet = next((i for i in cited if i), snippets[0] if snippets else None)
+        if snippet is not None and (snippet.summary or "").strip():
+            good = [SummarySentence(text=snippet.summary.strip(), citations=[snippet.id])]
+            short_good = good
+            report["fallback"] = f"snippet {snippet.id}"
+            issues.append(violation("summary_fallback", "The generated summary failed the "
+                                    "grounding check twice: using your summary snippet verbatim",
+                                    "summary"))
+        else:
+            report["fallback"] = "grounded sentences only"
+            issues.append(violation("summary_fallback", "Summary sentences failed the grounding "
+                                    "check twice and you have no summary snippet: kept only the "
+                                    f"{len(good)} grounded sentence(s)", "summary"))
+    if bad or short_bad:
+        short_good = short_good if short_good and not short_bad else good[:1]
+    return plan.model_copy(update={
+        "summary_sentences": good, "summary_short_sentences": short_good,
+        "summary": " ".join(s.text.strip() for s in good),
+        "summary_short": " ".join(s.text.strip() for s in short_good),
+        "summary_source_ids": sorted({c for s in good for c in s.citations}),
+    }), issues, report
 
 
 def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = None,
@@ -159,7 +242,8 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
             s.add(v)
             s.flush()
         issues = [i for i in (v.violations or []) if i.get("type") not in ("edit", "overflow")]
-        issues += edit_violations(plan, pool, new_overrides)
+        allowed = {int(f["years"]) for f in years_facts(pool, _tracks(s))}
+        issues += edit_violations(plan, pool, new_overrides, allowed)
         _save_render(s, v, plan, pool, template_name, new_overrides,
                      FitState.from_dict(v.plan.get("fit")))
         if v.page_count and v.page_count > 1:
@@ -191,20 +275,31 @@ def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) ->
     return plan.model_copy(update={"projects": [*plan.projects, *extra]}) if extra else plan
 
 
-def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) -> list[dict[str, Any]]:
-    """User-edited text goes through the same number/tool checks as generated text."""
+def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
+                    allowed_years: set[int] | None = None) -> list[dict[str, Any]]:
+    """User-edited text goes through the same number/tool/claim checks as generated text."""
     from app.services.cv_check import new_tools, numbers
+    from app.services.cv_claims import bad_years, capability_gaps, pool_vocabulary, scope_inflation
 
     out = []
-    vocab, all_numbers = pool.vocabulary(), {n.lower() for n in numbers(pool.all_text())}
+    vocab, text_all = pool_vocabulary(pool), pool.all_text()
+    all_numbers = {n.lower() for n in numbers(text_all)}
     for key, text in (overrides.get("text") or {}).items():
+        def add(message: str, severity: str = "error", key: str = key) -> None:
+            out.append({"type": "edit", "severity": severity, "where": key,
+                        "message": f"Edited text: {message}"})
         for n in numbers(text):
-            if n.lower() not in all_numbers:
-                out.append({"type": "edit", "severity": "error", "where": key,
-                            "message": f"Edited text: “{n}” isn't anywhere in your experience"})
+            if n.lower() not in all_numbers and not re.search(rf"{re.escape(n)}\s*\+?\s*years?",
+                                                              text):
+                add(f"“{n}” isn't anywhere in your experience")
+        for claim in bad_years(text, allowed_years or set()):
+            add(f"years claim “{claim}” isn't one of your allowed years facts")
         if tools := new_tools(text, vocab):
-            out.append({"type": "edit", "severity": "warning", "where": key,
-                        "message": f"Edited text: not in your experience: {', '.join(tools)}"})
+            add(f"not in your experience: {', '.join(tools)}", "warning")
+        for phrase in capability_gaps(text, text_all):
+            add(f"claims “{phrase}”, which your experience never mentions", "warning")
+        for phrase in scope_inflation(text, text_all):
+            add(f"“{phrase}” overstates your experience", "warning")
     return out
 
 
@@ -288,7 +383,15 @@ def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
                        for i in pool.of("project") if i.id not in planned_projects]
     shown_certs = {c.item_id for c in doc.certifications}
     return {
-        "summary": {"text": doc.summary, "full": plan.summary, "short": plan.summary_short},
+        "summary": {
+            "text": doc.summary, "full": plan.summary, "short": plan.summary_short,
+            "edited": bool((overrides.get("text") or {}).get("summary")),
+            "sentences": [{"text": s.text, "citations": [
+                {"id": c, "title": pool.get(c).title if pool.get(c) else f"#{c} (missing)",
+                 "kind": pool.get(c).kind if pool.get(c) else "?"} for c in s.citations]}
+                for s in plan.summary_sentences],
+            "grounding": (v.plan or {}).get("summary_grounding"),
+        },
         "roles": entries("role", plan.roles, shown_roles),
         "projects": entries("project", plan.projects, shown_projects) + unused_projects,
         "certifications": [{"key": f"cert:{i.id}", "item_id": i.id, "title": i.title,

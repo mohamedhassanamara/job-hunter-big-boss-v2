@@ -35,7 +35,8 @@ def fake_run(stdout: dict | str, returncode: int = 0, calls: list | None = None,
     return run
 
 
-PLAN = {"summary": "Engineer.", "summary_short": "Engineer.", "roles": [
+PLAN = {"summary_sentences": [{"text": "Engineer.", "citations": [1]}],
+        "summary_short_sentences": [{"text": "Engineer.", "citations": [1]}], "roles": [
     {"item_id": 1, "relevance": 9,
      "bullets": [{"source_index": 0, "text": "Did x", "priority": 1}]}]}
 REQUEST = CVRequest(job={"title": "Data Engineer"}, pool={"roles": []})
@@ -47,6 +48,7 @@ def test_cli_call_is_isolated_and_structured() -> None:
         {"is_error": False, "structured_output": PLAN, "total_cost_usd": 0.02}, calls=calls))
     plan = gen.generate(REQUEST)
     assert plan.roles[0].bullets[0].text == "Did x" and gen.last_cost_usd == 0.02
+    assert plan.summary == "Engineer." and plan.summary_sentences[0].citations == [1]
     cmd, kw = calls[0]
     assert cmd[1] == "-p" and "--json-schema" in cmd and "--no-session-persistence" in cmd
     assert cmd[cmd.index("--tools") + 1] == ""
@@ -63,7 +65,7 @@ def test_cli_call_is_isolated_and_structured() -> None:
     [
         ({"is_error": True, "result": "Not logged in · Please run /login"}, 1, "sign in"),
         ("garbage", 0, "no JSON"),
-        ({"is_error": False, "structured_output": {"summary": 3}}, 0, "didn't match"),
+        ({"is_error": False, "structured_output": {"summary_sentences": 3}}, 0, "didn't match"),
         ({"is_error": False, "result": "not json"}, 0, "wasn't valid JSON"),
     ],
 )
@@ -110,7 +112,8 @@ def test_checks_numbers_ids_skills_tools_and_restore_roles(pool) -> None:  # noq
     plan = CVPlan(
         summary="Built systems with DeepSpeed.", summary_short="Built systems.",
         roles=[PlanEntry(item_id=first.id, relevance=9, bullets=[
-            PlanBullet(source_index=0, text=fact + " Improved it by 73%.", priority=1),
+            PlanBullet(source_index=0, text=fact + " Improved it by 73% with DeepSpeed.",
+                       priority=1),
             PlanBullet(source_index=99, text="Invented bullet", priority=2),
         ]), PlanEntry(item_id=999999, relevance=5, bullets=[])],
         skills=[{"item_id": skill.id, "items": [skill.tags[0], "COBOL"]}],

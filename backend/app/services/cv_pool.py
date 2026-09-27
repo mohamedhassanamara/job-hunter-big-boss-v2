@@ -81,6 +81,43 @@ def load_pool(s: Session) -> Pool:
     return pool
 
 
+def role_years(pool: Pool, today: date | None = None) -> float:
+    """Professional experience from role dates: the union of job intervals (overlaps merged),
+    ongoing roles counted to today. Volunteering is not counted."""
+    today = today or date.today()
+    spans = sorted((i.start_date, i.end_date or today) for i in pool.of("job") if i.start_date)
+    total, cur_start, cur_end = 0, None, None
+    for start, end in spans:
+        if cur_end is None or start > cur_end:
+            if cur_end is not None:
+                total += (cur_end - cur_start).days
+            cur_start, cur_end = start, end
+        else:
+            cur_end = max(cur_end, end)
+    if cur_end is not None:
+        total += (cur_end - cur_start).days
+    return total / 365.25
+
+
+def years_facts(pool: Pool, tracks: list[dict[str, Any]],
+                today: date | None = None) -> list[dict[str, Any]]:
+    """The only years-of-experience claims a CV may make: the user's per-track years (Settings →
+    Search profile) and the total computed from role dates. Stated as "N+ years"."""
+    facts = []
+    for track in tracks:
+        years = track.get("years_experience")
+        if track.get("name") and years:
+            n = int(float(years))
+            if n >= 1:
+                facts.append({"label": f"{track['name']} experience (Settings)", "years": n,
+                              "wording": f"{n}+ year{'s' if n > 1 else ''}"})
+    total = int(role_years(pool, today))
+    if total >= 1:
+        facts.append({"label": "professional experience (from role dates)", "years": total,
+                      "wording": f"{total}+ year{'s' if total > 1 else ''}"})
+    return facts
+
+
 def cv_profile(pool: Pool) -> CVProfile:
     p = pool.profile
     return CVProfile(
