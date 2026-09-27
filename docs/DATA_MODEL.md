@@ -113,7 +113,8 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 The master experience that CVs are generated from.
 | Column | Type | Notes |
 |---|---|---|
-| kind | enum `job \| project \| skill \| education \| certification \| volunteering` | |
+| kind | enum `job \| project \| skill \| education \| certification \| volunteering \| summary` | `summary` = summary snippets the CV generator picks from |
+| url / credential_id | str? | Certifications (verification link, ID) and projects (link) |
 | title | str | Role, project name, skill group, degree |
 | org | str? | Company, school |
 | location | str? | |
@@ -193,12 +194,17 @@ Timeline and stage history.
 |---|---|---|
 | application_id | FK | |
 | version | int | 1, 2, 3… per application |
-| content | JSON | Structured CV: `{headline, summary, experience:[{title, org, dates, bullets[]}], projects, skills:[{group, items[]}], education}` |
-| tex | text? | Rendered LaTeX (from the universal template) |
-| pdf_path | str? | Relative to `data/cv/` |
-| page_count | int? | Must be 1 to approve (enforced later) |
-| status | enum `draft \| approved \| superseded` | Approving one supersedes the others |
-| generator_model | str | |
+| content | JSON | The rendered CVDocument: `{summary, skills[{category, items}], roles[], projects[], certifications[], education[], volunteering[]}` (see docs/CV_TEMPLATES.md) |
+| plan | JSON | `{plan: CVPlan (pool ids, ranked reworded bullets), fit: {counts, short_summary}, history, prompt_version, cost_usd, generation_ms}` |
+| overrides | JSON | `{force_in[], force_out[], text{key: edited}}`; keys like `role:12:0`, `project:7`, `cert:3`, `summary` |
+| template | str | Template used (templates/ or data/templates/) |
+| tex | text? | Rendered LaTeX |
+| pdf_path | str? | Under `data/cv/<application>/v<n>/` |
+| page_count / fill / fit_passes | int? / float? / int | Pages must be 1 to approve; fill = how full the page is |
+| violations | JSON | No-fabrication checks `[{type, severity, message, where}]` |
+| duration_ms / error | int? / text? | Total generation time; LaTeX error + log tail |
+| status | enum `draft \| approved \| superseded` | Approving one supersedes the others; changing an approved one creates a new draft |
+| generator_model | str | e.g. `claude-sonnet-5`, `mock-cv` |
 
 ### outreach_draft
 | Column | Type | Notes |
