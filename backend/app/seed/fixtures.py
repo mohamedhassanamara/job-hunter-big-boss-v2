@@ -493,7 +493,25 @@ EXPERIENCE: list[dict] = [
 ]
 
 SETTINGS: dict[str, dict] = {
-    "sources": {"adzuna": True, "remotive": True, "arbeitnow": True, "wttj": True},
+    "sources": {"adzuna": True, "remotive": True, "arbeitnow": True, "wttj": True,
+                "boards": True, "bayt": True},
+    # Company job boards (Settings → Sources). Starter list: Gulf/MENA employers whose public
+    # boards were verified on 2026-09-27; edit freely. ats: greenhouse|lever|ashby|workable|
+    # smartrecruiters, token: the company's board id in that ATS.
+    "company_boards": {
+        "boards": [
+            {"ats": "smartrecruiters", "token": "DeliveryHero", "company": "Delivery Hero (talabat)"},
+            {"ats": "greenhouse", "token": "tamara", "company": "Tamara"},
+            {"ats": "greenhouse", "token": "careem", "company": "Careem"},
+            {"ats": "greenhouse", "token": "hala", "company": "Hala"},
+            {"ats": "workable", "token": "bayutdubizzle", "company": "dubizzle / Bayut"},
+            {"ats": "workable", "token": "salla", "company": "Salla"},
+            {"ats": "workable", "token": "foodics", "company": "Foodics"},
+            {"ats": "ashby", "token": "ziina", "company": "Ziina"},
+            {"ats": "ashby", "token": "LeanTech", "company": "Lean Technologies"},
+            {"ats": "ashby", "token": "thndr", "company": "Thndr"},
+        ]
+    },
     "models": {
         "scoring": {"provider": "ollama", "model": "qwen2.5:7b"},
         "cv": {"provider": "anthropic", "model": "claude-sonnet-5"},

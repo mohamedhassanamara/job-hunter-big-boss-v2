@@ -8,6 +8,8 @@ class Source(StrEnum):
     remotive = "remotive"
     arbeitnow = "arbeitnow"
     wttj = "wttj"
+    boards = "boards"  # company job boards (Greenhouse, Lever, Ashby, Workable, SmartRecruiters)
+    bayt = "bayt"
 
 
 class RemoteScope(StrEnum):
