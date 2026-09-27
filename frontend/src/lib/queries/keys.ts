@@ -24,6 +24,9 @@ export const keys = {
   countries: ['countries'] as const,
   scoringStatus: ['scoring-status'] as const,
   scoringHealth: ['scoring-health'] as const,
+  ready: ['tracking', 'ready'] as const,
+  tracked: (filters: Record<string, unknown>) => ['tracking', 'list', filters] as const,
+  stats: (filters: Record<string, unknown>) => ['tracking', 'stats', filters] as const,
 }
 
 /** Workflow mutations touch many views; in a local single-user app we simply refresh them all. */
@@ -41,6 +44,7 @@ export function invalidateWork(qc: QueryClient) {
     'companies',
     'company',
     'scoring-status',
+    'tracking',
   ]) {
     void qc.invalidateQueries({ queryKey: [key] })
   }

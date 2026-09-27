@@ -1,5 +1,8 @@
 import {
   ArrowRightLeft,
+  BellRing,
+  CalendarClock,
+  MessageSquareReply,
   CircleCheck,
   FileCheck,
   FileText,
@@ -27,6 +30,9 @@ const ICONS: Record<string, LucideIcon> = {
   sent: Send,
   applied: CircleCheck,
   contact_resolved: UserRoundCheck,
+  response: MessageSquareReply,
+  interview: CalendarClock,
+  reminder: BellRing,
 }
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {

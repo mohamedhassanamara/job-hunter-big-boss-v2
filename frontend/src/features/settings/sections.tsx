@@ -428,3 +428,66 @@ export function DataSection({ settings }: { settings: SettingsView }) {
     </Card>
   )
 }
+
+interface TrackingValue {
+  followup_days: number[]
+  ghost_after_days: number
+}
+
+export function TrackingSection({ settings }: { settings: SettingsView }) {
+  const initial = settings.values.tracking as unknown as TrackingValue
+  const draft = useDraft(initial)
+  const save = useSaveSetting()
+  const [days, setDays] = useState(initial.followup_days.join(', '))
+  const parsed = days
+    .split(/[,\s]+/)
+    .filter(Boolean)
+    .map(Number)
+  const valid = parsed.length > 0 && parsed.every((d) => Number.isInteger(d) && d >= 1 && d <= 365)
+  const ghostValid = Number.isInteger(draft.value.ghost_after_days) && draft.value.ghost_after_days >= 1 && draft.value.ghost_after_days <= 365
+  return (
+    <Card
+      title="Tracking"
+      description="Follow-up reminders after you apply. They are computed on the fly, so a change applies right away."
+      footer={
+        <SaveBar
+          dirty={draft.dirty || days !== initial.followup_days.join(', ')}
+          saving={save.isPending}
+          onReset={() => {
+            draft.reset()
+            setDays(initial.followup_days.join(', '))
+          }}
+          onSave={() =>
+            valid && ghostValid
+              ? save.mutate(
+                  { key: 'tracking', value: { ...draft.value, followup_days: [...new Set(parsed)].sort((a, b) => a - b) } },
+                  { onSuccess: () => toast.success('Tracking saved'), onError: (e) => toast.error(e.message) },
+                )
+              : toast.error('Days must be whole numbers from 1 to 365')
+          }
+        />
+      }
+    >
+      <Field label="Follow up after (days)">
+        <div className="space-y-1">
+          <Input value={days} onChange={(e) => setDays(e.target.value)} className="w-40" aria-invalid={!valid} />
+          <p className="text-xs text-fg-muted">Comma-separated, e.g. 7, 14. Only the latest due one shows, and a reply or interview stops them.</p>
+        </div>
+      </Field>
+      <Field label="Suggest closing as no response after (days)">
+        <div className="space-y-1">
+          <Input
+            type="number"
+            min={1}
+            max={365}
+            value={draft.value.ghost_after_days}
+            onChange={(e) => draft.setValue({ ...draft.value, ghost_after_days: Number(e.target.value) })}
+            className="w-24"
+            aria-invalid={!ghostValid}
+          />
+          <p className="text-xs text-fg-muted">Only a suggestion on Today: the application closes when you confirm.</p>
+        </div>
+      </Field>
+    </Card>
+  )
+}

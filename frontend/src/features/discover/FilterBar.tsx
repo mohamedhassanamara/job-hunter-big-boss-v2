@@ -36,7 +36,7 @@ const POSTED_OPTIONS = [
   { value: '14', label: 'Last 14 days' },
 ]
 
-function MultiFilter({
+export function MultiFilter({
   label,
   options,
   selected,

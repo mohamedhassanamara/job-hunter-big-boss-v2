@@ -14,7 +14,7 @@ from app.models import (
     SendQueue,
     SendQueueItem,
 )
-from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, Route, Stage
+from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, Stage
 from app.schemas.today import (
     CVReviewItem,
     DraftReviewItem,
@@ -100,11 +100,6 @@ def today(session: SessionDep) -> TodayOut:
         ).all()
     }
 
-    ready_web = session.exec(
-        select(Application).where(
-            Application.stage == Stage.ready, Application.route == Route.web_apply
-        )
-    ).all()
     upcoming = [
         UpcomingInterview(
             interview_id=i.id, application_id=a.id, job_id=j.id, job_title=j.title,
@@ -148,7 +143,7 @@ def today(session: SessionDep) -> TodayOut:
             )
             for d in drafts
         ],
-        ready_to_apply=pipeline_cards(session, ready_web),
+        ready_to_apply=pipeline_cards(session, tracking.ready_to_apply(session)),
         reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],
         upcoming_interviews=upcoming,
         stats_summary=StatsSummary(**tracking.stats_summary(session)),
@@ -188,6 +183,7 @@ def nav_counts(session: SessionDep) -> NavCounts:
             .select_from(SendQueueItem)
             .where(SendQueueItem.status == QueueItemStatus.pending)
         ),
+        ready_to_apply=len(tracking.ready_to_apply(session)),
     )
 
 

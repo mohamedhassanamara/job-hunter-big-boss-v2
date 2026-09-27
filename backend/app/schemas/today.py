@@ -70,6 +70,7 @@ class NavCounts(BaseModel):
     pipeline_active: int
     outreach_review: int
     queue_pending: int
+    ready_to_apply: int
 
 
 class SearchHit(BaseModel):

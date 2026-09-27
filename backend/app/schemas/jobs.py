@@ -3,6 +3,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from app.schemas.tracking import TrackedItem
+
 
 class CompanyRef(BaseModel):
     id: int
@@ -107,6 +109,7 @@ class CVBrief(BaseModel):
     status: str
     page_count: int | None
     generator_model: str
+    locked: bool = False  # sent with the application: never changes
     created_at: datetime
     updated_at: datetime
 
@@ -134,6 +137,7 @@ class JobDetail(JobListItem):
     drafts: list[DraftBrief]
     events: list[EventOut]
     allowed_stages: list[str]
+    tracking: TrackedItem | None = None  # set once applied: how, CV sent, replies, interviews
 
 
 class PipelineCard(BaseModel):

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { CloseDialog } from '@/components/app/CloseDialog'
+import { LogInterviewDialog, MarkAppliedDialog, type TrackTarget } from '@/components/app/tracking/TrackingDialogs'
 import { PageHeader } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState } from '@/components/app/states'
@@ -15,6 +16,7 @@ import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { COLUMN_LABELS, pluralize } from '@/lib/format'
 import { useApplications, usePatchApplication } from '@/lib/queries/jobs'
+import { isApplied } from '@/lib/tracking'
 import type { CloseReason, PipelineCard, Stage } from '@/lib/types'
 import { Board } from './Board'
 import { Table } from './Table'
@@ -40,6 +42,8 @@ export default function PipelinePage() {
   const showDismissed = url.get('dismissed') === '1'
   const [q, setQ] = useState('')
   const [closing, setClosing] = useState<PipelineCard | null>(null)
+  const [applying, setApplying] = useState<TrackTarget | null>(null)
+  const [interviewing, setInterviewing] = useState<TrackTarget | null>(null)
   const { data, isPending, error, refetch } = useApplications()
   const patch = usePatchApplication()
   const triage = useTriageActions()
@@ -64,6 +68,16 @@ export default function PipelinePage() {
     }
     if (to === 'closed' && !close_reason) {
       setClosing(card)
+      return
+    }
+    // Applying and interviews record details (date, method, CV sent; round), so they open a dialog.
+    const tracked = { appId: card.application_id, title: card.title, company: card.company_name }
+    if (to === 'done' && card.route === 'web_apply') {
+      setApplying(tracked)
+      return
+    }
+    if (to === 'interview') {
+      setInterviewing(tracked)
       return
     }
     const from = card.stage
@@ -161,9 +175,22 @@ export default function PipelinePage() {
           />
         )}
       </div>
+      <MarkAppliedDialog
+        key={`apply-${applying?.appId}`}
+        target={applying}
+        cvVersion={null}
+        onOpenChange={(o) => !o && setApplying(null)}
+      />
+      <LogInterviewDialog
+        key={`interview-${interviewing?.appId}`}
+        target={interviewing}
+        round={1}
+        onOpenChange={(o) => !o && setInterviewing(null)}
+      />
       <CloseDialog
         key={closing?.application_id}
         open={!!closing}
+        applied={closing ? isApplied(closing.stage) : false}
         title={closing ? `${closing.title} · ${closing.company_name}` : ''}
         onCancel={() => setClosing(null)}
         onConfirm={(reason) => {
