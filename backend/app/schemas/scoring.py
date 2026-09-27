@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -22,6 +22,9 @@ class ScoringStatus(BaseModel):
     # This run's model-output counters: calls, invalid, valid_first_try, valid_after_retry,
     # failed_invalid (empty for the mock scorer).
     output_stats: dict[str, int] = {}
+    # The current/last queue run: model in use, cloud→local fallback notice, 429 retries,
+    # adaptive concurrency limit and range.
+    run: dict[str, Any] | None = None
     # Workspace-wide state of the latest scores.
     jobs_total: int
     scored: int
@@ -44,6 +47,15 @@ class ScoringHealth(BaseModel):
 class RescoreIn(BaseModel):
     scope: Literal["stale", "failed", "unscored", "all", "jobs"] = "stale"
     job_ids: list[int] = []
+    # Re-scoring jobs that already have a valid score (all, stale) needs an explicit OK.
+    confirm: bool = False
+
+
+class RescorePreview(BaseModel):
+    scope: str
+    count: int
+    model: str
+    eta_seconds: int | None
 
 
 class Enqueued(BaseModel):

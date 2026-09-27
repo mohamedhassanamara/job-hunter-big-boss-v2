@@ -87,10 +87,11 @@ def test_queue_runs_in_background_and_can_cancel(seeded: None) -> None:
     assert queue.enqueue(ids[:2]) == 0  # already queued: deduplicated
     status = queue.status()
     assert status["running"] and status["total"] == 6
-    assert queue.cancel() >= 4  # pending ones dropped; the in-flight one finishes
+    # Default model is cloud (4 workers): up to 4 in flight; the rest are dropped.
+    assert queue.cancel() >= 2
     gate.set()
     assert queue.wait()
-    assert queue.status()["running"] is False and scorer.calls <= 2
+    assert queue.status()["running"] is False and scorer.calls <= 4
 
 
 def test_queue_isolates_failures(seeded: None) -> None:
@@ -158,3 +159,14 @@ def test_cloud_models_may_run_more_workers() -> None:
 
     assert max_concurrency("qwen2.5:7b") == 2
     assert max_concurrency("gemma4:31b-cloud") == 8
+
+
+def test_bulk_rescore_of_existing_scores_needs_confirmation(client: TestClient) -> None:
+    preview = client.get("/api/scoring/rescore-preview?scope=all").json()
+    assert preview["count"] > 0 and preview["model"] and preview["eta_seconds"] is not None
+    assert client.post("/api/scoring/rescore", json={"scope": "all"}).status_code == 409
+    assert client.post("/api/scoring/rescore", json={"scope": "stale"}).status_code == 409
+    assert client.post("/api/scoring/rescore", json={"scope": "failed"}).status_code == 200
+    ok = client.post("/api/scoring/rescore", json={"scope": "all", "confirm": True})
+    assert ok.status_code == 200 and ok.json()["enqueued"] > 0
+    scoring.workspace_queue("real").cancel()

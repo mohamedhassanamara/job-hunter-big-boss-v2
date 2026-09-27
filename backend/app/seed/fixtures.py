@@ -513,7 +513,10 @@ SETTINGS: dict[str, dict] = {
         ]
     },
     "models": {
-        "scoring": {"provider": "ollama", "model": "qwen2.5:7b"},
+        # Cloud first; a usage limit switches the rest of a run to the local fallback.
+        "scoring": {"provider": "ollama", "model": "gemma4:31b-cloud", "fallback": "gemma4:12b",
+                    "cloud_concurrency": {"min": 1, "start": 4, "max": 4},
+                    "local_concurrency": 2},
         "cv": {"provider": "anthropic", "model": "claude-sonnet-5"},
         "email": {"provider": "anthropic", "model": "claude-haiku-4-5"},
     },

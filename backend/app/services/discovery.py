@@ -239,7 +239,7 @@ def execute_run(
             s.commit()
     finally:
         _lock.release()
-    if on_jobs and job_ids:
+    if on_jobs:  # even with no new jobs: leftovers that were never scored get queued too
         try:
             on_jobs(job_ids)
         except Exception:

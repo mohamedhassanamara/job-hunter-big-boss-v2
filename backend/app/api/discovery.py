@@ -49,7 +49,10 @@ def start_discovery(
         raise HTTPException(422, "Every source is disabled. Enable one in Settings → Sources.")
     try:
         queue = scoring.workspace_queue(workspace)
-        run_id = discovery.start_run_in_background(engine, sources, on_jobs=queue.enqueue)
+        # Additive discovery: only jobs that have never been scored enter the queue.
+        run_id = discovery.start_run_in_background(
+            engine, sources, on_jobs=lambda _ids: queue.enqueue_never_scored()
+        )
     except discovery.RunInProgress as exc:
         raise HTTPException(409, str(exc)) from exc
     return DiscoveryStarted(run_id=run_id)
