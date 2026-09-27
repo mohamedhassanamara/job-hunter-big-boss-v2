@@ -88,10 +88,13 @@ export function FilterBar({
   filters,
   onChange,
   onClear,
+  hideScores = false,
 }: {
   filters: JobFilters
   onChange: (patch: Partial<JobFilters>) => void
   onClear: () => void
+  /** Blind labeling: fit-based filters would reveal scores, so they are off. */
+  hideScores?: boolean
 }) {
   const profile = useSearchProfile()
   // Target countries from Settings, plus jobs with no country (usually remote).
@@ -134,6 +137,7 @@ export function FilterBar({
         value={filters.min_score ? String(filters.min_score) : 'any'}
         onValueChange={(v) => onChange({ min_score: v === 'any' ? null : Number(v) })}
         options={SCORE_OPTIONS}
+        disabled={hideScores}
       />
       <Select
         size="sm"
@@ -152,6 +156,7 @@ export function FilterBar({
           { value: 'hide_hard', label: 'Hide disqualifying' },
           { value: 'only_flagged', label: 'Only flagged' },
         ]}
+        disabled={hideScores}
       />
       <Select
         size="sm"

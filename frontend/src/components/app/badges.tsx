@@ -1,6 +1,7 @@
 import {
   CircleAlert,
   CircleDashed,
+  EyeOff,
   Flag,
   Globe,
   Mail,
@@ -144,13 +145,32 @@ export function FitBadge({
   fit,
   size = 'md',
   detailed = false,
+  hidden = false,
   className,
 }: {
   fit: FitBrief | null
   size?: 'sm' | 'md' | 'lg'
   detailed?: boolean
+  /** Blind labeling: show a neutral placeholder instead of the score, band and flags. */
+  hidden?: boolean
   className?: string
 }) {
+  if (hidden) {
+    return (
+      <Tooltip content="Score hidden while you label (toggle in Discover)">
+        <span
+          className={cn(
+            'inline-flex shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong text-fg-subtle',
+            SIZE[size],
+            className,
+          )}
+          aria-label="Score hidden"
+        >
+          <EyeOff className={size === 'lg' ? 'size-4' : 'size-3'} />
+        </span>
+      </Tooltip>
+    )
+  }
   const band: FitBand = fit?.band ?? 'pending'
   const pill = (
     <span

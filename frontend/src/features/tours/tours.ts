@@ -68,6 +68,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'discover-panel', title: 'Details without leaving the list', body: 'Everything about the job without leaving the list. J / K move between jobs.', placement: 'left' },
       { target: 'discover-fit', title: 'Scored, with evidence', body: 'Your local model rates role, skills, seniority, location and languages, quoting the listing for each. The 0–100 score is computed in code, and disqualifying flags (like no visa sponsorship) cap it.', placement: 'left' },
       { target: 'discover-label', title: 'Label to train the scorer', body: 'Mark jobs Good, Maybe or No with 1 / 2 / 3. Labels are separate from the pipeline, and `make eval` measures how well scores agree with them.', placement: 'left' },
+      { target: 'discover-hide-scores', title: 'Label blind', body: 'Hide scores while you label so the scorer\'s opinion doesn\'t sway yours. The list switches to newest first and fit filters turn off.', placement: 'bottom' },
       { target: 'discover-actions', title: 'Shortlist or dismiss', body: 'S shortlists, D dismisses, and both can be undone from the toast. Shortlisted jobs move to your Pipeline.', placement: 'left' },
     ],
   },

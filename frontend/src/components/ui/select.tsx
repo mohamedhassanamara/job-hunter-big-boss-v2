@@ -17,6 +17,7 @@ export function Select({
   placeholder,
   className,
   size = 'md',
+  disabled,
   'aria-label': ariaLabel,
 }: {
   value: string | undefined
@@ -25,14 +26,15 @@ export function Select({
   placeholder?: string
   className?: string
   size?: 'sm' | 'md'
+  disabled?: boolean
   'aria-label'?: string
 }) {
   return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         aria-label={ariaLabel}
         className={cn(
-          'inline-flex items-center justify-between gap-2 rounded-md border border-border-strong bg-surface px-2.5 text-sm text-fg hover:border-fg-subtle focus-visible:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring data-[placeholder]:text-fg-subtle',
+          'inline-flex items-center justify-between gap-2 rounded-md border border-border-strong bg-surface px-2.5 text-sm text-fg hover:border-fg-subtle disabled:opacity-50 disabled:hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring data-[placeholder]:text-fg-subtle',
           size === 'sm' ? 'h-7' : 'h-8',
           className,
         )}

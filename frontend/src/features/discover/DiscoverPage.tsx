@@ -1,4 +1,4 @@
-import { ArrowDownWideNarrow, Compass, Radar, SearchX } from 'lucide-react'
+import { ArrowDownWideNarrow, Compass, EyeOff, Radar, SearchX } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
@@ -9,8 +9,11 @@ import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Tooltip } from '@/components/ui/tooltip'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
+import { useHideScores } from '@/hooks/useHideScores'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
@@ -48,7 +51,10 @@ export default function DiscoverPage() {
     sort: (url.get('sort') as JobFilters['sort']) ?? 'fit',
   }
   const selectedId = url.get('job') ? Number(url.get('job')) : null
-  const { data, isPending, error, refetch } = useJobs(filters)
+  // Blind labeling: nothing that reveals the scorer's opinion (score, fit order, fit filters).
+  const [hideScores, setHideScores] = useHideScores()
+  const query: JobFilters = hideScores ? { ...filters, sort: 'newest', min_score: null, flags: null } : filters
+  const { data, isPending, error, refetch } = useJobs(query)
   // Only asked when the current view is empty: has anything ever been discovered?
   const everything = useJobs({ stage: 'all' }, { enabled: !!data && data.total === 0 })
   const neverDiscovered = everything.data?.total === 0
@@ -109,7 +115,7 @@ export default function DiscoverPage() {
   const profile = useSearchProfile()
   const threshold = profile.data?.min_fit_score ?? null
   const dividerAt =
-    filters.sort === 'fit' && threshold != null
+    query.sort === 'fit' && threshold != null
       ? items.findIndex((j) => j.fit?.score != null && j.fit.score < threshold)
       : -1
 
@@ -137,23 +143,33 @@ export default function DiscoverPage() {
         title="Discover"
         description={
           data
-            ? `${pluralize(items.length, 'job')} · ${filters.sort === 'newest' ? 'newest first' : 'best fit first'}`
+            ? `${pluralize(items.length, 'job')} · ${hideScores ? 'newest first, scores hidden' : query.sort === 'newest' ? 'newest first' : 'best fit first'}`
             : 'Triage newly discovered jobs'
         }
         className="pb-0"
         actions={
-          <div className="flex items-center gap-1.5">
-            <ArrowDownWideNarrow className="size-3.5 text-fg-subtle" />
-            <Select
-              size="sm"
-              aria-label="Sort"
-              value={filters.sort ?? 'fit'}
-              onValueChange={(v) => setFilters({ sort: v as JobFilters['sort'] })}
-              options={[
-                { value: 'fit', label: 'Best fit' },
-                { value: 'newest', label: 'Newest' },
-              ]}
-            />
+          <div className="flex items-center gap-4">
+            <Tooltip content="Label without seeing scores: hides scores, sorts by newest and turns off fit filters">
+              <label className="flex cursor-default items-center gap-2 text-xs text-fg-muted" data-tour="discover-hide-scores">
+                <EyeOff className="size-3.5 text-fg-subtle" />
+                Hide scores
+                <Switch checked={hideScores} onCheckedChange={setHideScores} aria-label="Hide scores while labeling" />
+              </label>
+            </Tooltip>
+            <div className="flex items-center gap-1.5">
+              <ArrowDownWideNarrow className="size-3.5 text-fg-subtle" />
+              <Select
+                size="sm"
+                aria-label="Sort"
+                value={query.sort ?? 'fit'}
+                onValueChange={(v) => setFilters({ sort: v as JobFilters['sort'] })}
+                disabled={hideScores}
+                options={[
+                  { value: 'fit', label: 'Best fit' },
+                  { value: 'newest', label: 'Newest' },
+                ]}
+              />
+            </div>
           </div>
         }
       >
@@ -169,7 +185,7 @@ export default function DiscoverPage() {
       </PageHeader>
       <DiscoveryProgress />
       <ScoringProgress />
-      <FilterBar filters={filters} onChange={setFilters} onClear={clearFilters} />
+      <FilterBar filters={query} onChange={setFilters} onClear={clearFilters} hideScores={hideScores} />
 
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-y-auto" role="listbox" aria-label="Jobs" data-tour="discover-list">
@@ -229,6 +245,7 @@ export default function DiscoverPage() {
                   onSelect={() => select(job.id === selectedId ? null : job.id)}
                   onShortlist={() => act(job, 'shortlist')}
                   onDismiss={() => act(job, 'dismiss')}
+                  hideScore={hideScores}
                 />
               </Fragment>
             ))
@@ -242,6 +259,7 @@ export default function DiscoverPage() {
             onShortlist={() => selectedJob && act(selectedJob, 'shortlist')}
             onDismiss={() => selectedJob && act(selectedJob, 'dismiss')}
             onLabel={(label) => setLabel(selectedId, label)}
+            hideScores={hideScores}
           />
         )}
       </div>
