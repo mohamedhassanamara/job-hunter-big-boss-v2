@@ -28,7 +28,7 @@ import { hasActiveFilters } from './filters'
 import { JobPanel } from './JobPanel'
 import { JobRow } from './JobRow'
 
-const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'min_score', 'posted_within', 'hide_duplicates', 'label', 'flags']
+const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'track', 'min_score', 'posted_within', 'hide_duplicates', 'label', 'flags']
 
 export default function DiscoverPage() {
   const navigate = useNavigate()
@@ -43,6 +43,7 @@ export default function DiscoverPage() {
     source: url.getAll('source'),
     remote: url.getAll('remote'),
     country: url.getAll('country'),
+    track: url.getAll('track'),
     min_score: url.get('min_score') ? Number(url.get('min_score')) : null,
     posted_within: url.get('posted_within') ? Number(url.get('posted_within')) : null,
     hide_duplicates: url.get('hide_duplicates') === '1',

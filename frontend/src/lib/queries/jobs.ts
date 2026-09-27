@@ -17,6 +17,7 @@ export interface JobFilters {
   source?: string[]
   remote?: string[]
   country?: string[]
+  track?: string[]
   min_score?: number | null
   posted_within?: number | null
   hide_duplicates?: boolean

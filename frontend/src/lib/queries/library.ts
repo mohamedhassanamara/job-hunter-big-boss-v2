@@ -12,6 +12,7 @@ import type {
   LookupQueue,
   SearchProfile,
   SettingsView,
+  VariantLang,
 } from '@/lib/types'
 import { keys } from './keys'
 
@@ -123,6 +124,12 @@ export function useSearchProfile() {
   return useQuery({
     queryKey: keys.searchProfile,
     queryFn: () => api.get<SearchProfile>('/search-profile'),
+  })
+}
+
+export function useSuggestVariants() {
+  return useMutation({
+    mutationFn: (title: string) => api.post<Record<VariantLang, string[]>>('/roles/suggest', { title }),
   })
 }
 

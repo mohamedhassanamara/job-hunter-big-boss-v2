@@ -7,9 +7,10 @@ import type {
   CVVersion,
   DiscoveryStatus,
   Draft,
+  FullListingResult,
   NavCounts,
   Queue,
-  FullListingResult,
+  RescorePreview,
   ScoringHealth,
   ScoringStatus,
   SearchHit,
@@ -193,10 +194,10 @@ export function useScoringStatus() {
   })
 }
 
-export function useScoringHealth() {
+export function useScoringHealth(model?: string) {
   return useQuery({
-    queryKey: keys.scoringHealth,
-    queryFn: () => api.get<ScoringHealth>('/scoring/health'),
+    queryKey: [...keys.scoringHealth, model ?? 'primary'],
+    queryFn: () => api.get<ScoringHealth>(model ? `/scoring/health?model=${encodeURIComponent(model)}` : '/scoring/health'),
     retry: false,
   })
 }
@@ -204,9 +205,18 @@ export function useScoringHealth() {
 export function useRescore() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'jobs'; job_ids?: number[] }) =>
+    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'jobs'; job_ids?: number[]; confirm?: boolean }) =>
       api.post<{ enqueued: number }>('/scoring/rescore', body),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
+  })
+}
+
+export function useRescorePreview(scope: 'all' | 'stale', enabled: boolean) {
+  return useQuery({
+    queryKey: ['rescore-preview', scope],
+    queryFn: () => api.get<RescorePreview>(`/scoring/rescore-preview?scope=${scope}`),
+    enabled,
+    staleTime: 0,
   })
 }
 

@@ -56,6 +56,11 @@ export function JobRow({
           <span className="truncate font-medium">{job.company.name}</span>
           <span className="text-fg-subtle">·</span>
           <span className="truncate">{job.location}</span>
+          {job.matched_track && (
+            <Tooltip content={job.matched_role ? `Matched your role “${job.matched_role}”` : null}>
+              <span className="shrink-0 rounded-sm bg-bg-subtle px-1 text-2xs text-fg-subtle">{job.matched_track}</span>
+            </Tooltip>
+          )}
         </div>
       </div>
       {!isNew && <StageBadge stage={job.application.stage} label={job.application.stage_label} />}
