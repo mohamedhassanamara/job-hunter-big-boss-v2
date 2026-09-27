@@ -6,6 +6,7 @@ from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field, utcnow
 from app.models.enums import (
+    ApplyMethod,
     CloseReason,
     ContactTier,
     CVStatus,
@@ -27,6 +28,10 @@ class Application(TableBase, table=True):
     close_reason: CloseReason | None = enum_field(None)
     notes: str = Field(default="", sa_type=Text)
     applied_at: datetime | None = dt_field()
+    # Recorded by "Mark applied": how, with which (locked) CV version, and notes.
+    applied_method: ApplyMethod | None = enum_field(None)
+    applied_cv_version_id: int | None = Field(default=None, foreign_key="cv_version.id")
+    applied_notes: str = Field(default="", sa_type=Text)
     stage_changed_at: datetime = dt_field(default_factory=utcnow)
 
 
@@ -63,6 +68,9 @@ class CVVersion(TableBase, table=True):
     violations: list[dict[str, Any]] = json_field()  # fabrication/number checks, shown in the UI
     duration_ms: int | None = None
     error: str | None = Field(default=None, sa_type=Text)
+    # Set when this version was sent with an application: never re-rendered or changed again.
+    locked_at: datetime | None = dt_field()
+    pdf_sha256: str | None = None
 
 
 class OutreachDraft(TableBase, table=True):

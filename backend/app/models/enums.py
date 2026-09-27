@@ -99,8 +99,38 @@ class CloseReason(StrEnum):
     dismissed = "dismissed"
     rejected = "rejected"
     withdrawn = "withdrawn"
-    no_response = "no_response"
-    offer = "offer"
+    no_response = "no_response"  # ghosted
+    offer = "offer"  # legacy (before offers were split into accepted/declined)
+    offer_accepted = "offer_accepted"
+    offer_declined = "offer_declined"
+
+
+class ApplyMethod(StrEnum):
+    company_site = "company_site"
+    job_board = "job_board"
+    email = "email"
+    other = "other"
+
+
+class ResponseKind(StrEnum):
+    positive = "positive"
+    rejection = "rejection"
+    other = "other"
+
+
+class InterviewType(StrEnum):
+    hr = "hr"
+    technical = "technical"
+    take_home = "take_home"
+    final = "final"
+    other = "other"
+
+
+class InterviewOutcome(StrEnum):
+    pending = "pending"
+    passed = "passed"
+    failed = "failed"
+    cancelled = "cancelled"
 
 
 class EventKind(StrEnum):
@@ -114,6 +144,9 @@ class EventKind(StrEnum):
     sent = "sent"
     applied = "applied"
     contact_resolved = "contact_resolved"
+    response = "response"
+    interview = "interview"
+    reminder = "reminder"
 
 
 class CVStatus(StrEnum):

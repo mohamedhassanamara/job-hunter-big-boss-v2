@@ -8,10 +8,12 @@ from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
 from app.models.queue import SendQueue, SendQueueItem
 from app.models.scoring import ScoringRun, ScoringTask
 from app.models.settings import AppSetting
+from app.models.tracking import ApplicationResponse, Interview, ReminderAction
 
 __all__ = [
     "AppSetting",
     "Application",
+    "ApplicationResponse",
     "ApplicationEvent",
     "CVVersion",
     "Company",
@@ -19,8 +21,10 @@ __all__ = [
     "DiscoveryRun",
     "ExperienceItem",
     "FitScore",
+    "Interview",
     "Job",
     "OutreachDraft",
+    "ReminderAction",
     "SearchProfile",
     "ScoringRun",
     "ScoringTask",
