@@ -9,6 +9,7 @@ from app.config import get_settings
 from app.db import engine
 from app.models import AppSetting, SearchProfile, SourceRun
 from app.models.enums import RemotePolicy, RemoteScope
+from app.providers.sources.boards import ATS_KINDS
 from app.schemas.settings import (
     CountryOut,
     SearchProfileIO,
@@ -24,7 +25,9 @@ from app.services.scoring import recompute_all
 
 router = APIRouter(tags=["settings"])
 
-EDITABLE_KEYS = {"sources", "models", "smtp", "schedule", "lookup", "profile", "scoring"}
+EDITABLE_KEYS = {
+    "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
+}
 
 
 def run_out(r: SourceRun) -> SourceRunOut:
@@ -56,10 +59,23 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     )
 
 
+def _check_boards(value: dict) -> None:
+    rows = value.get("boards")
+    if not isinstance(rows, list):
+        raise HTTPException(422, "company_boards needs a 'boards' list")
+    for i, row in enumerate(rows, 1):
+        if str(row.get("ats", "")).lower() not in ATS_KINDS:
+            raise HTTPException(422, f"Board {i}: ats must be one of {', '.join(ATS_KINDS)}")
+        if not str(row.get("token", "")).strip():
+            raise HTTPException(422, f"Board {i}: the board token is empty")
+
+
 @router.put("/settings/{key}", response_model=SettingsOut)
 def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOut:
     if key not in EDITABLE_KEYS:
         raise HTTPException(404, f"Unknown setting {key}")
+    if key == "company_boards":
+        _check_boards(body.value)
     row = session.exec(select(AppSetting).where(AppSetting.key == key)).first()
     if row is None:
         row = AppSetting(key=key, value={})
