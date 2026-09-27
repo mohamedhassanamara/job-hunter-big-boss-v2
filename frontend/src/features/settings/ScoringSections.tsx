@@ -1,6 +1,7 @@
 import { CircleAlert, CircleCheck, Copy, FlaskConical, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -191,6 +192,7 @@ const DEFAULT_SCORING: ScoringValue = {
 }
 
 export function ScoringSection({ settings }: { settings: SettingsView }) {
+  const [rescoreAll, setRescoreAll] = useState(false)
   const stored = settings.values.scoring as unknown as Partial<ScoringValue> | undefined
   const initial: ScoringValue = { ...DEFAULT_SCORING, ...stored, weights: { ...DEFAULT_SCORING.weights, ...stored?.weights } }
   const profile = useSearchProfile()
@@ -222,6 +224,13 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
       description="The model gives 0–10 sub-scores; the 0–100 score is computed here, in code."
       footer={<SaveBar dirty={dirty} saving={save.isPending} onReset={() => { setV(initial); setThreshold(null) }} onSave={() => void onSave()} />}
     >
+      <Field label="Rescore" hint="Scores are never redone automatically. This re-runs every job with the current model and prompt.">
+        <Button size="sm" variant="ghost" onClick={() => setRescoreAll(true)}>
+          <RefreshCw />
+          Rescore all jobs…
+        </Button>
+        <RescoreConfirmDialog scope="all" open={rescoreAll} onOpenChange={setRescoreAll} />
+      </Field>
       <Field label="Weights" hint="Relative importance of each sub-score">
         <div className="space-y-2">
           {DIMS.map((d) => (
@@ -265,22 +274,14 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
           <Input type="number" value={v.maybe_threshold} onChange={(e) => setV({ ...v, maybe_threshold: Number(e.target.value) || 0 })} className="w-20" />
         </div>
       </Field>
-      <Field label="Parallel jobs" hint="Local models are capped at 2 (keeps the laptop responsive). Cloud models (…-cloud) run remotely and can use up to 8.">
-        <Select
-          value={String(v.concurrency)}
-          onValueChange={(c) => setV({ ...v, concurrency: Number(c) })}
-          options={[1, 2, 4, 6, 8].map((n) => ({ value: String(n), label: n === 1 ? '1 at a time' : `${n} at a time` }))}
-          className="w-40"
-        />
-      </Field>
     </Card>
   )
 }
 
 // ---------------------------------------------------------------------------- Ollama status
 
-export function OllamaStatus() {
-  const { data, isPending, refetch } = useScoringHealth()
+export function OllamaStatus({ model, label }: { model?: string; label?: string } = {}) {
+  const { data, isPending, refetch } = useScoringHealth(model)
   const start = useStartScoring()
   if (isPending || !data) return <p className="text-xs text-fg-subtle">Checking Ollama…</p>
   return (
@@ -292,6 +293,7 @@ export function OllamaStatus() {
           <CircleAlert className="size-4 text-danger-dot" />
         )}
         <span className="font-medium">
+          {label && <span className="font-normal text-fg-muted">{label}: </span>}
           {data.reachable ? (data.model_present ? `${data.model} is ready` : `${data.model} isn't pulled`) : 'Ollama isn’t running'}
         </span>
         <Button

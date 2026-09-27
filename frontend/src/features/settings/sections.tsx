@@ -13,6 +13,7 @@ import { absoluteDate } from '@/lib/format'
 import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
 import type { RemoteScope, SearchProfile, SettingsView } from '@/lib/types'
 import { CountryPicker } from './CountryPicker'
+import { TracksEditor } from './TracksEditor'
 import { OllamaStatus } from './ScoringSections'
 
 export function Card({
@@ -93,8 +94,8 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
       <Field label="Profile name">
         <Input value={p.name} onChange={(e) => set({ name: e.target.value })} />
       </Field>
-      <Field label="Roles" hint="Title keywords to match">
-        <TagInput tags={p.roles} onChange={(roles) => set({ roles })} placeholder="data engineer, ai engineer…" />
+      <Field label="Roles & tracks" hint="The job titles you want, grouped by field. Sources search each title and its variants; the scorer judges role and seniority against the track a job matched.">
+        <TracksEditor tracks={p.tracks ?? []} onChange={(tracks) => set({ tracks })} />
       </Field>
       <Field label="Boost keywords" hint="Raise relevance when present">
         <TagInput tags={p.keywords} onChange={(keywords) => set({ keywords })} />
@@ -190,7 +191,13 @@ export function ScheduleSection({ settings }: { settings: SettingsView }) {
 }
 
 interface ModelsValue {
-  scoring: { provider: string; model: string }
+  scoring: {
+    provider: string
+    model: string
+    fallback?: string
+    cloud_concurrency?: { min: number; start: number; max: number }
+    local_concurrency?: number
+  }
   cv: { provider: string; model: string }
   email: { provider: string; model: string }
 }
@@ -206,6 +213,12 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
   const draft = useDraft(initial)
   const save = useSaveSetting()
   const m = draft.value
+  const cloud = { min: 1, start: 4, max: 4, ...m.scoring.cloud_concurrency }
+  const setCloud = (c: typeof cloud) => {
+    const min = Math.min(c.min, c.max)
+    const max = Math.max(c.min, c.max)
+    draft.setValue({ ...m, scoring: { ...m.scoring, cloud_concurrency: { min, max, start: Math.min(max, Math.max(min, c.start)) } } })
+  }
   return (
     <Card
       title="Models"
@@ -223,16 +236,56 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="amber">Partly mocked</ToneBadge>
-        Fit scoring runs on Ollama. CV generation and email drafting are still mocked.
+        Fit scoring runs on Ollama (cloud first, local fallback). CV generation and email drafting are still mocked.
       </div>
-      <OllamaStatus />
-      <Field label="Fit scoring" hint="Ollama, runs locally">
+      <Field label="Fit scoring" hint="Ollama model. Cloud models end in -cloud and run on ollama.com.">
         <Input
           value={m.scoring.model}
           onChange={(e) => draft.setValue({ ...m, scoring: { ...m.scoring, model: e.target.value } })}
           className="w-64 font-mono text-xs"
+          aria-label="Scoring model"
         />
       </Field>
+      <Field label="Local fallback" hint="Used for the rest of a run when the cloud usage limit is reached. Empty = pause instead.">
+        <Input
+          value={m.scoring.fallback ?? ''}
+          onChange={(e) => draft.setValue({ ...m, scoring: { ...m.scoring, fallback: e.target.value } })}
+          placeholder="gemma4:12b"
+          className="w-64 font-mono text-xs"
+          aria-label="Fallback model"
+        />
+      </Field>
+      <Field label="Cloud parallel jobs" hint="Adaptive: drops by 1 on each “too many concurrent requests”, climbs back after a streak of successes.">
+        <div className="flex items-center gap-2 text-xs text-fg-muted">
+          {(['min', 'start', 'max'] as const).map((k) => (
+            <label key={k} className="flex items-center gap-1.5">
+              {k === 'min' ? 'Min' : k === 'start' ? 'Start' : 'Max'}
+              <Select
+                size="sm"
+                value={String(cloud[k])}
+                onValueChange={(v) => setCloud({ ...cloud, [k]: Number(v) })}
+                options={[1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ value: String(n), label: String(n) }))}
+                aria-label={`Cloud concurrency ${k}`}
+              />
+            </label>
+          ))}
+        </div>
+      </Field>
+      <Field label="Local parallel jobs" hint="For local models (and the fallback). Use 1 if the Mac gets sluggish.">
+        <Select
+          value={String(m.scoring.local_concurrency ?? 2)}
+          onValueChange={(v) => draft.setValue({ ...m, scoring: { ...m.scoring, local_concurrency: Number(v) } })}
+          options={[
+            { value: '1', label: '1 at a time' },
+            { value: '2', label: '2 at a time' },
+          ]}
+          className="w-40"
+        />
+      </Field>
+      <div className="space-y-2">
+        <OllamaStatus label="Scoring" />
+        {m.scoring.fallback && <OllamaStatus model={m.scoring.fallback} label="Fallback" />}
+      </div>
       <Field label="CV generation" hint="Anthropic API">
         <Select
           value={m.cv.model}

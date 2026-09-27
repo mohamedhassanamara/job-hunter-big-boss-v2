@@ -196,6 +196,12 @@ export function FitBadge({
       {fit?.status === 'ok' && <span className="block text-fg-muted">{CONFIDENCE_TEXT[fit.confidence]}</span>}
       {fit?.hard_flag && <span className="block text-danger-fg">Has a disqualifying red flag (score capped)</span>}
       {fit?.stale && <span className="block text-warning-fg">Stale: your experience changed since scoring</span>}
+      {fit?.model && (
+        <span className="block font-mono text-2xs text-fg-subtle">
+          {fit.model}
+          {fit.prompt_version ? ` · ${fit.prompt_version.replace('fit_score/', 'prompt ')}` : ''}
+        </span>
+      )}
     </span>
   )
   if (!detailed) return <Tooltip content={tip}>{pill}</Tooltip>

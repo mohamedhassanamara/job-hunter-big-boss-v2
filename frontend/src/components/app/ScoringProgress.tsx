@@ -1,5 +1,8 @@
 import { CircleAlert, Copy, LoaderCircle, RefreshCw, Sparkles, X } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
+import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { Button } from '@/components/ui/button'
 import { pluralize } from '@/lib/format'
 import { useCancelScoring, useRescore, useScoringStatus, useStartScoring } from '@/lib/queries/workflow'
@@ -20,7 +23,9 @@ export function ScoringProgress({ className }: { className?: string }) {
   const rescore = useRescore()
   const cancel = useCancelScoring()
   const start = useStartScoring()
+  const [confirmStale, setConfirmStale] = useState(false)
   if (!data) return null
+  const run = data.run
 
   const queue = (scope: 'stale' | 'failed' | 'unscored') =>
     rescore.mutate(
@@ -59,48 +64,67 @@ export function ScoringProgress({ className }: { className?: string }) {
   }
 
   if (data.running) {
+    const details = [
+      run?.model,
+      run?.concurrency_limit ? `${run.concurrency_limit} parallel` : null,
+      run?.retried_429 ? `${pluralize(run.retried_429, 'busy retry', 'busy retries')}` : null,
+    ].filter(Boolean)
     const pct = data.total ? Math.round(((data.done + data.failed) / data.total) * 100) : 0
     return (
-      <div className={cn('relative border-b border-border bg-primary-subtle/50 px-6 py-2', className)}>
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-border">
-          <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${Math.max(4, pct)}%` }} />
+      <>
+        <ScoringFallbackNotice />
+        <div className={cn('relative border-b border-border bg-primary-subtle/50 px-6 py-2', className)}>
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-border">
+            <div className="h-full bg-primary transition-[width] duration-200" style={{ width: `${Math.max(4, pct)}%` }} />
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <LoaderCircle className="size-3.5 animate-spin text-primary" />
+            <span className="font-medium">
+              Scoring {data.done + data.failed} / {data.total}
+            </span>
+            {data.in_progress[0] && <span className="truncate text-fg-muted">· {data.in_progress[0].title}</span>}
+            {data.failed > 0 && <span className="text-danger-fg">· {data.failed} failed</span>}
+            {details.length > 0 && <span className="text-fg-subtle">· {details.join(' · ')}</span>}
+            <span className="ml-auto text-fg-subtle tabular-nums">
+              {[eta(data.eta_seconds), data.avg_seconds ? `${data.avg_seconds}s/job` : null].filter(Boolean).join(' · ')}
+            </span>
+            <Button size="xs" variant="ghost" onClick={() => cancel.mutate()}>
+              <X />
+              Cancel
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-xs">
-          <LoaderCircle className="size-3.5 animate-spin text-primary" />
-          <span className="font-medium">
-            Scoring {data.done + data.failed} / {data.total}
-          </span>
-          {data.in_progress[0] && <span className="truncate text-fg-muted">· {data.in_progress[0].title}</span>}
-          {data.failed > 0 && <span className="text-danger-fg">· {data.failed} failed</span>}
-          <span className="ml-auto text-fg-subtle tabular-nums">
-            {[eta(data.eta_seconds), data.avg_seconds ? `${data.avg_seconds}s/job` : null].filter(Boolean).join(' · ')}
-          </span>
-          <Button size="xs" variant="ghost" onClick={() => cancel.mutate()}>
-            <X />
-            Cancel
-          </Button>
-        </div>
-      </div>
+      </>
     )
   }
 
   const notices: { key: string; text: string; action: string; scope: 'stale' | 'failed' | 'unscored' }[] = []
   if (data.unscored) notices.push({ key: 'u', text: `${pluralize(data.unscored, 'job')} not scored yet`, action: 'Score them', scope: 'unscored' })
   if (data.stale)
-    notices.push({ key: 's', text: `Your experience changed: ${pluralize(data.stale, 'score')} ${data.stale === 1 ? 'is' : 'are'} stale`, action: 'Rescore stale', scope: 'stale' })
+    notices.push({ key: 's', text: `Your experience changed: ${pluralize(data.stale, 'score')} ${data.stale === 1 ? 'is' : 'are'} stale`, action: 'Rescore stale…', scope: 'stale' })
   if (data.failed_jobs) notices.push({ key: 'f', text: `${pluralize(data.failed_jobs, 'job')} failed to score`, action: 'Retry failed', scope: 'failed' })
-  if (!notices.length) return null
+  if (!notices.length) return <ScoringFallbackNotice />
   return (
-    <div className={cn('flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border bg-bg-subtle px-6 py-2 text-xs', className)}>
-      <Sparkles className="size-3.5 text-fg-subtle" />
-      {notices.map((n) => (
-        <span key={n.key} className="inline-flex items-center gap-2 text-fg-muted">
-          {n.text}
-          <Button size="xs" variant="ghost" className="text-primary" onClick={() => queue(n.scope)} disabled={rescore.isPending}>
-            {n.action}
-          </Button>
-        </span>
-      ))}
-    </div>
+    <>
+      <ScoringFallbackNotice />
+      <div className={cn('flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border bg-bg-subtle px-6 py-2 text-xs', className)}>
+        <Sparkles className="size-3.5 text-fg-subtle" />
+        {notices.map((n) => (
+          <span key={n.key} className="inline-flex items-center gap-2 text-fg-muted">
+            {n.text}
+            <Button
+              size="xs"
+              variant="ghost"
+              className="text-primary"
+              onClick={() => (n.scope === 'stale' ? setConfirmStale(true) : queue(n.scope))}
+              disabled={rescore.isPending}
+            >
+              {n.action}
+            </Button>
+          </span>
+        ))}
+      </div>
+      <RescoreConfirmDialog scope="stale" open={confirmStale} onOpenChange={setConfirmStale} />
+    </>
   )
 }

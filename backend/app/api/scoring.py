@@ -44,8 +44,11 @@ def scoring_status(session: SessionDep, workspace: WorkspaceDep) -> ScoringStatu
 
 
 @router.get("/scoring/health", response_model=ScoringHealth)
-def scoring_health(session: SessionDep, workspace: WorkspaceDep) -> ScoringHealth:
-    model = scoring.load_context(session).model
+def scoring_health(
+    session: SessionDep, workspace: WorkspaceDep, model: str | None = None
+) -> ScoringHealth:
+    """Health of the scoring model (or of `model`, e.g. the local fallback)."""
+    model = model or scoring.load_context(session).model
     if workspace == "demo" or get_settings().job_sources == "mock":
         return ScoringHealth(reachable=True, model="mock-scorer", model_present=True,
                              message="Sample data uses a mock scorer", models=[], pull_command="")

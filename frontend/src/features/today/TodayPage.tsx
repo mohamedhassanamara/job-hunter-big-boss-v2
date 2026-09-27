@@ -18,6 +18,7 @@ import {
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
+import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { TestDataBanner } from '@/components/app/TestDataBanner'
@@ -345,6 +346,7 @@ export default function TodayPage() {
               : `${pluralize(attention, 'thing needs', 'things need')} your attention.`}
         </p>
       </header>
+      <ScoringFallbackNotice className="rounded-lg border px-4" />
 
       <SourceAlerts />
       <TestDataBanner showLink />

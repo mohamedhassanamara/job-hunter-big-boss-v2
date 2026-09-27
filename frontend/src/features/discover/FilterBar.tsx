@@ -99,6 +99,11 @@ export function FilterBar({
   const profile = useSearchProfile()
   // Target countries from Settings, plus jobs with no country (usually remote).
   const countryOptions = [...(profile.data?.locations ?? []), 'REMOTE'].map((value) => ({ value, label: countryName(value) }))
+  // Tracks from Settings → Search profile, plus jobs that matched none (found before tracks).
+  const trackOptions = [
+    ...(profile.data?.tracks ?? []).filter((t) => t.name).map((t) => ({ value: t.name, label: t.name })),
+    { value: 'NONE', label: 'No track' },
+  ]
   return (
     <div data-tour="discover-filters" className="flex flex-wrap items-center gap-2 border-b border-border bg-bg px-6 py-2.5">
       <div className="relative w-64">
@@ -124,6 +129,12 @@ export function FilterBar({
         options={REMOTE_OPTIONS}
         selected={filters.remote ?? []}
         onChange={(remote) => onChange({ remote })}
+      />
+      <MultiFilter
+        label="Track"
+        options={trackOptions}
+        selected={filters.track ?? []}
+        onChange={(track) => onChange({ track })}
       />
       <MultiFilter
         label="Country"

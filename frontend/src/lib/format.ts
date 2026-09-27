@@ -167,3 +167,14 @@ export function runSummary(t: Partial<Record<string, number>>): string {
   if (t.updated) parts.splice(2, 0, `${t.updated} updated`)
   return parts.join(' · ')
 }
+
+/** "about 45s" · "about 12 min" · "about 1h 10m" (rescore estimates). */
+export function formatDuration(seconds: number | null): string {
+  if (seconds == null) return 'unknown time'
+  if (seconds < 90) return `about ${Math.max(1, Math.round(seconds))}s`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 90) return `about ${minutes} min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return `about ${h}h${m ? ` ${m}m` : ''}`
+}

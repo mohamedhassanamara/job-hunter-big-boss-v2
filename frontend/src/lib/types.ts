@@ -33,6 +33,9 @@ export interface FitBrief {
   hard_flag: boolean
   flag_count: number
   stale: boolean
+  /** Provenance: which model and prompt version produced this score. */
+  model: string | null
+  prompt_version: string | null
 }
 
 export type Dimension =
@@ -85,6 +88,8 @@ export interface JobListItem {
   id: number
   description_level: DescriptionLevel
   user_label: UserLabel | null
+  matched_track: string | null
+  matched_role: string | null
   title: string
   company: CompanyRef
   source: Source
@@ -409,9 +414,25 @@ export interface Country {
   region: string
 }
 
+export type VariantLang = 'en' | 'fr' | 'es' | 'de' | 'it' | 'nl'
+
+export interface TrackRole {
+  title: string
+  /** Per-language equivalents. null = not set yet: the server suggests them on save. */
+  variants: Partial<Record<VariantLang, string[]>> | null
+}
+
+export interface Track {
+  name: string
+  years_experience: number | null
+  roles: TrackRole[]
+}
+
 export interface SearchProfile {
   name: string
+  /** All role titles, derived from `tracks` on save (read-only). */
   roles: string[]
+  tracks: Track[]
   keywords: string[]
   excluded_keywords: string[]
   locations: string[]
@@ -527,6 +548,31 @@ export interface SearchHit {
   href: string
 }
 
+export interface ScoringRunInfo {
+  id: number
+  trigger: string
+  /** Model in use now (the fallback after a cloud usage limit). */
+  model: string
+  primary_model: string
+  fallback_model: string | null
+  /** Set when a usage limit switched the run to the local model. */
+  fallback_reason: string | null
+  fallback_at: string | null
+  retried_429: number
+  quota_hits: number
+  concurrency_limit: number | null
+  concurrency_min: number | null
+  concurrency_max: number | null
+  finished: boolean
+}
+
+export interface RescorePreview {
+  scope: string
+  count: number
+  model: string
+  eta_seconds: number | null
+}
+
 export interface ScoringStatus {
   running: boolean
   blocked: string | null
@@ -546,6 +592,7 @@ export interface ScoringStatus {
   failed_jobs: number
   model: string
   prompt_version: string
+  run: ScoringRunInfo | null
 }
 
 export interface ScoringHealth {

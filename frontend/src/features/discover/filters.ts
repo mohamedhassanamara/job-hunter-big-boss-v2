@@ -6,6 +6,7 @@ export function hasActiveFilters(f: JobFilters) {
     f.source?.length ||
     f.remote?.length ||
     f.country?.length ||
+    f.track?.length ||
     f.min_score ||
     f.posted_within ||
     f.hide_duplicates ||
