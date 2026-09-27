@@ -47,7 +47,7 @@ export function LookupTab() {
               <FitBadge
                 fit={
                   i.fit !== null
-                    ? { score: i.fit, band: fitBand(i.fit), status: 'ok', confidence: 'medium', hard_flag: false, flag_count: 0, stale: false }
+                    ? { score: i.fit, band: fitBand(i.fit), status: 'ok', confidence: 'medium', hard_flag: false, flag_count: 0, stale: false, model: null, prompt_version: null }
                     : null
                 }
               />
