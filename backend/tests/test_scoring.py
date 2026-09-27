@@ -170,3 +170,23 @@ def test_bulk_rescore_of_existing_scores_needs_confirmation(client: TestClient) 
     ok = client.post("/api/scoring/rescore", json={"scope": "all", "confirm": True})
     assert ok.status_code == 200 and ok.json()["enqueued"] > 0
     scoring.workspace_queue("real").cancel()
+
+
+def test_cache_hit_from_a_duplicate_gives_the_job_its_own_score(seeded: None) -> None:
+    """Two jobs with identical content (cross-source duplicates): the second reuses the first's
+    result without a model call, but still gets its own fit_score row."""
+    scorer = CountingScorer()
+    with Session(engine) as s:
+        first = s.exec(select(Job)).first()
+        twin = Job(**first.model_dump(exclude={"id", "created_at", "updated_at", "external_id",
+                                               "source"}),
+                   source="wttj", external_id="twin-1")
+        s.add(twin)
+        s.commit()
+        first_id, twin_id = first.id, twin.id
+    a = scoring.score_job(engine, first_id, scorer, force=True)
+    b = scoring.score_job(engine, twin_id, scorer)
+    assert scorer.calls == 1  # cache hit, no second model call
+    assert b.job_id == twin_id and b.id != a.id and b.score == a.score
+    with Session(engine) as s:
+        assert scoring.latest_fit(s, twin_id).id == b.id

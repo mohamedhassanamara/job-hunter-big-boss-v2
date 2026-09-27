@@ -244,6 +244,15 @@ def score_job(
                 .where(FitScore.cache_key == key, FitScore.status == FitStatus.ok)
                 .order_by(col(FitScore.created_at).desc())
             ).first()
+            if cached is not None and cached.job_id != job_id:
+                # Same content under another job (a cross-source duplicate): copy that score to
+                # this job (no model call), so every job has its own row.
+                data = cached.model_dump(exclude={"id", "job_id", "created_at", "updated_at"})
+                copy = FitScore(**data, job_id=job_id)
+                s.add(copy)
+                s.commit()
+                s.refresh(copy)
+                return copy
             if cached is not None:
                 # Re-surface it as the latest row if an older/other score is newer.
                 latest = latest_fit(s, job_id)
