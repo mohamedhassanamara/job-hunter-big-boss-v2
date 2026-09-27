@@ -124,6 +124,8 @@ def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
     if v.page_count is not None and v.page_count != 1:
         raise HTTPException(409, "The CV must fit on exactly one page before approval")
     for other in cv_service.versions(session, app.id):
+        if other.locked_at is not None:
+            continue  # the CV that was sent with the application never changes
         if other.id != v.id and other.status in (CVStatus.approved, CVStatus.draft):
             other.status = CVStatus.superseded
             session.add(other)
@@ -136,12 +138,14 @@ def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
         if app.stage == Stage.new:
             pipeline.transition(session, app, Stage.shortlisted)
         pipeline.transition(session, app, Stage.cv_ready)
+    if app.route == Route.web_apply and app.stage == Stage.cv_ready:
+        pipeline.transition(session, app, Stage.ready)  # approved CV, no contact: ready to apply
     session.add(app)
     session.commit()
     session.refresh(v)
     return CVApproveResult(
         version=_out(v), stage=app.stage, route=app.route,
-        next_step="draft_email" if app.route == Route.cold_email else "mark_ready_to_apply",
+        next_step="draft_email" if app.route == Route.cold_email else "apply",
     )
 
 

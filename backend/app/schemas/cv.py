@@ -74,7 +74,7 @@ class CVApproveResult(BaseModel):
     version: CVVersionOut
     stage: str
     route: str
-    next_step: str  # draft_email | mark_ready_to_apply
+    next_step: str  # draft_email | apply
 
 
 class TemplateIn(BaseModel):
