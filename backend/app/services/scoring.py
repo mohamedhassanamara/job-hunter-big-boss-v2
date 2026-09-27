@@ -289,6 +289,11 @@ def counts(s: Session) -> ScoreCounts:
 # -------------------------------------------------------------------------------------- queue
 
 
+def max_concurrency(model: str) -> int:
+    """Local models share the laptop (≤ 2 workers); cloud models (`…-cloud`) run remotely."""
+    return 8 if model.endswith(("-cloud", ":cloud")) else 2
+
+
 class ScoringQueue:
     """Background scorer for one workspace. Thread-safe; the app stays usable while it runs."""
 
@@ -399,7 +404,8 @@ class ScoringQueue:
     def _make_scorer(self) -> tuple[FitScorer, int]:
         with Session(self.engine) as s:
             ctx = load_context(s)
-        concurrency = max(1, min(2, int(ctx.scoring.get("concurrency", 1))))
+        wanted = int(ctx.scoring.get("concurrency", 1))
+        concurrency = max(1, min(max_concurrency(ctx.model), wanted))
         return self.scorer_factory(ctx.model), concurrency
 
     def _work(self, scorer: FitScorer) -> None:

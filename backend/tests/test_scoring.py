@@ -151,3 +151,10 @@ def _drain_queues():
     for q in scoring._queues.values():
         q.cancel()
         q.wait(5)
+
+
+def test_cloud_models_may_run_more_workers() -> None:
+    from app.services.scoring import max_concurrency
+
+    assert max_concurrency("qwen2.5:7b") == 2
+    assert max_concurrency("gemma4:31b-cloud") == 8
