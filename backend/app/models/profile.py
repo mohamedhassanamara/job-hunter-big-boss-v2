@@ -4,7 +4,7 @@ from typing import Any
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field, utcnow
-from app.models.enums import RemotePolicy, RunStatus, RunTrigger, Source
+from app.models.enums import RemotePolicy, RemoteScope, RunStatus, RunTrigger, Source
 
 
 class SearchProfile(TableBase, table=True):
@@ -16,6 +16,7 @@ class SearchProfile(TableBase, table=True):
     excluded_keywords: list[str] = json_field()
     locations: list[str] = json_field()
     remote_policy: RemotePolicy = enum_field(RemotePolicy.remote_ok)
+    remote_scope: RemoteScope = enum_field(RemoteScope.anywhere)
     min_fit_score: int = 65
     max_age_days: int = 30
     is_active: bool = True

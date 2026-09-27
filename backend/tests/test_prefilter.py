@@ -59,7 +59,8 @@ def test_reasons() -> None:
         job("Data Analyst", eid="analyst"),
         job("Data Engineer", eid="old", days=45),
         job("Data Engineer", eid="de", country="DE", location="Berlin"),
-        job("Data Engineer", eid="us-remote", country="US", remote=RemoteType.remote),
+        job("Data Engineer", eid="us-remote", country="US", remote=RemoteType.remote,
+            location="New York, United States"),
         job("Data Engineer", eid="eu-remote", country=None, remote=RemoteType.remote,
             location="Europe"),
         job("Data Engineer", eid="usa-only", country=None, remote=RemoteType.remote,
@@ -77,11 +78,37 @@ def test_reasons() -> None:
         "analyst": "title_no_role_match",
         "old": "too_old",
         "de": "location_outside:DE",
-        "us-remote": "location_outside:US",
-        "usa-only": "location_outside:US",
+        "us-remote": "remote_outside:US",
+        "usa-only": "remote_outside:US",
         "empty": "incomplete",
     }
     assert result.reason_counts()["title_excluded:intern"] == 1
+
+
+@pytest.mark.parametrize(
+    ("scope", "kept"),
+    [
+        ("anywhere", {"world", "europe", "nl", "gulf", "unknown"}),
+        ("europe", {"world", "europe", "nl", "unknown"}),
+        ("targets", {"world", "europe", "gulf", "unknown"}),
+    ],
+)
+def test_remote_scope(scope: str, kept: set[str]) -> None:
+    profile = PROFILE.model_copy(update={"locations": ["ES", "FR", "AE"], "remote_scope": scope})
+    remote = [
+        ("world", "Worldwide"), ("europe", "Europe"), ("nl", "Netherlands"),
+        ("gulf", "Dubai, UAE"), ("us", "USA only"), ("unknown", "Remote"),
+    ]
+    jobs = [job(eid=e, country=None, remote=RemoteType.remote, location=loc) for e, loc in remote]
+    result = prefilter(jobs, profile, now=NOW)
+    assert {j.external_id for j in result.kept} == kept
+
+
+def test_onsite_gulf_target_is_kept() -> None:
+    profile = PROFILE.model_copy(update={"locations": ["AE", "QA"]})
+    jobs = [job(eid="dubai", country="AE", location="Dubai, United Arab Emirates"),
+            job(eid="madrid")]
+    assert [j.external_id for j in prefilter(jobs, profile, now=NOW).kept] == ["dubai"]
 
 
 def test_seniority_is_never_filtered_by_default() -> None:
