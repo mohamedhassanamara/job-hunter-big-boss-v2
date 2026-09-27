@@ -19,6 +19,9 @@ class ScoringStatus(BaseModel):
     avg_seconds: float | None
     eta_seconds: int | None
     last_error: str | None
+    # This run's model-output counters: calls, invalid, valid_first_try, valid_after_retry,
+    # failed_invalid (empty for the mock scorer).
+    output_stats: dict[str, int] = {}
     # Workspace-wide state of the latest scores.
     jobs_total: int
     scored: int
