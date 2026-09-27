@@ -393,6 +393,14 @@ export interface SourceRun {
   }
 }
 
+export type RemoteScope = 'anywhere' | 'europe' | 'targets'
+
+export interface Country {
+  code: string
+  name: string
+  region: string
+}
+
 export interface SearchProfile {
   name: string
   roles: string[]
@@ -400,6 +408,7 @@ export interface SearchProfile {
   excluded_keywords: string[]
   locations: string[]
   remote_policy: 'any' | 'remote_ok' | 'remote_only'
+  remote_scope: RemoteScope
   min_fit_score: number
   max_age_days: number
 }
@@ -437,6 +446,8 @@ export interface SourceInfo {
   cooldown_hours: number
   cooldown_remaining_minutes: number | null
   last_run: SourceRun | null
+  /** Target countries (search profile) this source cannot search. */
+  unsupported_countries: string[]
 }
 
 export interface SampleJob {

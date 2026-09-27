@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
-import { absoluteDate, pluralize, reasonLabel, relativeTime, REMOTE_LABELS } from '@/lib/format'
+import { absoluteDate, countryName, pluralize, reasonLabel, relativeTime, REMOTE_LABELS } from '@/lib/format'
 import { useSaveSetting } from '@/lib/queries/library'
 import { useSources, useTestSource } from '@/lib/queries/workflow'
 import type { RunStatus, SampleJob, SettingsView, Source, SourceInfo, SourceTestResult } from '@/lib/types'
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 import { Card } from './sections'
 
 const NOTES: Record<Source, string> = {
-  adzuna: 'Official API · Spain, France, Italy (no Portugal endpoint) · short description snippets',
+  adzuna: 'Official API · searches each target country it has an endpoint for · short description snippets',
   remotive: 'Public API · remote jobs · fetched at most every 6h (Remotive asks for ≤ 4 requests/day) · every job links back to Remotive',
   arbeitnow: 'Public API · mostly German/DACH listings, so expect few matches',
   wttj: "Unofficial · uses the public search key from the Welcome to the Jungle website · summary + key missions only",
@@ -172,6 +172,12 @@ function SourceRow({ info, onToggle }: { info: SourceInfo; onToggle: (on: boolea
             {!run && info.configured && <span className="text-xs text-fg-subtle">Never run</span>}
           </div>
           <p className="mt-0.5 text-xs text-fg-muted">{NOTES[info.source]}</p>
+          {info.unsupported_countries.length > 0 && (
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-warning-fg">
+              <TriangleAlert className="size-3.5 shrink-0" />
+              Not supported by this source: {info.unsupported_countries.map(countryName).join(', ')}
+            </p>
+          )}
         </div>
         <Tooltip
           content={

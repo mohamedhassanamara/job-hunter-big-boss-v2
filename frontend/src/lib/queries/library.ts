@@ -5,6 +5,7 @@ import type {
   CompanyListItem,
   ExperienceInput,
   ExperienceItem,
+  Country,
   ExperienceKind,
   ImportPreview,
   ImportResult,
@@ -125,6 +126,14 @@ export function useSearchProfile() {
   })
 }
 
+export function useCountries() {
+  return useQuery({
+    queryKey: keys.countries,
+    queryFn: () => api.get<Country[]>('/countries'),
+    staleTime: Infinity,
+  })
+}
+
 export function useSaveSearchProfile() {
   const qc = useQueryClient()
   return useMutation({
@@ -132,6 +141,7 @@ export function useSaveSearchProfile() {
       api.put<SearchProfile>('/search-profile', { ...profile }),
     onSuccess: (data) => {
       qc.setQueryData(keys.searchProfile, data)
+      void qc.invalidateQueries({ queryKey: keys.sources })
       void qc.invalidateQueries({ queryKey: ['today'] })
     },
   })
