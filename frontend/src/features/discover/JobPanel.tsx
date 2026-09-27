@@ -1,4 +1,5 @@
-import { ArrowUpRight, Maximize2, Star, X } from 'lucide-react'
+import { ArrowUpRight, EyeOff, Maximize2, Star, X } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import {
   LocationText,
@@ -25,14 +26,17 @@ export function JobPanel({
   onShortlist,
   onDismiss,
   onLabel,
+  hideScores = false,
 }: {
   jobId: number
   onClose: () => void
   onShortlist: () => void
   onDismiss: () => void
   onLabel: (label: UserLabel | null) => void
+  hideScores?: boolean
 }) {
   const { data: job, isPending, error, refetch } = useJob(jobId)
+  const [reveal, setReveal] = useState(false)
 
   return (
     <aside data-tour="discover-panel" className="flex h-full w-[440px] shrink-0 flex-col border-l border-border bg-surface max-xl:w-[380px]">
@@ -122,7 +126,19 @@ export function JobPanel({
             </div>
             <JobFlags job={job} />
             <div data-tour="discover-fit">
-              <FitCard job={job} />
+              {hideScores && !reveal ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border-strong px-3 py-2.5">
+                  <p className="flex items-center gap-2 text-xs text-fg-muted">
+                    <EyeOff className="size-3.5 text-fg-subtle" />
+                    Fit score hidden while you label.
+                  </p>
+                  <Button size="xs" variant="ghost" onClick={() => setReveal(true)}>
+                    Show for this job
+                  </Button>
+                </div>
+              ) : (
+                <FitCard job={job} />
+              )}
             </div>
             <ContactCard job={job} />
 

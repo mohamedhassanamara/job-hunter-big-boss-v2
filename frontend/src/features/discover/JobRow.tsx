@@ -13,12 +13,14 @@ export function JobRow({
   onSelect,
   onShortlist,
   onDismiss,
+  hideScore = false,
 }: {
   job: JobListItem
   selected: boolean
   onSelect: () => void
   onShortlist: () => void
   onDismiss: () => void
+  hideScore?: boolean
 }) {
   const isNew = job.application.stage === 'new'
   const posted = job.posted_at ?? job.discovered_at
@@ -34,7 +36,7 @@ export function JobRow({
       )}
     >
       {selected && <span className="absolute inset-y-0 left-0 w-0.5 bg-primary" />}
-      <FitBadge fit={job.fit} detailed />
+      <FitBadge fit={job.fit} detailed hidden={hideScore} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium text-fg">{job.title}</span>
