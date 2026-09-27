@@ -22,7 +22,7 @@ from app.services.text import html_to_text
 SITE = "https://www.welcometothejungle.com"
 INDEX = "wttj_jobs_production_en"
 HITS_PER_QUERY = 50
-MAX_PHRASES_PER_COUNTRY = 16
+MAX_PHRASES_PER_COUNTRY = 60  # cheap: queries are batched, 50 per HTTP request
 QUERIES_PER_REQUEST = 50  # Algolia multi-query batch size
 ATTRIBUTES = [
     "objectID", "name", "slug", "organization.name", "organization.slug", "offices", "remote",
