@@ -2,11 +2,15 @@
 plug in behind these Protocols. Phase 0 ships deterministic mocks only (see providers/mock)."""
 
 from datetime import datetime
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field
 
 from app.models.enums import DescriptionLevel, RemoteType, Source
+
+
+class ScoringFailed(RuntimeError):
+    """The scorer couldn't produce a valid assessment. The message is shown to the user."""
 
 
 class RawJob(BaseModel):
@@ -52,12 +56,50 @@ class ExperienceSnapshot(BaseModel):
     dates: str | None = None
 
 
-class FitResult(BaseModel):
-    score: int = Field(ge=0, le=100)
-    strengths: list[str]
-    gaps: list[str]
+DIMENSIONS = (
+    "role_match",
+    "skills_match",
+    "seniority_fit",
+    "location_eligibility",
+    "language_requirements",
+)
+RedFlagType = Literal[
+    "no_visa_sponsorship",
+    "work_authorization_required",
+    "must_be_based_in",
+    "language_required",
+    "seniority_mismatch",
+    "other",
+]
+
+
+class SubScore(BaseModel):
+    score: int = Field(ge=0, le=10)
+    reason: str
+    evidence: str = Field(description="Verbatim quote from the job text, or empty")
+
+
+class RedFlag(BaseModel):
+    type: RedFlagType
+    text: str
+    evidence: str = Field(description="Verbatim quote from the job text")
+
+
+class FitAssessment(BaseModel):
+    """What the LLM returns. The 0-100 score is computed from this in code (services/fit.py)."""
+
+    role_match: SubScore
+    skills_match: SubScore
+    seniority_fit: SubScore
+    location_eligibility: SubScore
+    language_requirements: SubScore
+    red_flags: list[RedFlag] = Field(default_factory=list, max_length=8)
+    strengths: list[str] = Field(default_factory=list, max_length=3)
+    gaps: list[str] = Field(default_factory=list, max_length=3)
     summary: str
-    model: str
+
+    def sub_scores(self) -> dict[str, SubScore]:
+        return {d: getattr(self, d) for d in DIMENSIONS}
 
 
 class CVEntry(BaseModel):
@@ -119,7 +161,11 @@ class JobSource(Protocol):
 
 
 class FitScorer(Protocol):
-    def score(self, job: JobSnapshot, experience: list[ExperienceSnapshot]) -> FitResult: ...
+    model: str
+
+    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+        """Raises ScoringFailed (with a human-readable reason) when no valid answer is possible."""
+        ...
 
 
 class CVGenerator(Protocol):

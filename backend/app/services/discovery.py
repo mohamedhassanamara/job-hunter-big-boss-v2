@@ -17,8 +17,6 @@ from app.models import AppSetting, DiscoveryRun, SearchProfile, SourceRun
 from app.models.base import utcnow
 from app.models.enums import RunStatus, RunTrigger, Source
 from app.providers.base import JobSource, ProfileSpec
-from app.providers.registry import fit_scorer
-from app.services.experience import experience_snapshots
 from app.services.ingest import ingest
 from app.services.prefilter import prefilter
 
@@ -152,14 +150,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> None:
             profile_id, profile = active_profile(s)
             raw = source.fetch(profile)
             result = prefilter(raw, profile)
-            stats = ingest(
-                s,
-                result.kept,
-                source_run_id=sr.id,
-                profile_id=profile_id,
-                scorer=fit_scorer(),
-                experience=experience_snapshots(s),
-            )
+            stats = ingest(s, result.kept, source_run_id=sr.id, profile_id=profile_id)
             sr.fetched_count = len(raw)
             sr.kept_count = len(result.kept)
             sr.filtered_count = len(result.dropped)

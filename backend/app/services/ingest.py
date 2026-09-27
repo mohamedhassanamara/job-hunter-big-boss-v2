@@ -2,17 +2,18 @@
 
 - Same (source, external_id) seen again → update mutable fields + last_seen_at ("updated").
 - Same dedupe key as an existing job from anywhere → stored, flagged duplicate_of ("duplicate").
-- Otherwise → new job + mock fit score + application (+ Apollo contact match) ("new").
+- Otherwise → new job + application (+ Apollo contact match) ("new"); the background scorer
+  (services/scoring.py) scores new and changed jobs afterwards.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sqlmodel import Session, col, select
 
-from app.models import Application, ApplicationEvent, Company, Contact, FitScore, Job
+from app.models import Application, ApplicationEvent, Company, Contact, Job
 from app.models.base import utcnow
 from app.models.enums import ContactSource, ContactTier, EventKind
-from app.providers.base import ExperienceSnapshot, FitScorer, JobSnapshot, RawJob
+from app.providers.base import RawJob
 from app.services.dedupe import dedupe_key, normalize_company
 
 SOURCE_NAMES = {
@@ -30,6 +31,7 @@ class IngestStats:
     new: int = 0
     updated: int = 0
     duplicates: int = 0
+    job_ids: list[int] = field(default_factory=list)  # new or changed → (re)score
 
 
 def _company(session: Session, name: str) -> Company:
@@ -48,9 +50,8 @@ def ingest(
     *,
     source_run_id: int | None,
     profile_id: int | None,
-    scorer: FitScorer,
-    experience: list[ExperienceSnapshot],
 ) -> IngestStats:
+    """Fit scoring is not done here: new jobs are queued for the background scorer."""
     stats = IngestStats()
     now = utcnow()
     for raw in jobs:
@@ -69,6 +70,7 @@ def ingest(
             existing.last_seen_at = now
             session.add(existing)
             stats.updated += 1
+            stats.job_ids.append(existing.id)  # the scorer's cache skips it if nothing changed
             continue
 
         company = _company(session, raw.company)
@@ -91,18 +93,8 @@ def ingest(
             stats.duplicates += 1
         else:
             stats.new += 1
+        stats.job_ids.append(job.id)
 
-        fit = scorer.score(
-            JobSnapshot(
-                title=job.title,
-                company=company.name,
-                location=job.location,
-                remote_type=job.remote_type,
-                description=job.description,
-            ),
-            experience,
-        )
-        session.add(FitScore(job_id=job.id, profile_id=profile_id, **fit.model_dump()))
         contact = session.exec(
             select(Contact).where(
                 Contact.company_id == company.id, Contact.source == ContactSource.apollo_dump
@@ -116,7 +108,8 @@ def ingest(
         session.add(application)
         session.flush()
         message = f"Discovered on {SOURCE_NAMES.get(raw.source, raw.source)}"
-        message += " · flagged as duplicate" if original else f" · fit {fit.score}"
+        if original:
+            message += " · flagged as duplicate"
         session.add(
             ApplicationEvent(
                 application_id=application.id, kind=EventKind.discovered, message=message
