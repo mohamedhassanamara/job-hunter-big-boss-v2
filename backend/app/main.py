@@ -14,6 +14,7 @@ from app.seed.seed import ensure_defaults
 from app.services import scheduler
 from app.services.discovery import mark_stale_runs
 from app.services.pipeline import TransitionError
+from app.services.scoring import workspace_queue
 
 settings = get_settings()
 
@@ -27,6 +28,9 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         # The sandbox may not exist yet: the first tour builds it.
         with contextlib.suppress(Exception):
             mark_stale_runs(demo_engine)
+    # Persistent scoring queue: tasks interrupted by the last shutdown/reload carry on.
+    with contextlib.suppress(Exception):
+        workspace_queue("real").resume()
     if settings.scheduler_enabled:
         scheduler.start(engine)
     yield

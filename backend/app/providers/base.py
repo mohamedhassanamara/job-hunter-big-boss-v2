@@ -10,7 +10,20 @@ from app.models.enums import DescriptionLevel, RemoteType, Source
 
 
 class ScoringFailed(RuntimeError):
-    """The scorer couldn't produce a valid assessment. The message is shown to the user."""
+    """The scorer couldn't produce a valid assessment. The message is shown to the user.
+    Plain ScoringFailed = non-retryable (invalid output after the repair retry, model missing)."""
+
+
+class ConcurrencyLimited(ScoringFailed):
+    """Too many requests at once (cloud plan limit). Never a failure: retry the same job."""
+
+
+class QuotaExceeded(ScoringFailed):
+    """Cloud usage limit reached (session/hourly/weekly). Switch the run to the local model."""
+
+
+class TransientError(ScoringFailed):
+    """Timeout, connection problem or 5xx: worth a few more attempts."""
 
 
 class RawJob(BaseModel):

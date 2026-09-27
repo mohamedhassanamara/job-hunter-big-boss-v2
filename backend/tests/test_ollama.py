@@ -3,8 +3,15 @@ import json
 import httpx
 import pytest
 
-from app.providers.base import FitAssessment, JobSnapshot, ScoringFailed
-from app.providers.ollama import OllamaFitScorer
+from app.providers.base import (
+    ConcurrencyLimited,
+    FitAssessment,
+    JobSnapshot,
+    QuotaExceeded,
+    ScoringFailed,
+    TransientError,
+)
+from app.providers.ollama import OllamaFitScorer, classify_error
 
 JOB = JobSnapshot(title="Data Engineer", company="Acme")
 
@@ -77,25 +84,39 @@ def test_cloud_model_gets_schema_in_prompt_and_fence_is_stripped() -> None:
     assert system.startswith("sys") and '"role_match"' in system and "no code fence" in system
 
 
-def test_rate_limit_waits_and_retries() -> None:
-    waits: list[float] = []
-    busy = httpx.Response(429, json={"error": "too many concurrent requests"})
-    queue = iter([busy, busy, chat(json.dumps(valid_payload()))])
-    scorer = OllamaFitScorer(
-        "gemma4:31b-cloud", transport=httpx.MockTransport(lambda r: next(queue)),
-        sleep=waits.append,
-    )
-    assert scorer.assess("sys", "user", JOB).role_match.score == 7
-    assert waits == [2.0, 5.0]
+@pytest.mark.parametrize(
+    ("status", "body", "kind"),
+    [
+        (429, '{"error":"too many concurrent requests"}', "concurrency"),
+        (429, '{"error":"you have reached your hourly usage limit, please wait or upgrade"}',
+         "quota"),
+        (429, '{"error":"you (123) have reached your weekly usage limit, upgrade for higher '
+              'limits"}', "quota"),
+        (429, '{"error":"you (1) have reached your session usage limit"}', "quota"),
+        (402, '{"error":"payment required"}', "quota"),
+        (429, '{"error":"slow down"}', "concurrency"),  # unknown 429: retried, never failed
+        (503, "upstream unavailable", "transient"),
+        (400, '{"error":"bad request"}', "fatal"),
+        (200, "{}", None),
+    ],
+)
+def test_error_classification(status: int, body: str, kind: str | None) -> None:
+    assert classify_error(status, body) == kind
 
 
-def test_rate_limit_that_never_clears_fails_visibly() -> None:
-    busy = httpx.Response(429, json={"error": "too many concurrent requests"})
-    scorer = OllamaFitScorer(
-        "gemma4:31b-cloud", transport=httpx.MockTransport(lambda r: busy), sleep=lambda _: None
-    )
-    with pytest.raises(ScoringFailed, match="429"):
-        scorer.assess("sys", "user", JOB)
+def test_provider_raises_typed_errors() -> None:
+    def scorer(response: httpx.Response) -> OllamaFitScorer:
+        return OllamaFitScorer("gemma4:31b-cloud",
+                               transport=httpx.MockTransport(lambda r: response))
+
+    with pytest.raises(ConcurrencyLimited):
+        scorer(httpx.Response(429, json={"error": "too many concurrent requests"})).assess(
+            "s", "u", JOB)
+    with pytest.raises(QuotaExceeded):
+        scorer(httpx.Response(429, json={"error": "you have reached your weekly usage limit"})
+               ).assess("s", "u", JOB)
+    with pytest.raises(TransientError):
+        scorer(httpx.Response(502, text="bad gateway")).assess("s", "u", JOB)
 
 
 def test_invalid_output_is_retried_once_with_the_error() -> None:

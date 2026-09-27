@@ -25,8 +25,9 @@ def _run_scheduled() -> None:
     with Session(engine) as s:
         sources = job_sources(enabled_sources(s))
     try:
+        queue = workspace_queue("real")
         run_discovery(engine, sources, RunTrigger.scheduled,
-                      on_jobs=workspace_queue("real").enqueue)
+                      on_jobs=lambda _ids: queue.enqueue_never_scored())
     except RunInProgress:
         log.info("Scheduled discovery skipped: a run is already in progress")
 

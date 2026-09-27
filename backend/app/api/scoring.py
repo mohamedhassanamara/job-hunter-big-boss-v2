@@ -14,6 +14,7 @@ from app.schemas.scoring import (
     LabelIn,
     PasteIn,
     RescoreIn,
+    RescorePreview,
     ScoringHealth,
     ScoringStatus,
 )
@@ -59,18 +60,40 @@ def scoring_health(session: SessionDep, workspace: WorkspaceDep) -> ScoringHealt
     )
 
 
-@router.post("/scoring/rescore", response_model=Enqueued)
-def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> Enqueued:
+_NEEDS_CONFIRM = ("all", "stale")  # these re-score jobs that already have a valid score
+
+
+def _scope_ids(session, scope: str, job_ids: list[int]) -> list[int]:  # noqa: ANN001
     counts = scoring.counts(session)
-    ids = {
+    return {
         "stale": counts.stale_ids,
         "failed": counts.failed_ids,
         "unscored": counts.unscored_ids,
         "all": list(session.exec(select(Job.id)).all()),
-        "jobs": body.job_ids,
-    }[body.scope]
+        "jobs": job_ids,
+    }[scope]
+
+
+@router.get("/scoring/rescore-preview", response_model=RescorePreview)
+def rescore_preview(scope: str, session: SessionDep) -> RescorePreview:
+    """What a bulk rescore would do: how many jobs, which model, roughly how long."""
+    if scope not in ("stale", "failed", "unscored", "all"):
+        raise HTTPException(422, f"Unknown scope {scope}")
+    ids = _scope_ids(session, scope, [])
+    ctx = scoring.load_context(session)
+    eta = scoring.estimate_seconds(session, ctx, len(ids))
+    return RescorePreview(scope=scope, count=len(ids), model=ctx.model, eta_seconds=eta)
+
+
+@router.post("/scoring/rescore", response_model=Enqueued)
+def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> Enqueued:
+    if body.scope in _NEEDS_CONFIRM and not body.confirm:
+        raise HTTPException(
+            409, "Rescoring existing scores needs confirmation (see /scoring/rescore-preview)"
+        )
+    ids = _scope_ids(session, body.scope, body.job_ids)
     queue = scoring.workspace_queue(workspace)
-    added = queue.enqueue(ids, force=body.scope in ("all", "jobs"))
+    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale"), trigger="rescore")
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)

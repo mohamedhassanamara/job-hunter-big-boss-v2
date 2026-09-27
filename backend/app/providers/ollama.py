@@ -20,10 +20,45 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from app.providers.base import FitAssessment, JobSnapshot, ScoringFailed
+from app.providers.base import (
+    ConcurrencyLimited,
+    FitAssessment,
+    JobSnapshot,
+    QuotaExceeded,
+    ScoringFailed,
+    TransientError,
+)
 
 DEFAULT_URL = "http://localhost:11434"
-RATE_LIMIT_WAITS = (2.0, 5.0, 10.0, 20.0, 30.0)  # seconds between retries after HTTP 429
+# Ollama Cloud limit messages (https://docs.ollama.com/api/errors): both are HTTP 429.
+_QUOTA_WORDS = ("usage limit", "quota", "upgrade for higher", "limit reached")
+_CONCURRENCY_WORDS = ("concurrent", "too many requests", "rate limit")
+
+
+def classify_error(status: int, body: str) -> str | None:
+    """None (not an error) | concurrency | quota | transient | fatal.
+
+    - 429 "too many concurrent requests" → concurrency (retry the same job, lower parallelism)
+    - 429 "…reached your hourly/session/weekly usage limit…", 402 → quota (switch to local)
+    - 5xx → transient; an unrecognised 429 is treated as concurrency (retried, never failed)
+    """
+    if status < 400:
+        return None
+    text = body.lower()
+    if status == 402 or (status in (403, 429) and any(w in text for w in _QUOTA_WORDS)):
+        return "quota"
+    if status == 429 or any(w in text for w in _CONCURRENCY_WORDS):
+        return "concurrency"
+    if status >= 500:
+        return "transient"
+    return "fatal"
+
+
+def _error_text(res: httpx.Response) -> str:
+    try:
+        return str(res.json().get("error") or res.text)[:200]
+    except ValueError:
+        return res.text[:200]
 _FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)
 
 
@@ -85,14 +120,12 @@ class OllamaFitScorer:
         timeout: float = 120.0,
         num_ctx: int = 8192,
         transport: httpx.BaseTransport | None = None,
-        sleep: Any = time.sleep,
     ):
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.num_ctx = num_ctx
         self._transport = transport
-        self._sleep = sleep
         # Output-quality counters for this scorer's lifetime (one queue run): model calls, invalid
         # answers, jobs valid on the first try / after the retry / failed. Shared by worker threads.
         self.stats = {"calls": 0, "invalid": 0, "valid_first_try": 0, "valid_after_retry": 0,
@@ -138,19 +171,20 @@ class OllamaFitScorer:
             "format": self._schema,
             "options": {"temperature": 0, "seed": 42, "num_ctx": self.num_ctx},
         }
-        # Cloud models answer 429 when too many requests run at once (plan limit): wait and retry
-        # instead of failing the job, so a high "Parallel jobs" setting slows down, not breaks.
-        for attempt in range(len(RATE_LIMIT_WAITS) + 1):
-            try:
-                with self._client() as client:
-                    res = client.post(f"{self.base_url}/api/chat", json=body)
-            except httpx.TimeoutException as exc:
-                raise ScoringFailed(f"Timed out after {self.timeout:g}s") from exc
-            except httpx.TransportError as exc:
-                raise ScoringFailed(self._not_running()) from exc
-            if res.status_code != 429 or attempt == len(RATE_LIMIT_WAITS):
-                break
-            self._sleep(RATE_LIMIT_WAITS[attempt])
+        try:
+            with self._client() as client:
+                res = client.post(f"{self.base_url}/api/chat", json=body)
+        except httpx.TimeoutException as exc:
+            raise TransientError(f"Timed out after {self.timeout:g}s") from exc
+        except httpx.TransportError as exc:
+            raise TransientError(self._not_running()) from exc
+        kind = classify_error(res.status_code, res.text)
+        if kind == "concurrency":
+            raise ConcurrencyLimited(f"Ollama {res.status_code}: {_error_text(res)}")
+        if kind == "quota":
+            raise QuotaExceeded(f"Cloud usage limit: {_error_text(res)}")
+        if kind == "transient":
+            raise TransientError(f"Ollama error {res.status_code}: {_error_text(res)}")
         if res.status_code == 404:
             raise ScoringFailed(self.pull_hint())
         if res.status_code >= 400:
