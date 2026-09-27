@@ -168,16 +168,29 @@ def test_discovery_run_mock(client: TestClient) -> None:
         time.sleep(0.05)
     run = status["run"]
     assert run["id"] == started.json()["run_id"] and run["status"] == "success"
-    assert {s["source"] for s in run["sources"]} == {"adzuna", "remotive", "arbeitnow", "wttj"}
+    assert {s["source"] for s in run["sources"]} == {
+        "adzuna", "remotive", "arbeitnow", "wttj", "boards", "bayt",
+    }
     assert client.get("/api/jobs?stage=all").json()["total"] > before
 
 
 def test_sources_list_and_dry_run(client: TestClient) -> None:
     sources = {s["source"]: s for s in client.get("/api/sources").json()}
-    assert set(sources) == {"adzuna", "remotive", "arbeitnow", "wttj"}
+    assert set(sources) == {"adzuna", "remotive", "arbeitnow", "wttj", "boards", "bayt"}
     locations = client.get("/api/search-profile").json()["locations"]
     assert "PT" in sources["adzuna"]["unsupported_countries"] or "PT" not in locations
     assert sources["remotive"]["unsupported_countries"] == []
+    assert "FR" in sources["bayt"]["unsupported_countries"] or "FR" not in locations
+    assert sources["boards"]["configured"]  # default company list is seeded
+
+
+def test_company_boards_setting_is_validated(client: TestClient) -> None:
+    good = {"boards": [{"ats": "greenhouse", "token": "tamara", "company": "Tamara"}]}
+    assert client.put("/api/settings/company_boards", json={"value": good}).status_code == 200
+    bad = {"boards": [{"ats": "taleo", "token": "x"}]}
+    assert client.put("/api/settings/company_boards", json={"value": bad}).status_code == 422
+    empty = {"boards": [{"ats": "lever", "token": " "}]}
+    assert client.put("/api/settings/company_boards", json={"value": empty}).status_code == 422
     before = client.get("/api/jobs?stage=all").json()["total"]
     result = client.post("/api/sources/arbeitnow/test").json()
     assert result["fetched"] == result["kept"] + result["filtered"]

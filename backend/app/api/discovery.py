@@ -83,7 +83,7 @@ def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInf
             )
             .order_by(col(SourceRun.started_at).desc())
         ).first()
-        hint = impl.configured()
+        hint = discovery.prepare_source(session, impl).configured()
         wait = discovery.cooldown_remaining(session, impl)
         out.append(
             SourceInfo(

@@ -47,6 +47,14 @@ def enabled_sources(session: Session) -> list[Source]:
     return [s for s in Source if flags.get(s.value, True)]
 
 
+def prepare_source(session: Session, source: JobSource) -> JobSource:
+    """Hand a source its Settings value (e.g. the company board list) before it is used."""
+    if key := getattr(source, "settings_key", None):
+        row = session.exec(select(AppSetting).where(AppSetting.key == key)).first()
+        source.apply_settings(row.value if row else {})  # type: ignore[attr-defined]
+    return source
+
+
 def active_profile(session: Session) -> tuple[int | None, ProfileSpec]:
     profile = session.exec(select(SearchProfile).where(SearchProfile.is_active)).first()
     if profile is None:
@@ -133,6 +141,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> list[int]:
         s.add(sr)
         s.commit()
         try:
+            prepare_source(s, source)
             if reason := source.configured():
                 raise RuntimeError(f"Not configured: {reason}")
             if wait := cooldown_remaining(s, source, exclude_run=run_id):
@@ -161,6 +170,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> list[int]:
             sr.details = {
                 "requests": source.requests,
                 "warnings": list(getattr(source, "warnings", [])),
+                "boards": dict(getattr(source, "board_results", {})),
                 "reasons": result.reason_counts(),
                 "samples": [
                     {
@@ -274,6 +284,7 @@ def test_source(engine: Engine, source: JobSource):  # noqa: ANN201 (FilterResul
     if _lock.locked():
         raise RunInProgress("A discovery run is in progress; try again when it finishes")
     with Session(engine) as s:
+        prepare_source(s, source)
         if reason := source.configured():
             raise RuntimeError(f"Not configured: {reason}")
         if wait := cooldown_remaining(s, source):
@@ -308,6 +319,7 @@ def test_source(engine: Engine, source: JobSource):  # noqa: ANN201 (FilterResul
             "dry_run": True,
             "requests": source.requests,
             "warnings": list(getattr(source, "warnings", [])),
+            "boards": dict(getattr(source, "board_results", {})),
             "reasons": result.reason_counts(),
         }
         sr.finished_at = run.finished_at = utcnow()
