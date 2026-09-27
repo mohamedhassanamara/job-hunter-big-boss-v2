@@ -26,6 +26,8 @@ def list_jobs(
     min_score: int | None = None,
     posted_within: int | None = Query(None, description="days"),
     hide_duplicates: bool = False,
+    label: Literal["unlabeled", "good", "maybe", "no"] | None = None,
+    flags: Literal["hide_hard", "only_flagged"] | None = None,
     sort: Literal["fit", "newest"] = "fit",
 ) -> JobList:
     items = job_items(session, session.exec(select(Job)).all())
@@ -54,6 +56,14 @@ def list_jobs(
             posted = i.posted_at or i.discovered_at
             if posted < now - timedelta(days=posted_within):
                 return False
+        if label == "unlabeled" and i.user_label is not None:
+            return False
+        if label in ("good", "maybe", "no") and i.user_label != label:
+            return False
+        if flags == "hide_hard" and i.fit and i.fit.hard_flag:
+            return False
+        if flags == "only_flagged" and not (i.fit and i.fit.flag_count):
+            return False
         return not (hide_duplicates and i.duplicate_of_id is not None)
 
     items = [i for i in items if keep(i)]

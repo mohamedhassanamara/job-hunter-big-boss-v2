@@ -1,5 +1,5 @@
 import { Copy, Star, UserRoundCheck, X } from 'lucide-react'
-import { FitBadge, RemoteBadge, SourceBadge, StageBadge } from '@/components/app/badges'
+import { FitBadge, LabelBadge, RemoteBadge, SourceBadge, StageBadge } from '@/components/app/badges'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -34,7 +34,7 @@ export function JobRow({
       )}
     >
       {selected && <span className="absolute inset-y-0 left-0 w-0.5 bg-primary" />}
-      <FitBadge fit={job.fit} />
+      <FitBadge fit={job.fit} detailed />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium text-fg">{job.title}</span>
@@ -43,6 +43,7 @@ export function JobRow({
               <Copy className="size-3.5 shrink-0 text-warning-dot" />
             </Tooltip>
           )}
+          <LabelBadge label={job.user_label} />
           {job.company_contacted && (
             <Tooltip content={`Already contacted ${job.company.name}`}>
               <UserRoundCheck className="size-3.5 shrink-0 text-warning-dot" />

@@ -7,6 +7,7 @@ import type {
   JobListItem,
   PipelineCard,
   Stage,
+  UserLabel,
 } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
 
@@ -19,6 +20,8 @@ export interface JobFilters {
   min_score?: number | null
   posted_within?: number | null
   hide_duplicates?: boolean
+  label?: 'unlabeled' | 'good' | 'maybe' | 'no' | null
+  flags?: 'hide_hard' | 'only_flagged' | null
   sort?: 'fit' | 'newest'
 }
 
@@ -108,5 +111,24 @@ export function useQueueLookup() {
   return useMutation({
     mutationFn: (appId: number) => api.post<JobDetail>(`/applications/${appId}/lookup`),
     onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** Good / Maybe / No — the user's judgment for evaluating the scorer (optimistic). */
+export function useLabelJob() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ jobId, label }: { jobId: number; label: UserLabel | null }) =>
+      api.put<JobListItem>(`/jobs/${jobId}/label`, { label }),
+    onMutate: async ({ jobId, label }) => {
+      await qc.cancelQueries({ queryKey: keys.jobsAll })
+      qc.setQueriesData<JobList>({ queryKey: keys.jobsAll }, (old) =>
+        old ? { ...old, items: old.items.map((j) => (j.id === jobId ? { ...j, user_label: label } : j)) } : old,
+      )
+      qc.setQueryData<JobDetail>(keys.job(jobId), (old) => (old ? { ...old, user_label: label } : old))
+    },
+    onSettled: (_d, _e, { jobId }) => {
+      void qc.invalidateQueries({ queryKey: keys.job(jobId) })
+    },
   })
 }

@@ -20,6 +20,8 @@ export const keys = {
   search: (q: string) => ['search', q] as const,
   discoveryStatus: ['discovery-status'] as const,
   sources: ['sources'] as const,
+  scoringStatus: ['scoring-status'] as const,
+  scoringHealth: ['scoring-health'] as const,
 }
 
 /** Workflow mutations touch many views; in a local single-user app we simply refresh them all. */
@@ -36,6 +38,7 @@ export function invalidateWork(qc: QueryClient) {
     'lookups',
     'companies',
     'company',
+    'scoring-status',
   ]) {
     void qc.invalidateQueries({ queryKey: [key] })
   }

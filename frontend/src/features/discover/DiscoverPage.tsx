@@ -1,7 +1,9 @@
 import { Compass, Radar, SearchX } from 'lucide-react'
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
+import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
 import { DiscoveryProgress } from '@/components/app/DiscoveryProgress'
+import { ScoringProgress } from '@/components/app/ScoringProgress'
 import { PageHeader } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
@@ -13,15 +15,16 @@ import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { pluralize } from '@/lib/format'
-import { type JobFilters, useJobs } from '@/lib/queries/jobs'
+import { type JobFilters, useJobs, useLabelJob } from '@/lib/queries/jobs'
+import { useSearchProfile } from '@/lib/queries/library'
 import { useNavCounts } from '@/lib/queries/workflow'
-import type { JobListItem } from '@/lib/types'
+import type { JobListItem, UserLabel } from '@/lib/types'
 import { FilterBar } from './FilterBar'
 import { hasActiveFilters } from './filters'
 import { JobPanel } from './JobPanel'
 import { JobRow } from './JobRow'
 
-const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'min_score', 'posted_within', 'hide_duplicates']
+const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'min_score', 'posted_within', 'hide_duplicates', 'label', 'flags']
 
 export default function DiscoverPage() {
   const navigate = useNavigate()
@@ -39,6 +42,8 @@ export default function DiscoverPage() {
     min_score: url.get('min_score') ? Number(url.get('min_score')) : null,
     posted_within: url.get('posted_within') ? Number(url.get('posted_within')) : null,
     hide_duplicates: url.get('hide_duplicates') === '1',
+    label: (url.get('label') as JobFilters['label']) ?? null,
+    flags: (url.get('flags') as JobFilters['flags']) ?? null,
     sort: (url.get('sort') as JobFilters['sort']) ?? 'fit',
   }
   const selectedId = url.get('job') ? Number(url.get('job')) : null
@@ -89,6 +94,24 @@ export default function DiscoverPage() {
   }
   const byId = (id: number) => items.find((j) => j.id === id)
 
+  const labelJob = useLabelJob()
+  const setLabel = (id: number, label: UserLabel | null) => {
+    labelJob.mutate(
+      { jobId: id, label },
+      { onError: (e) => toast.error(`Couldn't save the label: ${e.message}`) },
+    )
+  }
+  const toggleLabel = (id: number, label: UserLabel) => {
+    const job = byId(id)
+    if (job) setLabel(id, job.user_label === label ? null : label)
+  }
+  const profile = useSearchProfile()
+  const threshold = profile.data?.min_fit_score ?? null
+  const dividerAt =
+    filters.sort === 'fit' && threshold != null
+      ? items.findIndex((j) => j.fit?.score != null && j.fit.score < threshold)
+      : -1
+
   useListKeyboard({
     ids,
     selectedId,
@@ -97,6 +120,9 @@ export default function DiscoverPage() {
     actions: {
       s: (id) => byId(id) && act(byId(id)!, 'shortlist'),
       d: (id) => byId(id) && act(byId(id)!, 'dismiss'),
+      '1': (id) => toggleLabel(id, 'good'),
+      '2': (id) => toggleLabel(id, 'maybe'),
+      '3': (id) => toggleLabel(id, 'no'),
     },
   })
   useHotkeys({ escape: () => select(null) }, { enabled: selectedId !== null })
@@ -126,6 +152,7 @@ export default function DiscoverPage() {
         </Tabs>
       </PageHeader>
       <DiscoveryProgress />
+      <ScoringProgress />
       <FilterBar filters={filters} onChange={setFilters} onClear={clearFilters} />
 
       <div className="flex min-h-0 flex-1">
@@ -171,15 +198,23 @@ export default function DiscoverPage() {
               />
             )
           ) : (
-            items.map((job) => (
-              <JobRow
-                key={job.id}
-                job={job}
-                selected={job.id === selectedId}
-                onSelect={() => select(job.id === selectedId ? null : job.id)}
-                onShortlist={() => act(job, 'shortlist')}
-                onDismiss={() => act(job, 'dismiss')}
-              />
+            items.map((job, index) => (
+              <Fragment key={job.id}>
+                {index === dividerAt && index > 0 && (
+                  <div className="flex items-center gap-3 bg-bg-subtle px-6 py-1.5 text-2xs font-medium text-fg-subtle">
+                    <span className="h-px flex-1 bg-border" />
+                    Below your shortlist threshold ({threshold})
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                )}
+                <JobRow
+                  job={job}
+                  selected={job.id === selectedId}
+                  onSelect={() => select(job.id === selectedId ? null : job.id)}
+                  onShortlist={() => act(job, 'shortlist')}
+                  onDismiss={() => act(job, 'dismiss')}
+                />
+              </Fragment>
             ))
           )}
         </div>
@@ -190,6 +225,7 @@ export default function DiscoverPage() {
             onClose={() => select(null)}
             onShortlist={() => selectedJob && act(selectedJob, 'shortlist')}
             onDismiss={() => selectedJob && act(selectedJob, 'dismiss')}
+            onLabel={(label) => setLabel(selectedId, label)}
           />
         )}
       </div>

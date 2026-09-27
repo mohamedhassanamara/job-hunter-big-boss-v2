@@ -8,6 +8,8 @@ export function hasActiveFilters(f: JobFilters) {
     f.country?.length ||
     f.min_score ||
     f.posted_within ||
-    f.hide_duplicates
+    f.hide_duplicates ||
+    f.label ||
+    f.flags
   )
 }

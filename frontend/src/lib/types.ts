@@ -5,7 +5,7 @@ export type Route = 'undecided' | 'cold_email' | 'web_apply'
 export type ContactTier = 'apollo_dump' | 'lookup_queued' | 'lookup_found' | 'none'
 export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj'
 export type RemoteType = 'remote' | 'hybrid' | 'onsite' | 'unknown'
-export type FitBand = 'strong' | 'good' | 'fair' | 'weak'
+export type FitBand = 'strong' | 'good' | 'fair' | 'weak' | 'failed' | 'pending'
 export type CloseReason = 'dismissed' | 'rejected' | 'withdrawn' | 'no_response' | 'offer'
 export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification'
 
@@ -15,16 +15,52 @@ export interface CompanyRef {
   contacted_at: string | null
 }
 
+export type Confidence = 'high' | 'medium' | 'low'
+export type UserLabel = 'good' | 'maybe' | 'no'
+export type DescriptionLevel = 'full' | 'summary' | 'snippet'
+
 export interface FitBrief {
-  score: number
+  score: number | null
   band: FitBand
+  status: 'ok' | 'failed' | 'pending'
+  confidence: Confidence
+  hard_flag: boolean
+  flag_count: number
+  stale: boolean
+}
+
+export type Dimension =
+  | 'role_match'
+  | 'skills_match'
+  | 'seniority_fit'
+  | 'location_eligibility'
+  | 'language_requirements'
+
+export interface SubScoreOut {
+  score: number
+  reason: string
+  evidence: string
+  evidence_verified: boolean
+}
+
+export interface RedFlagOut {
+  type: string
+  text: string
+  evidence: string
+  evidence_verified: boolean
+  severity: 'hard' | 'soft'
 }
 
 export interface FitDetail extends FitBrief {
+  sub_scores: Partial<Record<Dimension, SubScoreOut>>
+  red_flags: RedFlagOut[]
   strengths: string[]
   gaps: string[]
   summary: string
   model: string
+  prompt_version: string | null
+  error: string | null
+  duration_ms: number | null
   created_at: string
 }
 
@@ -40,6 +76,8 @@ export interface ApplicationBrief {
 
 export interface JobListItem {
   id: number
+  description_level: DescriptionLevel
+  user_label: UserLabel | null
   title: string
   company: CompanyRef
   source: Source
@@ -467,4 +505,40 @@ export interface SearchHit {
   title: string
   subtitle: string
   href: string
+}
+
+export interface ScoringStatus {
+  running: boolean
+  blocked: string | null
+  queued: number
+  in_progress: { job_id: number; title: string }[]
+  done: number
+  failed: number
+  total: number
+  avg_seconds: number | null
+  eta_seconds: number | null
+  last_error: string | null
+  jobs_total: number
+  scored: number
+  stale: number
+  unscored: number
+  failed_jobs: number
+  model: string
+  prompt_version: string
+}
+
+export interface ScoringHealth {
+  reachable: boolean
+  model: string
+  model_present: boolean
+  message: string
+  models: string[]
+  pull_command: string
+}
+
+export interface FullListingResult {
+  ok: boolean
+  message: string
+  can_paste: boolean
+  characters: number
 }
