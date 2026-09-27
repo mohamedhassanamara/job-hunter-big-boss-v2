@@ -59,7 +59,8 @@ def test_flag_checks_become_verified_flags() -> None:
     from app.services.fit import ScoringConfig, build_record
 
     sub = SubScore(score=8, reason="r", evidence="")
-    text = "Data role in Dubai. This position is open to UAE nationals only. Fluent German required."
+    text = ("Data role in Dubai. This position is open to UAE nationals only. "
+            "Fluent German required.")
     assessment = FitAssessment(
         role_match=sub, skills_match=sub, seniority_fit=sub, location_eligibility=sub,
         language_requirements=sub, summary="s",
