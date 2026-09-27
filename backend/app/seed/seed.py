@@ -11,7 +11,7 @@ import zlib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
-from sqlalchemy import Engine, delete
+from sqlalchemy import Engine, delete, update
 from sqlmodel import Session, SQLModel, select
 
 import app.models  # noqa: F401
@@ -64,6 +64,10 @@ FORWARD = [Stage.new, Stage.shortlisted, Stage.cv_ready, Stage.ready, Stage.done
 
 
 def _clear(session: Session) -> None:
+    # application.applied_cv_version_id ↔ cv_version.application_id is a cycle: break it first,
+    # then children go before parents.
+    session.exec(update(Application).values(applied_cv_version_id=None))  # type: ignore[call-overload]
+    session.flush()
     for table in reversed(SQLModel.metadata.sorted_tables):
         session.exec(delete(table))  # type: ignore[call-overload]
 
