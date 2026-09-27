@@ -19,7 +19,7 @@ from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient, SourceError
 from app.services.geo import country_from_text
-from app.services.prefilter import matches_role
+from app.services.roles import match_track, tracks_of
 from app.services.text import html_to_text
 
 ATS_KINDS = ("greenhouse", "lever", "ashby", "workable", "smartrecruiters")
@@ -230,7 +230,8 @@ def parse_smartrecruiters(
 
 def _sr_worth_detail(item: dict[str, Any], profile: ProfileSpec) -> bool:
     """Would this posting plausibly survive the pre-filter? Only then is the detail worth a call."""
-    if profile.roles and not matches_role(item.get("name") or "", profile.roles):
+    tracks = tracks_of(profile)
+    if tracks and not match_track(item.get("name") or "", tracks):
         return False
     loc = item.get("location") or {}
     targets = {c.upper() for c in profile.locations}

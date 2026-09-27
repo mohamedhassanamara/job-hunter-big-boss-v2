@@ -549,7 +549,18 @@ SETTINGS: dict[str, dict] = {
 
 SEARCH_PROFILE = {
     "name": "Data / AI Engineering, South EU + remote",
-    "roles": ["Data Engineer", "AI Engineer", "ML Engineer", "Analytics Engineer"],
+    # Tour sandbox sample only; the real workspace's roles come from Settings → Search profile.
+    "roles": ["Data Engineer", "AI Engineer", "ML Engineer", "Analytics Engineer",
+              "Flutter Developer", "Mobile Developer"],
+    "tracks": [
+        {"name": "Data/AI", "years_experience": 2.5, "roles": [
+            {"title": "Data Engineer"}, {"title": "AI Engineer"}, {"title": "ML Engineer"},
+            {"title": "Analytics Engineer"},
+        ]},
+        {"name": "Mobile", "years_experience": 2.5, "roles": [
+            {"title": "Flutter Developer"}, {"title": "Mobile Developer"},
+        ]},
+    ],
     "keywords": ["spark", "dbt", "airflow", "kafka", "llm", "rag", "python", "aws", "gcp"],
     # Title keywords that are never relevant. No seniority words by default: every level stays
     # visible and the user decides what to pursue.

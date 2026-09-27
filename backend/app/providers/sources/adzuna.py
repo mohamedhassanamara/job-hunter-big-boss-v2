@@ -14,6 +14,7 @@ from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient
 from app.services.geo import country_from_text, fold
+from app.services.roles import capped, query_phrases
 from app.services.text import html_to_text
 
 BASE = "https://api.adzuna.com/v1/api/jobs"
@@ -27,6 +28,7 @@ ENDPOINTS = {
 _CURRENCY = {"GB": "£", "US": "$", "AU": "A$", "CA": "C$", "CH": "CHF ", "IN": "₹", "PL": "zł ",
              "BR": "R$", "MX": "MX$", "NZ": "NZ$", "SG": "S$", "ZA": "R"}
 RESULTS_PER_PAGE = 50
+MAX_QUERIES_PER_COUNTRY = 16  # requests per country per run (titles first, then variants)
 
 _REMOTE_WORDS = {"remote", "teletrabajo", "remoto", "remota", "teletravail", "full remote"}
 _HYBRID_WORDS = {"hybrid", "hibrido", "hybride", "ibrido"}
@@ -118,7 +120,9 @@ class AdzunaSource:
         with PoliteClient("Adzuna", min_interval=1.5) as client:
             try:
                 for country in self.targets(profile):
-                    for role in profile.roles:
+                    phrases = capped(query_phrases(profile, country), MAX_QUERIES_PER_COUNTRY,
+                                     self.warnings, f"Adzuna {country}")
+                    for role in phrases:
                         payload = client.get_json(
                             f"{BASE}/{ENDPOINTS[country]}/search/1",
                             params={

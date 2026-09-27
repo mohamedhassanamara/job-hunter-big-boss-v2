@@ -12,6 +12,14 @@ class Source(StrEnum):
     bayt = "bayt"
 
 
+class ScoringTaskStatus(StrEnum):
+    queued = "queued"
+    in_progress = "in_progress"
+    done = "done"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
 class RemoteScope(StrEnum):
     """Which remote jobs count as eligible (see services/geo.remote_allows)."""
 

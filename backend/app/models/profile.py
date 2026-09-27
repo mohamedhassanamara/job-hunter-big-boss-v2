@@ -11,7 +11,9 @@ class SearchProfile(TableBase, table=True):
     __tablename__ = "search_profile"
 
     name: str
-    roles: list[str] = json_field()
+    roles: list[str] = json_field()  # all role titles, derived from `tracks` on save
+    # [{name, years_experience, roles: [{title, variants: {lang: [..]}}]}]
+    tracks: list[dict[str, Any]] = json_field()
     keywords: list[str] = json_field()
     excluded_keywords: list[str] = json_field()
     locations: list[str] = json_field()

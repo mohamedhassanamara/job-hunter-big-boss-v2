@@ -6,6 +6,7 @@ from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
 from app.models.queue import SendQueue, SendQueueItem
+from app.models.scoring import ScoringRun, ScoringTask
 from app.models.settings import AppSetting
 
 __all__ = [
@@ -21,6 +22,8 @@ __all__ = [
     "Job",
     "OutreachDraft",
     "SearchProfile",
+    "ScoringRun",
+    "ScoringTask",
     "SendQueue",
     "SendQueueItem",
     "SourceRun",
