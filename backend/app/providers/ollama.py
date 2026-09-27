@@ -95,7 +95,15 @@ def inline_schema(model: type[FitAssessment]) -> dict[str, Any]:
             return [resolve(v) for v in node]
         return node
 
-    return resolve(schema)
+    out = resolve(schema)
+    # Every check must be answered: required even though Python gives them defaults.
+    if "flag_checks" in out.get("properties", {}):
+        out["required"] = sorted(set(out.get("required", [])) | {"flag_checks"})
+        checks = out["properties"]["flag_checks"]
+        checks["required"] = sorted(checks.get("properties", {}))
+        for check in checks.get("properties", {}).values():
+            check["required"] = ["present", "evidence"]
+    return out
 
 
 @dataclass

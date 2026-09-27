@@ -44,6 +44,7 @@ from app.services import fit
 from app.services.experience import format_range
 from app.services.geo import country_catalog
 from app.services.prompt import load_prompt
+from app.services.roles import all_titles, match_track
 
 log = logging.getLogger("jobhunter.scoring")
 DEFAULT_CLOUD = {"min": 1, "start": 4, "max": 4}
@@ -149,6 +150,29 @@ def job_content_hash(job: Job, company: Company) -> str:
 _country_names = {c["code"]: c["name"] for c in country_catalog()}
 
 
+def _track_fields(job: Job, ctx: ScoringContext) -> dict[str, str]:
+    """The track this job matched (Settings → Search profile), for role/seniority judgement."""
+    tracks = ctx.tracks or []
+    name, role = job.matched_track, job.matched_role
+    if name is None and tracks:  # older jobs: match now (read-only, nothing is stored)
+        hit = match_track(job.title, tracks)
+        name, role = hit if hit else (None, None)
+    track = next((t for t in tracks if (t.get("name") or "") == (name or "")), None)
+    if track is None:
+        titles = all_titles(tracks)
+        return {"track": "(no track matched)", "track_roles": ", ".join(titles) or "(none set)",
+                "track_years": str(ctx.profile.get("years_experience") or "(not provided)"),
+                "matched_role": "(none)"}
+    years = track.get("years_experience")
+    return {
+        "track": track.get("name") or "(unnamed)",
+        "track_roles": ", ".join(r["title"] for r in track.get("roles") or []),
+        "track_years": str(years) if years is not None else str(
+            ctx.profile.get("years_experience") or "(not provided)"),
+        "matched_role": role or "(none)",
+    }
+
+
 def render(job: Job, company: Company, ctx: ScoringContext) -> tuple[str, str]:
     prompt = load_prompt(PROMPT_NAME)
     languages = ", ".join(
@@ -164,6 +188,7 @@ def render(job: Job, company: Company, ctx: ScoringContext) -> tuple[str, str]:
         target_countries=", ".join(_country_names.get(c, c) for c in ctx.locations) or "any",
         languages=languages or "(not provided)",
         years_experience=ctx.profile.get("years_experience") or "(not provided)",
+        **_track_fields(job, ctx),
         experience=ctx.experience_text,
         title=job.title,
         company=company.name,

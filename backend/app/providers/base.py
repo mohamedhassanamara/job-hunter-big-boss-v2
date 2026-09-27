@@ -105,6 +105,23 @@ class RedFlag(BaseModel):
     evidence: str = Field(description="Verbatim quote from the job text")
 
 
+class FlagCheck(BaseModel):
+    present: bool = False
+    evidence: str = Field(default="", description="Verbatim quote when present, else empty")
+
+
+class FlagChecks(BaseModel):
+    """One explicit yes/no per disqualifier type (prompt v3+). Structured output makes the model
+    answer every check instead of taking the "empty red_flags list" shortcut."""
+
+    no_visa_sponsorship: FlagCheck = Field(default_factory=FlagCheck)
+    work_authorization_required: FlagCheck = Field(default_factory=FlagCheck)
+    must_be_based_in: FlagCheck = Field(default_factory=FlagCheck)
+    nationality_restricted: FlagCheck = Field(default_factory=FlagCheck)
+    language_required: FlagCheck = Field(default_factory=FlagCheck)
+    seniority_mismatch: FlagCheck = Field(default_factory=FlagCheck)
+
+
 class FitAssessment(BaseModel):
     """What the LLM returns. The 0-100 score is computed from this in code (services/fit.py)."""
 
@@ -113,6 +130,7 @@ class FitAssessment(BaseModel):
     seniority_fit: SubScore
     location_eligibility: SubScore
     language_requirements: SubScore
+    flag_checks: FlagChecks = Field(default_factory=FlagChecks)
     red_flags: list[RedFlag] = Field(default_factory=list, max_length=8)
     strengths: list[str] = Field(default_factory=list, max_length=3)
     gaps: list[str] = Field(default_factory=list, max_length=3)
