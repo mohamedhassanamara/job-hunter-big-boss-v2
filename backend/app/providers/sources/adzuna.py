@@ -28,7 +28,9 @@ ENDPOINTS = {
 _CURRENCY = {"GB": "£", "US": "$", "AU": "A$", "CA": "C$", "CH": "CHF ", "IN": "₹", "PL": "zł ",
              "BR": "R$", "MX": "MX$", "NZ": "NZ$", "SG": "S$", "ZA": "R"}
 RESULTS_PER_PAGE = 50
-MAX_QUERIES_PER_COUNTRY = 16  # requests per country per run (titles first, then variants)
+# Free tier: 2,500 calls/month. 20 per country × 5 target countries = ~100 per run, every
+# other day (cooldown) ≈ 1,500/month; every track's English titles fit, translations after.
+MAX_QUERIES_PER_COUNTRY = 20
 
 _REMOTE_WORDS = {"remote", "teletrabajo", "remoto", "remota", "teletravail", "full remote"}
 _HYBRID_WORDS = {"hybrid", "hibrido", "hybride", "ibrido"}
@@ -90,7 +92,7 @@ def parse_adzuna(payload: dict[str, Any], country: str) -> list[RawJob]:
 
 class AdzunaSource:
     source = Source.adzuna
-    cooldown_hours = 1.0
+    cooldown_hours = 48.0  # every other day: keeps a daily schedule inside the monthly quota
 
     def __init__(self) -> None:
         settings = get_settings()

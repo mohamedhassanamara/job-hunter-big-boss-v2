@@ -222,3 +222,14 @@ def test_contacts_import_preview(client: TestClient) -> None:
     assert body["total_rows"] == 1
     assert body["mapping"]["email"] == "Email"
     assert body["mapping"]["company"] == "Company"
+
+
+def test_manual_run_can_ignore_a_source_cooldown(client: TestClient) -> None:
+    import time
+
+    r = client.post("/api/discovery/run?ignore_cooldown=adzuna")
+    assert r.status_code == 202
+    for _ in range(100):
+        if not client.get("/api/discovery/status").json()["running"]:
+            break
+        time.sleep(0.05)
