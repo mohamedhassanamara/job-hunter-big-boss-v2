@@ -1,0 +1,157 @@
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{latexsym}
+\usepackage[letterpaper, margin=0.55in, top=0.5in, bottom=0.5in]{geometry}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% --- STYLING ---
+\definecolor{primaryColor}{RGB}{0, 70, 140}
+
+\titleformat{\section}{
+  \scshape\raggedright\large\color{primaryColor}
+}{}{0em}{}[\color{primaryColor}\titlerule]
+\titlespacing*{\section}{0pt}{6pt}{4pt}
+
+\newcommand{\resumeItem}[1]{
+  \item\small{#1}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=5pt, topsep=2pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=1.5pt, topsep=2pt, parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}}
+
+\begin{document}
+
+%----------HEADER----------
+\begin{center}
+    \textbf{\Huge \scshape \textcolor{primaryColor}{Mohamed Hassen Amara}} \\ \vspace{4pt}
+    \small
+    \faIcon{map-marker-alt} Tunis, Tunisia \hspace{1pt}$|$\hspace{1pt}
+    \faIcon{phone} +21656727924 \hspace{1pt}$|$\hspace{1pt}
+    \faIcon{envelope} \href{mailto:mohamedhassenamara@gmail.com}{\underline{mohamedhassenamara@gmail.com}} \\ \vspace{2pt}
+    \faIcon{linkedin} \href{https://linkedin.com/in/mohamed-hassen-amara}{\underline{linkedin.com/in/mohamed-hassen-amara}} \hspace{1pt}$|$\hspace{1pt}
+    \faIcon{github} \href{https://github.com/mohamedhassanamara}{\underline{github.com/mohamedhassanamara}}
+\end{center}
+
+%-----------SUMMARY-----------
+\section{Summary}
+\small{Software and AI Engineer with over 2 years of experience developing robust data pipelines, scalable backend integrations, and mobile architectures. Proven expertise across batch ETL/ELT orchestration, local LLM systems, and high-performance Flutter applications.}
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0pt, label={}, itemsep=1.5pt, topsep=1pt]
+    \small{\item{
+     \textbf{Data Engineering \& Backend}{: Python, SQL, dbt, Apache Airflow, DuckDB, PostgreSQL, FastAPI, Spring Boot, Docker, Terraform} \\
+     \textbf{AI \& Machine Learning}{: LLMs (Mistral, Ollama), NLP, spaCy, YOLOv8, TF-IDF, RAG, Computer Vision, MLflow} \\
+     \textbf{Mobile \& Frontend}{: Dart, Flutter, Clean Architecture, Riverpod, GoRouter, REST APIs, GraphQL, BFF Architecture} \\
+     \textbf{Tools \& Infrastructure}{: Git, GitHub Actions, LocalStack (S3), Linux/Bash, TestFlight, MQTT}
+    }}
+ \end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Professional Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Software Engineer}{Sep 2025 -- Present}
+      {Reality Sports}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to accelerate mobile API integration, reducing integration time by 40\% and unblocking parallel development cycles.}
+        \resumeItem{Shipped a full-stack sports management platform, managing mobile client releases to the App Store and Google Play while coordinating real-time backend synchronization.}
+        \resumeItem{Spearheaded refactoring legacy code to Riverpod and GoRouter, eliminating 90\% of critical bugs on core flows and reducing app size by 15\%.}
+        \resumeItem{Engineered 10+ custom Flutter screens and established a unit/widget testing culture achieving $\sim$80\% code coverage.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {AI Engineer (Graduation Project)}{Feb 2025 -- Aug 2025}
+      {Nexaminds}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Designed a privacy-first resume parsing engine using a local Mistral LLM, replacing external APIs to guarantee data confidentiality and cut operational costs.}
+        \resumeItem{Programmed an AI pre-screen interview system using Whisper (STT) and Google TTS to conduct real-time automated candidate assessments.}
+        \resumeItem{Dockerized the multi-model pipeline, creating reproducible container images to streamline local execution and deployment.}
+      \resumeItemListEnd
+
+
+\resumeSubheading
+      {Mobile Developer}{Oct 2022 -- Feb 2025}
+      {Nexaminds}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Engineered the frontend architecture for ``Lovester'', delivering fluid 60fps animations across 25+ unique application screens.}
+        \resumeItem{Migrated architecture from Provider to Riverpod and built testing pipelines, cutting regression bugs by 20\%.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {AI Mobile Developer Intern}{Jul 2024 -- Nov 2024}
+      {Orange Digital Center}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Built ``Voltisense,'' an IoT mobile app visualizing household energy metrics via sub-second MQTT streaming.}
+        \resumeItem{Secured 2nd place out of 20+ teams in the Orange Summer Challenge through end-to-end model-to-mobile prototype delivery.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading
+      {\textbf{FPL Batch Data Lakehouse} $|$ \emph{Python, dbt, Airflow, DuckDB, Terraform, Docker}}{Personal Project}
+      \resumeItemListStart
+        \resumeItem{Built an end-to-end local lakehouse ingesting 5 seasons ($\sim$140K+ records) of Premier League data into LocalStack S3, with idempotent, retry-safe Python pipelines handling schema drift automatically.}
+        \resumeItem{Designed a dbt star schema on DuckDB with custom entity resolution reconciling $\sim$2,000 player identities across disparate schemas, achieving 10/10 passing tests across 4 resolved collision classes.}
+        \resumeItem{Orchestrated full ingest-to-transform pipelines using dependency-chained Airflow DAGs within Docker Compose.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%-----------CERTIFICATIONS-----------
+\section{Certifications}
+ \begin{itemize}[leftmargin=0pt, label={}, itemsep=2pt, topsep=1pt]
+    \small{\item{
+     \href{https://www.datacamp.com/certificate/DE0015568725673}{\underline{\textbf{Data Engineer Certificate} (Issued by: DataCamp, ID: DE0015568725673)}} \\
+     \href{https://www.coursera.org/account/accomplishments/specialization/8154W4WB0W5O}{\underline{\textbf{Data Engineering Professional Certificate} (Issued by: DeepLearning.AI, ID: 8154W4WB0W5O)}}
+    }}
+ \end{itemize}
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {National Institute of Applied Sciences and Technologies}{Sep 2020 -- Jun 2025}
+      {Software Engineering Degree}{Tunis, Tunisia}
+  \resumeSubHeadingListEnd
+
+\end{document}
