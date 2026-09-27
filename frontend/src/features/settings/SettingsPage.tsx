@@ -1,4 +1,4 @@
-import { Bot, CalendarClock, Database, Mail, Radar, SlidersHorizontal } from 'lucide-react'
+import { Bot, CalendarClock, Database, Gauge, Mail, Radar, SlidersHorizontal, UserRound } from 'lucide-react'
 import { PageHeader } from '@/components/app/PageHeader'
 import { ErrorState } from '@/components/app/states'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -12,10 +12,13 @@ import {
   ProfileSection,
   ScheduleSection,
 } from './sections'
+import { CandidateSection, ScoringSection } from './ScoringSections'
 import { SourcesSection } from './SourcesSection'
 
 const SECTIONS = [
   { id: 'profile', label: 'Search profile', icon: SlidersHorizontal },
+  { id: 'candidate', label: 'Candidate', icon: UserRound },
+  { id: 'scoring', label: 'Scoring', icon: Gauge },
   { id: 'sources', label: 'Sources', icon: Radar },
   { id: 'schedule', label: 'Schedule', icon: CalendarClock },
   { id: 'models', label: 'Models', icon: Bot },
@@ -58,6 +61,10 @@ export default function SettingsPage() {
                 <Skeleton className="h-16" />
                 <Skeleton className="h-64" />
               </div>
+            ) : section === 'candidate' ? (
+              <CandidateSection key={JSON.stringify(settings.data.values.profile)} settings={settings.data} />
+            ) : section === 'scoring' ? (
+              <ScoringSection key={JSON.stringify(settings.data.values.scoring)} settings={settings.data} />
             ) : section === 'sources' ? (
               <SourcesSection settings={settings.data} />
             ) : section === 'schedule' ? (

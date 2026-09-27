@@ -113,7 +113,7 @@ export function JobPanel({
               <ExternalListingButton url={job.url} label={`Open on ${SOURCE_LABELS[job.source]}`} />
             </div>
 
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-2">
+            <div data-tour="discover-label" className="flex items-center justify-between gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-2">
               <div>
                 <p className="text-xs font-medium">Your label</p>
                 <p className="text-2xs text-fg-subtle">Helps evaluate the scorer. Not a pipeline stage.</p>
@@ -121,7 +121,9 @@ export function JobPanel({
               <LabelPicker value={job.user_label} onChange={onLabel} />
             </div>
             <JobFlags job={job} />
-            <FitCard job={job} />
+            <div data-tour="discover-fit">
+              <FitCard job={job} />
+            </div>
             <ContactCard job={job} />
 
             <div>
