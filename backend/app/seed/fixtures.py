@@ -531,6 +531,7 @@ SETTINGS: dict[str, dict] = {
         "full_name": "",
         "email": "",
         "phone": "",
+        "total_years_override": None,  # replaces the years computed from role dates (CVs)
         "links": [],  # [{"type": "linkedin|github|portfolio|other", "label": "", "url": ""}]
         "based_in": "",
         "nationality": "",

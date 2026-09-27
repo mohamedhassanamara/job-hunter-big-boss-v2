@@ -102,7 +102,8 @@ def role_years(pool: Pool, today: date | None = None) -> float:
 def years_facts(pool: Pool, tracks: list[dict[str, Any]],
                 today: date | None = None) -> list[dict[str, Any]]:
     """The only years-of-experience claims a CV may make: the user's per-track years (Settings →
-    Search profile) and the total computed from role dates. Stated as "N+ years"."""
+    Search profile) and the total, which is the Settings → Candidate override when set,
+    otherwise computed from role dates. Stated as "N+ years"."""
     facts = []
     for track in tracks:
         years = track.get("years_experience")
@@ -111,9 +112,13 @@ def years_facts(pool: Pool, tracks: list[dict[str, Any]],
             if n >= 1:
                 facts.append({"label": f"{track['name']} experience (Settings)", "years": n,
                               "wording": f"{n}+ year{'s' if n > 1 else ''}"})
-    total = int(role_years(pool, today))
+    override = pool.profile.get("total_years_override")
+    if override not in (None, ""):
+        total, source = int(float(override)), "Settings"
+    else:
+        total, source = int(role_years(pool, today)), "from role dates"
     if total >= 1:
-        facts.append({"label": "professional experience (from role dates)", "years": total,
+        facts.append({"label": f"professional experience ({source})", "years": total,
                       "wording": f"{total}+ year{'s' if total > 1 else ''}"})
     return facts
 
