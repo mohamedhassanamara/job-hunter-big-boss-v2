@@ -8,8 +8,9 @@ from app.api.deps import SessionDep
 from app.config import get_settings
 from app.db import engine
 from app.models import AppSetting, SearchProfile, SourceRun
-from app.models.enums import RemotePolicy
+from app.models.enums import RemotePolicy, RemoteScope
 from app.schemas.settings import (
+    CountryOut,
     SearchProfileIO,
     SettingsOut,
     SettingValue,
@@ -18,6 +19,7 @@ from app.schemas.settings import (
 from app.seed.seed import reset_sandbox, seed
 from app.services import scheduler
 from app.services.discovery import is_running
+from app.services.geo import country_catalog
 from app.services.scoring import recompute_all
 
 router = APIRouter(tags=["settings"])
@@ -87,12 +89,25 @@ def get_profile(session: SessionDep) -> SearchProfileIO:
     return SearchProfileIO.model_validate(_profile(session), from_attributes=True)
 
 
+@router.get("/countries", response_model=list[CountryOut])
+def countries() -> list[CountryOut]:
+    """Countries the location parser recognises (the Settings picker offers exactly these)."""
+    return [CountryOut(**c) for c in country_catalog()]
+
+
 @router.put("/search-profile", response_model=SearchProfileIO)
 def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
     try:
         RemotePolicy(body.remote_policy)
     except ValueError as exc:
         raise HTTPException(422, f"Unknown remote policy {body.remote_policy}") from exc
+    try:
+        RemoteScope(body.remote_scope)
+    except ValueError as exc:
+        raise HTTPException(422, f"Unknown remote scope {body.remote_scope}") from exc
+    known = {c["code"] for c in country_catalog()}
+    if unknown := [c for c in body.locations if c not in known]:
+        raise HTTPException(422, f"Unknown country codes: {', '.join(unknown)}")
     if not 0 <= body.min_fit_score <= 100:
         raise HTTPException(422, "min_fit_score must be between 0 and 100")
     if not 1 <= body.max_age_days <= 365:
