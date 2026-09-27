@@ -273,6 +273,7 @@ JOBS: list[JobFx] = [
         mission="builds autonomous robots for construction sites",
         stack=["Spark", "Delta Lake", "Databricks", "Python"],
         stage="ready", route="web_apply", tier="none", days_in_stage=2.2,
+        extra={"good_to_know": "Candidates must already have the right to work in the EU; we are unable to sponsor visas. Fluent Italian is required for daily work on site."},
     ),
     JobFx(
         key="kelpie-staff", source="arbeitnow", title="Staff Data Engineer",
@@ -340,6 +341,7 @@ JOBS: list[JobFx] = [
         mission="modernizes reporting for a 120-year-old insurance group",
         stack=["Hadoop", "Hive", "Spark", "Cloudera"],
         stage="closed", close_reason="dismissed", days_in_stage=1.0,
+        extra={"good_to_know": "This position requires professional fluency in French. No visa sponsorship is available."},
     ),
     JobFx(
         key="brume-llm-dup", source="adzuna", title="AI Engineer - LLM Platform",
@@ -385,7 +387,7 @@ As our next {j.title}, you'll join a small team that owns the data and AI founda
 - Prior work in a scale-up environment
 
 ## What we offer
-Competitive salary{f" ({j.salary})" if j.salary else ""}, learning budget, flexible hours, and 25 days of holiday."""
+Competitive salary{f" ({j.salary})" if j.salary else ""}, learning budget, flexible hours, and 25 days of holiday.{f"{chr(10)}{chr(10)}## Good to know{chr(10)}{j.extra['good_to_know']}" if j.extra.get('good_to_know') else ""}"""
 
 
 # --------------------------------------------------------------------------------------------

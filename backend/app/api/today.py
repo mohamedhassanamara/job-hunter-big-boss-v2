@@ -40,9 +40,10 @@ def today(session: SessionDep) -> TodayOut:
         .where(Application.stage == Stage.new, col(Job.duplicate_of_id).is_(None))
     ).all()
     high = [
-        i for i in job_items(session, new_jobs) if i.fit and i.fit.score >= min_fit
+        i for i in job_items(session, new_jobs)
+        if i.fit and i.fit.score is not None and i.fit.score >= min_fit
     ]
-    high.sort(key=lambda i: -(i.fit.score if i.fit else 0))
+    high.sort(key=lambda i: -(i.fit.score or 0) if i.fit else 0)
 
     # CVs to review: latest version per application is a draft.
     latest: dict[int, CVVersion] = {}

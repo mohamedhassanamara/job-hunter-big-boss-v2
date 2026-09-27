@@ -200,18 +200,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             s.add(job)
             s.flush()
             jobs[jf.key] = job
-            s.add(
-                FitScore(
-                    job_id=job.id,
-                    profile_id=profile.id,
-                    score=jf.score,
-                    strengths=jf.strengths,
-                    gaps=jf.gaps,
-                    summary=jf.summary,
-                    model="ollama:qwen2.5:7b (mock)",
-                    created_at=discovered + timedelta(minutes=5),
-                )
-            )
+            s.add(sample_fit(jf, job, company.name, profile.id, discovered, s))
 
             contact = contacts[jf.company][jf.contact] if jf.contact is not None else None
             stage = Stage(jf.stage)
@@ -420,6 +409,70 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
 
 
 _KEY_TO_COMPANY = {j.key: j.company for j in fx.JOBS}
+
+
+def sample_fit(jf, job: Job, company: str, profile_id: int | None, at: datetime, s: Session):  # noqa: ANN001, ANN201
+    """A realistic scored fit for the tour sandbox: sub-scores with reasons and evidence quoted
+    from the (fixture) listing, sample red flags, computed exactly like the real scorer."""
+    from app.providers.base import FitAssessment, RedFlag, SubScore
+    from app.services import fit as fitsvc
+    from app.services.scoring import load_context
+
+    ctx = load_context(s)
+    base = round(jf.score / 10)
+    text = job.description
+    quote = f"comfort with {jf.stack[0]} and {jf.stack[1]}"
+    remote_line = fx.REMOTE_LINE[jf.remote]
+
+    def sub(score: int, reason: str, evidence: str) -> SubScore:
+        return SubScore(score=max(0, min(10, score)), reason=reason, evidence=evidence)
+
+    flags = []
+    good_to_know = jf.extra.get("good_to_know", "")
+    if "sponsor" in good_to_know:
+        sentence = next(p for p in good_to_know.split(". ") if "sponsor" in p)
+        flags.append(RedFlag(type="no_visa_sponsorship", text="No visa sponsorship",
+                             evidence=sentence.rstrip(".")))
+    if "fluen" in good_to_know.lower():
+        sentence = next(p for p in good_to_know.split(". ") if "luen" in p)
+        flags.append(RedFlag(type="language_required", text="Requires a language you don't have",
+                             evidence=sentence.rstrip(".")))
+    senior = any(w in jf.title.lower() for w in ("staff", "lead", "principal"))
+    needs_language = "fluen" in good_to_know.lower()
+    assessment = FitAssessment(
+        role_match=sub(base + 1, "The responsibilities are core data/AI engineering work.",
+                       f"As our next {jf.title}"),
+        skills_match=sub(base, jf.strengths[0] if jf.strengths else "Partial overlap.", quote),
+        seniority_fit=sub(4 if senior else 8, "Staff/lead scope is above your level." if senior
+                          else "Asks for a level that matches yours.",
+                          "Several years of hands-on experience in a similar role"),
+        location_eligibility=sub(9 if jf.remote == "remote" else 5,
+                                 "Remote role." if jf.remote == "remote"
+                                 else "On-site/hybrid; work authorization not stated.",
+                                 remote_line.rstrip(".")),
+        language_requirements=sub(2 if needs_language else 9,
+                                  "Requires a language you don't have." if needs_language
+                                  else "English is enough.",
+                                  "Clear communication in English"),
+        red_flags=flags,
+        strengths=jf.strengths[:3],
+        gaps=jf.gaps[:3],
+        summary=jf.summary,
+    )
+    record = fitsvc.build_record(
+        assessment, job_text=f"{job.title}\n{job.location}\n{text}",
+        description_level=job.description_level, remote_type=job.remote_type, config=ctx.config,
+    )
+    content = fitsvc.content_hash(job.title, company, job.location, job.remote_type, text)
+    return FitScore(
+        job_id=job.id, profile_id=profile_id, model="qwen2.5:7b (sample)",
+        prompt_version=ctx.prompt_version, content_hash=content,
+        experience_version=ctx.experience_version,
+        cache_key=fitsvc.cache_key(content, ctx.experience_version, "qwen2.5:7b (sample)",
+                                   ctx.prompt_version),
+        duration_ms=14_000 + (jf.score * 97) % 9000, created_at=at + timedelta(minutes=5),
+        **record,
+    )
 
 
 def fx_company(job_key: str) -> str:

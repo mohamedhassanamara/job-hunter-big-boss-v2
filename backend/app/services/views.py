@@ -32,7 +32,9 @@ from app.schemas.jobs import (
 from app.services.pipeline import ALLOWED, stage_label
 
 
-def fit_band(score: int) -> str:
+def fit_band(score: int | None) -> str:
+    if score is None:
+        return "pending"
     if score >= 80:
         return "strong"
     if score >= 65:
@@ -47,13 +49,44 @@ def latest_fits(session: Session, job_ids: Iterable[int]) -> dict[int, FitScore]
     if not ids:
         return {}
     rows = session.exec(
-        select(FitScore).where(col(FitScore.job_id).in_(ids)).order_by(col(FitScore.created_at))
+        select(FitScore)
+        .where(col(FitScore.job_id).in_(ids))
+        .order_by(col(FitScore.created_at), col(FitScore.id))
     ).all()
     return {r.job_id: r for r in rows}  # later rows overwrite earlier → latest wins
 
 
-def fit_brief(fit: FitScore | None) -> FitBrief | None:
-    return FitBrief(score=fit.score, band=fit_band(fit.score)) if fit else None
+def _fit_status(fit: FitScore) -> str:
+    if fit.prompt_version is None:  # legacy mock score from before real scoring
+        return "pending"
+    return fit.status
+
+
+def fit_brief(fit: FitScore | None, experience_version: str | None = None) -> FitBrief | None:
+    if fit is None:
+        return None
+    status = _fit_status(fit)
+    score = fit.score if status == "ok" else None
+    return FitBrief(
+        score=score,
+        band="failed" if status == "failed" else fit_band(score),
+        status=status,
+        confidence=fit.confidence,
+        hard_flag=any(f.get("severity") == "hard" for f in fit.red_flags or []),
+        flag_count=len(fit.red_flags or []),
+        stale=bool(
+            status == "ok"
+            and experience_version
+            and fit.experience_version
+            and fit.experience_version != experience_version
+        ),
+    )
+
+
+def current_experience_version(session: Session) -> str:
+    from app.services.scoring import load_context
+
+    return load_context(session).experience_version
 
 
 _STAGE_ORDER = list(Stage)
@@ -75,9 +108,13 @@ def application_brief(app: Application) -> ApplicationBrief:
     )
 
 
-def _job_item(job: Job, company: Company, app: Application, fit: FitScore | None) -> JobListItem:
+def _job_item(
+    job: Job, company: Company, app: Application, fit: FitScore | None, exp_version: str | None
+) -> JobListItem:
     return JobListItem(
         id=job.id,
+        description_level=job.description_level,
+        user_label=job.user_label,
         title=job.title,
         company=CompanyRef(id=company.id, name=company.name, contacted_at=company.contacted_at),
         source=job.source,
@@ -88,7 +125,7 @@ def _job_item(job: Job, company: Company, app: Application, fit: FitScore | None
         salary_text=job.salary_text,
         posted_at=job.posted_at,
         discovered_at=job.discovered_at,
-        fit=fit_brief(fit),
+        fit=fit_brief(fit, exp_version),
         application=application_brief(app),
         duplicate_of_id=job.duplicate_of_id,
         # "Already contacted" means *another* application at this company went out.
@@ -117,7 +154,8 @@ def job_rows(
 
 
 def job_items(session: Session, jobs: Sequence[Job]) -> list[JobListItem]:
-    return [_job_item(*row) for row in job_rows(session, jobs)]
+    exp_version = current_experience_version(session) if jobs else None
+    return [_job_item(*row, exp_version) for row in job_rows(session, jobs)]
 
 
 def job_item(session: Session, job: Job) -> JobListItem:
@@ -201,7 +239,9 @@ def related_jobs(session: Session, jobs: Sequence[Job]) -> list[RelatedJob]:
 
 def job_detail(session: Session, job: Job) -> JobDetail:
     (j, company, app, fit) = job_rows(session, [job])[0]
-    base = _job_item(j, company, app, fit)
+    exp_version = current_experience_version(session)
+    base = _job_item(j, company, app, fit, exp_version)
+    brief = base.fit
     contact = session.get(Contact, app.contact_id) if app.contact_id else None
     contact_count = session.exec(
         select(func.count()).select_from(Contact).where(Contact.company_id == company.id)
@@ -245,15 +285,19 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         **base.model_dump(),
         description=j.description,
         fit_detail=FitDetail(
-            score=fit.score,
-            band=fit_band(fit.score),
+            **brief.model_dump(),
+            sub_scores=fit.sub_scores or {},
+            red_flags=fit.red_flags or [],
             strengths=fit.strengths,
             gaps=fit.gaps,
             summary=fit.summary,
             model=fit.model,
+            prompt_version=fit.prompt_version,
+            error=fit.error,
+            duration_ms=fit.duration_ms,
             created_at=fit.created_at,
         )
-        if fit
+        if fit and brief
         else None,
         notes=app.notes,
         contact=contact_out(contact) if contact else None,

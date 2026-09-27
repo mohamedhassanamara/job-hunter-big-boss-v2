@@ -47,7 +47,8 @@ def list_jobs(
             return False
         if country and (i.country or "REMOTE") not in country:
             return False
-        if min_score is not None and (i.fit is None or i.fit.score < min_score):
+        score = i.fit.score if i.fit else None
+        if min_score is not None and (score is None or score < min_score):
             return False
         if posted_within is not None:
             posted = i.posted_at or i.discovered_at
@@ -57,7 +58,13 @@ def list_jobs(
 
     items = [i for i in items if keep(i)]
     if sort == "fit":
-        items.sort(key=lambda i: (-(i.fit.score if i.fit else -1), i.title))
+        # Scored jobs first by score; pending/failed after, newest first.
+        items.sort(
+            key=lambda i: (
+                -(i.fit.score if i.fit and i.fit.score is not None else -1),
+                -(i.posted_at or i.discovered_at).timestamp(),
+            )
+        )
     else:
         items.sort(key=lambda i: i.posted_at or i.discovered_at, reverse=True)
     return JobList(items=items, total=len(items))

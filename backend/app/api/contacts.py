@@ -127,6 +127,10 @@ async def import_contacts(file: UploadFile = File(...)) -> ImportResult:
     )
 
 
+def _real_score(fit) -> int | None:  # noqa: ANN001
+    return fit.score if fit is not None and fit.prompt_version else None
+
+
 @router.get("/contacts/lookups", response_model=LookupQueue)
 def lookup_queue(session: SessionDep) -> LookupQueue:
     setting = session.exec(select(AppSetting).where(AppSetting.key == "lookup")).first()
@@ -156,7 +160,7 @@ def lookup_queue(session: SessionDep) -> LookupQueue:
                 job_id=a.job_id,
                 job_title=jobs[a.job_id].title,
                 company_name=companies[jobs[a.job_id].company_id].name,
-                fit=fits[a.job_id].score if a.job_id in fits else None,
+                fit=_real_score(fits.get(a.job_id)),
                 queued_at=a.updated_at,
             )
             for a in apps

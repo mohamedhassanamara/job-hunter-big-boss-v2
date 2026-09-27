@@ -11,15 +11,25 @@ class CompanyRef(BaseModel):
 
 
 class FitBrief(BaseModel):
-    score: int
-    band: str  # strong | good | fair | weak
+    score: int | None
+    band: str  # strong | good | fair | weak | failed | pending
+    status: str  # ok | failed | pending (queued / never scored)
+    confidence: str  # high | medium | low
+    hard_flag: bool = False
+    flag_count: int = 0
+    stale: bool = False
 
 
 class FitDetail(FitBrief):
+    sub_scores: dict[str, Any]
+    red_flags: list[dict[str, Any]]
     strengths: list[str]
     gaps: list[str]
     summary: str
     model: str
+    prompt_version: str | None
+    error: str | None
+    duration_ms: int | None
     created_at: datetime
 
 
@@ -35,6 +45,8 @@ class ApplicationBrief(BaseModel):
 
 class JobListItem(BaseModel):
     id: int
+    description_level: str = "full"
+    user_label: str | None = None
     title: str
     company: CompanyRef
     source: str
