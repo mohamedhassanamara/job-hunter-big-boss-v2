@@ -80,6 +80,8 @@ def fit_brief(fit: FitScore | None, experience_version: str | None = None) -> Fi
             and fit.experience_version
             and fit.experience_version != experience_version
         ),
+        model=fit.model,
+        prompt_version=fit.prompt_version,
     )
 
 
@@ -115,6 +117,8 @@ def _job_item(
         id=job.id,
         description_level=job.description_level,
         user_label=job.user_label,
+        matched_track=job.matched_track,
+        matched_role=job.matched_role,
         title=job.title,
         company=CompanyRef(id=company.id, name=company.name, contacted_at=company.contacted_at),
         source=job.source,
@@ -291,8 +295,6 @@ def job_detail(session: Session, job: Job) -> JobDetail:
             strengths=fit.strengths,
             gaps=fit.gaps,
             summary=fit.summary,
-            model=fit.model,
-            prompt_version=fit.prompt_version,
             error=fit.error,
             duration_ms=fit.duration_ms,
             created_at=fit.created_at,

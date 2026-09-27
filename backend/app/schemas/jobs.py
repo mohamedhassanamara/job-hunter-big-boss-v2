@@ -18,6 +18,9 @@ class FitBrief(BaseModel):
     hard_flag: bool = False
     flag_count: int = 0
     stale: bool = False
+    # Provenance: which model and prompt version produced this score.
+    model: str | None = None
+    prompt_version: str | None = None
 
 
 class FitDetail(FitBrief):
@@ -26,8 +29,7 @@ class FitDetail(FitBrief):
     strengths: list[str]
     gaps: list[str]
     summary: str
-    model: str
-    prompt_version: str | None
+    model: str  # always set on a detail (the brief's field is optional)
     error: str | None
     duration_ms: int | None
     created_at: datetime
@@ -47,6 +49,8 @@ class JobListItem(BaseModel):
     id: int
     description_level: str = "full"
     user_label: str | None = None
+    matched_track: str | None = None  # the user's track/role this title matched
+    matched_role: str | None = None
     title: str
     company: CompanyRef
     source: str
