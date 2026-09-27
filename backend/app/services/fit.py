@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.models.enums import Confidence, DescriptionLevel
-from app.providers.base import DIMENSIONS, FitAssessment
+from app.providers.base import DIMENSIONS, FitAssessment, RedFlag
 from app.services.geo import fold
 
 DEFAULT_WEIGHTS = {
@@ -204,7 +204,7 @@ def build_record(
             entry["reason"] += " (Adjusted to unknown: the listing doesn't state this requirement.)"
         subs[dim] = entry
     flags = []
-    for flag in assessment.red_flags:
+    for flag in _all_flags(assessment):
         verified = evidence_found(flag.evidence, job_text)
         flags.append(
             {
@@ -227,6 +227,29 @@ def build_record(
         "summary": assessment.summary.strip(),
         "confidence": confidence(description_level, job_text),
     }
+
+
+_CHECK_TEXT = {
+    "no_visa_sponsorship": "States it can't sponsor visas",
+    "work_authorization_required": "Requires existing work authorization",
+    "must_be_based_in": "Requires living in a specific place",
+    "nationality_restricted": "Restricted to nationals of a country",
+    "language_required": "Requires a language",
+    "seniority_mismatch": "Seniority well above the candidate",
+}
+
+
+def _all_flags(assessment: FitAssessment) -> list[RedFlag]:
+    """The model's red_flags plus every `flag_checks` entry answered present=true (prompt v3),
+    one per type. Same verification and severity rules apply to both."""
+    flags = list(assessment.red_flags)
+    listed = {f.type for f in flags}
+    for kind, check in assessment.flag_checks.model_dump().items():
+        if check["present"] and kind not in listed:
+            evidence = (check.get("evidence") or "").strip()
+            flags.append(RedFlag(type=kind, text=f"{_CHECK_TEXT.get(kind, kind)}: {evidence}"
+                                 if evidence else _CHECK_TEXT.get(kind, kind), evidence=evidence))
+    return flags
 
 
 def recompute(sub_scores: dict[str, Any], red_flags: list[dict], config: ScoringConfig):
