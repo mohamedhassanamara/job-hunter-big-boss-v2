@@ -1,0 +1,52 @@
+{
+  "_note": "Test fixture mirroring templates/reference/cv.tex, for the style golden test only.",
+  "profile": {
+    "full_name": "Mohamed Hassen Amara",
+    "location": "Tunis, Tunisia",
+    "phone": "+21656727924",
+    "email": "mohamedhassenamara@gmail.com",
+    "links": [
+      {"type": "linkedin", "label": "linkedin.com/in/mohamed-hassen-amara", "url": "https://linkedin.com/in/mohamed-hassen-amara"},
+      {"type": "github", "label": "github.com/mohamedhassanamara", "url": "https://github.com/mohamedhassanamara"}
+    ]
+  },
+  "document": {
+    "summary": "Software and AI Engineer with over 2 years of experience developing robust data pipelines, scalable backend integrations, and mobile architectures. Proven expertise across batch ETL/ELT orchestration, local LLM systems, and high-performance Flutter applications.",
+    "skills": [
+      {"category": "Data Engineering & Backend", "items": ["Python", "SQL", "dbt", "Apache Airflow", "DuckDB", "PostgreSQL", "FastAPI", "Spring Boot", "Docker", "Terraform"]},
+      {"category": "AI & Machine Learning", "items": ["LLMs (Mistral, Ollama)", "NLP", "spaCy", "YOLOv8", "TF-IDF", "RAG", "Computer Vision", "MLflow"]},
+      {"category": "Mobile & Frontend", "items": ["Dart", "Flutter", "Clean Architecture", "Riverpod", "GoRouter", "REST APIs", "GraphQL", "BFF Architecture"]},
+      {"category": "Tools & Infrastructure", "items": ["Git", "GitHub Actions", "LocalStack (S3)", "Linux/Bash", "TestFlight", "MQTT"]}
+    ],
+    "roles": [
+      {"title": "Software Engineer", "org": "Reality Sports", "location": "Tunis, Tunisia", "start": "Sep 2025", "end": "Present", "bullets": [
+        "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to accelerate mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+        "Shipped a full-stack sports management platform, managing mobile client releases to the App Store and Google Play while coordinating real-time backend synchronization.",
+        "Spearheaded refactoring legacy code to Riverpod and GoRouter, eliminating 90% of critical bugs on core flows and reducing app size by 15%.",
+        "Engineered 10+ custom Flutter screens and established a unit/widget testing culture achieving ~80% code coverage."]},
+      {"title": "AI Engineer (Graduation Project)", "org": "Nexaminds", "location": "Tunis, Tunisia", "start": "Feb 2025", "end": "Aug 2025", "bullets": [
+        "Designed a privacy-first resume parsing engine using a local Mistral LLM, replacing external APIs to guarantee data confidentiality and cut operational costs.",
+        "Programmed an AI pre-screen interview system using Whisper (STT) and Google TTS to conduct real-time automated candidate assessments.",
+        "Dockerized the multi-model pipeline, creating reproducible container images to streamline local execution and deployment."]},
+      {"title": "Mobile Developer", "org": "Nexaminds", "location": "Tunis, Tunisia", "start": "Oct 2022", "end": "Feb 2025", "bullets": [
+        "Engineered the frontend architecture for \"Lovester\", delivering fluid 60fps animations across 25+ unique application screens.",
+        "Migrated architecture from Provider to Riverpod and built testing pipelines, cutting regression bugs by 20%."]},
+      {"title": "AI Mobile Developer Intern", "org": "Orange Digital Center", "location": "Tunis, Tunisia", "start": "Jul 2024", "end": "Nov 2024", "bullets": [
+        "Built \"Voltisense,\" an IoT mobile app visualizing household energy metrics via sub-second MQTT streaming.",
+        "Secured 2nd place out of 20+ teams in the Orange Summer Challenge through end-to-end model-to-mobile prototype delivery."]}
+    ],
+    "projects": [
+      {"name": "FPL Batch Data Lakehouse", "stack": ["Python", "dbt", "Airflow", "DuckDB", "Terraform", "Docker"], "label": "Personal Project", "bullets": [
+        "Built an end-to-end local lakehouse ingesting 5 seasons (~140K+ records) of Premier League data into LocalStack S3, with idempotent, retry-safe Python pipelines handling schema drift automatically.",
+        "Designed a dbt star schema on DuckDB with custom entity resolution reconciling ~2,000 player identities across disparate schemas, achieving 10/10 passing tests across 4 resolved collision classes.",
+        "Orchestrated full ingest-to-transform pipelines using dependency-chained Airflow DAGs within Docker Compose."]}
+    ],
+    "certifications": [
+      {"name": "Data Engineer Certificate", "issuer": "DataCamp", "credential_id": "DE0015568725673", "url": "https://www.datacamp.com/certificate/DE0015568725673"},
+      {"name": "Data Engineering Professional Certificate", "issuer": "DeepLearning.AI", "credential_id": "8154W4WB0W5O", "url": "https://www.coursera.org/account/accomplishments/specialization/8154W4WB0W5O"}
+    ],
+    "education": [
+      {"school": "National Institute of Applied Sciences and Technologies", "degree": "Software Engineering Degree", "location": "Tunis, Tunisia", "start": "Sep 2020", "end": "Jun 2025"}
+    ]
+  }
+}
