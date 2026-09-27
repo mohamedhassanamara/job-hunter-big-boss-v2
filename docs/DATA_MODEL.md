@@ -93,6 +93,9 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | last_seen_at | datetime? | Updated every time a run sees the listing again (idempotent upsert) |
 | dedupe_key | str (indexed) | `normalized_company|normalized_title|country` |
 | duplicate_of_id | FK job? | Set when the same dedupe_key already exists from another source |
+| description_level | enum `full \| summary \| snippet` | Set per source at ingest (WTTJ = summary, Adzuna = snippet). Becomes full after fetch/paste |
+| full_fetched_at | datetime? | Fetched/pasted full listing (never overwritten by the feed) |
+| user_label / labeled_at | enum `good \| maybe \| no`? | Your judgment for `make eval`, not a stage |
 
 ### contact
 | Column | Type | Notes |
@@ -117,18 +120,26 @@ The master experience that CVs are generated from.
 | bullets | JSON list[str] | Achievement bullets (the CV generator picks from these) |
 | tags | JSON list[str] | "spark", "llm", "gcp", "leadership"… |
 | position | int | Manual order within a kind |
-| is_active | bool | Inactive items are never used in CVs |
+| is_active | bool | Inactive items are never used in CVs or scoring |
+| is_placeholder | bool | Test-CV data. Warned about in the UI and removable in one click. Editing an item makes it yours |
 
 ### fit_score
-History is kept, and the latest row per job is authoritative.
+One scoring attempt. History is kept, and the latest row per job is authoritative.
 | Column | Type | Notes |
 |---|---|---|
 | job_id | FK job | |
 | profile_id | FK search_profile? | |
-| score | int 0–100 | Bands: ≥80 strong, 65–79 good, 50–64 fair, <50 weak |
-| strengths / gaps | JSON list[str] | Short reasons |
-| summary | str | One line |
-| model | str | e.g. `ollama:qwen2.5:7b`, `mock` |
+| status | enum `ok \| failed` | failed rows keep the error and have no score |
+| error | str? | Visible in the UI |
+| score | int 0–100? | **Computed in code** from sub_scores and weights, capped by hard flags. Bands: ≥80 strong, 65–79 good, 50–64 fair, <50 weak |
+| sub_scores | JSON | `{dimension: {score 0-10, reason, evidence, evidence_verified}}` for role_match, skills_match, seniority_fit, location_eligibility, language_requirements |
+| red_flags | JSON | `[{type, text, evidence, evidence_verified, severity hard\|soft}]` |
+| strengths / gaps | JSON list[str] | ≤3 each |
+| summary | str | One sentence |
+| confidence | str | high / medium / low (from job.description_level) |
+| model / prompt_version | str | e.g. `qwen2.5:7b`, `fit_score/v1`. A null prompt_version means a legacy mock score (treated as unscored) |
+| content_hash / experience_version / cache_key | str | Cache: same key and status ok means no rescoring. Stale when experience_version ≠ current |
+| duration_ms | int? | |
 
 ### application
 The pipeline record. It is created when a job is discovered and passes filters, so stage `new` means "untriaged".
