@@ -41,6 +41,7 @@ export interface SubScoreOut {
   reason: string
   evidence: string
   evidence_verified: boolean
+  adjusted_from?: number
 }
 
 export interface RedFlagOut {

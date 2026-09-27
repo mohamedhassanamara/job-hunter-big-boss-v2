@@ -26,6 +26,10 @@ DEFAULT_WEIGHTS = {
 DEFAULT_CAP = 35
 # Flag types that disqualify a candidate who needs visa sponsorship.
 _AUTH_FLAGS = {"no_visa_sponsorship", "work_authorization_required", "must_be_based_in"}
+# Requirement-type dimensions: a penalty (below the neutral 5) must be backed by a verified quote.
+# Without one, the listing doesn't state the requirement, so it's unknown, not a mismatch.
+_EVIDENCE_REQUIRED_TO_PENALIZE = ("location_eligibility", "language_requirements")
+NEUTRAL = 5
 MAX_DESCRIPTION = 6000
 
 
@@ -130,12 +134,18 @@ def build_record(
 ) -> dict[str, Any]:
     subs = {}
     for dim, sub in assessment.sub_scores().items():
-        subs[dim] = {
+        verified = evidence_found(sub.evidence, job_text)
+        entry = {
             "score": sub.score,
             "reason": sub.reason.strip(),
             "evidence": sub.evidence.strip(),
-            "evidence_verified": evidence_found(sub.evidence, job_text),
+            "evidence_verified": verified,
         }
+        if dim in _EVIDENCE_REQUIRED_TO_PENALIZE and sub.score < NEUTRAL and not verified:
+            entry["adjusted_from"] = sub.score
+            entry["score"] = NEUTRAL
+            entry["reason"] += " (Adjusted to unknown: the listing doesn't state this requirement.)"
+        subs[dim] = entry
     flags = []
     for flag in assessment.red_flags:
         verified = evidence_found(flag.evidence, job_text)
