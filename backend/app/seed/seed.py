@@ -85,6 +85,8 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         profile = SearchProfile(**{**fx.SEARCH_PROFILE, "tracks": tracks})
         s.add(profile)
         for key, value in fx.SETTINGS.items():
+            if key == "profile":  # the sandbox gets a fictional candidate so CVs have a header
+                value = {**value, **fx.SANDBOX_CANDIDATE}
             s.add(AppSetting(key=key, value=value))
         queue = SendQueue(status=QueueStatus.idle if empty else QueueStatus.paused)
         s.add(queue)

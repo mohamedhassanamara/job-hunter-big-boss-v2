@@ -1,4 +1,5 @@
 import { ArrowLeft, CircleCheck, Download, FileText, LoaderCircle, RefreshCw, Sparkles } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -10,6 +11,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { apiUrl } from '@/lib/api'
+import { keys } from '@/lib/queries/keys'
 import { relativeTime } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
 import { useApproveCV, useCVStudio, useGenerateCV, useGenerateDraft, usePatchCV } from '@/lib/queries/workflow'
@@ -37,6 +39,7 @@ function FitBadge({ version }: { version: CVVersion }) {
 
 function Workspace({ studio, version }: { studio: CVStudio; version: CVVersion }) {
   const patch = usePatchCV()
+  const qc = useQueryClient()
   const readOnly = version.status === 'superseded'
   const onPatch = (body: CVPatchInput) =>
     patch.mutate(
@@ -73,6 +76,8 @@ function Workspace({ studio, version }: { studio: CVStudio; version: CVVersion }
           <iframe
             key={`${version.id}-${version.updated_at}`}
             title="CV preview"
+            // A version without a PDF (sample data) is compiled on first view: refresh its badge.
+            onLoad={() => version.page_count == null && void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) })}
             src={`${apiUrl(`/cv/${version.id}/pdf`, { v: version.updated_at })}#view=FitH&toolbar=0`}
             className="h-full w-full border-0"
           />

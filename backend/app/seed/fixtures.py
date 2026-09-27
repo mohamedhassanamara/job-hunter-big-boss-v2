@@ -555,6 +555,14 @@ SETTINGS: dict[str, dict] = {
     },
 }
 
+# Tour sandbox only (seed.py): a fictional candidate header for sample CVs.
+SANDBOX_CANDIDATE = {
+    "full_name": "Alex Sample", "based_in": "Lisbon, Portugal", "phone": "+351 000 000 000",
+    "email": "alex.sample@example.com",
+    "links": [{"type": "linkedin", "label": "", "url": "https://linkedin.com/in/alex-sample"},
+              {"type": "github", "label": "", "url": "https://github.com/alex-sample"}],
+}
+
 SEARCH_PROFILE = {
     "name": "Data / AI Engineering, South EU + remote",
     # Tour sandbox sample only; the real workspace's roles come from Settings → Search profile.
