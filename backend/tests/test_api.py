@@ -175,10 +175,29 @@ def test_discovery_run_mock(client: TestClient) -> None:
 def test_sources_list_and_dry_run(client: TestClient) -> None:
     sources = {s["source"]: s for s in client.get("/api/sources").json()}
     assert set(sources) == {"adzuna", "remotive", "arbeitnow", "wttj"}
+    locations = client.get("/api/search-profile").json()["locations"]
+    assert "PT" in sources["adzuna"]["unsupported_countries"] or "PT" not in locations
+    assert sources["remotive"]["unsupported_countries"] == []
     before = client.get("/api/jobs?stage=all").json()["total"]
     result = client.post("/api/sources/arbeitnow/test").json()
     assert result["fetched"] == result["kept"] + result["filtered"]
     assert client.get("/api/jobs?stage=all").json()["total"] == before  # dry run writes nothing
+
+
+def test_countries_and_remote_scope(client: TestClient) -> None:
+    codes = {c["code"]: c for c in client.get("/api/countries").json()}
+    assert codes["AE"]["region"] == "Middle East & North Africa"
+    assert codes["BE"]["region"] == "Europe"
+    profile = client.get("/api/search-profile").json()
+    saved = client.put(
+        "/api/search-profile", json={**profile, "locations": ["BE", "JO"], "remote_scope": "europe"}
+    ).json()
+    assert saved["locations"] == ["BE", "JO"] and saved["remote_scope"] == "europe"
+    bad = client.put("/api/search-profile", json={**profile, "locations": ["XX"]})
+    assert bad.status_code == 422
+    bad = client.put("/api/search-profile", json={**profile, "remote_scope": "mars"})
+    assert bad.status_code == 422
+    client.put("/api/search-profile", json=profile)
 
 
 def test_contacts_import_preview(client: TestClient) -> None:

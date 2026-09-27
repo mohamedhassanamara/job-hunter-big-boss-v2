@@ -103,7 +103,7 @@ def _office(hit: dict[str, Any], targets: set[str]) -> dict[str, Any]:
 
 
 def parse_wttj(payload: dict[str, Any], targets: set[str] | None = None) -> list[RawJob]:
-    targets = targets or {"ES", "PT", "FR", "IT"}
+    targets = targets or set()
     results = payload.get("results") or [payload]
     seen: dict[str, RawJob] = {}
     for result in results:

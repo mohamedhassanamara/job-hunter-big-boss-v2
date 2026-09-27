@@ -507,6 +507,7 @@ SETTINGS: dict[str, dict] = {
         "full_name": "",
         "email": "",
         "based_in": "",
+        "nationality": "",
         "work_authorization": "needs_sponsorship",  # needs_sponsorship | eu_authorized
         "languages": [],  # [{"language": "English", "level": "C1"}]
         "years_experience": 0,
@@ -539,8 +540,10 @@ SEARCH_PROFILE = {
         "apprentice", "working student", "werkstudent", "praktikum", "becario", "tirocinio",
         "estagio",
     ],
-    "locations": ["ES", "PT", "FR", "IT"],
+    # Defaults for a fresh workspace only; the user edits them in Settings → Search profile.
+    "locations": ["FR", "ES", "IT", "PT", "DE", "BE", "AE", "QA", "BH", "KW", "JO"],
     "remote_policy": "remote_ok",
+    "remote_scope": "anywhere",
     "min_fit_score": 65,
     "max_age_days": 30,
 }

@@ -28,8 +28,15 @@ class SearchProfileIO(BaseModel):
     excluded_keywords: list[str]
     locations: list[str]
     remote_policy: str
+    remote_scope: str = "anywhere"
     min_fit_score: int
     max_age_days: int = 30
+
+
+class CountryOut(BaseModel):
+    code: str
+    name: str
+    region: str
 
 
 class SettingsOut(BaseModel):
@@ -72,6 +79,8 @@ class SourceInfo(BaseModel):
     cooldown_hours: float
     cooldown_remaining_minutes: int | None
     last_run: SourceRunOut | None
+    # Target countries (from the search profile) this source cannot search.
+    unsupported_countries: list[str] = []
 
 
 class SampleJob(BaseModel):

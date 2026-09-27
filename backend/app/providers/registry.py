@@ -24,6 +24,14 @@ def real_source(source: Source) -> JobSource:
     return factory() if factory else MockJobSource(source)
 
 
+def unsupported_countries(source: Source, targets: list[str]) -> list[str]:
+    """Target countries a source can't search (e.g. Adzuna has no Portugal endpoint)."""
+    from app.providers.sources import REAL_SOURCES
+
+    check = getattr(REAL_SOURCES.get(source), "unsupported_countries", None)
+    return check(targets) if check else []
+
+
 def job_sources(enabled: list[Source], *, mock: bool | None = None) -> dict[Source, JobSource]:
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     return {s: MockJobSource(s) if use_mock else real_source(s) for s in enabled}

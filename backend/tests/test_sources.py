@@ -113,10 +113,14 @@ def test_adzuna_mapper() -> None:
     assert all(j.url.startswith("https://www.adzuna.") for j in jobs)
 
 
-def test_adzuna_skips_portugal_with_warning() -> None:
+def test_adzuna_queries_every_supported_target_and_reports_the_rest() -> None:
     from app.providers.base import ProfileSpec
     from app.providers.sources.adzuna import AdzunaSource
 
     src = AdzunaSource()
-    assert src.targets(ProfileSpec(locations=["ES", "PT", "FR", "IT"])) == ["ES", "FR", "IT"]
-    assert src.warnings == ["Adzuna has no PT endpoint; skipped"]
+    targets = ["FR", "ES", "IT", "PT", "DE", "BE", "AE", "QA", "BH", "KW", "JO"]
+    assert src.targets(ProfileSpec(locations=targets)) == ["FR", "ES", "IT", "DE", "BE"]
+    assert src.warnings == [
+        "Not supported by Adzuna (no endpoint), skipped: PT, AE, QA, BH, KW, JO"
+    ]
+    assert AdzunaSource.unsupported_countries(["DE", "PT"]) == ["PT"]
