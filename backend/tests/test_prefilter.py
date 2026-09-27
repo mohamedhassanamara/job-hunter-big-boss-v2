@@ -46,6 +46,11 @@ def test_role_matches(title: str) -> None:
         "Backend Engineer Kotlin & Data", "System Engineer – Data & Cloud Security",
         "Software Engineer Frontend - AI-Powered Store Manager Companion",
         "Staff Backend Engineer (Databases Analytics)",
+        # Other trades that share the words (real-run noise, 2026-09-27):
+        "Principal Data Center Mechanical Engineer", "Principal Data Center Electrical Engineer",
+        "Data Center Operations Engineer (DCOE) Italy", "Data Centre Engineer",
+        "Datacenter Engineer",
+        "Data Center Chief Engineer - For German Resident Only", "AI Mechanical Engineer",
     ],
 )
 def test_role_non_matches(title: str) -> None:

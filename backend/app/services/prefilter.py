@@ -45,6 +45,13 @@ _WORDS = {
     "analytique": "analytics",
 }
 _MAX_GAP = 2  # words allowed between role tokens ("data platform engineer" ~ "data engineer")
+# Titles that contain role words but are a different trade: "Data Center Mechanical Engineer" is
+# facilities engineering, "Data Entry" is clerical. Matched on folded titles, before role matching.
+_NOISE_PHRASES = ("data center", "data centre", "datacenter", "datacentre", "data centers",
+                  "data centres", "data entry")
+# A gap word from another engineering discipline breaks the match ("AI Mechanical Engineer").
+_BLOCKING_GAP = {"electrical", "mechanical", "civil", "hvac", "facilities", "facility",
+                 "construction", "commissioning", "mep", "cabling", "structural", "plumbing"}
 # Romance-language job words: only these titles put the noun first ("Ingeniero de datos").
 _ROMANCE = {"ingenieur", "ingenieure", "ingeniero", "ingeniera", "ingegnere", "engenheiro",
             "engenheira"}
@@ -77,6 +84,10 @@ def _in_order(words: list[str], tokens: list[str], starts: set[int] | None = Non
             if tok not in window:
                 ok = False
                 break
+            gap = window[: window.index(tok)]
+            if _BLOCKING_GAP.intersection(gap):
+                ok = False
+                break
             pos = pos + 1 + window.index(tok)
         if ok:
             return True
@@ -84,6 +95,9 @@ def _in_order(words: list[str], tokens: list[str], starts: set[int] | None = Non
 
 
 def matches_role(title: str, roles: list[str]) -> str | None:
+    folded = f" {fold(title)} "
+    if any(f" {phrase} " in folded for phrase in _NOISE_PHRASES):
+        return None
     pairs = _normalize(title)
     words = [tok for tok, _ in pairs]
     romance = {i for i, (_, is_romance) in enumerate(pairs) if is_romance}
