@@ -3,9 +3,14 @@
 The CLI runs in an empty temp directory with our own system prompt, no tools, no settings or
 MCP servers, so it's a plain "JSON in, JSON out" call. `--json-schema` makes the CLI validate
 the answer and return it as `structured_output`; we validate it again with Pydantic.
+
+Subscription only: API-key variables are removed from the child environment, and the CLI's own
+auth report (`apiKeySource` in the stream's init event) must be "none", i.e. the user's Claude
+login. Anything else stops before any usage is billed to an API key.
 """
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -19,6 +24,7 @@ from pydantic import ValidationError
 from app.providers.base import CVGenerationFailed, CVPlan, CVRequest
 
 PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / "cv_generate.md"
+_API_KEY_VARS = {"ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN_FILE"}
 TIMEOUT = 240
 
 
@@ -63,34 +69,58 @@ class ClaudeCVGenerator:
         self.runner = runner
         self.timeout = timeout
         self.prompt_version, self.system_prompt = load_system_prompt()
-        self.last_cost_usd: float | None = None
+        self.last_cost_usd: float | None = None  # notional for subscriptions; not billed
+        self.auth_source: str | None = None
         self.last_duration_ms: int | None = None
 
     def command(self) -> list[str]:
         return [
-            self.binary, "-p", "--output-format", "json", "--no-session-persistence",
+            self.binary, "-p", "--output-format", "stream-json", "--verbose",
+            "--no-session-persistence",
             "--model", self.model, "--system-prompt", self.system_prompt,
             "--tools", "", "--setting-sources", "", "--strict-mcp-config",
             "--json-schema", json.dumps(plan_schema()),
         ]
+
+    @staticmethod
+    def child_env() -> dict[str, str]:
+        """The backend's environment minus API keys (force the subscription login) and minus
+        Claude Code session variables (a dev server started from a Claude Code session must not
+        make this CLI think it runs nested inside it)."""
+        return {k: v for k, v in os.environ.items()
+                if k not in _API_KEY_VARS and k != "CLAUDECODE"
+                and not k.startswith("CLAUDE_CODE_") and k not in ("CLAUDE_PID", "CLAUDE_EFFORT")}
 
     def generate(self, request: CVRequest) -> CVPlan:
         started = time.monotonic()
         with tempfile.TemporaryDirectory(prefix="jh-claude-") as tmp:
             try:
                 proc = self.runner(self.command(), input=user_message(request), cwd=tmp,
-                                   capture_output=True, text=True, timeout=self.timeout)
+                                   capture_output=True, text=True, timeout=self.timeout,
+                                   env=self.child_env())
             except FileNotFoundError as exc:
                 raise CVGenerationFailed(
                     "The `claude` CLI isn't installed or not on PATH (Claude Code).") from exc
             except subprocess.TimeoutExpired as exc:
                 raise CVGenerationFailed(f"Claude timed out after {self.timeout}s") from exc
         self.last_duration_ms = int((time.monotonic() - started) * 1000)
-        try:
-            out = json.loads(proc.stdout or "{}")
-        except ValueError as exc:
+        events = []
+        for line in (proc.stdout or "").splitlines():
+            try:
+                events.append(json.loads(line))
+            except ValueError:
+                continue
+        init = next((e for e in events if e.get("type") == "system"
+                     and e.get("subtype") == "init"), None)
+        out = next((e for e in reversed(events) if e.get("type") == "result"), None)
+        if out is None:
             detail = (proc.stderr or proc.stdout or "").strip()[:300]
-            raise CVGenerationFailed(f"Claude returned no JSON: {detail}") from exc
+            raise CVGenerationFailed(f"Claude returned no JSON: {detail}")
+        self.auth_source = (init or {}).get("apiKeySource")
+        if init is not None and self.auth_source not in (None, "none"):
+            raise CVGenerationFailed(
+                f"Claude is authenticated with an API key ({self.auth_source}), not your Claude "
+                "subscription. Remove the key (and sign in with `claude`) before generating.")
         self.last_cost_usd = out.get("total_cost_usd")
         if proc.returncode != 0 or out.get("is_error"):
             message = str(out.get("result") or proc.stderr or "unknown error").strip()[:300]
