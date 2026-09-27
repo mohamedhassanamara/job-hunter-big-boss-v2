@@ -10,6 +10,14 @@ class Source(StrEnum):
     wttj = "wttj"
 
 
+class RemoteScope(StrEnum):
+    """Which remote jobs count as eligible (see services/geo.remote_allows)."""
+
+    anywhere = "anywhere"  # worldwide or EMEA regions, plus target countries
+    europe = "europe"
+    targets = "targets"
+
+
 class RemotePolicy(StrEnum):
     any = "any"
     remote_ok = "remote_ok"

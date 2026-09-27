@@ -35,6 +35,7 @@ class ProfileSpec(BaseModel):
     excluded_keywords: list[str] = []
     locations: list[str] = []
     remote_policy: str = "remote_ok"
+    remote_scope: str = "anywhere"
     max_age_days: int = 30
 
 
@@ -67,6 +68,7 @@ RedFlagType = Literal[
     "no_visa_sponsorship",
     "work_authorization_required",
     "must_be_based_in",
+    "nationality_restricted",
     "language_required",
     "seniority_mismatch",
     "other",

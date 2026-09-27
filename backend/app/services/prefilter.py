@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 
 from app.models.enums import RemotePolicy, RemoteType
 from app.providers.base import ProfileSpec, RawJob
-from app.services.geo import EU_EEA, fold, region_allows
+from app.services.geo import fold, remote_allows
 
 # Title normalization: map multilingual / synonym words onto a small vocabulary.
 _PHRASES = [
@@ -144,14 +144,12 @@ def check(job: RawJob, profile: ProfileSpec, now: datetime) -> str | None:
 
     targets = {c.upper() for c in profile.locations}
     is_remote = job.remote_type == RemoteType.remote
-    if targets and job.country not in targets:
-        if not is_remote:
-            return f"location_outside:{job.country or 'unknown'}"
-        if job.country and job.country not in EU_EEA:
-            return f"location_outside:{job.country}"
-        allowed, code = region_allows(job.location, targets)
+    if is_remote:
+        allowed, code = remote_allows(job.location, job.country, targets, profile.remote_scope)
         if not allowed:
-            return f"location_outside:{code or 'unknown'}"
+            return f"remote_outside:{code or 'unknown'}"
+    elif targets and job.country not in targets:
+        return f"location_outside:{job.country or 'unknown'}"
     if profile.remote_policy == RemotePolicy.remote_only and not is_remote:
         return "not_remote"
     return None
