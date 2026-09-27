@@ -213,3 +213,21 @@ def test_capability_phrases_not_in_the_pool_are_flagged() -> None:
         "mentoring other developers"]
     assert scope_inflation("mentoring a junior developer", pool_text) == []
     assert scope_inflation("led a team of engineers", pool_text)
+
+
+def test_total_years_override_replaces_role_dates() -> None:
+    pool = make_pool(ROLE, NLP)
+    pool.profile["total_years_override"] = 2
+    facts = years_facts(pool, [], today=date(2026, 10, 1))
+    assert facts == [{"label": "professional experience (Settings)", "years": 2,
+                      "wording": "2+ years"}]
+    pool.profile["total_years_override"] = ""
+    assert years_facts(pool, [], today=date(2026, 10, 1))[0]["years"] == 4
+
+
+def test_override_is_what_the_checks_allow() -> None:
+    pool = make_pool(ROLE, NLP)
+    pool.profile["total_years_override"] = 2
+    allowed = {f["years"] for f in years_facts(pool, [], today=date(2026, 10, 1))}
+    assert bad_years("2+ years building software", allowed) == []
+    assert bad_years("4+ years building software", allowed) == ["4+ years"]

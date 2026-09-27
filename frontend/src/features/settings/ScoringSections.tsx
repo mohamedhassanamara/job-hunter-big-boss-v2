@@ -57,6 +57,7 @@ interface Candidate {
   work_authorization: 'needs_sponsorship' | 'eu_authorized'
   languages: { language: string; level: string }[]
   years_experience: number
+  total_years_override?: number | null
   headline: string
   is_placeholder?: boolean
 }
@@ -188,7 +189,7 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           </Button>
         </div>
       </Field>
-      <Field label="Years of experience">
+      <Field label="Years of experience" hint="What the fit scorer reads">
         <Input
           type="number"
           step={0.5}
@@ -196,6 +197,18 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           value={c.years_experience}
           onChange={(e) => set({ years_experience: Number(e.target.value) || 0 })}
           className="w-24"
+        />
+      </Field>
+      <Field label="Total years of experience (override)" hint="CVs state years only from facts. When set, this replaces the total computed from your role dates, in generation and checks.">
+        <Input
+          type="number"
+          step={1}
+          min={0}
+          value={c.total_years_override ?? ''}
+          placeholder="From role dates"
+          onChange={(e) => set({ total_years_override: e.target.value === '' ? null : Number(e.target.value) })}
+          className="w-36"
+          aria-label="Total years override"
         />
       </Field>
       <Field label="Headline" hint="One or two sentences about where you are and where you're going">
