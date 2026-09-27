@@ -83,7 +83,7 @@ def _visible(entry: PlanEntry, key: str, count: int, overrides: dict[str, Any],
 
 
 def build_document(plan: CVPlan, pool: Pool, state: FitState,
-                   overrides: dict[str, Any] | None = None) -> CVDocument:
+                   overrides: dict[str, Any] | None = None, max_stack: int = 6) -> CVDocument:
     overrides = overrides or {}
     forced_in = set(overrides.get("force_in") or [])
     forced_out = set(overrides.get("force_out") or [])
@@ -111,8 +111,9 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         if count <= 0 and key not in forced_in:
             continue
         bullets = _visible(p, key, max(count, 1), overrides, keep_one=False)
+        stack = (list(p.stack) or item.tags)[:max_stack]
         projects.append(CVProject(item_id=item.id, name=item.title,
-                                  stack=list(p.stack) or item.tags[:6], label=item.org or "",
+                                  stack=stack, label=item.org or "",
                                   bullets=[t for _, t in bullets]))
     volunteering = []
     for v in plan.volunteering:
@@ -230,7 +231,8 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
     history: list[dict[str, Any]] = []
     last: FitResult | None = None
     for attempt in range(MAX_PASSES + 1):
-        doc = build_document(plan, pool, state, overrides)
+        doc = build_document(plan, pool, state, overrides,
+                             int(template.config.get("max_stack_items") or 6))
         tex = render_tex(doc, profile, template)
         result = compile_tex(tex, out_dir, "cv")
         history.append({"pass": attempt, "pages": result.pages, "fill": round(result.fill, 3),
