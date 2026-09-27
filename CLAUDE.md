@@ -115,6 +115,9 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - `score_job` never raises for model problems. It stores `status=failed` with the error, and a score is never defaulted.
 - The cache key includes the prompt version. **Any edit to `app/prompts/fit_score.md` needs a version bump** and a new hash in
   `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
+- Model = `app_setting.models.scoring.model` (Settings → Models). Local models (qwen2.5:7b) or Ollama cloud models
+  (`gemma4:31b-cloud`, needs `ollama pull <model>` once; runs on ollama.com). Cloud models ignore `format`, so the schema
+  is also in the system message; 429s back off and retry. Parallel jobs: ≤ 2 local, ≤ 8 cloud (4 is safe on the plan).
 - Queues are per workspace (`workspace_queue`). The sandbox and tests always use `MockFitScorer`.
 - Settings changes to `scoring` or `profile` call `recompute_all` (no LLM). Experience or profile changes make scores stale; never rescore automatically.
 - Countries: target list = `search_profile.locations` (Settings). Country names/aliases/cities and region sets live in
