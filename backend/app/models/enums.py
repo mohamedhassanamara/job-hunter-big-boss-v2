@@ -69,6 +69,7 @@ class ExperienceKind(StrEnum):
     education = "education"
     certification = "certification"
     volunteering = "volunteering"
+    summary = "summary"  # short summary snippets the CV generator picks from and rewords
 
 
 class Stage(StrEnum):

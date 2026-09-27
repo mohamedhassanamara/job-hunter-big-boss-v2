@@ -14,6 +14,8 @@ class ExperienceIn(BaseModel):
     bullets: list[str] = []
     tags: list[str] = []
     is_active: bool = True
+    url: str | None = None
+    credential_id: str | None = None
 
 
 class ExperiencePatch(BaseModel):
@@ -27,6 +29,8 @@ class ExperiencePatch(BaseModel):
     bullets: list[str] | None = None
     tags: list[str] | None = None
     is_active: bool | None = None
+    url: str | None = None
+    credential_id: str | None = None
 
 
 class ExperienceOut(ExperienceIn):
