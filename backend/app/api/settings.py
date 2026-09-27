@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv",
+    "cv", "tracking",
 }
 
 
@@ -99,6 +99,13 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_boards(body.value)
     if key == "cv":
         _check_cv(body.value)
+    if key == "tracking":
+        days = body.value.get("followup_days")
+        ghost = body.value.get("ghost_after_days")
+        if not isinstance(days, list) or not all(isinstance(d, int) and 0 < d <= 365 for d in days):
+            raise HTTPException(422, "followup_days must be a list of days between 1 and 365")
+        if not isinstance(ghost, int) or not 1 <= ghost <= 365:
+            raise HTTPException(422, "ghost_after_days must be between 1 and 365")
     row = session.exec(select(AppSetting).where(AppSetting.key == key)).first()
     if row is None:
         row = AppSetting(key=key, value={})
