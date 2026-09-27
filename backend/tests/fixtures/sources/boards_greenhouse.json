@@ -1,0 +1,460 @@
+{
+ "jobs": [
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4969403101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4519477101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Finance",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4969403101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "2064",
+   "title": "Accountant",
+   "company_name": "Tamara",
+   "first_published": "2026-09-09T04:48:17-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;h3&gt;About Us&lt;/h3&gt;\n&lt;p&gt;Tamara is a leading fintech platform in Saudi Arabia and the GCC region with a mission to help people own their dreams built on being simple, trusted, and everywhere our customers need us. Today, more than 25 million customers and over 130,000 partner merchants depend on Tamara every day for reliable financial solutions across retail, travel, education, healthcare, and beyond. Tamara is backed by Sanabil Investments, a wholly owned company of the Public Investment Fund (PIF), and SNB Capital, among others.&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;h3&gt;Your Role:&lt;/h3&gt;\n&lt;p&gt;Are you ready to dive into the heart of finance and technology? As our Accountant, you&#39;ll&amp;nbsp;be at the forefront of our financial operations, ensuring accuracy, efficiency, and compliance&amp;nbsp;every step of the way. We are all about collaboration here, so team up with our internal&amp;nbsp;squads, analyze financial data and freely apply your strong analytical skills. A keen attention&amp;nbsp;to detail and profound understanding of accounting standards are integral to this role.&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;h3&gt;Your responsibilities:&lt;/h3&gt;\n&lt;p&gt;&lt;br&gt;&lt;strong&gt;Month-end and Year-end Closing:&lt;/strong&gt;&lt;br&gt;● Conduct month-end and year-end closing activities with precision.&lt;br&gt;● Record journal entries and accruals accurately and in a timely manner.&lt;br&gt;● Prepare balance sheet accounts reconciliations.&lt;br&gt;● Identify and investigate any unusual or significant fluctuations in account balances&amp;nbsp;and take appropriate actions to resolve them.&lt;br&gt;● Collaborate with cross-functional teams for transaction recording and reconciliation.&lt;br&gt;● Reconcile sub-ledgers with the general ledger to ensure accuracy and&amp;nbsp;completeness&lt;br&gt;● Ensure proper classification of financial transactions and reconcile sub-ledgers.&lt;br&gt;● Maintaining the chart of accounts&lt;/p&gt;\n&lt;p&gt;&lt;br&gt;&lt;strong&gt;Financial Control and Compliance:&lt;/strong&gt;&lt;br&gt;● Document accounting policies and procedures for transparency and consistency.&lt;br&gt;● Implement and uphold robust financial control procedures.&lt;br&gt;● Monitor transactions to ensure compliance with accounting standards and regulatory&amp;nbsp;requirements.&lt;br&gt;● Identify and address control weaknesses, driving corrective actions.&lt;/p&gt;\n&lt;p&gt;&lt;br&gt;&lt;strong&gt;ERP Systems &amp;amp; Automation:&lt;/strong&gt;&lt;br&gt;● Identify opportunities for process automation to streamline operations.&lt;br&gt;● Collaborate with teams to identify and address process inefficiencies.&lt;br&gt;Personal Development:&lt;br&gt;● Take charge of your personal and professional growth.&lt;br&gt;● Set and review personal development goals aligned with career objectives.&lt;br&gt;● Stay updated on industry trends and best practices in financial accounting and&lt;br&gt;control.&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;h3&gt;Your expertise:&lt;/h3&gt;\n&lt;p&gt;&lt;br&gt;● 5+ years of experience in accounting, financial control, or related fields.&lt;br&gt;● ACCA, CA or equivalent certificate.&lt;br&gt;● Experience in fintech, technology, or financial services sectors.&lt;br&gt;● Proficiency in month-end and year-end closing procedures.&lt;br&gt;● Strong knowledge of accounting principles and financial reporting standards (IFRS).&lt;br&gt;● Strong skills in reconciliation and Chart of Accounts maintenance.&lt;br&gt;● Knowledge of Oracle NetSuite software is a big plus.&lt;br&gt;● Experience in developing and implementing financial control processes and procedures.&lt;br&gt;● Experience with Islamic Finance and shariah-compliant products is desirable.&lt;br&gt;● Advanced proficiency in Microsoft Excel and a strive for automation.&lt;br&gt;● Excellent communication and interpersonal skills.&lt;br&gt;● Proven ability to manage multiple priorities and deadlines in a fast-paced environment&amp;nbsp;while maintaining a high level of quality and accuracy.&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4000623101,
+     "name": "Finance",
+     "child_ids": [
+      4031955101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4969403101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4849504101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4461328101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Risk, Compliance & Audit",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4849504101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1797",
+   "title": "AML Transaction Monitoring Ops - Builders Program - (Emirati National)",
+   "company_name": "Tamara",
+   "first_published": "2026-04-27T05:36:25-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;h3&gt;&lt;strong&gt;Why Tamara?&lt;/strong&gt;&lt;/h3&gt;\n&lt;p&gt;We’re proud to be Saudi’s first FinTech unicorn.&lt;/p&gt;\n&lt;p&gt;Our mission is to help people own their dreams by building the most customer-centric financial super app in the world. &amp;amp; There is no playbook for that; our Tamarians are writing it. Our teams are made up of innovators, problem-solvers, and learners we thrive on curiosity and collaboration.&lt;/p&gt;\n&lt;p&gt;If this sounds like you: curious, driven, and ready to build, we’d love to meet you.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;This opportunity is part of our commitment to developing local talent and is open exclusively to Emirati Nationals.&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Who this is for:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Emirati Nationals, (family book holders)&lt;/li&gt;\n&lt;li&gt;Early-career talent looking to build long-term careers in tech and fintech&lt;/li&gt;\n&lt;li&gt;Individuals motivated to contribute to the UAE’s growing digital economy&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;Apply now and join the next generation of Builders!&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About Tamara&#39;s Builders Program:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;At Tamara, we believe exceptional talent deserves an exceptional launchpad.&lt;/p&gt;\n&lt;p&gt;Our Flagship Builders Program is designed for ambitious graduates ready to step into real responsibility from day one. This isn’t a rotational “observer” program, it’s a career accelerator built for those who want to build, own, and raise the bar early.&lt;/p&gt;\n&lt;p&gt;Designed for recent graduates and early-career talent with up to two years of experience, the program places you directly into high-impact roles across Product, Engineering, Design, and beyond. You’ll contribute immediately and grow at an accelerated pace.&lt;/p&gt;\n&lt;p&gt;From Product to Engineering, Design to Commercial, you’ll tackle meaningful challenges that shape how millions experience fintech across the region. You’ll be trusted with ownership, surrounded by high-caliber peers, and mentored by leaders who expect excellence.&lt;/p&gt;\n&lt;p&gt;Our January and June cohorts are your opportunity to move fast, think big, and start building what’s next - not someday, but now.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the role:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;We are seeking an AML Transaction Monitoring Ops to join our Compliance team.&lt;/p&gt;\n&lt;p&gt;You will play a key role in performing day to day Anti Money Laundering and Counter Terrorist Financing activities to ensure compliance with UAE regulatory requirements including Central Bank of the UAE AML regulations and UAE Federal AML laws.&lt;/p&gt;\n&lt;p&gt;You will support core financial crime controls including transaction monitoring customer due diligence sanctions screening and suspicious activity investigations. You will ensure timely escalation to the MLRO and accurate reporting to the UAE Financial Intelligence Unit in line with regulatory expectations.&lt;/p&gt;\n&lt;p&gt;You will contribute to maintaining strong AML controls that protect the integrity of the financial system and support Tamara’s regulatory obligations as a fintech operating in a regulated environment.&lt;/p&gt;\n&lt;p&gt;You are detail oriented analytical and proactive with the ability to handle sensitive information and make sound judgments in a fast paced environment.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your responsibilities:&lt;/strong&gt;&lt;/p&gt;\n&lt;h2&gt;&lt;strong&gt;Transaction Monitoring and Alert Management&lt;/strong&gt;&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;Review and investigate AML alerts generated by the transaction monitoring system&lt;/li&gt;\n&lt;li&gt;Identify unusual or suspicious patterns conduct detailed analysis and document rationale for closure or escalation&lt;/li&gt;\n&lt;li&gt;Support tuning and calibration of transaction monitoring rules to improve effectiveness and reduce false positives&lt;/li&gt;\n&lt;li&gt;Liaise with the MLRO on suspicious transaction reporting and escalation to the UAE Financial Intelligence Unit&lt;/li&gt;\n&lt;li&gt;Contribute to AML training awareness and periodic control testing&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2&gt;&lt;strong&gt;Customer Due Diligence&lt;/strong&gt;&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;Perform onboarding reviews to ensure accurate and complete KYC documentation for individuals and entities&lt;/li&gt;\n&lt;li&gt;Support enhanced due diligence for higher risk customers politically exposed persons and adverse media cases&lt;/li&gt;\n&lt;li&gt;Assist in periodic review and refresh of customer profiles in line with risk based approaches&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2&gt;&lt;strong&gt;Screening and Sanctions Compliance&lt;/strong&gt;&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;Conduct name screening for customers and counterparties against sanctions politically exposed persons and adverse media lists&lt;/li&gt;\n&lt;li&gt;Investigate and resolve potential matches in line with internal screening procedures&lt;/li&gt;\n&lt;li&gt;Support the MLRO in maintaining sanctions lists system updates and control validation&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Your expertise&amp;nbsp;&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Experience:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;0 to 2 years of experience in Compliance AML CFT or Financial Crime within financial services fintech or banking&lt;/li&gt;\n&lt;li&gt;Prior exposure to transaction monitoring sanctions screening or customer due diligence processes&lt;/li&gt;\n&lt;li&gt;Familiarity with UAE AML regulations including Federal Decree Law No 20 of 2018 and related guidance is a plus&lt;/li&gt;\n&lt;li&gt;Bachelor’s degree in Finance Law Business or a related field&lt;/li&gt;\n&lt;li&gt;Emirati National required&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;SkillS:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Understanding of AML CFT frameworks including transaction monitoring customer due diligence sanctions screening and suspicious transaction reporting&lt;/li&gt;\n&lt;li&gt;Strong analytical and investigative skills with ability to assess patterns and identify potential financial crime risks&lt;/li&gt;\n&lt;li&gt;Ability to work with data and case management systems to support investigations and reporting&lt;/li&gt;\n&lt;li&gt;Strong communication skills in Arabic and English for coordination with internal teams and regulatory stakeholders&lt;/li&gt;\n&lt;li&gt;Ability to document findings clearly and maintain audit ready records&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Attributes&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Strong attention to detail with high levels of accuracy and accountability&lt;/li&gt;\n&lt;li&gt;Organized and able to manage multiple cases and priorities effectively&lt;/li&gt;\n&lt;li&gt;Proactive and solution oriented with a strong sense of ownership&lt;/li&gt;\n&lt;li&gt;Collaborative and able to work effectively across Compliance Risk and Operations teams&lt;/li&gt;\n&lt;li&gt;Motivated to contribute to financial crime prevention and uphold regulatory integrity&lt;/li&gt;\n&lt;/ul&gt;",
+   "departments": [
+    {
+     "id": 4031967101,
+     "name": "Risk",
+     "child_ids": [
+      4031968101,
+      4031970101,
+      4031969101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4849504101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4849511101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4461333101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Finance",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4849511101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1800",
+   "title": "Associate Accountant - Builders Program - (Emirati National)",
+   "company_name": "Tamara",
+   "first_published": "2026-04-27T05:38:25-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;p&gt;&lt;strong&gt;Why Tamara?&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;We’re proud to be Saudi’s first FinTech unicorn.&lt;br&gt;Our mission is to help people own their dreams by building the most customer-centric financial super app in the world. &amp;amp; There is no playbook for that; our Tamarians are writing it.&lt;br&gt;Our teams are made up of innovators, problem-solvers, and learners we thrive on curiosity and collaboration.&lt;br&gt;If this sounds like you: curious, driven, and ready to build, we’d love to meet you&lt;br&gt;Apply now and join the next generation of Builders!&lt;br&gt;&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the program&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;At Tamara, we believe potential should be stretched early.&lt;br&gt;&lt;br&gt;Our Flagship Builders Internship &amp;amp; Co-Op track is crafted for students who don’t want a passive internship but a real seat at the table. If you’re hungry to apply what you’ve learned, in a fast-moving, high-performance environment, this is where you begin.&lt;br&gt;&lt;br&gt;Built for current students seeking internship or co-op opportunities, this track immerses you in meaningful, hands-on work across Product, Engineering, Design, and beyond giving you real ownership, not just exposure.&lt;br&gt;&lt;br&gt;You’ll contribute to real projects and solve real problems, gaining the kind of exposure that most early-career experiences simply don’t offer. We treat interns and co-op students as future builders, because in many ways, they already are.&lt;br&gt;&lt;br&gt;With our January and June cohorts, you’ll gain more than experience. You’ll gain momentum.&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your role&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;We&#39;re seeking an Accountant for our Finance team. You will be crucial in contributing to smooth month-end closing by assisting the team and preparing accurate, timely reports.&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;Drawing on your proficiency in supporting the company&#39;s financial engine, you will be responsible for helping implement and maintain controls to ensure accurate information within the system to create unique experiences only Tamara can provide.&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;With a proven track record of excellent communication skills and proficiency in MS Office (Word &amp;amp; Excel), and ultimately revolutionize the way millions of users shop, pay, and bank.&lt;/p&gt;\n&lt;p&gt;You are a driven, determined, curious team player, knowing that collective strength means we all win. With a positive outlook, you are solution-oriented, persevering regardless of circumstances, always finding a way through, no matter the challenges.&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;You will effectively find a way to work with everyone through empathy and respect. You will be driven and comfortable with responding quickly with urgency, with the ability to change course without losing momentum and energy, resulting in great success.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your responsibilities:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Responsible for assisting the team during month-end closing&lt;/li&gt;\n&lt;li&gt;Preparing reports as required in a timely and accurate manner&lt;/li&gt;\n&lt;li&gt;Assisting the team with ad-hoc requirements such as audits&lt;/li&gt;\n&lt;li&gt;Assisting in handling the financial operations of the company&lt;/li&gt;\n&lt;li&gt;Assisting with implementing and maintaining internal financial controls and procedures&lt;/li&gt;\n&lt;li&gt;Ensuring accuracy of data within the system&lt;/li&gt;\n&lt;li&gt;Assisting the finance team with daily tasks&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Your expertise:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Experience&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;At a minimum, internship or co-op training experience in accounting tasks such as month-end closing, financial reporting, and supporting daily operations.&lt;/li&gt;\n&lt;li&gt;Experience with month-end closing and financial reporting tasks.&lt;/li&gt;\n&lt;li&gt;Familiarity with accounting software like Oracle is preferred but not required.&lt;/li&gt;\n&lt;li&gt;Degree in Accounting or Finance.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Skills:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Proficiency in Microsoft Office, particularly Excel and Word.&lt;/li&gt;\n&lt;li&gt;Basic understanding of accounting principles and financial reporting.&lt;/li&gt;\n&lt;li&gt;Strong analytical and problem-solving abilities.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Attributes:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Detail-oriented and precise, with strong organizational skills.&lt;/li&gt;\n&lt;li&gt;Proactive and dependable, committed to delivering timely outputs.&lt;/li&gt;\n&lt;li&gt;Collaborative and adaptable, excelling in team-oriented environments.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4000623101,
+     "name": "Finance",
+     "child_ids": [
+      4031955101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4849511101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4849500101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4461326101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Data",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4849500101,
+   "updated_at": "2026-09-21T02:29:07-04:00",
+   "requisition_id": "1796",
+   "title": "Associate Data Analyst (Emirati National)",
+   "company_name": "Tamara",
+   "first_published": "2026-04-27T04:01:46-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;p&gt;&lt;strong&gt;Why Tamara?&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;We’re proud to be Saudi’s first FinTech unicorn.&lt;br&gt;Our mission is to help people own their dreams by building the most customer-centric financial super app in the world. &amp;amp; There is no playbook for that; our Tamarians are writing it.&amp;nbsp;Our teams are made up of innovators, problem-solvers, and learners we thrive on curiosity and collaboration.&lt;br&gt;If this sounds like you: curious, driven, and ready to build, we’d love to meet you &lt;br&gt;Apply now and join the next generation of Builders!&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the Program:&lt;/strong&gt;&lt;strong&gt;&amp;nbsp;&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;At Tamara, we believe exceptional talent deserves an exceptional launchpad.&lt;br&gt;&lt;br&gt;Our Flagship Builders Program is designed for ambitious graduates ready to step into real responsibility from day one. This isn’t a rotational “observer” program, it’s a career accelerator built for those who want to build, own, and raise the bar early.&lt;br&gt;Designed for recent graduates and early-career talent with up to two years of experience, the program places you directly into high-impact roles across Product, Engineering, Design, and beyond. You’ll contribute immediately and grow at an accelerated pace.&lt;br&gt;From Product to Engineering, Design to Commercial, you’ll tackle meaningful challenges that shape how millions experience fintech across the region. You’ll be trusted with ownership, surrounded by high-caliber peers, and mentored by leaders who expect excellence. &lt;br&gt;&lt;br&gt;Our January and June cohorts are your opportunity to move fast, think big, and start building what’s next - not someday, but now.&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the role:&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;We&#39;re looking for a fresh graduate or early-career Data Analyst on an analytical engineering path.&lt;/p&gt;\n&lt;p&gt;This role blends the best of data analysis and data engineering. You will help turn raw data into &lt;strong&gt;trustworthy, well-modeled datasets&lt;/strong&gt; that:&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;make definitions consistent (so &quot;the number&quot; means the same thing everywhere)&lt;/li&gt;\n&lt;li&gt;improve data quality and reliability&lt;/li&gt;\n&lt;li&gt;&lt;em&gt;enable self-serve analytics and AI-assisted insights across teams&lt;/em&gt; (not just dashboards)&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;You will also help make Tamara’s data &lt;strong&gt;AI-ready&lt;/strong&gt; by building well-defined datasets, metrics, and documentation that can be safely used by AI tools (and people) across the company.&lt;/p&gt;\n&lt;p&gt;With the advancement of AI, we value people who have strong fundamentals and clear thinking. Understanding data structures, measurement, tradeoffs, and how to validate results matters more than memorizing tools. You&#39;ll learn how to use AI responsibly to move faster, while still owning correctness, data quality, and interpretation.&lt;/p&gt;\n&lt;p&gt;You will collaborate with a diverse ecosystem of engineers, product experts, and business to solve real problems that impact our customers and business outcomes.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your responsibilities&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Model and transform data for analysis&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Build and maintain clean, reusable datasets (fact and dimension tables) that power reporting and self-serve analytics.&lt;/li&gt;\n&lt;li&gt;Contribute to a scalable metrics layer: define, document, and align business definitions (for example, &quot;active user&quot;, &quot;approval rate&quot;, &quot;default rate&quot;).&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Support analytics and decision making&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Answer ad-hoc questions with clear analysis and explainable methodology.&lt;/li&gt;\n&lt;li&gt;Turn common questions into reusable, self-serve assets: dashboards &lt;em&gt;and&lt;/em&gt; AI-enabled workflows (a curated dataset + definitions that an AI assistant can query correctly, plus validated example analyses).&lt;/li&gt;\n&lt;li&gt;Create AI-friendly data products (well-defined datasets, metrics, and documentation) that teams can query through AI tools.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Enable AI-ready analytics&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Package datasets and metrics so they can be reliably used by AI tools (clear grain, business definitions, data contracts, examples).&lt;/li&gt;\n&lt;li&gt;Write AI-friendly documentation: glossary, metric definitions, common queries, and pitfalls.&lt;/li&gt;\n&lt;li&gt;Partner with AI and platform teams to ensure critical tables are discoverable, permissioned correctly, and safe to use.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Ensure data quality and reliability&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Write basic tests, checks, and monitoring for key datasets and critical metrics.&lt;/li&gt;\n&lt;li&gt;Troubleshoot data issues and improve reliability from source to reporting.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Work effectively with engineering and product&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Collaborate with data engineers on schema changes, event tracking, and pipeline improvements.&lt;/li&gt;\n&lt;li&gt;Translate ambiguous business questions into measurable analyses, and communicate findings clearly.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Use AI tools thoughtfully&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Use AI to accelerate SQL drafting, code scaffolding, and documentation.&lt;/li&gt;\n&lt;li&gt;Validate AI outputs, document assumptions, and protect sensitive data.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Your expertise (must have)&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Fresh graduate or &lt;strong&gt;&amp;lt; 1 year&lt;/strong&gt; of relevant experience (internships, projects, or part-time roles count).&lt;/li&gt;\n&lt;li&gt;Solid &lt;strong&gt;SQL fundamentals&lt;/strong&gt; (joins, aggregations, basic window functions).&lt;/li&gt;\n&lt;li&gt;One programming language for analysis (preferably &lt;strong&gt;Python&lt;/strong&gt;) with basic skills in:\n&lt;ul&gt;\n&lt;li&gt;Data manipulation (tables/dataframes)&lt;/li&gt;\n&lt;li&gt;Basic statistics (distributions, sampling intuition, confidence basics)&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;Strong analytical thinking:\n&lt;ul&gt;\n&lt;li&gt;Ability to define a problem, form hypotheses, validate data, and explain results.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;Strong attention to detail and commitment to accurate, reliable outputs.&lt;/li&gt;\n&lt;li&gt;Ability to work effectively in a team-oriented environment.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Nice to have&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Exposure to data modeling concepts (star schema, slowly changing dimensions, metrics definition).&lt;/li&gt;\n&lt;li&gt;Familiarity with modern analytics stacks (dbt, BigQuery, Snowflake, Looker, PowerBI, Tableau) through coursework or projects.&lt;/li&gt;\n&lt;li&gt;Experience creating AI-ready data assets (clean semantic layers, metric definitions, data contracts, documentation, and evaluation or sanity-check checklists) is a plus.&lt;/li&gt;\n&lt;li&gt;Experience using AI assistants responsibly to accelerate analysis or analytics engineering work (for example, SQL drafting, code scaffolding, documentation).&lt;/li&gt;\n&lt;li&gt;Experience with version control (Git) or basic software engineering practices.&lt;/li&gt;\n&lt;li&gt;Understanding of event tracking and product analytics (funnels, cohorts, retention).&lt;/li&gt;\n&lt;li&gt;Knowledge of responsible data handling (PII basics, access controls, safe sharing).&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;What success looks like&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;You can independently produce a well-structured analysis with clear assumptions and validation steps.&lt;/li&gt;\n&lt;li&gt;You contribute at least one reliable dataset or transformation that becomes a shared building block for analytics.&lt;/li&gt;\n&lt;li&gt;Stakeholders can answer more questions with self-serve and AI-assisted exploration, with less back-and-forth.&lt;/li&gt;\n&lt;li&gt;A key dataset or metric you built becomes usable through AI tools with consistent answers (validated against a source-of-truth definition).&lt;/li&gt;\n&lt;li&gt;You can spot when results look off, debug quickly, and explain the root cause.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4058425101,
+     "name": "Global Platforms - Data",
+     "child_ids": [],
+     "parent_id": 4000620101
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4849500101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4849506101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4461330101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Data",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4849506101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1798",
+   "title": "Associate Data Scientist - Builders Program - (Emirati National)",
+   "company_name": "Tamara",
+   "first_published": "2026-04-27T05:39:41-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;h4&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;Why Tamara?&lt;/span&gt;&lt;/h4&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;We’re proud to be Saudi’s first FinTech unicorn.&lt;/span&gt;&lt;strong&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;Our mission is to help people own their dreams by building the most customer-centric financial super app in the world. &amp;amp; There is no playbook for that; our Tamarians are writing it.&amp;nbsp;Our teams are made up of innovators, problem-solvers, and learners we thrive on curiosity and collaboration.&lt;br&gt;&lt;br&gt;If this sounds like you: curious, driven, and ready to build, we’d love to meet you &lt;br&gt;&lt;br&gt;Apply now and join the next generation of Builders!&lt;/span&gt;&lt;strong&gt;&lt;span data-sheets-root=&quot;1&quot;&gt; &lt;br&gt;&lt;/span&gt;&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;&lt;span data-sheets-root=&quot;1&quot;&gt;&lt;strong&gt;About Tamara&#39;s Builders Program&amp;nbsp;&lt;br&gt;&lt;br&gt;&lt;/strong&gt;At Tamara, we believe exceptional talent deserves an exceptional launchpad.&lt;br&gt;&lt;br&gt;Our Flagship Builders Program is designed for ambitious graduates ready to step into real responsibility from day one. This isn’t a rotational “observer” program, it’s a career accelerator built for those who want to build, own, and raise the bar early.&lt;br&gt;Designed for recent graduates and early-career talent with up to two years of experience, the program places you directly into high-impact roles across Product, Engineering, Design, and beyond. You’ll contribute immediately and grow at an accelerated pace.&lt;br&gt;From Product to Engineering, Design to Commercial, you’ll tackle meaningful challenges that shape how millions experience fintech across the region. You’ll be trusted with ownership, surrounded by high-caliber peers, and mentored by leaders who expect excellence. &lt;br&gt;&lt;br&gt;Our January and June cohorts are your opportunity to move fast, think big, and start building what’s next - not someday, but now.&lt;br&gt;&lt;/span&gt;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the role&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;We’re looking for a fresh graduate or early-career &lt;strong&gt;Associate Data Scientist&lt;/strong&gt; on a builder path.&lt;/p&gt;\n&lt;p&gt;This role blends product thinking, applied statistics, and production-minded analytics. You will:&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;turn ambiguous problems into measurable questions&lt;/li&gt;\n&lt;li&gt;build reliable measurement (metrics and experimentation)&lt;/li&gt;\n&lt;li&gt;create lightweight models and decision tools that teams can &lt;em&gt;use in real workflows&lt;/em&gt;&lt;/li&gt;\n&lt;li&gt;partner closely with engineering, product, and risk to improve customer outcomes and business performance&lt;/li&gt;\n&lt;li&gt;build &lt;em&gt;AI-assisted decision workflows&lt;/em&gt; (for example, LLM-powered analysis copilots backed by a curated metrics layer, with clear guardrails and validation)&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;With the advancement of AI, we value people who have strong fundamentals and clear thinking. Understanding data generation, measurement, tradeoffs, and how to validate results matters more than memorizing tools. You&#39;ll learn how to use AI responsibly to move faster, while still owning correctness, robustness, and interpretation.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your responsibilities&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Define problems and measurement&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Translate product or business questions into testable hypotheses and clear success metrics.&lt;/li&gt;\n&lt;li&gt;Build and maintain metric definitions and analysis templates so decisions are consistent and repeatable.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Experimentation and causal thinking&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Design, analyze, and interpret A/B tests (and quasi-experiments when randomization is not possible).&lt;/li&gt;\n&lt;li&gt;Partner with product and engineering to ensure correct tracking, guardrails, and experiment quality.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Modeling for decisions (practical ML)&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Build baseline predictive and segmentation models (for example, churn propensity, risk signals, customer clustering) with clear evaluation and limitations.&lt;/li&gt;\n&lt;li&gt;Focus on models that are &lt;em&gt;actionable&lt;/em&gt;: who will use them, when, and what decision they change.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Applied AI (LLMs) for analytics and decisioning&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Prototype small, safe LLM use cases that improve how teams explore data (for example, natural-language Q&amp;amp;A over a curated dataset, summarizing experiment results, or generating investigation checklists).&lt;/li&gt;\n&lt;li&gt;Help define evaluation and validation approaches for AI-assisted outputs (sanity checks, golden queries, offline test sets, and human review loops).&lt;/li&gt;\n&lt;li&gt;Partner with platform and security stakeholders to ensure AI workflows are permissioned correctly and avoid leaking sensitive data.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Analytics that ships&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Create reusable, well-documented analysis assets: datasets, feature tables, notebooks, dashboards, and simple services or jobs.&lt;/li&gt;\n&lt;li&gt;Collaborate with data engineering to productionize reliable pipelines where needed.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Data quality and reliability&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Validate data inputs, monitor key metrics, and investigate anomalies.&lt;/li&gt;\n&lt;li&gt;Document assumptions and build sanity checks so analyses and models are trustworthy.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Responsible use of AI tools&lt;/strong&gt;\n&lt;ul&gt;\n&lt;li&gt;Use AI to accelerate coding, documentation, and exploration.&lt;/li&gt;\n&lt;li&gt;Validate AI outputs, protect sensitive data, and follow safe data handling practices.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Your expertise (must have)&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Fresh graduate or &lt;strong&gt;&amp;lt; 1 year&lt;/strong&gt; of relevant experience (internships, capstone projects, or part-time roles count).&lt;/li&gt;\n&lt;li&gt;Strong &lt;strong&gt;SQL fundamentals&lt;/strong&gt; (joins, aggregations, window functions).&lt;/li&gt;\n&lt;li&gt;One programming language for data (preferably &lt;strong&gt;Python&lt;/strong&gt;) with basic skills in:\n&lt;ul&gt;\n&lt;li&gt;Data manipulation (tables/dataframes)&lt;/li&gt;\n&lt;li&gt;Statistics fundamentals (distributions, sampling intuition, confidence basics)&lt;/li&gt;\n&lt;li&gt;Basic modeling (regression/classification basics and evaluation intuition)&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;Strong analytical thinking:\n&lt;ul&gt;\n&lt;li&gt;Ability to define a problem, validate data, and explain results clearly.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;/li&gt;\n&lt;li&gt;Strong attention to detail and commitment to accurate, reliable outputs.&lt;/li&gt;\n&lt;li&gt;Ability to work effectively in a team-oriented environment.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Nice to have&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Exposure to experimentation platforms or frameworks (for example Statsig, Optimizely, internal experimentation tooling).&lt;/li&gt;\n&lt;li&gt;Familiarity with modern analytics stacks (dbt, BigQuery, Snowflake, Looker, PowerBI, Tableau) through coursework or projects.&lt;/li&gt;\n&lt;li&gt;Exposure to ML tooling (scikit-learn, notebooks, basic MLOps concepts) and version control (Git).&lt;/li&gt;\n&lt;li&gt;Familiarity with LLM concepts (prompting basics, retrieval/RAG intuition, and evaluation approaches) through coursework or side projects.&lt;/li&gt;\n&lt;li&gt;Understanding of product analytics concepts (funnels, cohorts, retention) and causal pitfalls (selection bias, confounding).&lt;/li&gt;\n&lt;li&gt;Experience creating AI-ready data assets (clean semantic layers, metric definitions, data contracts, documentation, and sanity-check checklists).&lt;/li&gt;\n&lt;li&gt;Knowledge of responsible data handling (PII basics, access controls, safe sharing).&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;What success looks like&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;You can independently deliver an end-to-end analysis with clear assumptions, validation steps, and a concrete recommendation.&lt;/li&gt;\n&lt;li&gt;You help ship at least one decision tool (experiment, metric framework, or lightweight model) that changes a product or business decision.&lt;/li&gt;\n&lt;li&gt;Stakeholders can run repeatable analyses with less back-and-forth, and your work reduces ambiguity in key metrics.&lt;/li&gt;\n&lt;li&gt;You can spot when results look off, debug quickly, and explain the root cause.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4058425101,
+     "name": "Global Platforms - Data",
+     "child_ids": [],
+     "parent_id": 4000620101
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4849506101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4901328101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4488749101,
+   "location": {
+    "name": "Cairo, Egypt "
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Operations",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4901328101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1879",
+   "title": "Collections Advisor ",
+   "company_name": "Tamara",
+   "first_published": "2026-06-24T03:33:04-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;p&gt;&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About Us&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;Tamara is a leading fintech platform in Saudi Arabia and the GCC region with a mission to help people own their dreams built on being simple, trusted, and everywhere our customers need us. Today, more than 25 million customers and over 130,000 partner merchants depend on Tamara every day for reliable financial solutions across retail, travel, education, healthcare, and beyond. Tamara is backed by Sanabil Investments, a wholly owned company of the Public Investment Fund (PIF), and SNB Capital, among others.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your Role&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;Tamara is looking for a detail-oriented and proactive &lt;strong&gt;Collections Associate&lt;/strong&gt; to join our Collections Team. In this role, you will act as a vital link for customers navigating the collection process—investigating complaints, validating information, and driving swift resolutions. This position is ideal for a person who can deep dive in customer payments information and&amp;nbsp; thrives in a fast-paced fintech environment and can transform complex escalations into clear, actionable solutions. This role is based in our Egypt office, located in New Cairo.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;Your Responsibilities&lt;/strong&gt;&lt;/p&gt;\n&lt;ol&gt;\n&lt;li&gt;&lt;strong&gt; Escalation Management&lt;/strong&gt;&lt;/li&gt;\n&lt;/ol&gt;\n&lt;ul&gt;\n&lt;li&gt;Take full ownership of day-to-day collection escalation tickets.&lt;/li&gt;\n&lt;li&gt;Coordinate with cross-functional teams to ensure timely resolution of customer grievances.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;ol&gt;\n&lt;li&gt;&lt;strong&gt; Regulatory Compliance &amp;amp; RCA&lt;/strong&gt;&lt;/li&gt;\n&lt;/ol&gt;\n&lt;ul&gt;\n&lt;li&gt;Conduct in-depth &lt;strong&gt;Root Cause Analysis (RCA)&lt;/strong&gt; for all &lt;strong&gt;regulatory and Legal escalations&lt;/strong&gt;.&lt;/li&gt;\n&lt;li&gt;Draft professional, accurate, and compliant responses on Salesfroce portal and Emails.&lt;/li&gt;\n&lt;li&gt;Identify systemic issues within the collection flow through the collection tickets&amp;nbsp; and suggest process improvements to mitigate future risks.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;ol&gt;\n&lt;li&gt;&lt;strong&gt; Quality &amp;amp; Operations Support&lt;/strong&gt;&lt;/li&gt;\n&lt;/ol&gt;\n&lt;ul&gt;\n&lt;li&gt;Perform daily &quot;mundane&quot; but critical ad-hoc tasks, including &lt;strong&gt;call audits&lt;/strong&gt; and transcript reviews.&lt;/li&gt;\n&lt;li&gt;Monitor chat and email interactions to ensure agents are adhering to collection guidelines and local regulations.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Your Expertise&amp;nbsp;&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Experience:&lt;/strong&gt; At least &lt;strong&gt;1 year&lt;/strong&gt; of experience in a high-volume Customer Care or Collections role, specifically within &lt;strong&gt;Chat or Email processes&lt;/strong&gt;.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Bilingual Proficiency:&lt;/strong&gt; Native or professional fluency in both &lt;strong&gt;Arabic and English&lt;/strong&gt; is mandatory, as you will be handling legal documentation and communicating with diverse stakeholders.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Analytical Skills:&lt;/strong&gt; Ability to dissect a problem, find the &quot;why&quot; behind an error (RCA), and document it clearly.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Tech-Savvy:&lt;/strong&gt; Familiarity with CRM tools (Zendesk, Salesforce, etc.) and a high level of comfort with Excel/Google Sheets.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Preferred Skills&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Previous experience in the &lt;strong&gt;Fintech or BNPL&lt;/strong&gt; (Buy Now, Pay Later) sector.&lt;/li&gt;\n&lt;li&gt;Basic understanding of SAMA and CBUAE regulations regarding debt collection.&lt;/li&gt;\n&lt;li&gt;A &quot;customer-first&quot; attitude even when dealing with difficult financial conversations.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4058415101,
+     "name": "Credit",
+     "child_ids": [
+      4058416101,
+      4058417101,
+      4058418101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4010529101,
+     "name": "Egypt",
+     "location": "Egypt ",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4901328101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4849508101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4461331101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Risk, Compliance & Audit",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4849508101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1799",
+   "title": "Compliance Associate - Builders Program - (Emirati National)",
+   "company_name": "Tamara",
+   "first_published": "2026-04-27T05:41:09-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;h2 data-section-id=&quot;1siexg6&quot; data-start=&quot;0&quot; data-end=&quot;14&quot;&gt;Why Tamara?&lt;/h2&gt;\n&lt;p data-start=&quot;16&quot; data-end=&quot;66&quot;&gt;We’re proud to be Saudi’s first FinTech unicorn.&lt;/p&gt;\n&lt;p data-start=&quot;68&quot; data-end=&quot;259&quot;&gt;Our mission is to help people own their dreams by building the most customer-centric financial super app in the world. There is no playbook for that, our Tamarians are writing it every day.&lt;/p&gt;\n&lt;p data-start=&quot;261&quot; data-end=&quot;384&quot;&gt;Our teams are made up of innovators, problem-solvers, and learners who thrive on curiosity, ownership, and collaboration.&lt;/p&gt;\n&lt;p data-start=&quot;386&quot; data-end=&quot;472&quot;&gt;If this sounds like you: curious, driven, and ready to build, we’d love to meet you.&lt;/p&gt;\n&lt;p data-start=&quot;474&quot; data-end=&quot;525&quot;&gt;Apply now and join the next generation of Builders.&lt;/p&gt;\n&lt;h2 data-section-id=&quot;1ppp2dh&quot; data-start=&quot;532&quot; data-end=&quot;552&quot;&gt;About the Program&lt;/h2&gt;\n&lt;p data-start=&quot;554&quot; data-end=&quot;631&quot;&gt;At Tamara, we believe exceptional talent deserves an exceptional launchpad.&lt;/p&gt;\n&lt;p data-start=&quot;633&quot; data-end=&quot;886&quot;&gt;Our Flagship Builders Program is designed for ambitious graduates ready to step into real responsibility from day one. This isn’t a rotational observer program, it’s a career accelerator built for those who want to build, own, and raise the bar early.&lt;/p&gt;\n&lt;p data-start=&quot;888&quot; data-end=&quot;1176&quot;&gt;Designed for recent graduates and early-career talent with up to two years of experience, the program places you directly into high-impact roles across Product, Engineering, Design, Commercial, Risk, Compliance, and beyond. You’ll contribute immediately and grow at an accelerated pace.&lt;/p&gt;\n&lt;p data-start=&quot;1178&quot; data-end=&quot;1443&quot;&gt;From Product to Engineering, Design to Commercial, you’ll tackle meaningful challenges that shape how millions experience fintech across the region. You’ll be trusted with ownership, surrounded by high-caliber peers, and mentored by leaders who expect excellence.&lt;/p&gt;\n&lt;p data-start=&quot;1445&quot; data-end=&quot;1573&quot;&gt;Our January and June cohorts are your opportunity to move fast, think big, and start building what’s next, not someday, but now.&lt;/p&gt;\n&lt;h2 data-section-id=&quot;1wct3r9&quot; data-start=&quot;1580&quot; data-end=&quot;1597&quot;&gt;About the Role&lt;/h2&gt;\n&lt;p data-start=&quot;1599&quot; data-end=&quot;1847&quot;&gt;As a Compliance Associate at Tamara, you will play a key role in ensuring that Tamara’s operations, products, and communications align with applicable regulatory requirements in the United Arab Emirates and Tamara’s internal governance standards.&lt;/p&gt;\n&lt;p data-start=&quot;1849&quot; data-end=&quot;2126&quot;&gt;You will support compliance activities across frameworks governed by UAE regulators including the &lt;strong data-start=&quot;1947&quot; data-end=&quot;1982&quot;&gt;Central Bank of the UAE (CBUAE)&lt;/strong&gt;, &lt;strong data-start=&quot;1984&quot; data-end=&quot;1992&quot;&gt;DFSA&lt;/strong&gt; (where relevant), &lt;strong data-start=&quot;2011&quot; data-end=&quot;2024&quot;&gt;ADGM FSRA&lt;/strong&gt; (where relevant), and other applicable consumer protection, AML, privacy, and payments regulations.&lt;/p&gt;\n&lt;p data-start=&quot;2128&quot; data-end=&quot;2266&quot;&gt;You will help maintain a strong compliance framework that promotes accountability, transparency, and readiness for regulatory oversight.&lt;/p&gt;\n&lt;p data-start=&quot;2268&quot; data-end=&quot;2648&quot;&gt;You will support the department in reviewing policies, contracts, products, and advertisements; conducting internal compliance reviews; preparing regulatory submissions; and ensuring all compliance activities are properly documented and traceable. Through your work, you will help safeguard Tamara’s regulatory standing while enabling responsible business growth and innovation.&lt;/p&gt;\n&lt;p data-start=&quot;2650&quot; data-end=&quot;2813&quot;&gt;You are detail-oriented, curious, and collaborative, someone who thrives in a fast-paced, evolving environment where compliance acts as a trusted business partner.&lt;/p&gt;\n&lt;h2 data-section-id=&quot;1115ljy&quot; data-start=&quot;2820&quot; data-end=&quot;2844&quot;&gt;Your Responsibilities&lt;/h2&gt;\n&lt;ul data-start=&quot;2846&quot; data-end=&quot;4241&quot;&gt;\n&lt;li data-section-id=&quot;kdn7bd&quot; data-start=&quot;2846&quot; data-end=&quot;3010&quot;&gt;Support as a point of contact with UAE regulators by helping the team prepare responses, track requests, and organize regulatory communications and inspections.&lt;/li&gt;\n&lt;li data-section-id=&quot;c42303&quot; data-start=&quot;3011&quot; data-end=&quot;3164&quot;&gt;Help prepare and submit regulatory reports, both periodic and ad hoc, by coordinating with internal teams to collect and verify required information.&lt;/li&gt;\n&lt;li data-section-id=&quot;1jq02ga&quot; data-start=&quot;3165&quot; data-end=&quot;3318&quot;&gt;Assist in conducting compliance reviews and monitoring activities to ensure internal practices meet UAE regulatory requirements and company policies.&lt;/li&gt;\n&lt;li data-section-id=&quot;i5xu59&quot; data-start=&quot;3319&quot; data-end=&quot;3516&quot;&gt;Review policies, contracts, products, customer journeys, and marketing materials with guidance from senior team members to ensure alignment with regulatory and consumer protection requirements.&lt;/li&gt;\n&lt;li data-section-id=&quot;wy4l4y&quot; data-start=&quot;3517&quot; data-end=&quot;3657&quot;&gt;Work closely with business teams to help them understand regulatory expectations and ensure new initiatives are compliant before launch.&lt;/li&gt;\n&lt;li data-section-id=&quot;1cqr4ct&quot; data-start=&quot;3658&quot; data-end=&quot;3772&quot;&gt;Help develop and update compliance guides, trackers, and awareness materials to support different departments.&lt;/li&gt;\n&lt;li data-section-id=&quot;1lq6hj2&quot; data-start=&quot;3773&quot; data-end=&quot;3893&quot;&gt;Support in maintaining and updating the Annual Compliance Plan, tracking deadlines, progress, and follow-up actions.&lt;/li&gt;\n&lt;li data-section-id=&quot;1723qqo&quot; data-start=&quot;3894&quot; data-end=&quot;4038&quot;&gt;Ensure all compliance activities, reports, and communications with regulators are clearly documented and easy to trace for future reference.&lt;/li&gt;\n&lt;li data-section-id=&quot;1bwyq5x&quot; data-start=&quot;4039&quot; data-end=&quot;4147&quot;&gt;Track and follow up on open compliance observations to ensure they are resolved within agreed timelines.&lt;/li&gt;\n&lt;li data-section-id=&quot;4bfnvw&quot; data-start=&quot;4148&quot; data-end=&quot;4241&quot;&gt;Support AML/CFT, sanctions screening, and customer protection initiatives where required.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2 data-section-id=&quot;1ht6wv9&quot; data-start=&quot;4248&quot; data-end=&quot;4265&quot;&gt;Your Expertise&lt;/h2&gt;\n&lt;ul data-start=&quot;4267&quot; data-end=&quot;4736&quot;&gt;\n&lt;li data-section-id=&quot;bpabr8&quot; data-start=&quot;4267&quot; data-end=&quot;4350&quot;&gt;Bachelor’s degree in Law, Business Administration, Finance, or a related field.&lt;/li&gt;\n&lt;li data-section-id=&quot;p2ppbo&quot; data-start=&quot;4351&quot; data-end=&quot;4468&quot;&gt;0–2 years of experience in Regulatory Compliance, ideally within FinTech, Consumer Finance, Banking, or Payments.&lt;/li&gt;\n&lt;li data-section-id=&quot;1qohk3m&quot; data-start=&quot;4469&quot; data-end=&quot;4621&quot;&gt;Good understanding of the UAE regulatory landscape, particularly frameworks relevant to payments, lending, consumer finance, and fintech businesses.&lt;/li&gt;\n&lt;li data-section-id=&quot;ghrc3o&quot; data-start=&quot;4622&quot; data-end=&quot;4736&quot;&gt;Familiarity with CBUAE regulations, AML/CFT obligations, and consumer protection expectations is an advantage.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2 data-section-id=&quot;196891j&quot; data-start=&quot;4743&quot; data-end=&quot;4752&quot;&gt;Skills&lt;/h2&gt;\n&lt;ul data-start=&quot;4754&quot; data-end=&quot;5473&quot;&gt;\n&lt;li data-section-id=&quot;1s6q7c7&quot; data-start=&quot;4754&quot; data-end=&quot;4869&quot;&gt;Basic understanding of UAE financial services regulations, with eagerness to learn through hands-on experience.&lt;/li&gt;\n&lt;li data-section-id=&quot;x760xo&quot; data-start=&quot;4870&quot; data-end=&quot;4989&quot;&gt;Strong analytical and organizational skills to review information, identify gaps, and support regulatory reporting.&lt;/li&gt;\n&lt;li data-section-id=&quot;1qivzk6&quot; data-start=&quot;4990&quot; data-end=&quot;5099&quot;&gt;Good documentation and reporting skills, ensuring accuracy and traceability in all compliance activities.&lt;/li&gt;\n&lt;li data-section-id=&quot;caorc0&quot; data-start=&quot;5100&quot; data-end=&quot;5222&quot;&gt;Clear and professional communication skills in both Arabic and English for working with internal teams and regulators.&lt;/li&gt;\n&lt;li data-section-id=&quot;17v0mr7&quot; data-start=&quot;5223&quot; data-end=&quot;5344&quot;&gt;Strong collaboration and coordination abilities to support cross-functional teams in meeting compliance requirements.&lt;/li&gt;\n&lt;li data-section-id=&quot;u1fsjc&quot; data-start=&quot;5345&quot; data-end=&quot;5473&quot;&gt;Attention to detail and a commitment to maintaining complete records of compliance reviews, submissions, and communications.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2 data-section-id=&quot;10rr2kq&quot; data-start=&quot;5480&quot; data-end=&quot;5493&quot;&gt;Attributes&lt;/h2&gt;\n&lt;ul data-start=&quot;5495&quot; data-end=&quot;5985&quot; data-is-last-node=&quot;&quot; data-is-only-node=&quot;&quot;&gt;\n&lt;li data-section-id=&quot;1sei2i2&quot; data-start=&quot;5495&quot; data-end=&quot;5580&quot;&gt;Organized, detail-oriented, and proactive, with a strong sense of responsibility.&lt;/li&gt;\n&lt;li data-section-id=&quot;60glds&quot; data-start=&quot;5581&quot; data-end=&quot;5693&quot;&gt;Curious and eager to learn, especially about regulatory compliance and the UAE financial services landscape.&lt;/li&gt;\n&lt;li data-section-id=&quot;k5c778&quot; data-start=&quot;5694&quot; data-end=&quot;5794&quot;&gt;Adaptable and solution-oriented, able to handle changing priorities in a fast-paced environment.&lt;/li&gt;\n&lt;li data-section-id=&quot;m87pz2&quot; data-start=&quot;5795&quot; data-end=&quot;5877&quot;&gt;Team player who values collaboration, accountability, and clear communication.&lt;/li&gt;\n&lt;li data-section-id=&quot;9dphr7&quot; data-start=&quot;5878&quot; data-end=&quot;5985&quot; data-is-last-node=&quot;&quot;&gt;Motivated by Tamara’s mission to uphold trust, transparency, and excellence in compliance and governance.&lt;/li&gt;\n&lt;/ul&gt;",
+   "departments": [
+    {
+     "id": 4031967101,
+     "name": "Risk",
+     "child_ids": [
+      4031968101,
+      4031970101,
+      4031969101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4849508101/ai_opt_out"
+  },
+  {
+   "absolute_url": "https://job-boards.eu.greenhouse.io/tamara/jobs/4914300101",
+   "data_compliance": [
+    {
+     "type": "gdpr",
+     "requires_consent": false,
+     "requires_processing_consent": false,
+     "requires_retention_consent": false,
+     "retention_period": null,
+     "demographic_data_consent_applies": false
+    }
+   ],
+   "internal_job_id": 4494791101,
+   "location": {
+    "name": "Dubai, United Arab Emirates"
+   },
+   "metadata": [
+    {
+     "id": 15763658101,
+     "name": "Website Mapping",
+     "value": "Marketing & Comms",
+     "value_type": "single_select"
+    }
+   ],
+   "id": 4914300101,
+   "updated_at": "2026-09-17T14:37:50-04:00",
+   "requisition_id": "1912",
+   "title": "CRM Specialist",
+   "company_name": "Tamara",
+   "first_published": "2026-07-27T06:10:03-04:00",
+   "language": "en",
+   "application_deadline": null,
+   "content": "&lt;p&gt;&lt;strong&gt;About Us&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;Tamara is a leading fintech platform in Saudi Arabia and the GCC region with a mission to help people own their dreams built on being simple, trusted, and everywhere our customers need us. Today, more than 25 million customers and over 130,000 partner merchants depend on Tamara every day for reliable financial solutions across retail, travel, education, healthcare, and beyond. Tamara is backed by Sanabil Investments, a wholly owned company of the Public Investment Fund (PIF), and SNB Capital, among others.&lt;/p&gt;\n&lt;p&gt;Tamara is Saudi’s first fintech unicorn and is backed by Sanabil Investments, SNB Capital, Checkout.com, amongst others, operating out of its headquarters in Riyadh, Saudi Arabia with other regional and global support offices.&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About the role&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;Tamara is seeking a CRM Specialist to own the end-to-end design, execution, and optimization of highly complex lifecycle campaigns. You’ll bring deep technical expertise, ensuring our CRM flows are automated, scalable, and personalized, while serving as the go-to CRM expert for the business. This role reports to the CRM Manager.&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;What you’ll do:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Lifecycle Campaign Architecture&lt;/strong&gt; – Lead the design and implementation of multi-channel customer journeys (email, push, in-app, SMS) with advanced segmentation, personalization, and automation.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Complex CRM Logic Implementation&lt;/strong&gt; – Expertly configure and maintain advanced CRM logic using dynamic content, Liquid logic, webhooks, and connected content to deliver hyper-personalized experiences.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Own Strategic Projects&lt;/strong&gt; – Define and drive the CRM strategy for key initiatives such as customer lifecycle management and product adoption, ensuring measurable impact on engagement and retention.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Technical Execution&lt;/strong&gt; – Manage complex CRM workflows, integrations, and troubleshooting.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Data-Driven Optimization&lt;/strong&gt; – Analyze campaign performance and user behavior to continually refine targeting, content, and triggers.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Stakeholder Collaboration&lt;/strong&gt; – Partner with product, data, engineering, and marketing teams to ensure CRM initiatives align with business goals.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Platform Expertise&lt;/strong&gt; – Serve as the internal subject-matter expert on CRM tools, ensuring best practices in template design, deliverability, and compliance.&lt;br&gt;&lt;br&gt;&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Preferred Qualifications:&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;2+ years of hands-on CRM experience in fast-paced B2C environments is a must; experience in fintech is highly preferable&lt;/li&gt;\n&lt;li&gt;A proven track record in building and managing complex automated campaigns in enterprise-level CRM platforms (e.g.,,Braze, CleverTap, Iterable) is a must.&lt;/li&gt;\n&lt;li&gt;Proven expertise in implementing advanced CRM logic — including Liquid scripting, dynamic content, webhooks, and connected content.&lt;/li&gt;\n&lt;li&gt;Strong understanding of customer segmentation, lifecycle marketing, and data flows.&lt;/li&gt;\n&lt;li&gt;Comfortable working with data (SQL, analytics dashboards, A/B testing).&lt;/li&gt;\n&lt;li&gt;Familiarity with HTML/CSS for email development is a plus.&lt;/li&gt;\n&lt;li&gt;Excellent communication skills, with the ability to translate technical concepts into business insights.&lt;/li&gt;\n&lt;li&gt;Strong problem-solving skills and attention to detail.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&amp;nbsp;&lt;/p&gt;",
+   "departments": [
+    {
+     "id": 4058419101,
+     "name": "Growth",
+     "child_ids": [
+      4058421101,
+      4058423101,
+      4058420101,
+      4058422101
+     ],
+     "parent_id": null
+    }
+   ],
+   "offices": [
+    {
+     "id": 4000278101,
+     "name": "United Arab Emirates",
+     "location": "Dubai, United Arab Emirates",
+     "child_ids": [],
+     "parent_id": null
+    }
+   ],
+   "ai_disclaimer": null,
+   "include_ai_disclaimer": false,
+   "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4914300101/ai_opt_out"
+  }
+ ],
+ "meta": {
+  "total": 31
+ }
+}

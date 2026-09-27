@@ -21,6 +21,8 @@ SOURCE_NAMES = {
     "remotive": "Remotive",
     "arbeitnow": "Arbeitnow",
     "wttj": "Welcome to the Jungle",
+    "boards": "Company job boards",
+    "bayt": "Bayt",
 }
 _MUTABLE = ("title", "url", "location", "country", "remote_type", "description", "salary_text",
             "posted_at")

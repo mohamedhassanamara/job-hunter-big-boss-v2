@@ -52,6 +52,8 @@ SOURCE_NAMES = {
     "adzuna": "Adzuna",
     "remotive": "Remotive",
     "arbeitnow": "Arbeitnow",
+    "boards": "Company job boards",
+    "bayt": "Bayt",
     "wttj": "Welcome to the Jungle",
 }
 FORWARD = [Stage.new, Stage.shortlisted, Stage.cv_ready, Stage.ready, Stage.done, Stage.interview]
@@ -99,19 +101,19 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                     started_at=started,
                     finished_at=started + timedelta(seconds=40 + i * 7),
                     status=RunStatus.partial if failed else RunStatus.success,
-                    fetched_count=[34, 12, 21, 18][i],
-                    kept_count=[9, 3, 4, 6][i],
-                    filtered_count=[25, 9, 17, 12][i],
-                    new_count=[3, 2, 2, 1][i] if day_offset == 0 else [4, 1, 3, 2][i],
-                    duplicate_count=[1, 0, 1, 0][i],
+                    fetched_count=[34, 12, 21, 18, 27, 40][i],
+                    kept_count=[9, 3, 4, 6, 5, 7][i],
+                    filtered_count=[25, 9, 17, 12, 22, 33][i],
+                    new_count=[3, 2, 2, 1, 2, 3][i] if day_offset == 0 else [4, 1, 3, 2, 1, 2][i],
+                    duplicate_count=[1, 0, 1, 0, 0, 1][i],
                     details={
-                        "requests": [12, 1, 1, 1][i],
+                        "requests": [12, 1, 1, 1, 10, 8][i],
                         "reasons": {
                             reason: n
                             for reason, n in {
-                                "title_no_role_match": [18, 7, 11, 9][i],
-                                "location_outside:DE": [0, 0, 6, 0][i],
-                                "title_excluded:intern": [7, 2, 0, 3][i],
+                                "title_no_role_match": [18, 7, 11, 9, 20, 30][i],
+                                "location_outside:DE": [0, 0, 6, 0, 0, 0][i],
+                                "title_excluded:intern": [7, 2, 0, 3, 2, 3][i],
                             }.items()
                             if n
                         },

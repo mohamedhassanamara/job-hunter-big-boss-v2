@@ -1,0 +1,996 @@
+{
+ "offset": 0,
+ "limit": 8,
+ "totalFound": 965,
+ "content": [
+  {
+   "id": "744000151994819",
+   "name": "Accountant - Croatia",
+   "uuid": "0e22f763-6f7b-406f-97dd-b90fcd81cc23",
+   "jobAdId": "af3fe255-ae41-4b6e-a827-5dfda9690007",
+   "defaultJobAd": true,
+   "refNumber": "JR0085770",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-26T19:19:08.587Z",
+   "location": {
+    "city": "Zagreb",
+    "country": "hr",
+    "remote": false,
+    "hybrid": true,
+    "hybridDescription": "3 days from the office, 2 days from home",
+    "fullLocation": "Zagreb, , Croatia"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "finance",
+    "label": "Finance"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "Glovo",
+     "valueLabel": "Glovo"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "b475b918a29901ea0fef57344e015e05",
+     "valueLabel": "Accounting"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "ef2e8d3982de0154ceac3dccd1160d00",
+     "valueLabel": "Finance"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "2446ff07ae4e1001e04252d9832c0000",
+     "valueLabel": "Finance - Accounting Local - Croatia - HIE97155"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "hr",
+     "valueLabel": "Croatia"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01acdf1d1c45d2163900",
+     "valueLabel": "IC1"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "8a0f948423d21001a97034f2ad170000",
+     "valueLabel": "Zagreb - Radnicka Cesta"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "0b9bd6d5dac710009467857f4dce0000",
+     "valueLabel": "Accounting - IC1"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151994819",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000151991939",
+   "name": "Account Manager - Romania ",
+   "uuid": "56db3406-1662-44c2-8b1f-5f2095ce9911",
+   "jobAdId": "1bbb1b6d-4fcb-4337-a219-2b6004894f46",
+   "defaultJobAd": false,
+   "refNumber": "JR0075635",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-26T15:13:37.306Z",
+   "location": {
+    "city": "Bucharest",
+    "country": "ro",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Bucharest, , Romania"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "Glovo",
+     "valueLabel": "Glovo"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "75439315e9751000915150c1ccdc0000",
+     "valueLabel": "Sales Account Management"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "75439315e97510004b9c1be43b920000",
+     "valueLabel": "Sales"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "e4e7a1a20d961000a5aad232ef190000",
+     "valueLabel": "Bucharest - Top Accounts - (Romania) Glovoapp - HIE13862"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "ro",
+     "valueLabel": "Romania"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01acdf1d1c45d2163900",
+     "valueLabel": "IC1"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "121954fc96081001a96ed1f2be3e0000",
+     "valueLabel": "Bucharest - Serban Voda 208-210"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "def96f76eb491000b2e6223c17b40000",
+     "valueLabel": "Key Account Management - IC1"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151991939",
+   "creator": {
+    "name": "Sofia Barrionuevo"
+   },
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000151991899",
+   "name": "Sales Executive - Romania ",
+   "uuid": "0b280b72-f146-43d5-9aa1-320ad53ee6f9",
+   "jobAdId": "435e1b4b-b181-412d-96dd-df6ebd4c31b9",
+   "defaultJobAd": false,
+   "refNumber": "JR0075635",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-26T15:12:42.380Z",
+   "location": {
+    "city": "Bucharest",
+    "country": "ro",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Bucharest, , Romania"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "Glovo",
+     "valueLabel": "Glovo"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "75439315e9751000915150c1ccdc0000",
+     "valueLabel": "Sales Account Management"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "75439315e97510004b9c1be43b920000",
+     "valueLabel": "Sales"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "e4e7a1a20d961000a5aad232ef190000",
+     "valueLabel": "Bucharest - Top Accounts - (Romania) Glovoapp - HIE13862"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "ro",
+     "valueLabel": "Romania"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01acdf1d1c45d2163900",
+     "valueLabel": "IC1"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "121954fc96081001a96ed1f2be3e0000",
+     "valueLabel": "Bucharest - Serban Voda 208-210"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "def96f76eb491000b2e6223c17b40000",
+     "valueLabel": "Key Account Management - IC1"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151991899",
+   "creator": {
+    "name": "Sofia Barrionuevo"
+   },
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000151986148",
+   "name": "Sr Account Manager S&M Cities Italy",
+   "uuid": "6b0e1496-38a2-4df2-a413-4a523d01a14e",
+   "jobAdId": "9bba825d-4061-4da7-b472-5f0f2d8612ce",
+   "defaultJobAd": true,
+   "refNumber": "JR0085391",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-26T10:43:18.303Z",
+   "location": {
+    "city": "Milano",
+    "country": "it",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Milano, , Italy"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "Glovo",
+     "valueLabel": "Glovo"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "75439315e9751000915150c1ccdc0000",
+     "valueLabel": "Sales Account Management"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "75439315e97510004b9c1be43b920000",
+     "valueLabel": "Sales"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "1924780951e41001df90c55bb4df0000",
+     "valueLabel": "Partners & Brands - Regional Management - Regions Italy - HIE95134"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "it",
+     "valueLabel": "Italy"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+     "valueLabel": "IC2"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "121954fc96081001b7d1728dde400000",
+     "valueLabel": "Milan - Giovanni Battista Pirelli"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "def96f76eb491000b2e6da7cee1d0000",
+     "valueLabel": "Key Account Management - IC2"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151986148",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000151986049",
+   "name": "Sr Account Manager Regions Italy",
+   "uuid": "7c36f555-b8a2-4b5e-bd71-5456bf7b244f",
+   "jobAdId": "4ccf6761-7beb-48a6-83f0-1cf277dfb0d8",
+   "defaultJobAd": true,
+   "refNumber": "JR0081818",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-26T10:32:39.217Z",
+   "location": {
+    "city": "Torino",
+    "country": "it",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Torino, , Italy"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "Glovo",
+     "valueLabel": "Glovo"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "75439315e9751000915150c1ccdc0000",
+     "valueLabel": "Sales Account Management"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "75439315e97510004b9c1be43b920000",
+     "valueLabel": "Sales"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "2446ff07ae4e1001e03c715430430000",
+     "valueLabel": "Partners & Brands - Regions - Italy - HIE96982"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "it",
+     "valueLabel": "Italy"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+     "valueLabel": "IC2"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "121954fc96081001b7d1b3cc14730000",
+     "valueLabel": "Turin - Giacosa"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "def96f76eb491000b2e6da7cee1d0000",
+     "valueLabel": "Key Account Management - IC2"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151986049",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "744000151935089",
+   "name": "Reconciliation Sr Analyst",
+   "uuid": "c2e00afe-9d2d-4126-abf2-a25611bad3c3",
+   "jobAdId": "fd80462b-017c-42a0-9d34-d0460aaf7279",
+   "defaultJobAd": true,
+   "refNumber": "JR0086753",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-25T20:32:09.478Z",
+   "location": {
+    "city": "Buenos Aires",
+    "country": "ar",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Buenos Aires, , Argentina"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "product_management",
+    "label": "Product Management"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "PedidosYa",
+     "valueLabel": "PedidosYa"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "b475b918a2990129ea2552344e014205",
+     "valueLabel": "Product Management"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "74446f87526f01f6255af7080e243d13",
+     "valueLabel": "Product"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "9dd14d76d7a81001b177624d13fc0000",
+     "valueLabel": "Regional - Fintech - Online Payments - HIE14958"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "ar",
+     "valueLabel": "Argentina"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+     "valueLabel": "IC2"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "faf13b71c1170168d6b5d3e83f01f407",
+     "valueLabel": "Buenos Aires - Centro Empresarial Libertador"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "a2e7316c822c1000945cf558ef080000",
+     "valueLabel": "Payments - IC2"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151935089",
+   "language": {
+    "code": "es-MX",
+    "label": "Spanish (LATAM)",
+    "labelNative": "español (LATAM)"
+   }
+  },
+  {
+   "id": "744000151932418",
+   "name": "Marketing BI Specialist",
+   "uuid": "612bf24c-2942-45f2-b95b-b616a02cea1b",
+   "jobAdId": "0a60fac1-9f60-44f2-a151-a0b3acf3bf07",
+   "defaultJobAd": true,
+   "refNumber": "JR0084941",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-25T20:13:37.996Z",
+   "location": {
+    "city": "San Salvador",
+    "country": "sv",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "San Salvador, , El Salvador"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "marketing",
+    "label": "Marketing"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "PedidosYa",
+     "valueLabel": "PedidosYa"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "b475b918a29901298d5048344e010a05",
+     "valueLabel": "General Marketing"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "ef2e8d3982de01514833d7d2d1160f00",
+     "valueLabel": "Marketing"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "41de4932dc8b019f1ca64724ef01dcb1",
+     "valueLabel": "Marketing - Marketing - SLV - Team A - HIE03985"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "sv",
+     "valueLabel": "El Salvador"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de0186768e0345d2163500",
+     "valueLabel": "IC3"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "41de4932dc8b01172040f9c3dc01fe85",
+     "valueLabel": "San Salvador - Plaza Futura"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "a2e7316c822c100094831b09b7fa0000",
+     "valueLabel": "Marketing Generalist - IC3"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151932418",
+   "language": {
+    "code": "es-MX",
+    "label": "Spanish (LATAM)",
+    "labelNative": "español (LATAM)"
+   }
+  },
+  {
+   "id": "744000151916969",
+   "name": "Patner Commercial Perfomance Analyst",
+   "uuid": "22697385-2742-4797-9ecf-5a37aea5a97f",
+   "jobAdId": "6e42f0f8-2e30-4716-9dcc-091357e34c48",
+   "defaultJobAd": true,
+   "refNumber": "JR0086715",
+   "company": {
+    "identifier": "DeliveryHero",
+    "name": "Delivery Hero"
+   },
+   "releasedDate": "2026-09-25T18:41:26.983Z",
+   "location": {
+    "city": "Buenos Aires",
+    "country": "ar",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Buenos Aires, , Argentina"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "mid_senior_level",
+    "label": "Mid-Senior Level"
+   },
+   "customField": [
+    {
+     "fieldId": "6564ae9ddd552072c3a97453",
+     "fieldLabel": "Time Type",
+     "valueId": "421938a4e1d40118e396324490147300",
+     "valueLabel": "Full time"
+    },
+    {
+     "fieldId": "655ce69d695b8c5663cf1f55",
+     "fieldLabel": "Brands",
+     "valueId": "PedidosYa",
+     "valueLabel": "PedidosYa"
+    },
+    {
+     "fieldId": "6564ad6b1cf48c421e22419d",
+     "fieldLabel": "Job Family",
+     "valueId": "75439315e9751000914c03e872460000",
+     "valueLabel": "Sales & Business Development"
+    },
+    {
+     "fieldId": "6564ad3fee5f2f5b84045448",
+     "fieldLabel": "Job Family Group",
+     "valueId": "75439315e97510004b9c1be43b920000",
+     "valueLabel": "Sales"
+    },
+    {
+     "fieldId": "6564aa853d74d30a33089d2a",
+     "fieldLabel": "Supervisory Organization",
+     "valueId": "6b8a0a449bb110015f2b2df32fc50000",
+     "valueLabel": "Operations - Excellence - Arg - Team J - HIE14717"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "ar",
+     "valueLabel": "Argentina"
+    },
+    {
+     "fieldId": "6564ad09560ccd2ba9e90d24",
+     "fieldLabel": "Management Level",
+     "valueId": "ef2e8d3982de01df9ed10f45d2163700",
+     "valueLabel": "IC2"
+    },
+    {
+     "fieldId": "6564ae71dd552072c3a97452",
+     "fieldLabel": "Worker Sub-Type",
+     "valueId": "ef2e8d3982de0123e1696445d2164400",
+     "valueLabel": "Permanent"
+    },
+    {
+     "fieldId": "6564abc0d641ff6fc90ebd6d",
+     "fieldLabel": "Primary Location",
+     "valueId": "faf13b71c1170168d6b5d3e83f01f407",
+     "valueLabel": "Buenos Aires - Centro Empresarial Libertador"
+    },
+    {
+     "fieldId": "6564ada8e5ee8c3d9bec3405",
+     "fieldLabel": "Job Profile",
+     "valueId": "a2e7316c822c1000949cfc5c218a0000",
+     "valueLabel": "Sales Acquisition - IC2"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/DeliveryHero/postings/744000151916969",
+   "language": {
+    "code": "es-MX",
+    "label": "Spanish (LATAM)",
+    "labelNative": "español (LATAM)"
+   }
+  }
+ ],
+ "_detail": {
+  "id": "744000151994819",
+  "name": "Accountant - Croatia",
+  "uuid": "0e22f763-6f7b-406f-97dd-b90fcd81cc23",
+  "jobId": "eb9389de-d25a-40b9-b636-d325d3755f82",
+  "jobAdId": "af3fe255-ae41-4b6e-a827-5dfda9690007",
+  "defaultJobAd": true,
+  "refNumber": "JR0085770",
+  "company": {
+   "name": "Delivery Hero",
+   "identifier": "DeliveryHero"
+  },
+  "location": {
+   "city": "Zagreb",
+   "country": "hr",
+   "remote": false,
+   "hybrid": true,
+   "hybridDescription": "3 days from the office, 2 days from home",
+   "fullLocation": "Zagreb, , Croatia"
+  },
+  "customField": [
+   {
+    "fieldId": "6564ad3fee5f2f5b84045448",
+    "fieldLabel": "Job Family Group",
+    "valueId": "ef2e8d3982de0154ceac3dccd1160d00",
+    "valueLabel": "Finance"
+   },
+   {
+    "fieldId": "6564ae9ddd552072c3a97453",
+    "fieldLabel": "Time Type",
+    "valueId": "421938a4e1d40118e396324490147300",
+    "valueLabel": "Full time"
+   },
+   {
+    "fieldId": "6564aa853d74d30a33089d2a",
+    "fieldLabel": "Supervisory Organization",
+    "valueId": "2446ff07ae4e1001e04252d9832c0000",
+    "valueLabel": "Finance - Accounting Local - Croatia - HIE97155"
+   },
+   {
+    "fieldId": "COUNTRY",
+    "fieldLabel": "Country/Region",
+    "valueId": "hr",
+    "valueLabel": "Croatia"
+   },
+   {
+    "fieldId": "6564ad09560ccd2ba9e90d24",
+    "fieldLabel": "Management Level",
+    "valueId": "ef2e8d3982de01acdf1d1c45d2163900",
+    "valueLabel": "IC1"
+   },
+   {
+    "fieldId": "6564ae71dd552072c3a97452",
+    "fieldLabel": "Worker Sub-Type",
+    "valueId": "ef2e8d3982de0123e1696445d2164400",
+    "valueLabel": "Permanent"
+   },
+   {
+    "fieldId": "655ce69d695b8c5663cf1f55",
+    "fieldLabel": "Brands",
+    "valueId": "Glovo",
+    "valueLabel": "Glovo"
+   },
+   {
+    "fieldId": "6564ad6b1cf48c421e22419d",
+    "fieldLabel": "Job Family",
+    "valueId": "b475b918a29901ea0fef57344e015e05",
+    "valueLabel": "Accounting"
+   },
+   {
+    "fieldId": "6564abc0d641ff6fc90ebd6d",
+    "fieldLabel": "Primary Location",
+    "valueId": "8a0f948423d21001a97034f2ad170000",
+    "valueLabel": "Zagreb - Radnicka Cesta"
+   },
+   {
+    "fieldId": "6564ada8e5ee8c3d9bec3405",
+    "fieldLabel": "Job Profile",
+    "valueId": "0b9bd6d5dac710009467857f4dce0000",
+    "valueLabel": "Accounting - IC1"
+   }
+  ],
+  "releasedDate": "2026-09-26T19:19:08.587Z",
+  "creator": {
+   "name": "",
+   "avatarUrl": ""
+  },
+  "postingUrl": "https://jobs.smartrecruiters.com/DeliveryHero/744000151994819-accountant-croatia",
+  "applyUrl": "https://jobs.smartrecruiters.com/DeliveryHero/744000151994819-accountant-croatia?oga=true",
+  "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/DeliveryHero/publication/0e22f763-6f7b-406f-97dd-b90fcd81cc23?dcr_ci=DeliveryHero",
+  "jobAd": {
+   "sections": {
+    "companyDescription": {
+     "title": "Company Description",
+     "text": "<p>Glovo is part of the Delivery Hero Group, the world’s pioneering local delivery platform, our mission is to deliver an amazing experience—fast, easy, and to your door. We operate in around 65 countries worldwide. Headquartered in Berlin, Germany. Delivery Hero has been listed on the Frankfurt Stock Exchange since 2017 and is part of the MDAX stock market index.</p>"
+    },
+    "jobDescription": {
+     "title": "Job Description",
+     "text": "<p>Job Ref ID:&#xa0;JR0085770</p><p><strong>YOUR MISSION</strong></p><p>At Glovo, our Finance team thrives on ownership, precision, and impact. We love diving deep into details, driving improvements, and creating value across everything we do. If you’re proactive, curious, and passionate about making numbers tell a story — you’ll fit right in.</p><p>We hire for attitude and potential. With the right mindset, everything else can be learned.<br>\n&#xa0;</p><p><strong>THE JOURNEY&#xa0;</strong></p><ul><li><p>Play a key role in general accounting and controlling, ensuring accuracy and compliance across all ledgers.</p></li><li><p>Own balance sheet reconciliations (customers, vendors, related parties, banks, tax authorities, etc.).</p></li><li><p>Manage treasury forecasting, analyze variances, and process payments.</p></li><li><p>Handle billing and invoicing – ensuring both customer and partner accuracy.</p></li><li><p>Review, process, and control accounting documentation for completeness and correctness.</p></li><li><p>Partner with the Commercial team as their go-to person for finance insights and operational support.</p></li><li><p>Identify and drive process improvements to simplify, automate, or enhance workflows.</p></li><li><p>Prepare regular and ad-hoc AR/AP, inventory, and billing reports.</p></li><li><p>Communicate with HQ, regional, and local stakeholders, supporting implementation of new processes and initiatives.</p></li><li><p>Support month-end and year-end closing and reconciliation activities.</p></li><li><p>Cover other accounting and analytical procedures as needed.</p></li></ul>"
+    },
+    "qualifications": {
+     "title": "Qualifications",
+     "text": "<p><strong>WHAT YOU WILL BRING TO THE RIDE</strong></p><ul><li><p>At least 1 year of experience in Accounting, Audit, or Corporate Finance, ideally in a multinational environment.</p></li><li><p>Strong knowledge of local GAAP and IFRS, and familiarity with statutory accounting and tax compliance.</p></li><li><p>Experience with ERP systems (Wand/Business Central is a plus!).</p></li><li><p>Advanced Excel/Google Sheets skills – comfort with large datasets and reconciliations.</p></li><li><p>Strong analytical and problem-solving mindset with exceptional attention to detail.</p></li><li><p>Excellent command of English and the local language.</p></li><li><p>Self-driven, organized, and deadline-oriented, with the ability to prioritize effectively.</p></li></ul><p><strong>We believe driven talent deserves:</strong></p><p>💪 Private health insurance to keep you at your best.</p><p>🍔 Monthly meal benefit to fuel your cravings.</p><p>🏊 Gym memberships to stay active.</p><p>🧠 Access to online therapy and wellbeing programs to support your mental health.</p>"
+    },
+    "additionalInformation": {
+     "title": "Additional Information",
+     "text": "<div sr-tagline=\"\"></div><p>At Glovo, your success is defined by both results and behaviors. We hire for excellence in craft and for the Leadership Principles that shape how we think, decide, and collaborate. What you achieve matters and how you achieve it defines us. Together, they move the business forward and deliver great experiences. <strong>Learn more about our Leadership Principles </strong><a href=\"https://careers.deliveryhero.com/leadership-principles\" rel=\"noopener noreferrer\"><strong><u>here</u></strong></a><strong>.</strong></p><p>Here at Glovo, we thrive on diversity, we believe it enhances our teams, products, and culture. We know that the best ideas come from a mashup of brilliant diverse minds. This is why we are committed to providing equal opportunities to talent from all backgrounds – all genders, racial/diverse backgrounds, abilities, ages, sexual orientations and all other unique characteristics that make you YOU. We will encourage you to bring your authentic self to work, fostering an inclusive environment where everyone feels heard.</p><p>Feel free to note your pronouns in your application (e.g., she/her/hers, he/him/his, they/them/theirs, etc).</p><p><strong>So, ready to take the wheel and make this the ride of your life?</strong><br>\n<br>\nDelve into our culture by taking a peek at our <a href=\"https://www.instagram.com/lifeatglovo/\" rel=\"noopener noreferrer\">Instagram</a> and check out our <a href=\"https://www.linkedin.com/company/glovo-app/\" rel=\"noopener noreferrer\">LinkedIn</a> and <a href=\"https://about.glovoapp.com/\" rel=\"noopener noreferrer\">website</a>!</p>"
+    }
+   }
+  },
+  "active": true,
+  "visibility": "PUBLIC",
+  "industry": {
+   "id": "internet",
+   "label": "Internet"
+  },
+  "function": {
+   "id": "finance",
+   "label": "Finance"
+  },
+  "experienceLevel": {
+   "id": "associate",
+   "label": "Associate"
+  },
+  "typeOfEmployment": {
+   "id": "permanent",
+   "label": "Full-time"
+  },
+  "language": {
+   "code": "en",
+   "label": "English",
+   "labelNative": "English (US)"
+  }
+ }
+}
