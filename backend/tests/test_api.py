@@ -76,7 +76,7 @@ def test_dismiss_and_invalid_transition(client: TestClient) -> None:
     r = client.post(f"/api/jobs/{job['id']}/dismiss")
     assert r.json()["application"]["close_reason"] == "dismissed"
     app_id = r.json()["application"]["id"]
-    bad = client.patch(f"/api/applications/{app_id}", json={"stage": "interview"})
+    bad = client.patch(f"/api/applications/{app_id}", json={"stage": "cv_ready"})
     assert bad.status_code == 409
     assert "Can't move" in bad.json()["detail"]
 

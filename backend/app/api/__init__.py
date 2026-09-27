@@ -11,6 +11,7 @@ from app.api import (
     scoring,
     settings,
     today,
+    tracking,
 )
 
 router = APIRouter()
@@ -22,6 +23,7 @@ def health() -> dict[str, str]:
 
 
 for module in (
-    today, jobs, applications, cv, outreach, experience, contacts, settings, discovery, scoring,
+    today, jobs, tracking, applications, cv, outreach, experience, contacts, settings, discovery,
+    scoring,
 ):
     router.include_router(module.router)

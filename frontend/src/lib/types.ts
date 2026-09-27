@@ -334,7 +334,7 @@ export interface CVApproveResult {
   version: CVVersion
   stage: Stage
   route: Route
-  next_step: 'draft_email' | 'mark_ready_to_apply'
+  next_step: 'draft_email' | 'apply'
 }
 
 // Outreach

@@ -5,7 +5,7 @@ from app.api.deps import SessionDep, get_or_404
 from app.models import Application, Contact, Job
 from app.models.enums import CloseReason, ContactTier, EventKind, Route, Stage
 from app.schemas.jobs import ApplicationPatch, JobDetail, PipelineCard
-from app.services import pipeline
+from app.services import pipeline, tracking
 from app.services.views import job_detail, pipeline_cards
 
 router = APIRouter(prefix="/applications", tags=["pipeline"])
@@ -37,7 +37,17 @@ def patch_application(app_id: int, body: ApplicationPatch, session: SessionDep) 
             reason = CloseReason(body.close_reason) if body.close_reason else None
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        pipeline.transition(session, app, stage, close_reason=reason)
+        if stage == Stage.done and app.route == Route.web_apply:
+            raise HTTPException(409, "Use “Mark applied” (records the date, method and CV sent)")
+        if stage == Stage.interview:
+            raise HTTPException(409, "Use “Log interview” (records the round)")
+        try:
+            if stage == Stage.closed:
+                tracking.close(session, app, reason or CloseReason.dismissed)
+            else:
+                pipeline.transition(session, app, stage, close_reason=reason)
+        except tracking.TrackingError as exc:
+            raise HTTPException(422, str(exc)) from exc
     session.add(app)
     session.commit()
     session.refresh(app)
