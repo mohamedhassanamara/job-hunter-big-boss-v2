@@ -72,13 +72,14 @@ def test_counts_filter_report_and_idempotency(empty_db: None) -> None:
     assert sr.details["reasons"] == {"title_no_role_match": 1, "title_excluded:intern": 1}
     assert {x["title"] for x in sr.details["samples"]} == {"Sales Manager", "Data Engineer Intern"}
 
-    # Second run with the same listing (title changed upstream) → updates, no new rows.
+    # Second run with the same listing (title changed upstream): additive discovery keeps the
+    # stored job exactly as it was, only last_seen_at moves; no new rows.
     src.jobs = [raw(Source.adzuna, "1", title="Senior Data Engineer")]
     run2 = run_discovery(engine, {Source.adzuna: src})
     sr2 = source_runs(run2)["adzuna"]
     assert (sr2.new_count, sr2.updated_count) == (0, 1)
     all_jobs = jobs()
-    assert len(all_jobs) == 1 and all_jobs[0].title == "Senior Data Engineer"
+    assert len(all_jobs) == 1 and all_jobs[0].title == "Data Engineer"
     assert all_jobs[0].last_seen_at is not None
 
 
@@ -141,3 +142,33 @@ def test_overlapping_run_is_rejected(empty_db: None) -> None:
             break
         threading.Event().wait(0.05)
     assert source_runs(run_id)["adzuna"].status == RunStatus.success
+
+
+def test_discovery_never_rescores_existing_jobs(empty_db: None) -> None:
+    """Additive discovery: a job seen again keeps its content and score; only never-scored jobs
+    reach the scoring queue."""
+    from app.models import FitScore
+    from app.services.scoring import ScoringQueue
+    from tests.test_queue import Scripted
+
+    scorer = Scripted("gemma4:31b-cloud")
+    queue = ScoringQueue(engine, lambda model: scorer)
+    src = FakeSource(Source.adzuna, [raw(Source.adzuna, "1")])
+    run_discovery(engine, {Source.adzuna: src}, on_jobs=lambda _ids: queue.enqueue_never_scored())
+    assert queue.wait(10) and len(scorer.calls) == 1
+    with Session(engine) as s:
+        job = s.exec(select(Job)).one()
+        before = (job.title, job.description, len(s.exec(select(FitScore)).all()))
+
+    # Same listing again with new upstream text, plus one brand-new listing.
+    src.jobs = [raw(Source.adzuna, "1", title="Senior Data Engineer", description_level="full"),
+                raw(Source.adzuna, "2", title="AI Engineer")]
+    src.jobs[0].description = "Totally rewritten description"
+    run_discovery(engine, {Source.adzuna: src}, on_jobs=lambda _ids: queue.enqueue_never_scored())
+    assert queue.wait(10)
+    assert scorer.calls == ["Data Engineer", "AI Engineer"]  # only the new job was scored
+    with Session(engine) as s:
+        job = s.get(Job, job.id)
+        assert (job.title, job.description) == before[:2]
+        scores = s.exec(select(FitScore).where(FitScore.job_id == job.id)).all()
+        assert len(scores) == 1  # never rescored by discovery

@@ -1,9 +1,11 @@
 """Idempotent ingestion of pre-filtered jobs.
 
-- Same (source, external_id) seen again → update mutable fields + last_seen_at ("updated").
+- Same (source, external_id) seen again → ONLY last_seen_at is updated ("updated" = seen again).
+  Discovery is additive: an existing job's content, score, label, stage and notes are never
+  touched, so nothing already scored is ever rescored by a discovery run.
 - Same dedupe key as an existing job from anywhere → stored, flagged duplicate_of ("duplicate").
 - Otherwise → new job + application (+ Apollo contact match) ("new"); the background scorer
-  (services/scoring.py) scores new and changed jobs afterwards.
+  (services/scoring.py) scores never-scored jobs afterwards.
 """
 
 from dataclasses import dataclass, field
@@ -24,8 +26,6 @@ SOURCE_NAMES = {
     "boards": "Company job boards",
     "bayt": "Bayt",
 }
-_MUTABLE = ("title", "url", "location", "country", "remote_type", "description", "salary_text",
-            "posted_at")
 
 
 @dataclass
@@ -33,7 +33,7 @@ class IngestStats:
     new: int = 0
     updated: int = 0
     duplicates: int = 0
-    job_ids: list[int] = field(default_factory=list)  # new or changed → (re)score
+    job_ids: list[int] = field(default_factory=list)  # new jobs only
 
 
 def _company(session: Session, name: str) -> Company:
@@ -61,18 +61,9 @@ def ingest(
             select(Job).where(Job.source == raw.source, Job.external_id == raw.external_id)
         ).first()
         if existing:
-            # A fetched full listing is better than what the source's feed gives: keep it.
-            keep_full = existing.full_fetched_at is not None
-            for name in _MUTABLE:
-                if keep_full and name == "description":
-                    continue
-                value = getattr(raw, name)
-                if value is not None and getattr(existing, name) != value:
-                    setattr(existing, name, value)
-            existing.last_seen_at = now
+            existing.last_seen_at = now  # still listed; nothing else changes
             session.add(existing)
             stats.updated += 1
-            stats.job_ids.append(existing.id)  # the scorer's cache skips it if nothing changed
             continue
 
         company = _company(session, raw.company)
