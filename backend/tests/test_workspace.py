@@ -50,7 +50,8 @@ def test_test_cv_is_marked_and_removable(client: TestClient) -> None:
     load_test_cv(engine)
     items = client.get("/api/experience").json()
     placeholders = [i for i in items if i["is_placeholder"]]
-    assert placeholders and client.get("/api/settings").json()["values"]["profile"]["is_placeholder"]
+    profile = client.get("/api/settings").json()["values"]["profile"]
+    assert placeholders and profile["is_placeholder"]
     # Editing a test item makes it the user's own (kept on removal).
     kept = client.patch(f"/api/experience/{placeholders[0]['id']}", json={"title": "Mine"}).json()
     assert kept["is_placeholder"] is False
