@@ -13,7 +13,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 from app.config import get_settings
-from app.models.enums import RemoteType, Source
+from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient, SourceError
 from app.services.text import html_to_text
@@ -126,6 +126,7 @@ def parse_wttj(payload: dict[str, Any], targets: set[str] | None = None) -> list
                 remote_type=_REMOTE.get(hit.get("remote") or "", RemoteType.unknown),
                 description=_description(hit),
                 salary_text=_salary(hit),
+                description_level=DescriptionLevel.summary,
                 posted_at=datetime.fromisoformat(published.replace("Z", "+00:00"))
                 if published
                 else None,

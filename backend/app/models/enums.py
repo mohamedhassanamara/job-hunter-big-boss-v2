@@ -123,3 +123,26 @@ class QueueItemStatus(StrEnum):
     sent = "sent"
     failed = "failed"
     cancelled = "cancelled"
+
+
+class FitStatus(StrEnum):
+    ok = "ok"
+    failed = "failed"
+
+
+class Confidence(StrEnum):
+    high = "high"
+    medium = "medium"
+    low = "low"
+
+
+class DescriptionLevel(StrEnum):
+    full = "full"  # the complete listing text
+    summary = "summary"  # e.g. WTTJ search index: summary + key missions
+    snippet = "snippet"  # e.g. Adzuna: ~500 chars
+
+
+class UserLabel(StrEnum):
+    good = "good"
+    maybe = "maybe"
+    no = "no"

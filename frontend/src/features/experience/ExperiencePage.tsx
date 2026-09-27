@@ -17,8 +17,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Layers, Pencil, Plus, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { ToneBadge } from '@/components/app/badges'
 import { PageHeader } from '@/components/app/PageHeader'
 import { EmptyState, ErrorState } from '@/components/app/states'
+import { TestDataBanner } from '@/components/app/TestDataBanner'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -81,6 +83,11 @@ function Row({
         <div className="flex items-baseline gap-2">
           <span className="truncate text-sm font-medium">{item.title}</span>
           {item.org && <span className="truncate text-sm text-fg-muted">{item.org}</span>}
+          {item.is_placeholder && (
+            <ToneBadge tone="amber" dot={false}>
+              Test
+            </ToneBadge>
+          )}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           {range && <span className="mr-1 text-xs text-fg-subtle tabular-nums">{range}</span>}
@@ -224,6 +231,7 @@ export default function ExperiencePage() {
             />
           ) : (
             <>
+              <TestDataBanner />
               {tagCounts.length > 0 && (
                 <div data-tour="experience-tags" className="flex flex-wrap items-center gap-1.5">
                   <span className="mr-1 text-xs text-fg-subtle">Filter by tag</span>

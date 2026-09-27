@@ -272,6 +272,7 @@ export interface ExperienceInput {
 export interface ExperienceItem extends ExperienceInput {
   id: number
   position: number
+  is_placeholder: boolean
   updated_at: string
 }
 

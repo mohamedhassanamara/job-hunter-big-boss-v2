@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Response
 from sqlmodel import col, func, select
 
-from app.api.deps import SessionDep, get_or_404
+from app.api.deps import EngineDep, SessionDep, get_or_404
 from app.models import ExperienceItem
 from app.models.enums import ExperienceKind
 from app.schemas.experience import ExperienceIn, ExperienceOut, ExperiencePatch, ReorderIn
+from app.seed.test_cv import remove_test_cv
 
 router = APIRouter(prefix="/experience", tags=["experience"])
 
@@ -50,10 +51,18 @@ def update_item(item_id: int, body: ExperiencePatch, session: SessionDep) -> Exp
         data["kind"] = _kind(data["kind"])
     for key, value in data.items():
         setattr(item, key, value)
+    item.is_placeholder = False  # once edited, it's the user's own data
     session.add(item)
     session.commit()
     session.refresh(item)
     return _out(item)
+
+
+@router.delete("/placeholders", status_code=204)
+def delete_placeholders(engine: EngineDep) -> Response:
+    """Remove the test CV (items marked is_placeholder) and its test candidate profile."""
+    remove_test_cv(engine)
+    return Response(status_code=204)
 
 
 @router.delete("/{item_id}", status_code=204)

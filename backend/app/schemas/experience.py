@@ -32,6 +32,7 @@ class ExperiencePatch(BaseModel):
 class ExperienceOut(ExperienceIn):
     id: int
     position: int
+    is_placeholder: bool = False
     updated_at: datetime
 
 

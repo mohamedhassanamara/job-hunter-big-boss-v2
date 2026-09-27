@@ -493,7 +493,30 @@ SETTINGS: dict[str, dict] = {
     "smtp": {"address": "", "from_name": "", "interval_minutes": 15, "max_per_queue": 20},
     "schedule": {"enabled": True, "time": "07:00"},
     "lookup": {"daily_cap": 10, "used_today": 3},
-    "profile": {"full_name": "Your Name", "email": "", "location": "Madrid, Spain"},
+    # The candidate, as the fit scorer sees them (edited in Settings → Candidate).
+    "profile": {
+        "full_name": "",
+        "email": "",
+        "based_in": "",
+        "work_authorization": "needs_sponsorship",  # needs_sponsorship | eu_authorized
+        "languages": [],  # [{"language": "English", "level": "C1"}]
+        "years_experience": 0,
+        "headline": "",
+    },
+    # How the 0-100 fit score is computed from the LLM's 0-10 sub-scores (Settings → Scoring).
+    "scoring": {
+        "weights": {
+            "role_match": 0.30,
+            "skills_match": 0.30,
+            "seniority_fit": 0.15,
+            "location_eligibility": 0.15,
+            "language_requirements": 0.10,
+        },
+        "hard_flag_cap": 35,
+        "concurrency": 1,
+        "good_threshold": 70,
+        "maybe_threshold": 45,
+    },
 }
 
 SEARCH_PROFILE = {

@@ -21,7 +21,7 @@ from app.services.discovery import is_running
 
 router = APIRouter(tags=["settings"])
 
-EDITABLE_KEYS = {"sources", "models", "smtp", "schedule", "lookup", "profile"}
+EDITABLE_KEYS = {"sources", "models", "smtp", "schedule", "lookup", "profile", "scoring"}
 
 
 def run_out(r: SourceRun) -> SourceRunOut:

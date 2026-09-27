@@ -145,3 +145,15 @@ export function useEraseWorkspace() {
     onSuccess: () => qc.invalidateQueries(),
   })
 }
+
+/** Remove the test CV (experience items marked placeholder + the test candidate profile). */
+export function useRemoveTestData() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.del<void>('/experience/placeholders'),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.experience })
+      void qc.invalidateQueries({ queryKey: keys.settings })
+    },
+  })
+}

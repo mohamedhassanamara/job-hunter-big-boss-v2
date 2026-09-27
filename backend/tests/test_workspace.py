@@ -41,3 +41,21 @@ def test_sandbox_discovery_uses_mock_sources(client: TestClient) -> None:
 
 def test_erase_requires_confirmation(client: TestClient) -> None:
     assert client.post("/api/workspace/erase", json={"confirm": "yes"}).status_code == 422
+
+
+def test_test_cv_is_marked_and_removable(client: TestClient) -> None:
+    from app.db import engine
+    from app.seed.test_cv import load_test_cv
+
+    load_test_cv(engine)
+    items = client.get("/api/experience").json()
+    placeholders = [i for i in items if i["is_placeholder"]]
+    assert placeholders and client.get("/api/settings").json()["values"]["profile"]["is_placeholder"]
+    # Editing a test item makes it the user's own (kept on removal).
+    kept = client.patch(f"/api/experience/{placeholders[0]['id']}", json={"title": "Mine"}).json()
+    assert kept["is_placeholder"] is False
+    assert client.delete("/api/experience/placeholders").status_code == 204
+    left = client.get("/api/experience").json()
+    assert not any(i["is_placeholder"] for i in left)
+    assert any(i["id"] == kept["id"] for i in left)
+    assert not client.get("/api/settings").json()["values"]["profile"].get("is_placeholder")
