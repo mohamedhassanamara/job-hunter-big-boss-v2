@@ -357,6 +357,34 @@ def stats(rows: list[TrackedRow]) -> dict[str, Any]:
     }
 
 
+def upcoming_interviews(s: Session, now: datetime | None = None,
+                        days: int = 14) -> list[tuple[Interview, Application, Job, Company]]:
+    """Pending interviews from today (start of day) to `days` ahead, soonest first."""
+    now = now or utcnow()
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = s.exec(select(Interview, Application, Job, Company)
+                  .join(Application, col(Application.id) == col(Interview.application_id))
+                  .join(Job, col(Job.id) == col(Application.job_id))
+                  .join(Company, col(Company.id) == col(Job.company_id))
+                  .where(Interview.outcome == InterviewOutcome.pending,
+                         col(Interview.scheduled_at) >= start,
+                         col(Interview.scheduled_at) <= now + timedelta(days=days),
+                         Application.stage != Stage.closed)
+                  .order_by(col(Interview.scheduled_at))).all()
+    return list(rows)
+
+
+def stats_summary(s: Session, now: datetime | None = None) -> dict[str, Any]:
+    now = now or utcnow()
+    rows = tracked(s)
+    year, week, _ = now.isocalendar()
+    this_week = sum(1 for r in rows if _aware(r.application.applied_at).isocalendar()[:2]
+                    == (year, week))
+    rate = _rate(rows, lambda r: bool(r.responses or r.interviews))
+    return {"applied_this_week": this_week, "applied_total": rate["total"],
+            "responded": rate["count"], "response_rate": rate["rate"]}
+
+
 CSV_COLUMNS = ["applied_on", "job_title", "company", "track", "country", "source", "stage",
                "method", "cv_version", "responses", "positive_replies", "interviews",
                "days_to_first_response", "close_reason", "listing_url"]

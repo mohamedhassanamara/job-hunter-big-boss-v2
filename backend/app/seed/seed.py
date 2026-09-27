@@ -18,12 +18,14 @@ import app.models  # noqa: F401
 from app.models import (
     Application,
     ApplicationEvent,
+    ApplicationResponse,
     AppSetting,
     Company,
     Contact,
     CVVersion,
     ExperienceItem,
     FitScore,
+    Interview,
     Job,
     OutreachDraft,
     SearchProfile,
@@ -32,11 +34,15 @@ from app.models import (
     SourceRun,
 )
 from app.models.enums import (
+    ApplyMethod,
     CVStatus,
     DraftStatus,
     EventKind,
+    InterviewOutcome,
+    InterviewType,
     QueueItemStatus,
     QueueStatus,
+    ResponseKind,
     RunStatus,
     Source,
     Stage,
@@ -50,7 +56,7 @@ from app.services.cv_pool import load_pool
 from app.services.cv_service import build_request
 from app.services.dedupe import dedupe_key, normalize_company
 from app.services.pipeline import stage_label
-from app.services.roles import with_suggested_variants
+from app.services.roles import match_track, tracks_of, with_suggested_variants
 
 SOURCE_NAMES = {
     "adzuna": "Adzuna",
@@ -209,6 +215,9 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                 dedupe_key=dedupe_key(company.name, jf.title, jf.country),
                 duplicate_of_id=jobs[jf.duplicate_of].id if jf.duplicate_of else None,
             )
+            hit = match_track(jf.title, tracks_of(profile))
+            if hit:
+                job.matched_track, job.matched_role = hit
             s.add(job)
             s.flush()
             jobs[jf.key] = job
@@ -419,7 +428,49 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                             at=(sent_at or now) + timedelta(minutes=1),
                         )
                     )
+        _seed_tracking(s, apps, now)
         s.commit()
+
+
+def _seed_tracking(s: Session, apps: dict[str, Application], now: datetime) -> None:
+    """Applied details (locked CV), a reply, interviews: enough for the Applications tour."""
+    for application in apps.values():
+        if application.applied_at is None:
+            continue
+        cv = s.exec(select(CVVersion).where(CVVersion.application_id == application.id,
+                                            CVVersion.status == CVStatus.approved)).first()
+        if cv is not None:
+            cv.locked_at = application.applied_at
+            s.add(cv)
+            application.applied_cv_version_id = cv.id
+        application.applied_method = (
+            ApplyMethod.email if application.route == "cold_email" else ApplyMethod.company_site)
+        s.add(application)
+
+    tessera = apps["tessera-applied"]
+    assert tessera.applied_at is not None
+    replied = tessera.applied_at + timedelta(days=2)
+    s.add(ApplicationResponse(application_id=tessera.id, kind=ResponseKind.positive,
+                              received_at=replied, notes="Nadia proposed a first call."))
+    s.add(Interview(application_id=tessera.id, round=1, type=InterviewType.hr,
+                    scheduled_at=tessera.stage_changed_at, outcome=InterviewOutcome.passed,
+                    notes="Intro call with Nadia."))
+    s.add(Interview(application_id=tessera.id, round=2, type=InterviewType.technical,
+                    scheduled_at=(now + timedelta(days=3)).replace(hour=10, minute=0, second=0,
+                                                                   microsecond=0),
+                    notes="Live coding plus system design."))
+    veloce = apps["veloce-bi"]
+    if veloce.applied_at is not None:
+        s.add(ApplicationResponse(application_id=veloce.id, kind=ResponseKind.rejection,
+                                  received_at=veloce.stage_changed_at,
+                                  notes="Position filled internally."))
+    for a, message, at in [
+        (tessera, "Positive reply received", replied),
+        (tessera, "Interview round 1 (hr) logged", tessera.stage_changed_at),
+        (tessera, "Interview round 2 (technical) logged", tessera.stage_changed_at),
+    ]:
+        kind = EventKind.response if "reply" in message else EventKind.interview
+        s.add(ApplicationEvent(application_id=a.id, kind=kind, message=message, at=at))
 
 
 _KEY_TO_COMPANY = {j.key: j.company for j in fx.JOBS}

@@ -296,7 +296,7 @@ JOBS: list[JobFx] = [
         summary="Good: streaming match.",
         mission="prices 5M hotel nights a day in real time",
         stack=["Flink", "Kafka", "Scala", "AWS"],
-        stage="done", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=4.0,
+        stage="done", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=9.0,
     ),
     JobFx(
         key="tessera-applied", source="wttj", title="Applied AI Engineer",

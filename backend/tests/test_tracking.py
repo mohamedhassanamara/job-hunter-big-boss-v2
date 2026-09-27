@@ -413,3 +413,29 @@ def test_ready_to_closed_through_the_api(client: TestClient) -> None:
     assert stats["applied"] == 1 and stats["interview"]["count"] == 1
     assert client.post(f"/api/applications/{app_id}/responses",
                        json={"kind": "bogus"}).status_code == 422
+
+
+# ------------------------------------------------------------------------------------ today
+
+
+def test_upcoming_interviews_next_14_days_pending_only(seeded: None) -> None:
+    with Session(engine) as s:
+        app = applied_app(s, track="T-upcoming")
+        soon = tracking.log_interview(s, app, scheduled_at=NOW + timedelta(days=2),
+                                      type=InterviewType.technical)
+        tracking.log_interview(s, app, scheduled_at=NOW + timedelta(days=20),
+                               type=InterviewType.final)
+        done = tracking.log_interview(s, app, scheduled_at=NOW + timedelta(days=1),
+                                      type=InterviewType.hr)
+        tracking.update_interview(s, done, outcome="passed")
+        s.flush()
+        mine = [i.id for i, a, _, _ in tracking.upcoming_interviews(s, NOW) if a.id == app.id]
+        assert mine == [soon.id]
+        s.rollback()
+
+
+def test_today_includes_reminders_interviews_and_stats(client: TestClient) -> None:
+    body = client.get("/api/today").json()
+    assert {"reminders", "upcoming_interviews", "stats_summary"} <= body.keys()
+    summary = body["stats_summary"]
+    assert summary["applied_total"] >= summary["responded"] >= 0

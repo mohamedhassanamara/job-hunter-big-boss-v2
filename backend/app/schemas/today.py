@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from app.schemas.jobs import JobListItem, PipelineCard
 from app.schemas.settings import SourceRunOut
+from app.schemas.tracking import ReminderOut
 
 
 class CVReviewItem(BaseModel):
@@ -32,13 +33,33 @@ class QueueSummary(BaseModel):
     interval_minutes: int
 
 
+class UpcomingInterview(BaseModel):
+    interview_id: int
+    application_id: int
+    job_id: int
+    job_title: str
+    company_name: str
+    round: int
+    type: str
+    scheduled_at: datetime
+
+
+class StatsSummary(BaseModel):
+    applied_this_week: int
+    applied_total: int
+    responded: int
+    response_rate: float | None
+
+
 class TodayOut(BaseModel):
     new_high_fit: list[JobListItem]
     new_high_fit_total: int
     cvs_to_review: list[CVReviewItem]
     drafts_to_approve: list[DraftReviewItem]
     ready_to_apply: list[PipelineCard]
-    interviews: list[PipelineCard]
+    reminders: list[ReminderOut]
+    upcoming_interviews: list[UpcomingInterview]  # next 14 days, pending
+    stats_summary: StatsSummary
     queue: QueueSummary
     last_runs: list[SourceRunOut]
     min_fit_score: int
