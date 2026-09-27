@@ -112,13 +112,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 - The LLM only returns sub-scores, reasons, evidence and flags (`FitAssessment`). **All arithmetic is in `services/fit.py`**:
   weights, the hard-flag cap (verified quotes only), evidence verification, confidence. Don't ask the model for the final number.
-- `score_job` never raises for model problems. It stores `status=failed` with the error, and a score is never defaulted.
+- `score_job` never raises for model problems by default (stores `status=failed`); the queue calls it with
+  `store_failures=False` and handles the typed errors itself. A score is never defaulted.
 - The cache key includes the prompt version. **Any edit to `app/prompts/fit_score.md` needs a version bump** and a new hash in
   `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
-- Model = `app_setting.models.scoring.model` (Settings → Models): one local model, **gemma4:12b**, for every score
-  (rescore all when it changes; eval reports record the model). Requests use structured output (`format` = schema),
-  `think: false`, temperature 0. Parallel jobs ≤ 2 for local models (use 1 if the Mac gets sluggish). Cloud models
-  (`…-cloud`) still work: the schema is added to the prompt for them, fences are stripped, 429s back off.
+- Models (Settings → Models): `models.scoring = {model: gemma4:31b-cloud, fallback: gemma4:12b, cloud_concurrency:
+  {min, start, max}, local_concurrency}`. Cloud: schema in the prompt + validation; local: native `format`, `think: false`.
+- The queue (`ScoringQueue`) is persistent (`scoring_run`/`scoring_task`, `resume()` at startup). Provider errors are typed
+  (`ConcurrencyLimited`, `QuotaExceeded`, `TransientError`, `ScoringFailed`; `ollama.classify_error`): 429 concurrency →
+  same job to the front + backoff + adaptive limit (`ConcurrencyController`), quota → fallback model for the rest of the
+  run, others → 3 attempts + one end-of-run retry.
+- Discovery is additive and only calls `enqueue_never_scored()`. Bulk rescore of existing scores requires `confirm: true`.
+- Roles live only in `search_profile.tracks`; `services/roles.py` is the language lexicon (variants, matching).
+  `tests/test_roles.py` fails if role titles get hardcoded in services/providers/prompts.
 - Queues are per workspace (`workspace_queue`). The sandbox and tests always use `MockFitScorer`.
 - Settings changes to `scoring` or `profile` call `recompute_all` (no LLM). Experience or profile changes make scores stale; never rescore automatically.
 - Countries: target list = `search_profile.locations` (Settings). Country names/aliases/cities and region sets live in
