@@ -13,7 +13,7 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 2 | **Score fit** | An LLM (Ollama, local) scores each job 0–100 against the master experience, with strengths and gaps | Fit badge everywhere, fit panel |
 | 3 | **Dedupe** | The same job from 2 sources is flagged as a duplicate. Companies already contacted or applied to are flagged | Discover flags, Job detail |
 | 4 | **Resolve contact** | Tier (a) is the imported Apollo dump. Tier (b) queues a manual Apollo extension lookup, with a small daily cap. Tier (c) is no contact | Contact block, Contacts |
-| 5 | **Tailored CV** | Generated per job (Claude) from the master experience into ONE universal LaTeX template, then compiled to PDF. Always exactly one full page | CV Studio |
+| 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
 | 6 | **Route** | With a contact, the route is **cold email** (a draft is generated). Without one, it is **web apply** (I get the CV and the listing link, and apply myself) | Job detail, Pipeline |
 | 7 | **Human review** | I review and edit every CV and every email | CV Studio, Outreach → Review |
 | 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs are tracked when I mark them applied | Outreach → Queue, Pipeline |
@@ -87,11 +87,22 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - *Not found:* "This job doesn't exist or was removed", with "Back to Discover".
 
 ### 3.5 CV Studio (`/jobs/:id/cv`)
-*Purpose:* review and edit the tailored CV for one job.
-- **Left:** a structured editor with sections for Headline, Summary, Experience (entries → bullets; add, remove, reorder), Projects, Skills (groups → items), and Education. Edits autosave to the current draft version.
-- **Right:** PDF preview at A4 aspect ratio (a placeholder in phase 0 that renders the structured content as a paper-like mock), with a page-fit indicator ("1 page ✓").
-- **Toolbar:** version switcher (v1, v2… with status), **Regenerate** (creates a new draft version from the mock generator), **Approve** (marks it approved, supersedes the others, moves the application to `cv_ready`, and toasts a next step: "Draft email" or "Mark ready to apply").
-- *Empty (no CV yet):* "No CV for this job yet", with a "Generate CV" action.
+*Purpose:* review and adjust the tailored CV for one job. The contract is in docs/CV_TEMPLATES.md.
+- **Generate / Regenerate:** one Claude call per job (never in bulk). It returns a plan (pool ids, reworded and ranked bullets, skill order, summary). Code then checks it (nothing invented, numbers exact, every role kept) and fits it to exactly one full page (≤ 4 compile passes, no further model call). About a minute.
+- **Left, "From your experience pool":**
+  - readiness warnings (e.g. no full name blocks generation; no education or summary snippet warns)
+  - the checks that failed or are worth a look
+  - summary (editable, plus the short version used on tight pages)
+  - every role with its bullets, projects and certifications. The eye toggles force an item in or out; text edits inline. Each change re-fits and recompiles without calling Claude, and every role keeps at least one bullet.
+- **Right:** the real PDF (iframe), with a fit badge ("1 page · 97% full", passes and template in the tooltip).
+- **Toolbar:**
+  - version switcher
+  - template picker (valid templates; per-CV override)
+  - **Regenerate** (new draft)
+  - Download (filename pattern from Settings → CV)
+  - **Approve**: only at one page. It supersedes the others, moves the application to `cv_ready` and offers "Draft email" or "Mark ready to apply".
+  - Changing an approved CV creates a new draft.
+- *Empty:* "No CV for this job yet" with Generate (or "Open Candidate settings" when the full name is missing).
 
 ### 3.6 Outreach (`/outreach`)
 - **Review tab:** a list of drafts (filter: To review | Approved | Rejected) on the left. The editor on the right has To (contact), Subject, Body, the linked job and CV, and **Approve** (primary), Reject, and Regenerate. Keys: j/k, a, r.
@@ -117,6 +128,9 @@ Sections in a left sub-nav:
 - **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible), and min fit score.
 - **Company job boards** (a source): an editable list of employers (platform: Greenhouse, Lever, Ashby, Workable or SmartRecruiters, plus the board token and a display name), each with its job count or error from the last run. A board answering with 0 jobs is flagged ("check the token").
 - **Bayt** (a source): Gulf/MENA board read from its public per-country search pages; summaries only, the full listing is fetched per job.
+- **CV:** download filename pattern (`{full_name}_CV_{company}.pdf`), and per-track emphasis (skill groups and tags each track's CV leads with).
+- **Templates:** style-only CV templates. List, sample preview, set default, add (`.tex.j2` + config) with a validation report; only templates that compile to one page with sample data can be used.
+- **Candidate:** the CV header (full name, location, phone, email, links with type/label/URL); empty fields are left out of the CV.
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).

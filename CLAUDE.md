@@ -65,7 +65,8 @@ frontend (Vite/React/TS) ──/api──▶ FastAPI routers ──▶ services 
   Today aggregation (`today.py`).
 - **Providers** (`backend/app/providers/base.py`) are Protocols: `JobSource`, `FitScorer`, `CVGenerator`,
   `CVRenderer`, `EmailDrafter`, `Mailer`. `registry.py` returns implementations. Phase 0 uses `mock/` only.
-  Planned: FitScorer=Ollama, CVGenerator=Claude, CVRenderer=pdflatex with one universal template, Mailer=Gmail SMTP.
+  FitScorer=Ollama, CVGenerator=Claude Code headless (`providers/claude_cv.py`); rendering is `services/cv_render.py`
+  (Jinja + latexmk + PyMuPDF). Planned: Mailer=Gmail SMTP.
 - **Migrations:** every model change needs a new Alembic revision (`alembic revision --autogenerate -m "..."`,
   then review it). SQLite needs `render_as_batch=True` (already configured).
 - **Frontend data:** TanStack Query only, with no ad-hoc fetch in components. The client is in `src/lib/api.ts`, types
@@ -131,6 +132,17 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `services/geo.py` only; sources expose `unsupported_countries(targets)` instead of fixed country lists.
 - Full listings: honest User-Agent only. If a site blocks us (403), offer paste. Never disguise the client.
 - The test CV (`app/seed/test_cv.py`, `is_placeholder`) exists at the user's request. It's removable via `DELETE /api/experience/placeholders`.
+
+## CV generation (docs/CV_TEMPLATES.md)
+
+- Templates are **style only** (`templates/<name>/cv.tex.j2` + `cv.config.yaml`); `templates/reference/cv.tex` is the
+  style reference (example content, never used for generation). Jinja delimiters `\VAR{}` (auto-escaped) / `\BLOCK{}`.
+- The generator returns a `CVPlan` (pool ids, ranked reworded bullets), never LaTeX, titles, companies or dates.
+  `cv_check` validates it; `cv_build.fit_to_page` makes it exactly one full page in code (≤ 4 passes, no model call).
+- `claude -p` runs with `--system-prompt`, `--tools ""`, `--setting-sources ""`, `--strict-mcp-config`, `--json-schema`
+  in a temp dir (never `--bare`: it skips the user's login). Prompt: `app/prompts/cv_generate.md` (versioned).
+- Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
+- The style golden test (`tests/test_cv_render.py`) compiles the default template against the reference: keep it pixel-equal.
 
 ## Conventions
 
