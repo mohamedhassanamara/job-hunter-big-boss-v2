@@ -7,7 +7,7 @@ export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj'
 export type RemoteType = 'remote' | 'hybrid' | 'onsite' | 'unknown'
 export type FitBand = 'strong' | 'good' | 'fair' | 'weak' | 'failed' | 'pending'
 export type CloseReason = 'dismissed' | 'rejected' | 'withdrawn' | 'no_response' | 'offer'
-export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification'
+export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering'
 
 export interface CompanyRef {
   id: number

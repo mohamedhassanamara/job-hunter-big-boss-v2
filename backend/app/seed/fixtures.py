@@ -479,6 +479,13 @@ EXPERIENCE: list[dict] = [
         "summary": None, "bullets": ["Thesis: streaming anomaly detection"], "tags": [],
     },
     {
+        "kind": "volunteering", "title": "Mentor", "org": "Women in Data Madrid",
+        "location": "Madrid, Spain", "start_date": "2022-01-01", "end_date": None,
+        "summary": None,
+        "bullets": ["Mentor 4 career switchers a year through their first data pipeline project"],
+        "tags": ["mentoring", "sql", "python"],
+    },
+    {
         "kind": "certification", "title": "AWS Certified Data Engineer, Associate",
         "org": "Amazon Web Services", "location": None, "start_date": "2024-02-01",
         "end_date": None, "summary": None, "bullets": [], "tags": ["aws"],

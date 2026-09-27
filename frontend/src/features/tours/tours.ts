@@ -150,7 +150,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'experience-groups', title: 'Your master experience', body: 'The single source for every tailored CV and every fit score: roles, projects, skills, education.', placement: 'top' },
       { target: 'experience-tags', title: 'Tags', body: 'Tags power filtering here and let the CV generator match your experience to each job.' },
       { target: 'experience-row', title: 'Edit, reorder, include', body: 'Click to edit, drag to reorder. The switch excludes an item from CVs without deleting it.' },
-      { target: 'experience-add', title: 'Add items', body: 'Add roles, projects, skills, education and certifications with concrete, quantified bullets.', placement: 'left' },
+      { target: 'experience-add', title: 'Add items', body: 'Add roles, projects, volunteering, skills, education and certifications with concrete, quantified bullets.', placement: 'left' },
     ],
   },
   settings: {

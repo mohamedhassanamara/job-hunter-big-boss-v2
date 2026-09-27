@@ -1,9 +1,10 @@
-import { Award, Briefcase, FolderGit2, GraduationCap, type LucideIcon, Wrench } from 'lucide-react'
+import { Award, Briefcase, FolderGit2, GraduationCap, HeartHandshake, type LucideIcon, Wrench } from 'lucide-react'
 import type { ExperienceKind } from '@/lib/types'
 
 export const KINDS: { kind: ExperienceKind; label: string; singular: string; icon: LucideIcon }[] = [
   { kind: 'job', label: 'Work experience', singular: 'Role', icon: Briefcase },
   { kind: 'project', label: 'Projects', singular: 'Project', icon: FolderGit2 },
+  { kind: 'volunteering', label: 'Volunteering & leadership', singular: 'Volunteering role', icon: HeartHandshake },
   { kind: 'skill', label: 'Skills', singular: 'Skill group', icon: Wrench },
   { kind: 'education', label: 'Education', singular: 'Education', icon: GraduationCap },
   { kind: 'certification', label: 'Certifications', singular: 'Certification', icon: Award },

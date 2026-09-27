@@ -50,6 +50,7 @@ class ExperienceKind(StrEnum):
     skill = "skill"
     education = "education"
     certification = "certification"
+    volunteering = "volunteering"
 
 
 class Stage(StrEnum):

@@ -111,7 +111,7 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 The master experience that CVs are generated from.
 | Column | Type | Notes |
 |---|---|---|
-| kind | enum `job \| project \| skill \| education \| certification` | |
+| kind | enum `job \| project \| skill \| education \| certification \| volunteering` | |
 | title | str | Role, project name, skill group, degree |
 | org | str? | Company, school |
 | location | str? | |
