@@ -37,8 +37,9 @@ What discovery looks for.
 | roles | JSON list[str] | Title keywords: "data engineer", "ai engineer", … |
 | keywords | JSON list[str] | Boosting keywords (spark, dbt, llm…) |
 | excluded_keywords | JSON list[str] | **Title** keywords the pre-filter drops (default: intern, stage, alternance…). No seniority words by default |
-| locations | JSON list[str] | ISO country codes: ES, PT, FR, IT |
-| remote_policy | enum `any \| remote_ok \| remote_only` | |
+| locations | JSON list[str] | Target ISO country codes, edited in Settings (any code from `GET /api/countries`, i.e. `services/geo.COUNTRY_ALIASES`). Nothing else hardcodes a country list. |
+| remote_policy | enum `any \| remote_ok \| remote_only` | on-site/hybrid vs remote preference |
+| remote_scope | enum `anywhere \| europe \| targets` | which remote jobs are eligible (`geo.remote_allows`): worldwide/EMEA, Europe, or target countries. Worldwide and unstated regions always pass; US/Americas/Asia-only never do. |
 | min_fit_score | int | Jobs below this are hidden from Today's highlights |
 | max_age_days | int | Pre-filter drops listings posted longer ago (default 30) |
 | is_active | bool | Exactly one profile is active in v2 |
