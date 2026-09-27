@@ -291,6 +291,22 @@ class TrackedRow:
         return (first - applied).total_seconds() / 86400 if first and applied else None
 
 
+def _row(s: Session, app: Application, job: Job) -> TrackedRow:
+    return TrackedRow(
+        app, job, s.get(Company, job.company_id),
+        list(s.exec(select(ApplicationResponse).where(
+            ApplicationResponse.application_id == app.id)
+            .order_by(col(ApplicationResponse.received_at))).all()),
+        list(s.exec(select(Interview).where(Interview.application_id == app.id)
+                    .order_by(col(Interview.round))).all()),
+    )
+
+
+def row_for(s: Session, app: Application) -> TrackedRow | None:
+    job = s.get(Job, app.job_id)
+    return _row(s, app, job) if app.applied_at is not None and job is not None else None
+
+
 def tracked(s: Session, *, track: list[str] | None = None, country: list[str] | None = None,
             source: list[str] | None = None, stage: list[str] | None = None,
             start: date | None = None, end: date | None = None) -> list[TrackedRow]:
@@ -308,14 +324,7 @@ def tracked(s: Session, *, track: list[str] | None = None, country: list[str] | 
                 (source and job.source not in source) or (stage and app.stage not in stage) or \
                 (start and applied < start) or (end and applied > end):
             continue
-        out.append(TrackedRow(
-            app, job, s.get(Company, job.company_id),
-            list(s.exec(select(ApplicationResponse).where(
-                ApplicationResponse.application_id == app.id)
-                .order_by(col(ApplicationResponse.received_at))).all()),
-            list(s.exec(select(Interview).where(Interview.application_id == app.id)
-                        .order_by(col(Interview.round))).all()),
-        ))
+        out.append(_row(s, app, job))
     return out
 
 

@@ -1,30 +1,39 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { AFTER_APPLY_REASONS, BEFORE_APPLY_REASONS, CLOSE_REASON_LABELS } from '@/lib/tracking'
 import type { CloseReason } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-const REASONS: { value: CloseReason; label: string; hint: string }[] = [
-  { value: 'rejected', label: 'Rejected', hint: 'The company said no' },
-  { value: 'no_response', label: 'No response', hint: 'Went quiet after outreach' },
-  { value: 'withdrawn', label: 'Withdrew', hint: 'I decided not to continue' },
-  { value: 'offer', label: 'Got an offer', hint: 'Closing on a high note' },
-  { value: 'dismissed', label: 'Not a fit', hint: 'Dismiss without contacting' },
-]
+const HINTS: Partial<Record<CloseReason, string>> = {
+  rejected: 'The company said no',
+  no_response: 'No reply after applying (ghosted)',
+  withdrawn: 'I decided not to continue',
+  offer_accepted: 'Closing on a high note',
+  offer_declined: 'Got an offer and said no',
+  dismissed: 'Dismiss without applying',
+}
 
-/** Asks why an application is being closed. Used by Pipeline drag and the Job stage menu. */
+/** Asks why an application is being closed. After applying the reasons are real outcomes
+ * (rejected, no response, withdrew, offer accepted/declined); before, dismissed or withdrew. */
 export function CloseDialog({
   open,
   title,
+  applied = false,
+  initial,
   onCancel,
   onConfirm,
 }: {
   open: boolean
   title: string
+  applied?: boolean
+  initial?: CloseReason
   onCancel: () => void
   onConfirm: (reason: CloseReason) => void
 }) {
-  const [reason, setReason] = useState<CloseReason>('rejected')
+  const options = applied ? AFTER_APPLY_REASONS : BEFORE_APPLY_REASONS
+  const REASONS = options.map((value) => ({ value, label: CLOSE_REASON_LABELS[value], hint: HINTS[value] ?? '' }))
+  const [reason, setReason] = useState<CloseReason>(initial && options.includes(initial) ? initial : options[0])
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
       <DialogContent title="Close application" className="max-w-md p-0">

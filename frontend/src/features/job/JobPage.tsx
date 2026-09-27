@@ -24,6 +24,8 @@ import {
   type Tone,
 } from '@/components/app/badges'
 import { CloseDialog } from '@/components/app/CloseDialog'
+import { LogInterviewDialog, MarkAppliedDialog } from '@/components/app/tracking/TrackingDialogs'
+import { AppliedFacts, TrackingActions } from '@/components/app/tracking/TrackingPanel'
 import { FitCard } from '@/components/app/FitCard'
 import { ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
 import { Section } from '@/components/app/PageHeader'
@@ -42,10 +44,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SegmentedList, SegmentedTrigger, Tabs } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useTriageActions } from '@/hooks/useTriageActions'
-import { ApiError } from '@/lib/api'
+import { ApiError, apiUrl } from '@/lib/api'
 import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
 import { useGenerateDraft } from '@/lib/queries/workflow'
+import { isApplied, openListingAndCv } from '@/lib/tracking'
 import type { CloseReason, DraftStatus, JobDetail, Route, Stage } from '@/lib/types'
 import { Timeline } from './Timeline'
 
@@ -169,6 +172,7 @@ function CVSection({ job }: { job: JobDetail }) {
               >
                 {v.status === 'approved' ? 'Approved' : v.status === 'draft' ? 'Needs review' : 'Superseded'}
               </ToneBadge>
+              {v.locked && <ToneBadge tone="blue">Sent</ToneBadge>}
               {v.page_count === 1 && <span className="text-xs text-fg-subtle">1 page</span>}
               <span className="ml-auto text-xs text-fg-subtle">
                 <Tooltip content={absoluteDate(v.created_at)}>
@@ -252,7 +256,10 @@ function EmailSection({ job }: { job: JobDetail }) {
 }
 
 function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => void }) {
-  if (job.application.route !== 'web_apply' || job.application.stage !== 'ready') return null
+  const stage = job.application.stage
+  const approved = job.cv_versions.find((v) => v.status === 'approved')
+  if (job.application.route !== 'web_apply' || !(stage === 'ready' || stage === 'cv_ready') || !approved) return null
+  const pdf = apiUrl(`/cv/${approved.id}/pdf`, { download: true })
   return (
     <div className="rounded-lg border border-tone-blue-border bg-info-bg p-4">
       <div className="flex items-start gap-3">
@@ -260,24 +267,20 @@ function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => 
         <div className="flex-1 space-y-1">
           <p className="text-sm font-semibold text-info-fg">Apply on the company site</p>
           <p className="text-sm text-fg-muted">
-            No contact was found, so this one is a manual application. Open the listing, attach your
-            approved CV, and mark it applied when you're done.
+            No contact was found, so this one is a manual application. Open the listing with your approved
+            CV v{approved.version}, apply, then mark it applied: that version gets locked.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button size="sm" asChild>
-              <a href={job.url} target="_blank" rel="noreferrer">
-                Open listing
-                <ArrowRight />
+            <Button size="sm" onClick={() => openListingAndCv(job.url, pdf)}>
+              Open listing + CV
+              <ArrowRight />
+            </Button>
+            <Button size="sm" variant="ghost" asChild>
+              <a href={pdf}>
+                <FileText />
+                Download CV only
               </a>
             </Button>
-            <Tooltip content="PDF rendering arrives with the LaTeX slice (mock in phase 0)">
-              <span>
-                <Button size="sm" disabled>
-                  <FileText />
-                  Download CV (PDF)
-                </Button>
-              </span>
-            </Tooltip>
             <Button size="sm" onClick={onApplied}>
               <CircleCheck />
               Mark applied
@@ -286,6 +289,22 @@ function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => 
         </div>
       </div>
     </div>
+  )
+}
+
+function TrackingSection({ job }: { job: JobDetail }) {
+  const t = job.tracking
+  if (!t) return null
+  const target = { appId: job.application.id, title: job.title, company: job.company.name }
+  return (
+    <Section
+      title={job.application.route === 'web_apply' ? 'Application' : 'Application (sent)'}
+      action={
+        <TrackingActions target={target} stage={job.application.stage} rounds={t.interviews.length} primary="none" />
+      }
+    >
+      <AppliedFacts tracking={t} />
+    </Section>
   )
 }
 
@@ -320,6 +339,8 @@ export default function JobPage() {
   const triage = useTriageActions()
   const generateDraft = useGenerateDraft()
   const [closing, setClosing] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [interviewing, setInterviewing] = useState(false)
 
   if (isPending) return <JobSkeleton />
   if (error) {
@@ -360,6 +381,13 @@ export default function JobPage() {
     )
   const target = { jobId: job.id, title: job.title, company: job.company.name }
   const latestCV = job.cv_versions[0]
+  const approvedCV = job.cv_versions.find((v) => v.status === 'approved')
+  const pickStage = (s: Stage) => {
+    if (s === 'closed') setClosing(true)
+    else if (s === 'done' && app.route === 'web_apply') setApplying(true)
+    else if (s === 'interview') setInterviewing(true)
+    else setStage(s)
+  }
   const openDraft = job.drafts.find((d) => d.status === 'draft')
 
   // The single primary action for this stage.
@@ -380,11 +408,11 @@ export default function JobPage() {
         </Link>
       </Button>
     )
-  } else if (app.stage === 'cv_ready' && app.route === 'web_apply') {
+  } else if ((app.stage === 'cv_ready' || app.stage === 'ready') && app.route === 'web_apply') {
     primary = (
-      <Button variant="default" onClick={() => setStage('ready')}>
-        <Globe />
-        Mark ready to apply
+      <Button variant="default" onClick={() => setApplying(true)} disabled={!approvedCV}>
+        <CircleCheck />
+        Mark applied
       </Button>
     )
   } else if (app.stage === 'cv_ready') {
@@ -410,13 +438,6 @@ export default function JobPage() {
         Draft email
       </Button>
     )
-  } else if (app.stage === 'ready' && app.route === 'web_apply') {
-    primary = (
-      <Button variant="default" onClick={() => setStage('done', undefined, 'Marked as applied')}>
-        <CircleCheck />
-        Mark applied
-      </Button>
-    )
   } else if (app.stage === 'ready') {
     primary = (
       <Button variant="default" asChild>
@@ -428,7 +449,7 @@ export default function JobPage() {
     )
   } else if (app.stage === 'done') {
     primary = (
-      <Button variant="default" onClick={() => setStage('interview', undefined, 'Interview logged')}>
+      <Button variant="default" onClick={() => setInterviewing(true)}>
         Log interview
       </Button>
     )
@@ -487,7 +508,7 @@ export default function JobPage() {
               {job.allowed_stages.map((s) => (
                 <DropdownMenuItem
                   key={s}
-                  onSelect={() => (s === 'closed' ? setClosing(true) : setStage(s))}
+                  onSelect={() => pickStage(s)}
                 >
                   <StageDot stage={s} />
                   {s === 'closed' ? 'Close…' : stageMenuLabel(s, app.route)}
@@ -520,7 +541,8 @@ export default function JobPage() {
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)_320px] gap-6 max-lg:grid-cols-1">
         <div className="space-y-4">
           <JobFlags job={job} />
-          <WebApplyCallout job={job} onApplied={() => setStage('done', undefined, 'Marked as applied')} />
+          <WebApplyCallout job={job} onApplied={() => setApplying(true)} />
+          <TrackingSection job={job} />
           <div data-tour="job-fit">
             <FitCard job={job} />
           </div>
@@ -569,8 +591,23 @@ export default function JobPage() {
         </aside>
       </div>
 
+      <MarkAppliedDialog
+        key={`apply-${applying}`}
+        target={applying ? { appId: app.id, title: job.title, company: job.company.name } : null}
+        cvVersion={approvedCV?.version ?? null}
+        cvVersionId={approvedCV?.id}
+        onOpenChange={setApplying}
+      />
+      <LogInterviewDialog
+        key={`interview-${interviewing}`}
+        target={interviewing ? { appId: app.id, title: job.title, company: job.company.name } : null}
+        round={(job.tracking?.interviews.length ?? 0) + 1}
+        onOpenChange={setInterviewing}
+      />
       <CloseDialog
+        key={`close-${closing}`}
         open={closing}
+        applied={isApplied(app.stage)}
         title={`${job.title} · ${job.company.name}`}
         onCancel={() => setClosing(false)}
         onConfirm={(reason) => {

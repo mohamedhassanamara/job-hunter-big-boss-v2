@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import { AppShell } from '@/components/app/AppShell'
+import ApplicationsPage from '@/features/applications/ApplicationsPage'
 import ContactsPage from '@/features/contacts/ContactsPage'
 import CVStudioPage from '@/features/cv-studio/CVStudioPage'
 import DiscoverPage from '@/features/discover/DiscoverPage'
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { index: true, element: <TodayPage /> },
       { path: 'discover', element: <DiscoverPage /> },
       { path: 'pipeline', element: <PipelinePage /> },
+      { path: 'applications', element: <ApplicationsPage /> },
       { path: 'jobs/:id', element: <JobPage /> },
       { path: 'jobs/:id/cv', element: <CVStudioPage /> },
       { path: 'outreach', element: <OutreachPage /> },

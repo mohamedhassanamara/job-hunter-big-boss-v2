@@ -29,6 +29,8 @@ from app.schemas.jobs import (
     PipelineCard,
     RelatedJob,
 )
+from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
+from app.services import tracking
 from app.services.pipeline import ALLOWED, stage_label
 
 
@@ -302,6 +304,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         if fit and brief
         else None,
         notes=app.notes,
+        tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
         contact=contact_out(contact) if contact else None,
         company_contacts=contact_count,
         other_jobs_at_company=related_jobs(session, others),
@@ -313,6 +316,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
                 status=c.status,
                 page_count=c.page_count,
                 generator_model=c.generator_model,
+                locked=c.locked_at is not None,
                 created_at=c.created_at,
                 updated_at=c.updated_at,
             )
@@ -346,4 +350,22 @@ def job_detail(session: Session, job: Job) -> JobDetail:
             for e in events
         ],
         allowed_stages=allowed_stages(app),
+    )
+
+
+def tracked_item(session: Session, r: tracking.TrackedRow) -> TrackedItem:
+    a = r.application
+    cv = session.get(CVVersion, a.applied_cv_version_id) if a.applied_cv_version_id else None
+    days = r.days_to_first_answer
+    return TrackedItem(
+        application_id=a.id, job_id=r.job.id, title=r.job.title,
+        company=r.company.name if r.company else "", track=r.job.matched_track,
+        country=r.job.country, source=r.job.source, url=r.job.url, stage=a.stage,
+        stage_label=stage_label(a.stage, a.route), close_reason=a.close_reason,
+        applied_at=a.applied_at, applied_method=a.applied_method,
+        applied_cv_version_id=a.applied_cv_version_id,
+        applied_cv_version=cv.version if cv else None, applied_notes=a.applied_notes,
+        responses=[ResponseOut.model_validate(x, from_attributes=True) for x in r.responses],
+        interviews=[InterviewOut.model_validate(x, from_attributes=True) for x in r.interviews],
+        days_to_first_response=round(days, 1) if days is not None else None,
     )

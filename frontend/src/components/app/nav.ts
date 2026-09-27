@@ -1,4 +1,5 @@
 import {
+  BriefcaseBusiness,
   Compass,
   Inbox,
   Layers,
@@ -22,6 +23,7 @@ export const NAV_MAIN: NavItem[] = [
   { to: '/', label: 'Today', icon: Inbox, shortcut: 't' },
   { to: '/discover', label: 'Discover', icon: Compass, shortcut: 'd', count: 'discover_new' },
   { to: '/pipeline', label: 'Pipeline', icon: SquareKanban, shortcut: 'p', count: 'pipeline_active' },
+  { to: '/applications', label: 'Applications', icon: BriefcaseBusiness, shortcut: 'a', count: 'ready_to_apply' },
   { to: '/outreach', label: 'Outreach', icon: Send, shortcut: 'o', count: 'outreach_review' },
 ]
 

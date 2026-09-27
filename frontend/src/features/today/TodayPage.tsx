@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  BellRing,
   CalendarClock,
   CircleCheck,
   Compass,
@@ -15,6 +16,7 @@ import {
   TriangleAlert,
   Users,
 } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
@@ -22,14 +24,16 @@ import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { TestDataBanner } from '@/components/app/TestDataBanner'
+import { LogReplyDialog, MarkAppliedDialog, type TrackTarget } from '@/components/app/tracking/TrackingDialogs'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
-import { usePatchApplication } from '@/lib/queries/jobs'
+import { useReminderAction } from '@/lib/queries/tracking'
 import { useQueueControl, useSources, useToday } from '@/lib/queries/workflow'
-import type { Today } from '@/lib/types'
+import { INTERVIEW_TYPE_LABELS, pct, shortDateTime } from '@/lib/tracking'
+import type { Reminder, Today } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 function greeting() {
@@ -310,9 +314,69 @@ function Onboarding() {
   )
 }
 
+function FollowUpsCard({ reminders }: { reminders: Reminder[] }) {
+  const act = useReminderAction()
+  const [replying, setReplying] = useState<TrackTarget | null>(null)
+  const run = (r: Reminder, action: 'snooze' | 'dismiss' | 'confirm', done: string) =>
+    act.mutate(
+      { appId: r.application_id, key: r.key, action },
+      { onSuccess: () => toast.success(done, { description: r.job_title }), onError: (e) => toast.error(e.message) },
+    )
+  return (
+    <Card icon={BellRing} title="Follow-ups" tour="today-followups" count={reminders.length} href="/applications?tab=applied">
+      {reminders.length === 0 ? (
+        <Nothing text="No follow-ups due" />
+      ) : (
+        reminders.map((r) => (
+          <div key={`${r.application_id}-${r.key}`} className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0">
+            <Link to={`/jobs/${r.job_id}`} className="min-w-0 flex-1 hover:underline">
+              <TitleBlock
+                title={r.job_title}
+                subtitle={
+                  r.kind === 'ghost'
+                    ? `${r.company} · no reply in ${r.days} days: close as no response?`
+                    : `${r.company} · applied ${r.days}+ days ago, no reply: follow up`
+                }
+              />
+            </Link>
+            {r.kind === 'ghost' ? (
+              <>
+                <Button size="sm" variant="ghost" onClick={() => run(r, 'dismiss', 'Kept open')}>
+                  Not yet
+                </Button>
+                <Button size="sm" onClick={() => run(r, 'confirm', 'Closed as no response')}>
+                  Close as no response
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" variant="ghost" onClick={() => run(r, 'snooze', 'Snoozed for 3 days')}>
+                  Snooze
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => run(r, 'dismiss', 'Follow-up dismissed')}>
+                  Dismiss
+                </Button>
+                <Button size="sm" onClick={() => setReplying({ appId: r.application_id, title: r.job_title, company: r.company })}>
+                  Log reply
+                </Button>
+              </>
+            )}
+          </div>
+        ))
+      )}
+      <LogReplyDialog
+        key={replying?.appId ?? 'none'}
+        target={replying}
+        onOpenChange={(o) => !o && setReplying(null)}
+        onLogged={() => toast.success('Reply logged', { description: replying?.title })}
+      />
+    </Card>
+  )
+}
+
 export default function TodayPage() {
   const { data, isPending, error, refetch } = useToday()
-  const patch = usePatchApplication()
+  const [applying, setApplying] = useState<TrackTarget | null>(null)
 
   if (isPending) return <TodaySkeleton />
   if (error) return <ErrorState error={error} onRetry={() => refetch()} />
@@ -321,17 +385,10 @@ export default function TodayPage() {
     data.new_high_fit_total +
     data.cvs_to_review.length +
     data.drafts_to_approve.length +
-    data.ready_to_apply.length
+    data.ready_to_apply.length +
+    data.reminders.length
+  const summary = data.stats_summary
   const date = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-
-  const markApplied = (appId: number, title: string) =>
-    patch.mutate(
-      { id: appId, patch: { stage: 'done' } },
-      {
-        onSuccess: () => toast.success('Marked as applied', { description: title }),
-        onError: (e) => toast.error(e.message),
-      },
-    )
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
@@ -344,6 +401,13 @@ export default function TodayPage() {
             : attention === 0
               ? "You're all caught up."
               : `${pluralize(attention, 'thing needs', 'things need')} your attention.`}
+          {summary.applied_total > 0 && (
+            <Link to="/applications?tab=stats" data-tour="today-stats" className="hover:text-fg">
+              {' '}
+              · {summary.applied_this_week} applied this week · response rate {pct(summary.response_rate)} ({summary.responded}/
+              {summary.applied_total})
+            </Link>
+          )}
         </p>
       </header>
       <ScoringFallbackNotice className="rounded-lg border px-4" />
@@ -437,7 +501,7 @@ export default function TodayPage() {
             title="Ready to apply manually"
             tour="today-manual"
             count={data.ready_to_apply.length}
-            href="/pipeline?view=table"
+            href="/applications?tab=ready"
           >
             {data.ready_to_apply.length === 0 ? (
               <Nothing text="No manual applications pending" />
@@ -452,12 +516,12 @@ export default function TodayPage() {
                     <TitleBlock title={c.title} subtitle={`${c.company_name} · CV approved`} />
                   </Link>
                   <Button size="sm" variant="ghost" asChild>
-                    <Link to={`/jobs/${c.job_id}`}>
+                    <Link to="/applications?tab=ready">
                       Listing & CV
                       <ArrowRight />
                     </Link>
                   </Button>
-                  <Button size="sm" onClick={() => markApplied(c.application_id, c.title)}>
+                  <Button size="sm" onClick={() => setApplying({ appId: c.application_id, title: c.title, company: c.company_name })}>
                     <CircleCheck />
                     Mark applied
                   </Button>
@@ -465,18 +529,28 @@ export default function TodayPage() {
               ))
             )}
           </Card>
+          <FollowUpsCard reminders={data.reminders} />
         </div>
 
         <div className="space-y-4">
           <QueueCard queue={data.queue} />
-          <Card icon={CalendarClock} title="Interviews" count={data.interviews.length} href="/pipeline">
-            {data.interviews.length === 0 ? (
-              <Nothing text="No interviews in progress" />
+          <Card
+            icon={CalendarClock}
+            title="Upcoming interviews"
+            tour="today-interviews"
+            count={data.upcoming_interviews.length}
+            href="/applications?tab=applied&stage=interview"
+          >
+            {data.upcoming_interviews.length === 0 ? (
+              <Nothing text="No interviews in the next 14 days" />
             ) : (
-              data.interviews.map((c) => (
-                <RowLink key={c.application_id} to={`/jobs/${c.job_id}`}>
-                  <TitleBlock title={c.title} subtitle={c.company_name} />
-                  <span className="text-xs text-fg-subtle">{relativeTime(c.stage_changed_at)}</span>
+              data.upcoming_interviews.map((i) => (
+                <RowLink key={i.interview_id} to={`/jobs/${i.job_id}`}>
+                  <TitleBlock
+                    title={i.job_title}
+                    subtitle={`${i.company_name} · round ${i.round}, ${INTERVIEW_TYPE_LABELS[i.type].toLowerCase()}`}
+                  />
+                  <span className="text-xs whitespace-nowrap text-fg-subtle">{shortDateTime(i.scheduled_at)}</span>
                 </RowLink>
               ))
             )}
@@ -484,6 +558,12 @@ export default function TodayPage() {
           <DiscoveryCard runs={data.last_runs} />
         </div>
       </div>
+      <MarkAppliedDialog
+        key={applying?.appId ?? 'none'}
+        target={applying}
+        cvVersion={null}
+        onOpenChange={(o) => !o && setApplying(null)}
+      />
     </div>
   )
 }

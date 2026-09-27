@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from sqlmodel import Session
 
 from app.api.deps import SessionDep, get_or_404
-from app.models import Application, Company, CVVersion, Interview, Job
+from app.models import Application, Company, Interview, Job
 from app.models.enums import ApplyMethod, CloseReason, InterviewOutcome, InterviewType, ResponseKind
 from app.schemas.jobs import PipelineCard
 from app.schemas.tracking import (
@@ -24,7 +24,7 @@ from app.schemas.tracking import (
     TrackedItem,
 )
 from app.services import pipeline, tracking
-from app.services.views import pipeline_cards
+from app.services.views import pipeline_cards, tracked_item
 
 router = APIRouter(tags=["tracking"])
 
@@ -162,25 +162,8 @@ def _rows(session: Session, track: Multi, country: Multi, source: Multi, stage: 
 def tracked(session: SessionDep, track: Multi = None, country: Multi = None,
             source: Multi = None, stage: Multi = None, start: date | None = None,
             end: date | None = None) -> list[TrackedItem]:
-    out = []
-    for r in _rows(session, track, country, source, stage, start, end):
-        a = r.application
-        cv = session.get(CVVersion, a.applied_cv_version_id) if a.applied_cv_version_id else None
-        out.append(TrackedItem(
-            application_id=a.id, job_id=r.job.id, title=r.job.title,
-            company=r.company.name if r.company else "", track=r.job.matched_track,
-            country=r.job.country, source=r.job.source, url=r.job.url, stage=a.stage,
-            stage_label=pipeline.stage_label(a.stage, a.route), close_reason=a.close_reason,
-            applied_at=a.applied_at, applied_method=a.applied_method,
-            applied_cv_version_id=a.applied_cv_version_id,
-            applied_cv_version=cv.version if cv else None, applied_notes=a.applied_notes,
-            responses=[ResponseOut.model_validate(x, from_attributes=True) for x in r.responses],
-            interviews=[InterviewOut.model_validate(x, from_attributes=True)
-                        for x in r.interviews],
-            days_to_first_response=round(r.days_to_first_answer, 1)
-            if r.days_to_first_answer is not None else None,
-        ))
-    return out
+    return [tracked_item(session, r)
+            for r in _rows(session, track, country, source, stage, start, end)]
 
 
 @router.get("/stats", response_model=StatsOut)

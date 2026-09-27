@@ -12,7 +12,18 @@ export interface CompanyBoard {
 }
 export type RemoteType = 'remote' | 'hybrid' | 'onsite' | 'unknown'
 export type FitBand = 'strong' | 'good' | 'fair' | 'weak' | 'failed' | 'pending'
-export type CloseReason = 'dismissed' | 'rejected' | 'withdrawn' | 'no_response' | 'offer'
+export type CloseReason =
+  | 'dismissed'
+  | 'rejected'
+  | 'withdrawn'
+  | 'no_response'
+  | 'offer_accepted'
+  | 'offer_declined'
+  | 'offer' // legacy, shown as "Offer"
+export type ApplyMethod = 'company_site' | 'job_board' | 'email' | 'other'
+export type ResponseKind = 'positive' | 'rejection' | 'other'
+export type InterviewType = 'hr' | 'technical' | 'take_home' | 'final' | 'other'
+export type InterviewOutcome = 'pending' | 'passed' | 'failed' | 'cancelled'
 export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering' | 'summary'
 
 export interface CompanyRef {
@@ -146,6 +157,7 @@ export interface CVBrief {
   status: CVStatus
   page_count: number | null
   generator_model: string
+  locked: boolean // sent with the application: never changes
   created_at: string
   updated_at: string
 }
@@ -173,6 +185,7 @@ export interface JobDetail extends JobListItem {
   drafts: DraftBrief[]
   events: TimelineEvent[]
   allowed_stages: Stage[]
+  tracking: TrackedApplication | null // set once applied
 }
 
 export interface PipelineCard {
@@ -602,7 +615,9 @@ export interface Today {
     created_at: string
   }[]
   ready_to_apply: PipelineCard[]
-  interviews: PipelineCard[]
+  reminders: Reminder[]
+  upcoming_interviews: UpcomingInterview[] // next 14 days, pending
+  stats_summary: StatsSummary
   queue: {
     status: QueueStatus
     next_send_at: string | null
@@ -619,6 +634,7 @@ export interface NavCounts {
   pipeline_active: number
   outreach_review: number
   queue_pending: number
+  ready_to_apply: number
 }
 
 export interface SearchHit {
@@ -690,4 +706,120 @@ export interface FullListingResult {
   message: string
   can_paste: boolean
   characters: number
+}
+
+// ---- Tracking (after the CV) -------------------------------------------------------------
+
+export interface ReadyItem {
+  application_id: number
+  job_id: number
+  title: string
+  company: string
+  track: string | null
+  country: string | null
+  url: string
+  cv_version_id: number
+  cv_version: number
+  stage: Stage
+}
+
+export interface ApplicationResponse {
+  id: number
+  kind: ResponseKind
+  received_at: string
+  notes: string
+}
+
+export interface Interview {
+  id: number
+  round: number
+  scheduled_at: string
+  type: InterviewType
+  notes: string
+  outcome: InterviewOutcome
+}
+
+export interface TrackedApplication {
+  application_id: number
+  job_id: number
+  title: string
+  company: string
+  track: string | null
+  country: string | null
+  source: Source
+  url: string
+  stage: Stage
+  stage_label: string
+  close_reason: CloseReason | null
+  applied_at: string
+  applied_method: ApplyMethod | null
+  applied_cv_version_id: number | null
+  applied_cv_version: number | null
+  applied_notes: string
+  responses: ApplicationResponse[]
+  interviews: Interview[]
+  days_to_first_response: number | null
+}
+
+export interface Reminder {
+  application_id: number
+  job_id: number
+  job_title: string
+  company: string
+  key: string // followup:7 · followup:14 · ghost
+  kind: 'followup' | 'ghost'
+  days: number
+  due_at: string
+  applied_at: string
+}
+
+export interface UpcomingInterview {
+  interview_id: number
+  application_id: number
+  job_id: number
+  job_title: string
+  company_name: string
+  round: number
+  type: InterviewType
+  scheduled_at: string
+}
+
+export interface StatsSummary {
+  applied_this_week: number
+  applied_total: number
+  responded: number
+  response_rate: number | null
+}
+
+export interface Rate {
+  count: number
+  total: number
+  rate: number | null
+}
+
+export interface StatsGroup {
+  group: string
+  applied: number
+  response: Rate
+  interview: Rate
+}
+
+export interface Stats {
+  applied: number
+  per_week: { week: string; count: number }[]
+  response: Rate
+  interview: Rate
+  median_days_to_first_response: number | null
+  by_track: StatsGroup[]
+  by_country: StatsGroup[]
+  by_source: StatsGroup[]
+}
+
+export interface TrackingFilters {
+  track?: string[]
+  country?: string[]
+  source?: string[]
+  stage?: string[]
+  start?: string
+  end?: string
 }

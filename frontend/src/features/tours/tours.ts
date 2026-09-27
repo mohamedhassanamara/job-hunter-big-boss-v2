@@ -18,6 +18,7 @@ export type TourId =
   | 'today'
   | 'discover'
   | 'pipeline'
+  | 'applications'
   | 'job'
   | 'cv'
   | 'outreach'
@@ -48,7 +49,9 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'today-greeting', title: 'Your daily inbox', body: 'Today collects everything that needs a decision from you, so you can start here every morning.' },
       { target: 'today-high-fit', title: 'New high-fit jobs', body: 'Fresh jobs above your fit threshold (Settings → Search profile). Click one to open it in Discover.' },
       { target: 'today-review', title: 'CVs and emails to review', body: 'Nothing is final or sent until you approve it. Tailored CVs and drafted emails wait here.' },
-      { target: 'today-manual', title: 'Manual applications', body: 'Jobs without a contact go to web apply: open the listing, attach the CV, then mark it applied.', placement: 'top' },
+      { target: 'today-manual', title: 'Manual applications', body: 'Jobs without a contact go to web apply: open the listing with the approved CV, then mark it applied.', placement: 'top' },
+      { target: 'today-followups', title: 'Follow-ups', body: 'No reply 7 and 14 days after applying? A follow-up shows here; snooze or dismiss it. After 30 days the app suggests closing as no response, but only your click closes anything.', placement: 'top' },
+      { target: 'today-interviews', title: 'Upcoming interviews', body: 'Interview rounds scheduled in the next 14 days.', placement: 'left' },
       { target: 'today-queue', title: 'Send queue', body: 'Approved emails go out one at a time, 15 minutes apart, at most 20 per queue. Pause anytime.', placement: 'left' },
       { target: 'today-discovery', title: 'Discovery status', body: 'Discovery runs daily on its own. If a source fails, you see it here, not buried in logs.', placement: 'left' },
     ],
@@ -79,9 +82,23 @@ export const TOURS: Record<TourId, Tour> = {
     resolveRoute: async () => '/pipeline',
     steps: [
       { target: 'pipeline-board', title: 'Every opportunity, by stage', body: 'New → Shortlisted → CV ready → Ready to send / apply → Sent / Applied → Interview → Closed.', placement: 'top' },
-      { target: 'pipeline-column-cv_ready', title: 'Drag to move', body: 'Drag a card to another column. Only allowed moves are accepted, and closing asks for a reason.', placement: 'right' },
+      { target: 'pipeline-column-cv_ready', title: 'Drag to move', body: 'Drag a card to another column. Only allowed moves are accepted. Applied and Interview open a short form (date, method, CV sent; round), and closing asks for a reason.', placement: 'right' },
       { target: 'pipeline-view', title: 'Board or table', body: 'The table sorts by fit, stage or time in stage and supports J / K, S and D.', placement: 'left' },
       { target: 'pipeline-dismissed', title: 'Dismissed stays out of the way', body: 'Dismissed jobs are hidden from Closed unless you switch this on.' },
+    ],
+  },
+  applications: {
+    id: 'applications',
+    title: 'Applications',
+    description: 'Apply, follow up, see what works',
+    resolveRoute: async () => '/applications',
+    steps: [
+      { target: 'applications-tabs', title: 'After the CV', body: 'Ready to apply, everything you applied to, and the numbers. Nothing here calls a model.' },
+      { target: 'applications-open', title: 'One click to apply', body: 'Opens the listing in a new tab and downloads the approved CV, named with your filename pattern. O does the same from the keyboard.', placement: 'left' },
+      { target: 'applications-mark', title: 'Mark applied', body: 'Record the date, how you applied and notes. The CV version you sent is locked: later edits always create a new version.', placement: 'left' },
+      { target: 'applications-list', title: 'Everything you applied to', body: 'J / K to move, Enter opens the job. The side panel shows the timeline plus Log reply, Log interview and Close….', route: '/applications?tab=applied', placement: 'top' },
+      { target: 'applications-filters', title: 'Filter and export', body: 'Filter by track, country, source, stage and date. Export CSV gives one row per application with the same filters.' },
+      { target: 'applications-weekly', title: 'Stats', body: 'Applications per week, response and interview rates by track, country and source (with counts, so small numbers aren\'t misread), and the median days to a first answer.', route: '/applications?tab=stats', placement: 'bottom' },
     ],
   },
   job: {
@@ -116,7 +133,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'cv-editor', title: 'Force in, leave out, edit', body: 'The eye toggles a bullet, project or certification. Edit any text inline. The page re-fits in code, without calling Claude again. Every role stays on the CV so your timeline has no gaps.', placement: 'right' },
       { target: 'cv-preview', title: 'The real PDF', body: 'Rendered from a style-only LaTeX template and fitted to exactly one full page: low-value bullets are dropped when it overflows, more are added when it is short.', placement: 'left' },
       { target: 'cv-versions', title: 'Versions and templates', body: 'Regenerate makes a new draft; older versions are kept. With several templates you can switch style per CV.' },
-      { target: 'cv-approve', title: 'Approve', body: 'Approving moves the job to CV ready and offers the next step: draft the email, or apply on the web. Download uses your filename pattern.' },
+      { target: 'cv-approve', title: 'Approve', body: 'Approving offers the next step: draft the email when there is a contact, otherwise the job moves to Ready to apply. Download uses your filename pattern.' },
     ],
   },
   outreach: {
