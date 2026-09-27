@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Query
 from sqlmodel import Session, col, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep
@@ -41,12 +43,18 @@ def discovery_run_out(session: Session, run: DiscoveryRun) -> DiscoveryRunOut:
 
 @router.post("/discovery/run", response_model=DiscoveryStarted, status_code=202)
 def start_discovery(
-    session: SessionDep, engine: EngineDep, workspace: WorkspaceDep
+    session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+    ignore_cooldown: Annotated[list[str] | None, Query()] = None,
 ) -> DiscoveryStarted:
+    """`ignore_cooldown=adzuna` runs that source now even inside its cooldown (a manual,
+    one-off decision, e.g. after changing roles; the source's own rate limits still apply)."""
     # The tour sandbox never touches the network.
     sources = job_sources(discovery.enabled_sources(session), mock=workspace == "demo" or None)
     if not sources:
         raise HTTPException(422, "Every source is disabled. Enable one in Settings → Sources.")
+    for src, impl in sources.items():
+        if src in (ignore_cooldown or []):
+            impl.cooldown_hours = 0  # type: ignore[misc]  # this instance only
     try:
         queue = scoring.workspace_queue(workspace)
         # Additive discovery: only jobs that have never been scored enter the queue.
