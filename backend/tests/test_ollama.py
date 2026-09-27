@@ -49,6 +49,37 @@ def test_valid_structured_output() -> None:
     assert scorer.last_duration_ms is not None
 
 
+def test_cloud_style_fenced_output_and_schema_in_prompt() -> None:
+    """Cloud models ignore `format`: the schema must be in the prompt and fences stripped."""
+    calls: list = []
+    fenced = "```json\n" + json.dumps(valid_payload()) + "\n```"
+    scorer = scorer_with([chat(fenced)], calls)
+    assert scorer.assess("sys", "user", JOB).skills_match.score == 7
+    system = calls[0]["messages"][0]["content"]
+    assert system.startswith("sys") and '"role_match"' in system and "no code fence" in system
+
+
+def test_rate_limit_waits_and_retries() -> None:
+    waits: list[float] = []
+    busy = httpx.Response(429, json={"error": "too many concurrent requests"})
+    queue = iter([busy, busy, chat(json.dumps(valid_payload()))])
+    scorer = OllamaFitScorer(
+        "gemma4:31b-cloud", transport=httpx.MockTransport(lambda r: next(queue)),
+        sleep=waits.append,
+    )
+    assert scorer.assess("sys", "user", JOB).role_match.score == 7
+    assert waits == [2.0, 5.0]
+
+
+def test_rate_limit_that_never_clears_fails_visibly() -> None:
+    busy = httpx.Response(429, json={"error": "too many concurrent requests"})
+    scorer = OllamaFitScorer(
+        "gemma4:31b-cloud", transport=httpx.MockTransport(lambda r: busy), sleep=lambda _: None
+    )
+    with pytest.raises(ScoringFailed, match="429"):
+        scorer.assess("sys", "user", JOB)
+
+
 def test_invalid_output_is_retried_once_with_the_error() -> None:
     calls: list = []
     bad = valid_payload(role_match={"score": 42, "reason": "x", "evidence": ""})  # out of range

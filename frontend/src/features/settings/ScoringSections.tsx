@@ -265,14 +265,11 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
           <Input type="number" value={v.maybe_threshold} onChange={(e) => setV({ ...v, maybe_threshold: Number(e.target.value) || 0 })} className="w-20" />
         </div>
       </Field>
-      <Field label="Parallel jobs" hint="Scoring workers (1 keeps the laptop responsive)">
+      <Field label="Parallel jobs" hint="Local models are capped at 2 (keeps the laptop responsive). Cloud models (…-cloud) run remotely and can use up to 8.">
         <Select
           value={String(v.concurrency)}
           onValueChange={(c) => setV({ ...v, concurrency: Number(c) })}
-          options={[
-            { value: '1', label: '1 at a time' },
-            { value: '2', label: '2 at a time' },
-          ]}
+          options={[1, 2, 4, 6, 8].map((n) => ({ value: String(n), label: n === 1 ? '1 at a time' : `${n} at a time` }))}
           className="w-40"
         />
       </Field>
