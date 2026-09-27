@@ -42,6 +42,7 @@ interface Candidate {
   full_name: string
   email: string
   based_in: string
+  nationality?: string
   work_authorization: 'needs_sponsorship' | 'eu_authorized'
   languages: { language: string; level: string }[]
   years_experience: number
@@ -97,12 +98,15 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
       <Field label="Based in" hint="City and country">
         <Input value={c.based_in} onChange={(e) => set({ based_in: e.target.value })} placeholder="Tunis, Tunisia" className="w-80" />
       </Field>
+      <Field label="Nationality" hint="Roles restricted to other nationalities (e.g. “UAE nationals only”) are capped">
+        <Input value={c.nationality ?? ''} onChange={(e) => set({ nationality: e.target.value })} placeholder="Tunisian" className="w-80" />
+      </Field>
       <Field label="Work authorization" hint="Decides which red flags disqualify a job">
         <Select
           value={c.work_authorization}
           onValueChange={(v) => set({ work_authorization: v as Candidate['work_authorization'] })}
           options={[
-            { value: 'needs_sponsorship', label: 'I need visa sponsorship for the EU' },
+            { value: 'needs_sponsorship', label: 'I need visa sponsorship (EU and Gulf)' },
             { value: 'eu_authorized', label: 'I can already work in the EU' },
           ]}
           className="w-80"

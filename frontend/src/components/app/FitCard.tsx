@@ -52,6 +52,7 @@ const FLAG_TEXT: Record<string, string> = {
   no_visa_sponsorship: 'No visa sponsorship',
   work_authorization_required: 'Work authorization required',
   must_be_based_in: 'Must be based in a specific place',
+  nationality_restricted: 'Restricted to nationals',
   language_required: 'Required language',
   seniority_mismatch: 'Seniority mismatch',
   other: 'Red flag',

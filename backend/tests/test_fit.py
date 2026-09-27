@@ -1,3 +1,5 @@
+import pytest
+
 from app.providers.base import FitAssessment, RedFlag, SubScore
 from app.services.fit import (
     ScoringConfig,
@@ -6,6 +8,7 @@ from app.services.fit import (
     confidence,
     evidence_found,
     experience_version,
+    flag_severity,
     recompute,
     truncate_description,
     weighted_score,
@@ -115,3 +118,52 @@ def test_unsupported_requirement_penalties_become_unknown() -> None:
     loc, lang = record["sub_scores"]["location_eligibility"], record["sub_scores"]["language_requirements"]
     assert loc["score"] == 5 and loc["adjusted_from"] == 0 and "Adjusted" in loc["reason"]
     assert lang["score"] == 0 and "adjusted_from" not in lang  # verified quote → penalty stands
+
+
+PROFILE = {
+    "work_authorization": "needs_sponsorship",
+    "languages": [
+        {"language": "Arabic", "level": "Native"},
+        {"language": "English", "level": "Full professional"},
+        {"language": "French", "level": "Full professional"},
+        {"language": "Spanish", "level": "Limited working"},
+    ],
+}
+
+
+def test_working_languages_from_profile() -> None:
+    config = ScoringConfig.from_settings({}, PROFILE)
+    assert config.working_languages == {"arabic", "english", "french"}  # Spanish is below B2
+
+
+@pytest.mark.parametrize(
+    ("quote", "severity"),
+    [
+        ("Fluent German is required", "hard"),
+        ("Verhandlungssicheres Deutsch", "hard"),
+        ("Fluency in Dutch and English", "hard"),  # both needed, no Dutch
+        ("Dutch or French is required", "soft"),  # French is enough
+        ("Néerlandais ou français courant", "soft"),
+        ("German/French speaker", "soft"),
+        ("Fluent French required", "soft"),  # spoken at a working level: model over-flagged
+        ("Fluent Spanish required", "hard"),  # only Limited working
+        ("Excellent communication skills", "soft"),  # no language named: can't verify
+    ],
+)
+def test_language_flag_is_hard_only_when_candidate_lacks_it(quote: str, severity: str) -> None:
+    config = ScoringConfig.from_settings({}, PROFILE)
+    assert flag_severity("language_required", True, config, quote) == severity
+    assert flag_severity("language_required", False, config, quote) == "soft"  # unverified
+
+
+def test_nationality_restricted_is_hard_unless_own_nationality() -> None:
+    config = ScoringConfig.from_settings({}, PROFILE)
+    quote = "This role is open to UAE nationals only (Emiratisation)"
+    assert flag_severity("nationality_restricted", True, config, quote) == "hard"
+    eu = ScoringConfig.from_settings({}, {**PROFILE, "work_authorization": "eu_authorized"})
+    assert flag_severity("nationality_restricted", True, eu, quote) == "hard"  # not about visas
+    jordanian = ScoringConfig.from_settings({}, {**PROFILE, "nationality": "Jordanian"})
+    assert flag_severity(
+        "nationality_restricted", True, jordanian, "Jordanian nationals only"
+    ) == "soft"
+    assert flag_severity("nationality_restricted", False, config, quote) == "soft"

@@ -25,13 +25,17 @@ from app.models.enums import FitStatus
 from app.providers.base import FitScorer, JobSnapshot, ScoringFailed
 from app.services import fit
 from app.services.experience import format_range
+from app.services.geo import country_catalog
 from app.services.prompt import load_prompt
 
 log = logging.getLogger("jobhunter.scoring")
 PROMPT_NAME = "fit_score"
 _WORK_AUTH = {
-    "needs_sponsorship": "needs visa sponsorship to work in the EU (not an EU citizen/resident)",
-    "eu_authorized": "authorized to work in the EU",
+    "needs_sponsorship": (
+        "needs employer visa sponsorship to work in the target countries "
+        "(not a citizen or resident of the EU or the Gulf states)"
+    ),
+    "eu_authorized": "authorized to work in the EU; needs a work visa outside it (e.g. the Gulf)",
 }
 
 
@@ -112,6 +116,9 @@ def job_content_hash(job: Job, company: Company) -> str:
                             job.description)
 
 
+_country_names = {c["code"]: c["name"] for c in country_catalog()}
+
+
 def render(job: Job, company: Company, ctx: ScoringContext) -> tuple[str, str]:
     prompt = load_prompt(PROMPT_NAME)
     languages = ", ".join(
@@ -123,7 +130,8 @@ def render(job: Job, company: Company, ctx: ScoringContext) -> tuple[str, str]:
         work_authorization=_WORK_AUTH.get(
             ctx.profile.get("work_authorization", "needs_sponsorship"), "unknown"
         ),
-        target_countries=", ".join(ctx.locations) or "any",
+        nationality=ctx.profile.get("nationality") or "(not provided)",
+        target_countries=", ".join(_country_names.get(c, c) for c in ctx.locations) or "any",
         languages=languages or "(not provided)",
         years_experience=ctx.profile.get("years_experience") or "(not provided)",
         experience=ctx.experience_text,
