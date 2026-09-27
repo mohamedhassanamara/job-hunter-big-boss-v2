@@ -143,13 +143,31 @@ Sections in a left sub-nav:
   - A Today banner when an enabled source failed or isn't configured.
   - Listing links name their source ("Open on Remotive").
 
-## 5. Sample data and guided tours
+## 5. Fit scoring (Phase 2)
+
+- **Model:** local Ollama (default `qwen2.5:7b`, Settings → Models). Structured JSON output, one corrective retry, then the score is stored as **failed with the error**. It never falls back to a default number. A missing model or an Ollama that's down pauses the queue with one clear message and the `ollama pull` command.
+- **The LLM returns** five 0–10 sub-scores, each with a reason and a verbatim evidence quote:
+  - role_match
+  - skills_match (against your experience items)
+  - seniority_fit
+  - location_eligibility (work authorization, "must be based in"; you're in Tunisia and need sponsorship)
+  - language_requirements (against Settings → Candidate languages)
+
+  It also returns typed red flags, ≤3 strengths, ≤3 gaps and a one-sentence summary.
+- **The code computes the 0–100 score** from weights (Settings → Scoring). Verified, disqualifying red flags cap it (default 35). A flag whose quote isn't in the listing can never be hard. Quotes are checked against the listing text and marked "unverified" when not found.
+- **Confidence:** high (full listing), medium (summary, e.g. WTTJ search index) or low (snippet), downgraded when the text is short. For non-high confidence: **Fetch full listing** (one job, our honest User-Agent, JSON-LD `JobPosting`). If a site blocks automated access, **Paste description** is offered instead.
+- **Cache and staleness:** cache key = content + experience version + model + prompt version, so nothing is rescored unless something changed. Experience or candidate edits mark scores **stale**, and "Rescore stale" is a user action. Weight, cap and work-authorization changes recompute scores instantly from stored sub-scores, with no model calls.
+- **Queue:** runs in the background after discovery (1–2 workers, per-job timeout), shows progress and an ETA in Discover, and can be cancelled.
+- **Labels and eval:** Good / Maybe / No per job (keys 1/2/3), separate from the pipeline stage. `make eval` scores the labeled jobs and reports bucket accuracy, a confusion matrix, Spearman correlation, per-label means, the worst disagreements with the model's reasons, and timing. Reports are saved per model and prompt version under `data/eval/`.
+- **Prompt:** `backend/app/prompts/fit_score.md`, versioned. A test fails if the body changes without a version bump.
+
+## 6. Sample data and guided tours
 
 - The real workspace **never contains fake data**. A fresh install shows real empty states and an onboarding card.
 - **Guided tours, one per feature** (Today, Discover, Pipeline, Job detail, CV Studio, Outreach, Contacts, Experience, Settings), start from the **?** menu, the ⌘K palette, or an empty state's "See how it works".
 - A tour rebuilds the sandbox, switches the app to it (a persistent "Tour · Sample data" strip), spotlights 3–6 elements with a short explanation (→ / ← / Esc), and returns to the real workspace on exit. Anything clicked during a tour only changes the sandbox.
 
-## 6. Phase 0 scope
+## 7. Phase 0 scope
 
 Built: every screen above, clickable, backed by real FastAPI endpoints over a seeded SQLite DB,
 with mutations that persist (shortlist, dismiss, stage moves, notes, experience CRUD and reorder, CV edit,

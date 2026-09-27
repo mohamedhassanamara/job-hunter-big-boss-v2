@@ -15,7 +15,8 @@ make dev       # API on :8000 (docs at /docs) + web on :5173, Ctrl-C stops both
 make seed      # rebuild the tour sandbox (data/demo.db); sample data lives ONLY there
 make reset     # ERASE the real workspace (keeps profile + settings defaults)
 make migrate   # alembic upgrade head
-make test      # backend pytest
+make test      # backend pytest (never calls a model or the network)
+make eval      # score your labeled jobs with the real model; report in data/eval/ (ARGS="--fresh")
 make lint      # ruff + tsc + oxlint + design-token guard
 make build     # frontend production build
 ```
@@ -102,6 +103,18 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - `components/app/badges`: Stage/Fit/Source/Remote/ContactTier/Tone badges. `states`: EmptyState/ErrorState/SkeletonRows.
 - `components/app/job-cards`: FitCard, ContactCard, JobFlags. `Prose` renders listing markdown safely. `TagInput`.
 - Autosave pattern (notes, CV, drafts): local state, a 700ms debounced mutation, and a "Saving… / All changes saved" label.
+
+## Fit scoring (backend/app/services/scoring.py, fit.py; providers/ollama.py)
+
+- The LLM only returns sub-scores, reasons, evidence and flags (`FitAssessment`). **All arithmetic is in `services/fit.py`**:
+  weights, the hard-flag cap (verified quotes only), evidence verification, confidence. Don't ask the model for the final number.
+- `score_job` never raises for model problems. It stores `status=failed` with the error, and a score is never defaulted.
+- The cache key includes the prompt version. **Any edit to `app/prompts/fit_score.md` needs a version bump** and a new hash in
+  `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
+- Queues are per workspace (`workspace_queue`). The sandbox and tests always use `MockFitScorer`.
+- Settings changes to `scoring` or `profile` call `recompute_all` (no LLM). Experience or profile changes make scores stale; never rescore automatically.
+- Full listings: honest User-Agent only. If a site blocks us (403), offer paste. Never disguise the client.
+- The test CV (`app/seed/test_cv.py`, `is_placeholder`) exists at the user's request. It's removable via `DELETE /api/experience/placeholders`.
 
 ## Conventions
 
