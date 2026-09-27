@@ -49,3 +49,14 @@ class Enqueued(BaseModel):
 
 class LabelIn(BaseModel):
     label: Literal["good", "maybe", "no"] | None
+
+
+class PasteIn(BaseModel):
+    description: str
+
+
+class FullListingOut(BaseModel):
+    ok: bool
+    message: str
+    can_paste: bool = False
+    characters: int = 0

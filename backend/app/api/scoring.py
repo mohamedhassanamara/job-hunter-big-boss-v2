@@ -5,16 +5,21 @@ from app.api.deps import SessionDep, WorkspaceDep, get_or_404
 from app.config import get_settings
 from app.models import Job
 from app.models.base import utcnow
+from app.models.enums import DescriptionLevel
 from app.providers.ollama import OllamaFitScorer
 from app.schemas.jobs import JobListItem
 from app.schemas.scoring import (
     Enqueued,
+    FullListingOut,
     LabelIn,
+    PasteIn,
     RescoreIn,
     ScoringHealth,
     ScoringStatus,
 )
 from app.services import scoring
+from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
+from app.services.text import html_to_text
 from app.services.views import job_item
 
 router = APIRouter(tags=["scoring"])
@@ -94,6 +99,45 @@ def rescore_job(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> En
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)
+
+
+def _store_full_description(session, job: Job, text: str, workspace: str) -> None:  # noqa: ANN001
+    job.description = text
+    job.description_level = DescriptionLevel.full
+    job.full_fetched_at = utcnow()
+    session.add(job)
+    session.commit()
+    scoring.workspace_queue(workspace).enqueue([job.id], front=True)
+
+
+@router.post("/jobs/{job_id}/fetch-full", response_model=FullListingOut)
+def fetch_full(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> FullListingOut:
+    """Fetch this one job's full listing (never in bulk) and rescore it."""
+    job = get_or_404(session, Job, job_id, "Job")
+    if workspace == "demo":
+        return FullListingOut(ok=False, can_paste=True,
+                              message="Sample data: paste a description to try it.")
+    try:
+        listing = fetch_full_listing(job.url)
+    except ListingUnavailable as exc:
+        return FullListingOut(ok=False, message=str(exc), can_paste=exc.can_paste)
+    text = with_location_requirements(listing)
+    _store_full_description(session, job, text, workspace)
+    return FullListingOut(ok=True, message="Full listing fetched; rescoring.",
+                          characters=len(text))
+
+
+@router.put("/jobs/{job_id}/description", response_model=FullListingOut)
+def paste_description(
+    job_id: int, body: PasteIn, session: SessionDep, workspace: WorkspaceDep
+) -> FullListingOut:
+    """The user pasted the full listing text (for sites that block automated fetching)."""
+    job = get_or_404(session, Job, job_id, "Job")
+    text = html_to_text(body.description)
+    if len(text) < 200:
+        raise HTTPException(422, "That looks too short to be a full job description")
+    _store_full_description(session, job, text, workspace)
+    return FullListingOut(ok=True, message="Description saved; rescoring.", characters=len(text))
 
 
 @router.put("/jobs/{job_id}/label", response_model=JobListItem)
