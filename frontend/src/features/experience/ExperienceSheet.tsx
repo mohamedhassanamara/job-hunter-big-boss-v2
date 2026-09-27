@@ -9,6 +9,7 @@ import { Select } from '@/components/ui/select'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import type { ExperienceInput, ExperienceItem, ExperienceKind } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import { KINDS, KIND_META } from './kinds'
 
 const toMonth = (d: string | null) => (d ? d.slice(0, 7) : '')
@@ -48,8 +49,14 @@ export function ExperienceSheet({
   const [present, setPresent] = useState(item ? !item.end_date && !!item.start_date : false)
   const set = (patch: Partial<ExperienceInput>) => setForm((f) => ({ ...f, ...patch }))
   const meta = KIND_META[form.kind]
-  const datesApply = form.kind !== 'skill'
-  const bulletsApply = form.kind !== 'skill' && form.kind !== 'certification'
+  const k = form.kind
+  const datesApply = k !== 'skill' && k !== 'summary'
+  const bulletsApply = k !== 'skill' && k !== 'certification' && k !== 'summary'
+  const orgApply = k !== 'skill' && k !== 'summary'
+  const locationApply = k === 'job' || k === 'education' || k === 'volunteering'
+  const titleLabel = { skill: 'Group name', summary: 'Name (only you see it)', certification: 'Certificate', project: 'Project name', education: 'Degree' }[k as string] ?? 'Title'
+  const orgLabel = { education: 'School', project: 'Label (e.g. Personal project)', certification: 'Issuer', job: 'Company' }[k as string] ?? 'Organisation'
+
 
   const submit = () =>
     onSave({
@@ -106,7 +113,7 @@ export function ExperienceSheet({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="title">{form.kind === 'skill' ? 'Group name' : 'Title'}</Label>
+            <Label htmlFor="title">{titleLabel}</Label>
             <Input
               id="title"
               autoFocus
@@ -115,19 +122,35 @@ export function ExperienceSheet({
               placeholder={form.kind === 'job' ? 'Senior Data Engineer' : form.kind === 'skill' ? 'Data engineering' : ''}
             />
           </div>
-          {form.kind !== 'skill' && (
+          {orgApply && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="org">{form.kind === 'education' ? 'School' : 'Organisation'}</Label>
+              <div className={cn('space-y-1.5', !locationApply && 'col-span-2')}>
+                <Label htmlFor="org">{orgLabel}</Label>
                 <Input id="org" value={form.org ?? ''} onChange={(e) => set({ org: e.target.value || null })} />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={form.location ?? ''}
-                  onChange={(e) => set({ location: e.target.value || null })}
-                />
+              {locationApply && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={form.location ?? ''}
+                    onChange={(e) => set({ location: e.target.value || null })}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          {(k === 'certification' || k === 'project') && (
+            <div className="grid grid-cols-2 gap-3">
+              {k === 'certification' && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="credential">Credential ID</Label>
+                  <Input id="credential" value={form.credential_id ?? ''} onChange={(e) => set({ credential_id: e.target.value || null })} />
+                </div>
+              )}
+              <div className={cn('space-y-1.5', k === 'project' && 'col-span-2')}>
+                <Label htmlFor="url">{k === 'certification' ? 'Verification URL' : 'Link (repo or demo)'}</Label>
+                <Input id="url" type="url" value={form.url ?? ''} onChange={(e) => set({ url: e.target.value || null })} placeholder="https://" />
               </div>
             </div>
           )}
@@ -160,9 +183,14 @@ export function ExperienceSheet({
               </div>
             </div>
           )}
-          {form.kind !== 'skill' && (
+          {k !== 'skill' && (
             <div className="space-y-1.5">
-              <Label htmlFor="summary">Summary</Label>
+              <Label htmlFor="summary">{k === 'summary' ? 'Snippet' : 'Summary'}</Label>
+              {k === 'summary' && (
+                <p className="text-xs text-fg-subtle">
+                  A few sentences about you. The CV generator picks the snippet that best fits each job and may reword it, never adding facts.
+                </p>
+              )}
               <Textarea
                 id="summary"
                 value={form.summary ?? ''}
@@ -233,8 +261,9 @@ export function ExperienceSheet({
             </div>
           )}
           <div className="space-y-1.5">
-            <Label>{form.kind === 'skill' ? 'Skills' : 'Tags'}</Label>
-            <TagInput tags={form.tags} onChange={(tags) => set({ tags })} />
+            <Label>{k === 'skill' ? 'Skills' : k === 'project' ? 'Tech stack' : 'Tags'}</Label>
+            {/* Skills and stacks appear on the CV as typed: keep their casing ("PostgreSQL"). */}
+            <TagInput tags={form.tags} onChange={(tags) => set({ tags })} lowercase={k !== 'skill' && k !== 'project'} />
           </div>
         </form>
       </SheetContent>

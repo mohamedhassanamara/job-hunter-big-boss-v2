@@ -167,3 +167,12 @@ def test_nationality_restricted_is_hard_unless_own_nationality() -> None:
         "nationality_restricted", True, jordanian, "Jordanian nationals only"
     ) == "soft"
     assert flag_severity("nationality_restricted", False, config, quote) == "soft"
+
+
+def test_cv_header_fields_do_not_make_scores_stale() -> None:
+    items = [{"kind": "job", "title": "Dev"}]
+    base = {"based_in": "City", "languages": [], "full_name": "A"}
+    v = experience_version(items, base)
+    assert experience_version(items, {**base, "full_name": "B", "phone": "1", "links": [{}],
+                                      "email": "x@y.z"}) == v
+    assert experience_version(items, {**base, "based_in": "Other city"}) != v

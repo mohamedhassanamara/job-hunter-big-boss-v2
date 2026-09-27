@@ -284,8 +284,12 @@ def content_hash(title: str, company: str, location: str, remote: str, descripti
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
+_HEADER_ONLY = {"email", "full_name", "phone", "links", "is_placeholder"}
+
+
 def experience_version(items: list[dict[str, Any]], profile: dict[str, Any]) -> str:
-    candidate = {k: v for k, v in (profile or {}).items() if k not in ("email",)}
+    # CV-header-only fields never change a score: editing them must not mark scores stale.
+    candidate = {k: v for k, v in (profile or {}).items() if k not in _HEADER_ONLY}
     raw = json.dumps({"items": items, "profile": candidate}, sort_keys=True, default=str)
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
