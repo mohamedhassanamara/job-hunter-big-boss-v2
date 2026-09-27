@@ -50,6 +50,8 @@ export const SOURCE_LABELS: Record<Source, string> = {
   remotive: 'Remotive',
   arbeitnow: 'Arbeitnow',
   wttj: 'Welcome to the Jungle',
+  boards: 'Company job boards',
+  bayt: 'Bayt',
 }
 
 export const SOURCE_SHORT: Record<Source, string> = {
@@ -57,6 +59,8 @@ export const SOURCE_SHORT: Record<Source, string> = {
   remotive: 'Remotive',
   arbeitnow: 'Arbeitnow',
   wttj: 'WTTJ',
+  boards: 'Company',
+  bayt: 'Bayt',
 }
 
 export const REMOTE_LABELS: Record<RemoteType, string> = {

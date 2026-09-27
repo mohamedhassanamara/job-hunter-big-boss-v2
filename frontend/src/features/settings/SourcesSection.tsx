@@ -10,8 +10,9 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { absoluteDate, countryName, pluralize, reasonLabel, relativeTime, REMOTE_LABELS } from '@/lib/format'
 import { useSaveSetting } from '@/lib/queries/library'
 import { useSources, useTestSource } from '@/lib/queries/workflow'
-import type { RunStatus, SampleJob, SettingsView, Source, SourceInfo, SourceTestResult } from '@/lib/types'
+import type { CompanyBoard, RunStatus, SampleJob, SettingsView, Source, SourceInfo, SourceTestResult } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { BoardsEditor } from './BoardsEditor'
 import { Card } from './sections'
 
 const NOTES: Record<Source, string> = {
@@ -19,6 +20,8 @@ const NOTES: Record<Source, string> = {
   remotive: 'Public API · remote jobs · fetched at most every 6h (Remotive asks for ≤ 4 requests/day) · every job links back to Remotive',
   arbeitnow: 'Public API · mostly German/DACH listings, so expect few matches',
   wttj: "Unofficial · uses the public search key from the Welcome to the Jungle website · summary + key missions only",
+  boards: 'Official public job-board APIs (Greenhouse, Lever, Ashby, Workable, SmartRecruiters) of the companies below · full descriptions · at most every 6h',
+  bayt: 'Public search pages of Bayt (Gulf/MENA), allowed by its robots.txt · one request per role × country, 3s apart, at most every 6h · short summaries (fetch the full listing per job)',
 }
 
 const STATUS: Record<RunStatus, { tone: Tone; label: string }> = {
@@ -139,7 +142,7 @@ function TestResultSheet({ result, name, onClose }: { result: SourceTestResult; 
   )
 }
 
-function SourceRow({ info, onToggle }: { info: SourceInfo; onToggle: (on: boolean) => void }) {
+function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on: boolean) => void; boards?: CompanyBoard[] }) {
   const test = useTestSource()
   const [result, setResult] = useState<SourceTestResult | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
@@ -216,6 +219,8 @@ function SourceRow({ info, onToggle }: { info: SourceInfo; onToggle: (on: boolea
           </span>
         </div>
       )}
+
+      {info.source === 'boards' && boards && <BoardsEditor boards={boards} results={run?.details.boards ?? {}} />}
 
       {cooling && (
         <p className="text-xs text-fg-subtle">
@@ -299,7 +304,12 @@ export function SourcesSection({ settings }: { settings: SettingsView }) {
       ) : (
         <div className="-mx-5 -my-4 divide-y divide-border">
           {sources.data.map((info) => (
-            <SourceRow key={info.source} info={info} onToggle={(on) => toggle(info, on)} />
+            <SourceRow
+              key={info.source}
+              info={info}
+              onToggle={(on) => toggle(info, on)}
+              boards={(settings.values.company_boards as { boards?: CompanyBoard[] } | undefined)?.boards ?? []}
+            />
           ))}
           <div className="flex items-center gap-4 px-5 py-3 opacity-60">
             <div className="flex-1">

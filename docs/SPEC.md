@@ -115,6 +115,8 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 ### 3.9 Settings (`/settings`)
 Sections in a left sub-nav:
 - **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible), and min fit score.
+- **Company job boards** (a source): an editable list of employers (platform: Greenhouse, Lever, Ashby, Workable or SmartRecruiters, plus the board token and a display name), each with its job count or error from the last run. A board answering with 0 jobs is flagged ("check the token").
+- **Bayt** (a source): Gulf/MENA board read from its public per-country search pages; summaries only, the full listing is fetched per job.
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).
