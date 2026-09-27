@@ -98,12 +98,16 @@ export const COLUMN_LABELS: Record<Stage, string> = {
   ready: 'Ready to send / apply',
 }
 
-export const COUNTRY_LABELS: Record<string, string> = {
-  ES: 'Spain',
-  PT: 'Portugal',
-  FR: 'France',
-  IT: 'Italy',
-  REMOTE: 'Remote / EU',
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
+
+/** English name for an ISO country code ('AE' → 'United Arab Emirates'). REMOTE = no country. */
+export function countryName(code: string): string {
+  if (code === 'REMOTE') return 'Remote (no country)'
+  try {
+    return regionNames.of(code) ?? code
+  } catch {
+    return code
+  }
 }
 
 export function initials(name: string): string {
@@ -134,7 +138,9 @@ export function reasonLabel(reason: string): string {
     case 'location_outside':
       return arg === 'unknown'
         ? 'Location unknown / outside targets'
-        : `Outside target countries (${COUNTRY_LABELS[arg] ?? arg})`
+        : `Outside target countries (${countryName(arg)})`
+    case 'remote_outside':
+      return arg === 'unknown' ? 'Remote region outside your remote scope' : `Remote limited to ${countryName(arg)} (outside your remote scope)`
     case 'too_old':
       return 'Posted too long ago'
     case 'not_remote':

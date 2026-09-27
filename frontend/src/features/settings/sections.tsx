@@ -1,4 +1,4 @@
-import { CircleCheck, Database } from 'lucide-react'
+import { Database } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { absoluteDate, COUNTRY_LABELS } from '@/lib/format'
+import { absoluteDate } from '@/lib/format'
 import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
-import type { SearchProfile, SettingsView } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import type { RemoteScope, SearchProfile, SettingsView } from '@/lib/types'
+import { CountryPicker } from './CountryPicker'
 import { OllamaStatus } from './ScoringSections'
 
 export function Card({
@@ -105,26 +105,8 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
       >
         <TagInput tags={p.excluded_keywords} onChange={(excluded_keywords) => set({ excluded_keywords })} placeholder="intern, stage…" />
       </Field>
-      <Field label="Countries">
-        <div className="flex flex-wrap gap-1.5">
-          {['ES', 'PT', 'FR', 'IT'].map((c) => {
-            const on = p.locations.includes(c)
-            return (
-              <button
-                key={c}
-                onClick={() => set({ locations: on ? p.locations.filter((x) => x !== c) : [...p.locations, c] })}
-                className={cn(
-                  'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-sm transition-colors duration-120',
-                  on ? 'border-primary bg-primary-subtle text-fg' : 'border-border-strong text-fg-muted hover:bg-surface-hover',
-                )}
-                aria-pressed={on}
-              >
-                {on && <CircleCheck className="size-3.5 text-primary" />}
-                {COUNTRY_LABELS[c]}
-              </button>
-            )
-          })}
-        </div>
+      <Field label="Countries" hint="Jobs must be in one of these (on-site and hybrid). Sources search every country they support.">
+        <CountryPicker selected={p.locations} onChange={(locations) => set({ locations })} />
       </Field>
       <Field label="Remote">
         <Select
@@ -134,6 +116,18 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
             { value: 'any', label: 'Any (remote, hybrid, on-site)' },
             { value: 'remote_ok', label: 'Remote or hybrid preferred' },
             { value: 'remote_only', label: 'Remote only' },
+          ]}
+          className="w-72"
+        />
+      </Field>
+      <Field label="Remote scope" hint="Which remote jobs count. US-only (or any Americas / Asia-only) remote is never eligible.">
+        <Select
+          value={p.remote_scope}
+          onValueChange={(v) => set({ remote_scope: v as RemoteScope })}
+          options={[
+            { value: 'anywhere', label: 'Remote anywhere (worldwide or EMEA)' },
+            { value: 'europe', label: 'Remote Europe' },
+            { value: 'targets', label: 'Remote in my target countries only' },
           ]}
           className="w-72"
         />

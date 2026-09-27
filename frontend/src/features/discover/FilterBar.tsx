@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { COUNTRY_LABELS, REMOTE_LABELS, SOURCE_LABELS } from '@/lib/format'
+import { countryName, REMOTE_LABELS, SOURCE_LABELS } from '@/lib/format'
+import { useSearchProfile } from '@/lib/queries/library'
 import type { JobFilters } from '@/lib/queries/jobs'
 import { cn } from '@/lib/utils'
 import { hasActiveFilters } from './filters'
@@ -21,7 +22,6 @@ const REMOTE_OPTIONS = (['remote', 'hybrid', 'onsite'] as const).map((value) => 
   value,
   label: REMOTE_LABELS[value],
 }))
-const COUNTRY_OPTIONS = Object.entries(COUNTRY_LABELS).map(([value, label]) => ({ value, label }))
 const SCORE_OPTIONS = [
   { value: 'any', label: 'Any fit' },
   { value: '50', label: 'Fit 50+' },
@@ -93,6 +93,9 @@ export function FilterBar({
   onChange: (patch: Partial<JobFilters>) => void
   onClear: () => void
 }) {
+  const profile = useSearchProfile()
+  // Target countries from Settings, plus jobs with no country (usually remote).
+  const countryOptions = [...(profile.data?.locations ?? []), 'REMOTE'].map((value) => ({ value, label: countryName(value) }))
   return (
     <div data-tour="discover-filters" className="flex flex-wrap items-center gap-2 border-b border-border bg-bg px-6 py-2.5">
       <div className="relative w-64">
@@ -121,7 +124,7 @@ export function FilterBar({
       />
       <MultiFilter
         label="Country"
-        options={COUNTRY_OPTIONS}
+        options={countryOptions}
         selected={filters.country ?? []}
         onChange={(country) => onChange({ country })}
       />

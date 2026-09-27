@@ -20,6 +20,7 @@ export const keys = {
   search: (q: string) => ['search', q] as const,
   discoveryStatus: ['discovery-status'] as const,
   sources: ['sources'] as const,
+  countries: ['countries'] as const,
   scoringStatus: ['scoring-status'] as const,
   scoringHealth: ['scoring-health'] as const,
 }
