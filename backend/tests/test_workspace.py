@@ -60,3 +60,22 @@ def test_test_cv_is_marked_and_removable(client: TestClient) -> None:
     assert not any(i["is_placeholder"] for i in left)
     assert any(i["id"] == kept["id"] for i in left)
     assert not client.get("/api/settings").json()["values"]["profile"].get("is_placeholder")
+
+
+def test_ensure_defaults_adds_new_setting_keys_without_overwriting(client: TestClient) -> None:
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models import AppSetting
+    from app.seed.seed import ensure_defaults
+
+    with Session(engine) as s:
+        s.delete(s.exec(select(AppSetting).where(AppSetting.key == "scoring")).one())
+        sources = s.exec(select(AppSetting).where(AppSetting.key == "sources")).one()
+        sources.value = {"adzuna": False}
+        s.add(sources)
+        s.commit()
+    ensure_defaults(engine)
+    values = client.get("/api/settings").json()["values"]
+    assert values["scoring"]["weights"]["role_match"] == 0.30  # added
+    assert values["sources"] == {"adzuna": False}  # untouched

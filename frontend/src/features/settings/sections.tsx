@@ -228,7 +228,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
       }
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
-        <ToneBadge tone="amber">Mock</ToneBadge>
+        <ToneBadge tone="amber">Partly mocked</ToneBadge>
         Fit scoring runs on Ollama. CV generation and email drafting are still mocked.
       </div>
       <OllamaStatus />
