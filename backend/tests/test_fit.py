@@ -100,3 +100,18 @@ def test_truncate_keeps_head_and_tail() -> None:
     text = "HEAD " + "x" * 10_000 + " TAIL"
     out = truncate_description(text, 1000)
     assert out.startswith("HEAD") and out.endswith("TAIL") and len(out) < 1100
+
+
+def test_unsupported_requirement_penalties_become_unknown() -> None:
+    subs = {d: SubScore(score=8, reason="r", evidence="build pipelines with Spark and dbt")
+            for d in ("role_match", "skills_match", "seniority_fit")}
+    a = FitAssessment(
+        **subs,
+        location_eligibility=SubScore(score=0, reason="Requires EU work authorization", evidence=""),
+        language_requirements=SubScore(score=0, reason="Needs Spanish", evidence="Fluent Spanish required"),
+        summary="x",
+    )
+    record = build_record(a, job_text=TEXT, description_level="full", remote_type="hybrid", config=CONFIG)
+    loc, lang = record["sub_scores"]["location_eligibility"], record["sub_scores"]["language_requirements"]
+    assert loc["score"] == 5 and loc["adjusted_from"] == 0 and "Adjusted" in loc["reason"]
+    assert lang["score"] == 0 and "adjusted_from" not in lang  # verified quote → penalty stands
