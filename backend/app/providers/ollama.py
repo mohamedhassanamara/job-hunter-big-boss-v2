@@ -1,14 +1,18 @@
 """Ollama-backed fit scorer (local LLM, structured JSON output).
 
-- The FitAssessment JSON schema is passed as `format`, so a local model's output is constrained.
-  Cloud models (`…-cloud`, run on ollama.com through the local daemon) ignore `format`, so the
-  schema is also spelled out in the system message, and a Markdown ```json fence is stripped.
+- The FitAssessment JSON schema is passed as `format`: local Ollama constrains decoding to it
+  (structured output). Cloud models (`…-cloud`, run on ollama.com) ignore `format`, so for them
+  only the schema is also spelled out in the system message. Stripping a Markdown ```json fence
+  is a harmless fallback for any model.
+- Thinking is disabled (`think: false`): reasoning models would otherwise spend time and tokens
+  on hidden reasoning before the JSON.
 - Invalid output (bad JSON / schema violation) gets ONE retry with the validation error fed
   back; after that ScoringFailed is raised. We never fall back to a default score.
 """
 
 import json
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -27,6 +31,10 @@ def strip_fence(content: str) -> str:
     """'```json\n{...}\n```' → '{...}' (cloud models often wrap JSON in a fence)."""
     match = _FENCE.match(content)
     return match.group(1) if match else content.strip()
+
+
+def is_cloud(model: str) -> bool:
+    return model.endswith(("-cloud", ":cloud"))
 
 
 def schema_instruction(schema: dict[str, Any]) -> str:
@@ -85,8 +93,17 @@ class OllamaFitScorer:
         self.num_ctx = num_ctx
         self._transport = transport
         self._sleep = sleep
+        # Output-quality counters for this scorer's lifetime (one queue run): model calls, invalid
+        # answers, jobs valid on the first try / after the retry / failed. Shared by worker threads.
+        self.stats = {"calls": 0, "invalid": 0, "valid_first_try": 0, "valid_after_retry": 0,
+                      "failed_invalid": 0}
+        self._stats_lock = threading.Lock()
         self._schema = inline_schema(FitAssessment)
         self.last_duration_ms: int | None = None
+
+    def _count(self, key: str) -> None:
+        with self._stats_lock:
+            self.stats[key] += 1
 
     def _client(self) -> httpx.Client:
         return httpx.Client(timeout=self.timeout, transport=self._transport)
@@ -117,6 +134,7 @@ class OllamaFitScorer:
             "model": self.model,
             "messages": messages,
             "stream": False,
+            "think": False,
             "format": self._schema,
             "options": {"temperature": 0, "seed": 42, "num_ctx": self.num_ctx},
         }
@@ -143,18 +161,21 @@ class OllamaFitScorer:
             raise ScoringFailed(f"Unexpected Ollama response: {res.text[:200]}") from exc
 
     def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
-        messages = [
-            {"role": "system", "content": system + schema_instruction(self._schema)},
-            {"role": "user", "content": user},
-        ]
+        if is_cloud(self.model):
+            system += schema_instruction(self._schema)
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         started = time.monotonic()
         last_error = ""
         try:
             for attempt in range(2):
                 content = self._chat(messages)
+                self._count("calls")
                 try:
-                    return FitAssessment.model_validate_json(strip_fence(content))
+                    result = FitAssessment.model_validate_json(strip_fence(content))
+                    self._count("valid_first_try" if attempt == 0 else "valid_after_retry")
+                    return result
                 except (ValidationError, json.JSONDecodeError) as exc:
+                    self._count("invalid")
                     last_error = _short_error(exc)
                     if attempt == 0:
                         messages += [
@@ -165,6 +186,7 @@ class OllamaFitScorer:
                                 f"{last_error}. Reply again with JSON that matches the schema.",
                             },
                         ]
+            self._count("failed_invalid")
             raise ScoringFailed(f"Invalid model output after a retry: {last_error}")
         finally:
             self.last_duration_ms = int((time.monotonic() - started) * 1000)
