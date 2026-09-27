@@ -1,4 +1,4 @@
-import { Compass, Radar, SearchX } from 'lucide-react'
+import { ArrowDownWideNarrow, Compass, Radar, SearchX } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { useHotkeys } from '@/hooks/useHotkeys'
@@ -140,6 +141,21 @@ export default function DiscoverPage() {
             : 'Triage newly discovered jobs'
         }
         className="pb-0"
+        actions={
+          <div className="flex items-center gap-1.5">
+            <ArrowDownWideNarrow className="size-3.5 text-fg-subtle" />
+            <Select
+              size="sm"
+              aria-label="Sort"
+              value={filters.sort ?? 'fit'}
+              onValueChange={(v) => setFilters({ sort: v as JobFilters['sort'] })}
+              options={[
+                { value: 'fit', label: 'Best fit' },
+                { value: 'newest', label: 'Newest' },
+              ]}
+            />
+          </div>
+        }
       >
         <Tabs data-tour="discover-tabs" value={filters.stage} onValueChange={(v) => url.set({ stage: v === 'new' ? null : v, job: null })}>
           <TabsList>
