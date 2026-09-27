@@ -1,6 +1,6 @@
 # Job Hunter v2
 
-A local, single-user web app for my Data/AI Engineering job search (ES/PT/FR/IT/remote). It discovers jobs,
+A local, single-user web app for my Data/AI Engineering job search (Europe + Gulf targets set in Settings, or remote). It discovers jobs,
 scores fit, resolves contacts, generates a tailored one-page LaTeX CV, and drafts cold emails or routes
 the job to manual web apply. I review everything before anything is sent.
 
@@ -113,6 +113,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
 - Queues are per workspace (`workspace_queue`). The sandbox and tests always use `MockFitScorer`.
 - Settings changes to `scoring` or `profile` call `recompute_all` (no LLM). Experience or profile changes make scores stale; never rescore automatically.
+- Countries: target list = `search_profile.locations` (Settings). Country names/aliases/cities and region sets live in
+  `services/geo.py` only; sources expose `unsupported_countries(targets)` instead of fixed country lists.
 - Full listings: honest User-Agent only. If a site blocks us (403), offer paste. Never disguise the client.
 - The test CV (`app/seed/test_cv.py`, `is_placeholder`) exists at the user's request. It's removable via `DELETE /api/experience/placeholders`.
 

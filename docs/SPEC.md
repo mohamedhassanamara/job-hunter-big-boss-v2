@@ -1,7 +1,8 @@
 # Job Hunter v2: product spec
 
-A local, single-user workspace for my Data Engineering / AI Engineering job search, targeting Spain,
-Portugal, France, Italy, or remote. The app finds jobs, scores fit, prepares a tailored CV and
+A local, single-user workspace for my Data Engineering / AI Engineering job search, targeting the
+countries chosen in Settings (currently France, Spain, Italy, Portugal, Germany, Belgium, the UAE, Qatar,
+Bahrain, Kuwait, Jordan) or remote. The app finds jobs, scores fit, prepares a tailored CV and
 outreach, and keeps me in control. **Nothing is final or sent without my review.**
 
 ## 1. The flow
@@ -113,7 +114,8 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 
 ### 3.9 Settings (`/settings`)
 Sections in a left sub-nav:
-- **Search profile:** roles, keywords, excluded keywords, countries, remote policy, and min fit score.
+- **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible), and min fit score.
+- **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
@@ -154,7 +156,7 @@ Sections in a left sub-nav:
   - language_requirements (against Settings → Candidate languages)
 
   It also returns typed red flags, ≤3 strengths, ≤3 gaps and a one-sentence summary.
-- **The code computes the 0–100 score** from weights (Settings → Scoring). Verified, disqualifying red flags cap it (default 35). A flag whose quote isn't in the listing can never be hard. Quotes are checked against the listing text and marked "unverified" when not found.
+- **The code computes the 0–100 score** from weights (Settings → Scoring). Verified, disqualifying red flags cap it (default 35): work authorization / no sponsorship / must be based in (when the candidate needs sponsorship), nationality-restricted roles ("UAE nationals only", Emiratization/Qatarization/Kuwaitization…; unless it's the candidate's nationality), and a required language the candidate doesn't speak at a working level (B2+ or Professional working; "Dutch or French" is met by either). A flag whose quote isn't in the listing can never be hard. Quotes are checked against the listing text and marked "unverified" when not found.
 - **Confidence:** high (full listing), medium (summary, e.g. WTTJ search index) or low (snippet), downgraded when the text is short. For non-high confidence: **Fetch full listing** (one job, our honest User-Agent, JSON-LD `JobPosting`). If a site blocks automated access, **Paste description** is offered instead.
 - **Cache and staleness:** cache key = content + experience version + model + prompt version, so nothing is rescored unless something changed. Experience or candidate edits mark scores **stale**, and "Rescore stale" is a user action. Weight, cap and work-authorization changes recompute scores instantly from stored sub-scores, with no model calls.
 - **Queue:** runs in the background after discovery (1–2 workers, per-job timeout), shows progress and an ETA in Discover, and can be cancelled.
