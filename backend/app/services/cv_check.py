@@ -4,14 +4,28 @@ in CV Studio; the structural ones are also repaired (unknown ids dropped, omitte
 - every referenced item id exists (with the right kind) and every bullet index is a real fact
 - every number in a reworded bullet appears exactly in its source fact
 - every skill shown exists in the pool (skill groups or item tags)
-- tech-looking words in bullets/summary that appear nowhere in the pool are flagged
+- tech-looking words in bullets that appear nowhere in the pool are flagged (plurals and word
+  parts tolerated: "UIs", "REST")
+- years claims in bullets are rejected (the reworded bullet falls back to its source fact)
 - every role is present with at least one bullet (never a gap in the timeline)
+- summary grounding (`ground_sentences`): every sentence cites pool items and states only what
+  those items say (tools, numbers, scope), plus allowed years and no unsupported capabilities
+- canonical spelling (`canonicalize`): skills/tools written exactly as the pool writes them
 """
 
 import re
 from typing import Any
 
-from app.providers.base import CVPlan, PlanBullet, PlanEntry
+from app.providers.base import CVPlan, PlanBullet, PlanEntry, SummarySentence
+from app.services.cv_claims import (
+    Canon,
+    Vocabulary,
+    bad_years,
+    capability_gaps,
+    pool_vocabulary,
+    scope_inflation,
+    years_claims,
+)
 from app.services.cv_pool import Pool, norm
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)*(?:\s?%|\+|[kKmM]\b|x\b)?")
@@ -50,18 +64,19 @@ def check_bullet(bullet: PlanBullet, source: str, where: str) -> list[dict[str, 
     return out
 
 
-def new_tools(text: str, vocabulary: set[str]) -> list[str]:
+def new_tools(text: str, vocabulary: Vocabulary) -> list[str]:
     candidates = set(_TECHY.findall(text))
     candidates |= {w for w in re.findall(r"[A-Za-z][A-Za-z0-9.+#-]*", text)
                    if w.lower() in _TOOLS}
     return sorted(c for c in candidates
-                  if norm(c) not in vocabulary and c.lower() not in _NOT_TOOLS and norm(c))
+                  if not vocabulary.knows(c) and c.lower() not in _NOT_TOOLS and norm(c))
 
 
 def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
-    """Returns the repaired plan and every violation found."""
+    """Returns the repaired plan and every violation found. The summary is checked separately
+    (`ground_sentences`), because a failing summary gets regenerated."""
     issues: list[dict[str, Any]] = []
-    vocab = pool.vocabulary()
+    vocab = pool_vocabulary(pool)
 
     def entries(items: list[PlanEntry], kind: str, label: str) -> list[PlanEntry]:
         kept = []
@@ -79,6 +94,11 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
                     issues.append(violation("unknown_fact", "Bullet doesn't match a source fact:"
                                             " dropped", where, "error"))
                     continue
+                if claims := [c for c, _ in years_claims(b.text)
+                              if c not in facts[b.source_index]]:
+                    issues.append(violation("years", f"Years claim “{claims[0]}” in a bullet: "
+                                            "kept the source fact instead", where, "error"))
+                    b = b.model_copy(update={"text": facts[b.source_index]})
                 issues.extend(check_bullet(b, facts[b.source_index], where))
                 if tools := new_tools(b.text, vocab):
                     issues.append(violation("new_tool", f"Not in your experience: "
@@ -127,16 +147,6 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
         skills.append(group.model_copy(update={
             "items": [s for s in group.items if norm(s) in terms]}))
 
-    for text, where in ((plan.summary, "summary"), (plan.summary_short, "short summary")):
-        pool_numbers = {n.lower() for n in numbers(pool.all_text())}
-        for n in numbers(text):
-            if n.lower() not in pool_numbers:
-                issues.append(violation("number", f"“{n}” isn't anywhere in your experience",
-                                        where, "error"))
-        if tools := new_tools(text, vocab):
-            issues.append(violation("new_tool", f"Not in your experience: {', '.join(tools)}",
-                                    where))
-
     certs = [i for i in plan.certification_ids if pool.get(i, "certification")]
     education = [i for i in plan.education_ids if pool.get(i, "education")]
     if not education and pool.of("education"):
@@ -147,3 +157,85 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
         "education_ids": education, "volunteering": volunteering,
     })
     return repaired, issues
+
+
+# ------------------------------------------------------------------------------ summary
+
+
+def cited_text(pool: Pool, ids: list[int]) -> str:
+    parts = []
+    for i in ids:
+        item = pool.get(i)
+        if item:
+            parts += [item.title, item.org or "", item.summary or "", *item.bullets, *item.tags]
+    return "\n".join(p for p in parts if p)
+
+
+def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[int]) -> list[str]:
+    """Why a summary sentence isn't grounded (empty list = fine)."""
+    if not sentence.citations:
+        return ["no citations"]
+    unknown = [str(c) for c in sentence.citations if pool.get(c) is None]
+    if unknown:
+        return [f"cites unknown ids {', '.join(unknown)}"]
+    source = cited_text(pool, sentence.citations)
+    text = sentence.text
+    problems = [f"years claim “{c}” isn't one of the allowed facts"
+                for c in bad_years(text, allowed_years)]
+    without_years = text
+    for claim, _ in years_claims(text):
+        without_years = without_years.replace(claim, " ")
+    source_digits = {re.sub(r"[^\d]", "", n) for n in numbers(source)}
+    problems += [f"“{n}” isn't in the cited items" for n in numbers(without_years)
+                 if re.sub(r"[^\d]", "", n) not in source_digits]
+    problems += [f"“{t}” isn't in the cited items" for t in new_tools(text, Vocabulary(source))]
+    problems += [f"claims “{c}”, which your experience never mentions"
+                 for c in capability_gaps(text, pool.all_text())]
+    problems += [f"“{c}” overstates the cited items" for c in scope_inflation(text, source)]
+    return problems
+
+
+def ground_sentences(
+    sentences: list[SummarySentence], pool: Pool, allowed_years: set[int],
+) -> tuple[list[SummarySentence], list[tuple[SummarySentence, list[str]]]]:
+    """(grounded sentences, [(rejected sentence, reasons)])."""
+    good, bad = [], []
+    for sentence in sentences:
+        problems = sentence_problems(sentence, pool, allowed_years)
+        (bad.append((sentence, problems)) if problems else good.append(sentence))
+    return good, bad
+
+
+def feedback(rejected: list[tuple[SummarySentence, list[str]]]) -> str:
+    return "\n".join(f"- “{s.text}” (cited {s.citations}): {'; '.join(r)}" for s, r in rejected)
+
+
+# ---------------------------------------------------------------------- canonical spelling
+
+
+def canonicalize(plan: CVPlan, pool: Pool) -> CVPlan:
+    """Write every skill/tool exactly as the pool writes it (dbt, spaCy, Spring Boot), in skills,
+    project stacks, bullets and the summary. Case-insensitive, same letters only."""
+    canon = Canon(pool)
+
+    def entry(e: PlanEntry) -> PlanEntry:
+        update: dict[str, Any] = {"bullets": [b.model_copy(update={"text": canon.text(b.text)})
+                                              for b in e.bullets]}
+        if hasattr(e, "stack"):
+            update["stack"] = [canon.word(x) for x in e.stack]
+        return e.model_copy(update=update)
+
+    def sentences(items: list[SummarySentence]) -> list[SummarySentence]:
+        return [s.model_copy(update={"text": canon.text(s.text)}) for s in items]
+
+    return plan.model_copy(update={
+        "skills": [g.model_copy(update={"items": [canon.word(x) for x in g.items]})
+                   for g in plan.skills],
+        "roles": [entry(e) for e in plan.roles],
+        "projects": [entry(p) for p in plan.projects],
+        "volunteering": [entry(v) for v in plan.volunteering],
+        "summary": canon.text(plan.summary),
+        "summary_short": canon.text(plan.summary_short),
+        "summary_sentences": sentences(plan.summary_sentences),
+        "summary_short_sentences": sentences(plan.summary_short_sentences),
+    })

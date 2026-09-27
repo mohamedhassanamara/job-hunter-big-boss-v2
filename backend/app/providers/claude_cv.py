@@ -21,24 +21,37 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.providers.base import CVGenerationFailed, CVPlan, CVRequest
+from app.providers.base import (
+    CVGenerationFailed,
+    CVPlan,
+    CVPlanDraft,
+    CVRequest,
+    SummaryDraft,
+    plan_from_draft,
+)
 
 PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / "cv_generate.md"
 _API_KEY_VARS = {"ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN_FILE"}
 TIMEOUT = 240
 
 
-def load_system_prompt() -> tuple[str, str]:
-    """(version id, system prompt) from app/prompts/cv_generate.md."""
+def load_prompts() -> tuple[str, str, str]:
+    """(version id, system prompt, summary-retry instructions) from app/prompts/cv_generate.md."""
     text = PROMPT_FILE.read_text()
     version = re.search(r"^version:\s*(\S+)", text, re.M)
-    body = text.split("## system", 1)[1].strip()
-    return f"cv_generate/v{version.group(1) if version else '0'}", body
+    body = text.split("## system", 1)[1]
+    system, _, summary = body.partition("## summary")
+    return f"cv_generate/v{version.group(1) if version else '0'}", system.strip(), summary.strip()
 
 
-def plan_schema() -> dict[str, Any]:
-    """CVPlan's JSON schema with $refs inlined and descriptions kept (they guide the model)."""
-    schema = CVPlan.model_json_schema()
+def load_system_prompt() -> tuple[str, str]:
+    version, system, _ = load_prompts()
+    return version, system
+
+
+def plan_schema(model: type = CVPlanDraft) -> dict[str, Any]:
+    """The draft's JSON schema with $refs inlined and descriptions kept (they guide the model)."""
+    schema = model.model_json_schema()
     defs = schema.pop("$defs", {})
 
     def resolve(node: Any) -> Any:
@@ -53,9 +66,12 @@ def plan_schema() -> dict[str, Any]:
     return resolve(schema)
 
 
-def user_message(request: CVRequest) -> str:
+def user_message(request: CVRequest, feedback: str = "") -> str:
     return (
-        "JOB\n" + json.dumps(request.job, ensure_ascii=False, indent=1)
+        (f"REJECTED SENTENCES\n{feedback}\n\n" if feedback else "")
+        + "FACTS (the only years claims allowed)\n"
+        + json.dumps(request.facts or {}, ensure_ascii=False) + "\n\n"
+        + "JOB\n" + json.dumps(request.job, ensure_ascii=False, indent=1)
         + "\n\nEMPHASIS FOR THIS TRACK\n" + json.dumps(request.emphasis or {}, ensure_ascii=False)
         + "\n\nEXPERIENCE POOL\n" + json.dumps(request.pool, ensure_ascii=False, indent=1)
     )
@@ -68,18 +84,18 @@ class ClaudeCVGenerator:
         self.binary = binary or shutil.which("claude") or "claude"
         self.runner = runner
         self.timeout = timeout
-        self.prompt_version, self.system_prompt = load_system_prompt()
+        self.prompt_version, self.system_prompt, self.summary_prompt = load_prompts()
         self.last_cost_usd: float | None = None  # notional for subscriptions; not billed
         self.auth_source: str | None = None
         self.last_duration_ms: int | None = None
 
-    def command(self) -> list[str]:
+    def command(self, system: str | None = None, schema: type = CVPlanDraft) -> list[str]:
         return [
             self.binary, "-p", "--output-format", "stream-json", "--verbose",
             "--no-session-persistence",
-            "--model", self.model, "--system-prompt", self.system_prompt,
+            "--model", self.model, "--system-prompt", system or self.system_prompt,
             "--tools", "", "--setting-sources", "", "--strict-mcp-config",
-            "--json-schema", json.dumps(plan_schema()),
+            "--json-schema", json.dumps(plan_schema(schema)),
         ]
 
     @staticmethod
@@ -92,10 +108,19 @@ class ClaudeCVGenerator:
                 and not k.startswith("CLAUDE_CODE_") and k not in ("CLAUDE_PID", "CLAUDE_EFFORT")}
 
     def generate(self, request: CVRequest) -> CVPlan:
+        draft = self._call(self.command(), user_message(request), CVPlanDraft)
+        return plan_from_draft(draft)
+
+    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
+        system = f"{self.system_prompt}\n\n{self.summary_prompt}"
+        return self._call(self.command(system, SummaryDraft), user_message(request, feedback),
+                          SummaryDraft)
+
+    def _call(self, cmd: list[str], message: str, model: type) -> Any:
         started = time.monotonic()
         with tempfile.TemporaryDirectory(prefix="jh-claude-") as tmp:
             try:
-                proc = self.runner(self.command(), input=user_message(request), cwd=tmp,
+                proc = self.runner(cmd, input=message, cwd=tmp,
                                    capture_output=True, text=True, timeout=self.timeout,
                                    env=self.child_env())
             except FileNotFoundError as exc:
@@ -134,7 +159,7 @@ class ClaudeCVGenerator:
             except ValueError as exc:
                 raise CVGenerationFailed("Claude's answer wasn't valid JSON") from exc
         try:
-            return CVPlan.model_validate(data)
+            return model.model_validate(data)
         except ValidationError as exc:
             first = exc.errors()[0]
             where = ".".join(str(p) for p in first["loc"])

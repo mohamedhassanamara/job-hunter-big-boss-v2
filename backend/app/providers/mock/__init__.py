@@ -8,6 +8,7 @@ from app.models.enums import RemoteType, Source
 from app.providers.base import (
     ContactSnapshot,
     CVPlan,
+    CVPlanDraft,
     CVRequest,
     DraftResult,
     FitAssessment,
@@ -15,6 +16,9 @@ from app.providers.base import (
     ProfileSpec,
     RawJob,
     SubScore,
+    SummaryDraft,
+    SummarySentence,
+    plan_from_draft,
 )
 
 
@@ -117,22 +121,36 @@ class MockCVGenerator:
                 {"source_index": int(k), "text": v, "priority": n + 1}
                 for n, (k, v) in enumerate(e.get("facts", {}).items())]}
 
-        snippets = pool.get("summary_snippets") or []
-        summary = snippets[0]["text"] if snippets else " ".join(
-            r["title"] + (f" at {r['org']}" if r.get("org") else "") + "."
-            for r in pool.get("roles", [])[:2])
+        sentences = self._sentences(pool)
         projects = sorted(pool.get("projects", []), key=relevance, reverse=True)
-        return CVPlan(
-            summary=summary,
-            summary_short=summary.split(". ")[0].rstrip(".") + ".",
-            summary_source_ids=[snippets[0]["id"]] if snippets else [],
+        return plan_from_draft(CVPlanDraft(
+            summary_sentences=sentences,
+            summary_short_sentences=sentences[:1],
             skills=[{"item_id": g["id"], "items": g["skills"]}
                     for g in pool.get("skill_groups", [])],
             roles=[entry(r) for r in pool.get("roles", [])],
             projects=[{**entry(p), "stack": p.get("tags", [])[:6]} for p in projects],
             certification_ids=[c["id"] for c in pool.get("certifications", [])],
             education_ids=[e["id"] for e in pool.get("education", [])],
-        )
+        ))
+
+    @staticmethod
+    def _sentences(pool: dict) -> list[SummarySentence]:
+        """A snippet verbatim when there is one, else the first facts of the latest roles; each
+        sentence cites its source, so the grounding check passes."""
+        snippets = pool.get("summary_snippets") or []
+        if snippets:
+            return [SummarySentence(text=snippets[0]["text"], citations=[snippets[0]["id"]])]
+        out = []
+        for role in pool.get("roles", [])[:2]:
+            fact = next(iter(role.get("facts", {}).values()), "")
+            if fact:
+                out.append(SummarySentence(text=fact.rstrip(".") + ".", citations=[role["id"]]))
+        return out
+
+    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
+        sentences = self._sentences(request.pool)
+        return SummaryDraft(summary_sentences=sentences, summary_short_sentences=sentences[:1])
 
 
 class MockEmailDrafter:

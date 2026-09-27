@@ -161,13 +161,24 @@ class PlanSkillGroup(BaseModel):
     items: list[str] = Field(description="Skills of that group, most relevant first")
 
 
-class CVPlan(BaseModel):
-    """What the CV generator returns: selection, order and rewording, referencing pool ids.
-    Never titles, companies, dates or locations (those come from the pool rows)."""
+class SummarySentence(BaseModel):
+    text: str
+    citations: list[int] = Field(description="Pool ids this sentence is based on (summary "
+                                             "snippets, roles, projects, skill groups…)")
 
-    summary: str
-    summary_short: str = Field(description="A shorter version of the summary (for tight pages)")
-    summary_source_ids: list[int] = []
+
+class SummaryDraft(BaseModel):
+    """The summary only (used for the one regeneration after grounding rejects a sentence)."""
+
+    summary_sentences: list[SummarySentence] = Field(description="2-3 sentences, each cited")
+    summary_short_sentences: list[SummarySentence] = Field(
+        description="About half the length, each cited (used when the page is tight)")
+
+
+class CVPlanDraft(SummaryDraft):
+    """What the model returns: selection, order and rewording, referencing pool ids. Never
+    titles, companies, dates or locations (those come from the pool rows)."""
+
     skills: list[PlanSkillGroup] = []
     roles: list[PlanEntry] = Field(default=[], description="EVERY role, all its facts ranked")
     projects: list[PlanProject] = Field(default=[], description="Relevant projects, ranked")
@@ -176,12 +187,40 @@ class CVPlan(BaseModel):
     volunteering: list[PlanEntry] = []
 
 
+class CVPlan(BaseModel):
+    """The plan code works with: the model's draft plus the summary as plain text (joined from
+    the grounded sentences, or the fallback snippet)."""
+
+    summary: str
+    summary_short: str = Field(description="A shorter version of the summary (for tight pages)")
+    summary_source_ids: list[int] = []
+    summary_sentences: list[SummarySentence] = []
+    summary_short_sentences: list[SummarySentence] = []
+    skills: list[PlanSkillGroup] = []
+    roles: list[PlanEntry] = Field(default=[], description="EVERY role, all its facts ranked")
+    projects: list[PlanProject] = Field(default=[], description="Relevant projects, ranked")
+    certification_ids: list[int] = []
+    education_ids: list[int] = []
+    volunteering: list[PlanEntry] = []
+
+
+def plan_from_draft(draft: "CVPlanDraft") -> "CVPlan":
+    return CVPlan(
+        summary=" ".join(s.text.strip() for s in draft.summary_sentences),
+        summary_short=" ".join(s.text.strip() for s in draft.summary_short_sentences),
+        summary_source_ids=sorted({c for s in draft.summary_sentences for c in s.citations}),
+        **draft.model_dump(),
+    )
+
+
 class CVRequest(BaseModel):
     """Input for one tailored CV."""
 
     job: dict[str, Any]  # title, company, description, matched_track, strengths, gaps
     pool: dict[str, Any]  # services.cv_pool.prompt_pool()
     emphasis: dict[str, Any] = {}  # Settings → CV track emphasis for the job's track
+    # Facts computed in code that the model may state, e.g. {"years": [{"label", "years"}]}.
+    facts: dict[str, Any] = {}
 
 
 class CVGenerationFailed(RuntimeError):
@@ -227,6 +266,10 @@ class CVGenerator(Protocol):
 
     def generate(self, request: CVRequest) -> CVPlan:
         """Raises CVGenerationFailed with a human-readable reason."""
+        ...
+
+    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
+        """Only the summary again, told which sentences were rejected and why."""
         ...
 
 

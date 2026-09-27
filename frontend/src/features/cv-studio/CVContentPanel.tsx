@@ -52,7 +52,8 @@ export function CVContentPanel({
       )}
       <Violations version={version} />
 
-      <Section title="Summary">
+      <Section title="Summary" hint="Each sentence cites the experience it comes from (hover). Sentences without valid citations are rejected in code.">
+        <CitedSummary usage={usage} />
         <EditableText
           key={usage.summary.text}
           value={usage.summary.text}
@@ -91,6 +92,44 @@ export function CVContentPanel({
           </div>
         </Section>
       )}
+    </div>
+  )
+}
+
+const KIND_LABEL: Record<string, string> = {
+  job: 'Role', project: 'Project', skill: 'Skills', summary: 'Your snippet', education: 'Education',
+  certification: 'Certification', volunteering: 'Volunteering',
+}
+
+function CitedSummary({ usage }: { usage: CVUsage }) {
+  const { sentences, grounding, edited } = usage.summary
+  if (!sentences.length) return null
+  return (
+    <div className="mb-1.5 rounded-md bg-bg-subtle px-2.5 py-2 text-xs leading-5">
+      <p className="text-fg-muted">
+        {sentences.map((s, i) => (
+          <Tooltip
+            key={i}
+            content={
+              <span className="block max-w-80 space-y-0.5">
+                <span className="block font-medium">Based on</span>
+                {s.citations.map((c) => (
+                  <span key={c.id} className="block text-fg-muted">
+                    {KIND_LABEL[c.kind] ?? c.kind}: {c.title}
+                  </span>
+                ))}
+              </span>
+            }
+          >
+            <span className="cursor-help underline decoration-border-strong decoration-dotted underline-offset-2 hover:bg-primary-subtle">{s.text}</span>
+          </Tooltip>
+        )).reduce<React.ReactNode[]>((acc, el, i) => (i ? [...acc, ' ', el] : [el]), [])}
+      </p>
+      <p className="mt-1 text-2xs text-fg-subtle">
+        {edited ? 'You edited the summary below; these citations are for the generated version.' : 'Generated and grounded.'}
+        {grounding && grounding.attempts > 1 && ` Regenerated once after ${grounding.rejected[0]?.length ?? 0} sentence(s) failed the check.`}
+        {grounding?.fallback && ` Fallback: ${grounding.fallback}.`}
+      </p>
     </div>
   )
 }
