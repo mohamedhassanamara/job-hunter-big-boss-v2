@@ -6,7 +6,9 @@ import {
   SourceBadge,
   StageBadge,
 } from '@/components/app/badges'
-import { ContactCard, ExternalListingButton, FitCard, JobFlags } from '@/components/app/job-cards'
+import { FitCard } from '@/components/app/FitCard'
+import { ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
+import { LabelPicker } from '@/components/app/LabelPicker'
 import { Prose } from '@/components/app/Prose'
 import { ErrorState } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
@@ -15,17 +17,20 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { absoluteDate, relativeTime, SOURCE_LABELS } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
+import type { UserLabel } from '@/lib/types'
 
 export function JobPanel({
   jobId,
   onClose,
   onShortlist,
   onDismiss,
+  onLabel,
 }: {
   jobId: number
   onClose: () => void
   onShortlist: () => void
   onDismiss: () => void
+  onLabel: (label: UserLabel | null) => void
 }) {
   const { data: job, isPending, error, refetch } = useJob(jobId)
 
@@ -108,8 +113,15 @@ export function JobPanel({
               <ExternalListingButton url={job.url} label={`Open on ${SOURCE_LABELS[job.source]}`} />
             </div>
 
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-2">
+              <div>
+                <p className="text-xs font-medium">Your label</p>
+                <p className="text-2xs text-fg-subtle">Helps evaluate the scorer. Not a pipeline stage.</p>
+              </div>
+              <LabelPicker value={job.user_label} onChange={onLabel} />
+            </div>
             <JobFlags job={job} />
-            <FitCard fit={job.fit_detail} />
+            <FitCard job={job} />
             <ContactCard job={job} />
 
             <div>

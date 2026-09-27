@@ -139,6 +139,30 @@ export function FilterBar({
         onValueChange={(v) => onChange({ posted_within: v === 'any' ? null : Number(v) })}
         options={POSTED_OPTIONS}
       />
+      <Select
+        size="sm"
+        aria-label="Red flags"
+        value={filters.flags ?? 'any'}
+        onValueChange={(v) => onChange({ flags: v === 'any' ? null : (v as JobFilters['flags']) })}
+        options={[
+          { value: 'any', label: 'Any flags' },
+          { value: 'hide_hard', label: 'Hide disqualifying' },
+          { value: 'only_flagged', label: 'Only flagged' },
+        ]}
+      />
+      <Select
+        size="sm"
+        aria-label="Your label"
+        value={filters.label ?? 'any'}
+        onValueChange={(v) => onChange({ label: v === 'any' ? null : (v as JobFilters['label']) })}
+        options={[
+          { value: 'any', label: 'Any label' },
+          { value: 'unlabeled', label: 'Unlabeled' },
+          { value: 'good', label: 'Labeled Good' },
+          { value: 'maybe', label: 'Labeled Maybe' },
+          { value: 'no', label: 'Labeled No' },
+        ]}
+      />
       <label className="flex h-7 items-center gap-2 px-1 text-sm text-fg-muted">
         <Switch
           checked={!!filters.hide_duplicates}

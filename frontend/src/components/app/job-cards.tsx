@@ -1,6 +1,4 @@
 import {
-  CircleCheck,
-  CircleMinus,
   Copy,
   ExternalLink,
   Mail,
@@ -11,71 +9,11 @@ import {
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
-import { absoluteDate, relativeTime } from '@/lib/format'
+import { relativeTime } from '@/lib/format'
 import { useQueueLookup } from '@/lib/queries/jobs'
-import type { FitDetail, JobDetail, JobListItem } from '@/lib/types'
+import type { JobDetail, JobListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { ContactTierBadge, FitBadge } from './badges'
-
-const BAND_TEXT = {
-  strong: 'Strong fit',
-  good: 'Good fit',
-  fair: 'Fair fit',
-  weak: 'Weak fit',
-}
-
-export function FitCard({ fit, className }: { fit: FitDetail | null; className?: string }) {
-  if (!fit) {
-    return (
-      <div className={cn('rounded-lg border border-dashed border-border-strong p-4 text-sm text-fg-muted', className)}>
-        Not scored yet. Scoring runs automatically after discovery.
-      </div>
-    )
-  }
-  return (
-    <div className={cn('@container rounded-lg border border-border bg-surface p-4', className)}>
-      <div className="flex items-start gap-3">
-        <FitBadge fit={fit} size="lg" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">{BAND_TEXT[fit.band]}</p>
-          <p className="text-sm text-fg-muted">{fit.summary}</p>
-        </div>
-      </div>
-      <div className="mt-4 grid gap-4 @md:grid-cols-2">
-        <div>
-          <p className="mb-1.5 text-xs font-medium text-fg-subtle">Strengths</p>
-          <ul className="space-y-1.5">
-            {fit.strengths.map((s) => (
-              <li key={s} className="flex gap-2 text-sm">
-                <CircleCheck className="mt-0.5 size-3.5 shrink-0 text-success-dot" />
-                <span>{s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p className="mb-1.5 text-xs font-medium text-fg-subtle">Gaps</p>
-          {fit.gaps.length ? (
-            <ul className="space-y-1.5">
-              {fit.gaps.map((g) => (
-                <li key={g} className="flex gap-2 text-sm">
-                  <CircleMinus className="mt-0.5 size-3.5 shrink-0 text-warning-dot" />
-                  <span>{g}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-fg-subtle">No notable gaps</p>
-          )}
-        </div>
-      </div>
-      <p className="mt-4 text-2xs text-fg-subtle">
-        Scored by {fit.model} · <Tooltip content={absoluteDate(fit.created_at)}><span>{relativeTime(fit.created_at)}</span></Tooltip>
-      </p>
-    </div>
-  )
-}
+import { ContactTierBadge } from './badges'
 
 export function ContactCard({ job, className }: { job: JobDetail; className?: string }) {
   const lookup = useQueueLookup()

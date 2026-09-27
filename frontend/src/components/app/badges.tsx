@@ -1,5 +1,7 @@
 import {
+  CircleAlert,
   CircleDashed,
+  Flag,
   Globe,
   Mail,
   MapPin,
@@ -9,7 +11,17 @@ import {
 } from 'lucide-react'
 import { Tooltip } from '@/components/ui/tooltip'
 import { REMOTE_LABELS, SOURCE_LABELS, SOURCE_SHORT, TIER_LABELS } from '@/lib/format'
-import type { ContactTier, FitBand, FitBrief, RemoteType, Route, Source, Stage } from '@/lib/types'
+import type {
+  Confidence,
+  ContactTier,
+  FitBand,
+  FitBrief,
+  RemoteType,
+  Route,
+  Source,
+  Stage,
+  UserLabel,
+} from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // Static class maps: Tailwind needs full class names at build time.
@@ -99,6 +111,8 @@ const FIT_CLASSES: Record<FitBand, string> = {
   good: 'bg-fit-good-bg text-fit-good-fg border-fit-good-border',
   fair: 'bg-fit-fair-bg text-fit-fair-fg border-fit-fair-border',
   weak: 'bg-fit-weak-bg text-fit-weak-fg border-fit-weak-border',
+  failed: 'bg-danger-bg text-danger-fg border-tone-red-border',
+  pending: 'border-dashed border-border-strong text-fg-subtle',
 }
 
 const FIT_LABELS: Record<FitBand, string> = {
@@ -106,49 +120,89 @@ const FIT_LABELS: Record<FitBand, string> = {
   good: 'Good fit (65–79)',
   fair: 'Fair fit (50–64)',
   weak: 'Weak fit (<50)',
+  failed: 'Scoring failed. Open the job to see why and retry.',
+  pending: 'Not scored yet (queued)',
 }
 
+const CONFIDENCE_TEXT: Record<Confidence, string> = {
+  high: 'Scored on the full listing',
+  medium: 'Scored on a summary of the listing',
+  low: 'Scored on a short snippet',
+}
+
+const SIZE = {
+  lg: 'h-10 min-w-12 px-2 text-md',
+  md: 'h-6 min-w-9 px-1.5 text-xs',
+  sm: 'h-5 min-w-7 px-1 text-2xs',
+}
+
+/**
+ * Fit score pill. `detailed` adds the confidence mark (Med/Low), a hard red-flag marker and a
+ * stale marker next to the number.
+ */
 export function FitBadge({
   fit,
   size = 'md',
+  detailed = false,
   className,
 }: {
   fit: FitBrief | null
   size?: 'sm' | 'md' | 'lg'
+  detailed?: boolean
   className?: string
 }) {
-  if (!fit) {
-    return (
-      <Tooltip content="Not scored yet">
-        <span
-          className={cn(
-            'inline-flex items-center justify-center rounded-md border border-dashed border-border-strong text-fg-subtle',
-            size === 'lg' ? 'h-10 w-12' : size === 'sm' ? 'h-5 w-7' : 'h-6 w-9',
-            className,
-          )}
-        >
-          <CircleDashed className="size-3" />
-        </span>
-      </Tooltip>
-    )
-  }
+  const band: FitBand = fit?.band ?? 'pending'
+  const pill = (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-md border font-semibold tabular-nums',
+        FIT_CLASSES[band],
+        SIZE[size],
+        className,
+      )}
+    >
+      {band === 'failed' ? (
+        <CircleAlert className={size === 'lg' ? 'size-4' : 'size-3'} />
+      ) : fit?.score == null ? (
+        <CircleDashed className={size === 'lg' ? 'size-4' : 'size-3'} />
+      ) : (
+        fit.score
+      )}
+    </span>
+  )
+  const tip = (
+    <span className="block space-y-0.5">
+      <span className="block">{FIT_LABELS[band]}</span>
+      {fit?.status === 'ok' && <span className="block text-fg-muted">{CONFIDENCE_TEXT[fit.confidence]}</span>}
+      {fit?.hard_flag && <span className="block text-danger-fg">Has a disqualifying red flag (score capped)</span>}
+      {fit?.stale && <span className="block text-warning-fg">Stale: your experience changed since scoring</span>}
+    </span>
+  )
+  if (!detailed) return <Tooltip content={tip}>{pill}</Tooltip>
   return (
-    <Tooltip content={FIT_LABELS[fit.band]}>
-      <span
-        className={cn(
-          'inline-flex shrink-0 items-center justify-center rounded-md border font-semibold tabular-nums',
-          FIT_CLASSES[fit.band],
-          size === 'lg'
-            ? 'h-10 w-12 text-md'
-            : size === 'sm'
-              ? 'h-5 min-w-7 px-1 text-2xs'
-              : 'h-6 min-w-9 px-1.5 text-xs',
-          className,
+    <Tooltip content={tip}>
+      <span className="inline-flex shrink-0 items-center gap-1">
+        {pill}
+        {fit?.status === 'ok' && fit.confidence !== 'high' && (
+          <span className="text-2xs font-medium text-fg-subtle">{fit.confidence === 'medium' ? 'Med' : 'Low'}</span>
         )}
-      >
-        {fit.score}
+        {fit?.hard_flag && <Flag className="size-3.5 text-danger-dot" aria-label="Disqualifying red flag" />}
+        {fit?.stale && <span className="size-1.5 rounded-full bg-warning-dot" aria-label="Stale score" />}
       </span>
     </Tooltip>
+  )
+}
+
+const LABEL_TONE: Record<UserLabel, Tone> = { good: 'green', maybe: 'amber', no: 'gray' }
+const LABEL_TEXT: Record<UserLabel, string> = { good: 'Good', maybe: 'Maybe', no: 'No' }
+
+/** Your Good / Maybe / No judgment (used to evaluate the scorer). */
+export function LabelBadge({ label }: { label: UserLabel | null }) {
+  if (!label) return null
+  return (
+    <ToneBadge tone={LABEL_TONE[label]} dot={false} className="h-4.5 px-1 text-2xs">
+      {LABEL_TEXT[label]}
+    </ToneBadge>
   )
 }
 

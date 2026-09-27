@@ -24,7 +24,8 @@ import {
   type Tone,
 } from '@/components/app/badges'
 import { CloseDialog } from '@/components/app/CloseDialog'
-import { ContactCard, ExternalListingButton, FitCard, JobFlags } from '@/components/app/job-cards'
+import { FitCard } from '@/components/app/FitCard'
+import { ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
 import { Section } from '@/components/app/PageHeader'
 import { Prose } from '@/components/app/Prose'
 import { EmptyState, ErrorState } from '@/components/app/states'
@@ -521,7 +522,7 @@ export default function JobPage() {
           <JobFlags job={job} />
           <WebApplyCallout job={job} onApplied={() => setStage('done', undefined, 'Marked as applied')} />
           <div data-tour="job-fit">
-            <FitCard fit={job.fit_detail} />
+            <FitCard job={job} />
           </div>
           <CVSection job={job} />
           <EmailSection job={job} />

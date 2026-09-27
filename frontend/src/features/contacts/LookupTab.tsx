@@ -44,7 +44,13 @@ export function LookupTab() {
               to={`/jobs/${i.job_id}`}
               className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 hover:bg-surface-hover"
             >
-              <FitBadge fit={i.fit !== null ? { score: i.fit, band: fitBand(i.fit) } : null} />
+              <FitBadge
+                fit={
+                  i.fit !== null
+                    ? { score: i.fit, band: fitBand(i.fit), status: 'ok', confidence: 'medium', hard_flag: false, flag_count: 0, stale: false }
+                    : null
+                }
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{i.company_name}</p>
                 <p className="truncate text-xs text-fg-muted">{i.job_title}</p>

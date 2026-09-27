@@ -9,6 +9,9 @@ import type {
   Draft,
   NavCounts,
   Queue,
+  FullListingResult,
+  ScoringHealth,
+  ScoringStatus,
   SearchHit,
   Source,
   SourceInfo,
@@ -175,5 +178,84 @@ export function useRemoveQueueItem() {
     mutationFn: (itemId: number) => api.del<Queue>(`/queue/items/${itemId}`),
     onSuccess: (queue) => qc.setQueryData(keys.queue, queue),
     onSettled: () => invalidateWork(qc),
+  })
+}
+
+// ---- Scoring -----------------------------------------------------------------------------
+
+export function useScoringStatus() {
+  return useQuery({
+    queryKey: keys.scoringStatus,
+    queryFn: () => api.get<ScoringStatus>('/scoring/status'),
+    refetchInterval: (query) => (query.state.data?.running ? 2000 : 20_000),
+    refetchIntervalInBackground: true,
+    retry: false,
+  })
+}
+
+export function useScoringHealth() {
+  return useQuery({
+    queryKey: keys.scoringHealth,
+    queryFn: () => api.get<ScoringHealth>('/scoring/health'),
+    retry: false,
+  })
+}
+
+export function useRescore() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'jobs'; job_ids?: number[] }) =>
+      api.post<{ enqueued: number }>('/scoring/rescore', body),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
+  })
+}
+
+export function useRescoreJob() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (jobId: number) => api.post<{ enqueued: number }>(`/jobs/${jobId}/rescore`),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
+  })
+}
+
+export function useCancelScoring() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<{ enqueued: number }>('/scoring/cancel'),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
+  })
+}
+
+export function useStartScoring() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<{ enqueued: number }>('/scoring/start'),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: keys.scoringStatus })
+      void qc.invalidateQueries({ queryKey: keys.scoringHealth })
+    },
+  })
+}
+
+export function useFetchFullListing() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (jobId: number) => api.post<FullListingResult>(`/jobs/${jobId}/fetch-full`),
+    onSettled: (_d, _e, jobId) => {
+      void qc.invalidateQueries({ queryKey: keys.job(jobId) })
+      void qc.invalidateQueries({ queryKey: keys.scoringStatus })
+    },
+  })
+}
+
+export function usePasteDescription() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ jobId, description }: { jobId: number; description: string }) =>
+      api.put<FullListingResult>(`/jobs/${jobId}/description`, { description }),
+    onSettled: (_d, _e, { jobId }) => {
+      void qc.invalidateQueries({ queryKey: keys.job(jobId) })
+      void qc.invalidateQueries({ queryKey: keys.scoringStatus })
+    },
   })
 }
