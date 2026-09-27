@@ -16,6 +16,7 @@ from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient
 from app.services.geo import country_from_text, fold
+from app.services.roles import all_titles, tracks_of
 from app.services.text import html_to_text
 
 SITE = "https://www.bayt.com"
@@ -110,8 +111,9 @@ class BaytSource:
         pages = []
         with PoliteClient("Bayt", min_interval=3.0) as client:
             try:
+                titles = all_titles(tracks_of(profile))  # English titles: Bayt's index language
                 for country in self.targets(profile):
-                    for role in profile.roles:
+                    for role in titles:
                         response = client.request("GET", search_url(country, role))
                         pages.append((country, response.text))
             finally:

@@ -2,7 +2,7 @@
 plug in behind these Protocols. Phase 0 ships deterministic mocks only (see providers/mock)."""
 
 from datetime import datetime
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -27,10 +27,15 @@ class RawJob(BaseModel):
     posted_at: datetime | None = None
     # How complete `description` is (drives scoring confidence).
     description_level: DescriptionLevel = DescriptionLevel.full
+    # Set by the pre-filter: which of the user's tracks/roles the title matched.
+    matched_track: str | None = None
+    matched_role: str | None = None
 
 
 class ProfileSpec(BaseModel):
-    roles: list[str] = []
+    roles: list[str] = []  # flat list of all role titles (derived from tracks)
+    # [{name, years_experience, roles: [{title, variants: {lang: [..]}}]}] from Settings
+    tracks: list[dict[str, Any]] = []
     keywords: list[str] = []
     excluded_keywords: list[str] = []
     locations: list[str] = []

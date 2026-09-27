@@ -21,6 +21,7 @@ from app.seed.seed import reset_sandbox, seed
 from app.services import scheduler
 from app.services.discovery import is_running
 from app.services.geo import country_catalog
+from app.services.roles import all_titles, suggest_variants, with_suggested_variants
 from app.services.scoring import recompute_all
 
 router = APIRouter(tags=["settings"])
@@ -128,12 +129,30 @@ def put_profile(body: SearchProfileIO, session: SessionDep) -> SearchProfileIO:
         raise HTTPException(422, "min_fit_score must be between 0 and 100")
     if not 1 <= body.max_age_days <= 365:
         raise HTTPException(422, "max_age_days must be between 1 and 365")
+    tracks = with_suggested_variants([t.model_dump() for t in body.tracks])
+    names = [t["name"].lower() for t in tracks]
+    if any(not n for n in names) and len(tracks) > 1:
+        raise HTTPException(422, "Every track needs a name")
+    if len(set(names)) != len(names):
+        raise HTTPException(422, "Track names must be unique")
     profile = _profile(session)
-    for key, value in body.model_dump().items():
+    for key, value in body.model_dump(exclude={"tracks", "roles"}).items():
         setattr(profile, key, value)
+    profile.tracks = tracks
+    profile.roles = all_titles(tracks)  # flat list for code that only needs titles
     session.add(profile)
     session.commit()
     return get_profile(session)
+
+
+class SuggestIn(BaseModel):
+    title: str
+
+
+@router.post("/roles/suggest", response_model=dict[str, list[str]])
+def suggest(body: SuggestIn) -> dict[str, list[str]]:
+    """Common equivalents of a job title per language (the user edits them before saving)."""
+    return suggest_variants(body.title)
 
 
 class EraseIn(BaseModel):

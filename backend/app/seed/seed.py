@@ -47,6 +47,7 @@ from app.seed import fixtures as fx
 from app.services.dedupe import dedupe_key, normalize_company
 from app.services.experience import experience_snapshots
 from app.services.pipeline import stage_label
+from app.services.roles import with_suggested_variants
 
 SOURCE_NAMES = {
     "adzuna": "Adzuna",
@@ -77,7 +78,8 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
     with Session(engine) as s:
         _clear(s)
 
-        profile = SearchProfile(**fx.SEARCH_PROFILE)
+        tracks = with_suggested_variants(fx.SEARCH_PROFILE["tracks"])
+        profile = SearchProfile(**{**fx.SEARCH_PROFILE, "tracks": tracks})
         s.add(profile)
         for key, value in fx.SETTINGS.items():
             s.add(AppSetting(key=key, value=value))

@@ -34,6 +34,9 @@ class Job(TableBase, table=True):
     # The user's manual judgment (for evaluating the scorer), separate from the pipeline stage.
     user_label: UserLabel | None = enum_field(None)
     labeled_at: datetime | None = dt_field()
+    # Which of the user's tracks/roles (Settings → Search profile) the title matched.
+    matched_track: str | None = Field(default=None, index=True)
+    matched_role: str | None = None
 
 
 class FitScore(TableBase, table=True):

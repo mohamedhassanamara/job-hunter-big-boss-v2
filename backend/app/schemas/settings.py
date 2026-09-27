@@ -21,9 +21,22 @@ class SourceRunOut(BaseModel):
     details: dict[str, Any]
 
 
+class RoleIO(BaseModel):
+    title: str
+    # {lang: [titles]}; omit (null) to get suggestions filled in on save.
+    variants: dict[str, list[str]] | None = None
+
+
+class TrackIO(BaseModel):
+    name: str
+    years_experience: float | None = None
+    roles: list[RoleIO] = []
+
+
 class SearchProfileIO(BaseModel):
     name: str
-    roles: list[str]
+    roles: list[str] = []  # derived from tracks on save (read-only for clients)
+    tracks: list[TrackIO] = []
     keywords: list[str]
     excluded_keywords: list[str]
     locations: list[str]

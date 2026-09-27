@@ -16,11 +16,14 @@ from app.config import get_settings
 from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
 from app.providers.http import PoliteClient, SourceError
+from app.services.roles import capped, query_phrases
 from app.services.text import html_to_text
 
 SITE = "https://www.welcometothejungle.com"
 INDEX = "wttj_jobs_production_en"
 HITS_PER_QUERY = 50
+MAX_PHRASES_PER_COUNTRY = 16
+QUERIES_PER_REQUEST = 50  # Algolia multi-query batch size
 ATTRIBUTES = [
     "objectID", "name", "slug", "organization.name", "organization.slug", "offices", "remote",
     "published_at", "published_at_timestamp", "summary", "key_missions", "profile", "language",
@@ -35,16 +38,22 @@ _REMOTE = {
 _CURRENCY = {"EUR": "€", "GBP": "£", "USD": "$"}
 
 
-def build_queries(profile: ProfileSpec, now: datetime | None = None) -> list[dict[str, str]]:
+def build_queries(
+    profile: ProfileSpec, now: datetime | None = None, warnings: list[str] | None = None
+) -> list[dict[str, str]]:
     # WTTJ search ranks by relevance, not date: filter by age server-side so every hit is fresh.
     cutoff = int(((now or datetime.now(UTC)) - timedelta(days=profile.max_age_days)).timestamp())
+    warnings = warnings if warnings is not None else []
     queries = []
-    for role in profile.roles:
-        for country in profile.locations:
-            filters = [[f"offices.country_code:{country.upper()}"]]
-            queries.append((role, filters))
-        # Fully-remote roles based anywhere; the pre-filter checks the region afterwards.
-        queries.append((role, [["remote:fulltime"]]))
+    for country in profile.locations:
+        filters = [[f"offices.country_code:{country.upper()}"]]
+        phrases = capped(query_phrases(profile, country), MAX_PHRASES_PER_COUNTRY, warnings,
+                         f"WTTJ {country.upper()}")
+        queries += [(phrase, filters) for phrase in phrases]
+    # Fully-remote roles based anywhere (English titles); the pre-filter checks the region.
+    for title in capped(query_phrases(profile, "GB"), MAX_PHRASES_PER_COUNTRY, warnings,
+                        "WTTJ remote"):
+        queries.append((title, [["remote:fulltime"]]))
     return [
         {
             "indexName": INDEX,
@@ -140,6 +149,7 @@ class WTTJSource:
 
     def __init__(self) -> None:
         self.requests = 0
+        self.warnings: list[str] = []
         settings = get_settings()
         self.app_id = settings.wttj_algolia_app_id
         self.key = settings.wttj_algolia_key
@@ -157,9 +167,14 @@ class WTTJSource:
             "Origin": SITE,
         }
         url = f"https://{self.app_id.lower()}-dsn.algolia.net/1/indexes/*/queries"
+        self.warnings: list[str] = []
+        queries = build_queries(profile, warnings=self.warnings)
+        results: list[dict[str, Any]] = []
         with PoliteClient("Welcome to the Jungle", min_interval=2.0, headers=headers) as client:
             try:
-                payload = client.post_json(url, json={"requests": build_queries(profile)})
+                for i in range(0, len(queries), QUERIES_PER_REQUEST):
+                    chunk = queries[i : i + QUERIES_PER_REQUEST]
+                    results += client.post_json(url, json={"requests": chunk}).get("results", [])
             except SourceError as exc:
                 if exc.status in (400, 401, 403, 404):
                     raise SourceError(
@@ -171,7 +186,7 @@ class WTTJSource:
                 raise
             finally:
                 self.requests = client.requests
-        return payload
+        return {"results": results}
 
     def fetch(self, profile: ProfileSpec) -> list[RawJob]:
         return parse_wttj(self.fetch_payload(profile), {c.upper() for c in profile.locations})
