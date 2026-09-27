@@ -52,7 +52,7 @@ def load_prompt(name: str) -> Prompt:
         name=name,
         version=version,
         system=parts["system"],
-        user=Template(parts["user"]),
+        user=Template(parts.get("user", "")),  # optional: some prompts send data as JSON
         body_hash=body_hash(body),
     )
 

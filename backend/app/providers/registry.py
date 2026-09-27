@@ -5,10 +5,9 @@ from functools import lru_cache
 
 from app.config import get_settings
 from app.models.enums import Source
-from app.providers.base import CVGenerator, CVRenderer, EmailDrafter, FitScorer, JobSource, Mailer
+from app.providers.base import CVGenerator, EmailDrafter, FitScorer, JobSource, Mailer
 from app.providers.mock import (
     MockCVGenerator,
-    MockCVRenderer,
     MockEmailDrafter,
     MockFitScorer,
     MockJobSource,
@@ -48,13 +47,14 @@ def fit_scorer(*, mock: bool | None = None, model: str = "qwen2.5:7b") -> FitSco
 
 
 @lru_cache
-def cv_generator() -> CVGenerator:
-    return MockCVGenerator()
+def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> CVGenerator:
+    """Real workspace: Claude Code headless. Tests and the tour sandbox: the deterministic mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        return MockCVGenerator()
+    from app.providers.claude_cv import ClaudeCVGenerator
 
-
-@lru_cache
-def cv_renderer() -> CVRenderer:
-    return MockCVRenderer()
+    return ClaudeCVGenerator(model)
 
 
 @lru_cache

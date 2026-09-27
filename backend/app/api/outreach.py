@@ -25,7 +25,7 @@ from app.models.enums import (
     Route,
     Stage,
 )
-from app.providers.base import ContactSnapshot, CVContent, JobSnapshot
+from app.providers.base import ContactSnapshot, JobSnapshot
 from app.providers.registry import email_drafter
 from app.schemas.outreach import (
     DraftContact,
@@ -232,7 +232,7 @@ def generate_draft(app_id: int, session: SessionDep) -> DraftOut:
     result = drafter.draft(
         JobSnapshot(title=job.title, company=company.name, description=job.description),
         ContactSnapshot(full_name=contact.full_name, title=contact.title, email=contact.email),
-        CVContent.model_validate(cv.content) if cv else None,
+        dict(cv.content) if cv else None,
     )
     d = OutreachDraft(
         application_id=app.id,

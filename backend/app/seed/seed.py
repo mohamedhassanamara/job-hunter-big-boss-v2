@@ -44,8 +44,11 @@ from app.models.enums import (
 from app.providers.base import ContactSnapshot, JobSnapshot
 from app.providers.registry import cv_generator, email_drafter
 from app.seed import fixtures as fx
+from app.services.cv_build import build_document, initial_state
+from app.services.cv_check import check_plan
+from app.services.cv_pool import load_pool
+from app.services.cv_service import build_request
 from app.services.dedupe import dedupe_key, normalize_company
-from app.services.experience import experience_snapshots
 from app.services.pipeline import stage_label
 from app.services.roles import with_suggested_variants
 
@@ -176,7 +179,6 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                 )
             )
         s.flush()
-        experience = experience_snapshots(s)
 
         jobs: dict[str, Job] = {}
         apps: dict[str, Application] = {}
@@ -285,19 +287,19 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
 
         # CVs: every application past `shortlisted` has an approved CV; one shortlisted job
         # has a draft waiting for review; Lumière has a superseded v1.
-        gen = cv_generator()
+        gen = cv_generator(mock=True)
+        pool = load_pool(s)
         for key, application in apps.items():
             job = jobs[key]
-            snapshot = JobSnapshot(
-                title=job.title, company=companies[fx_company(key)].name,
-                description=job.description,
-            )
             path = _stage_path(Stage(application.stage), application.close_reason)
             needs_approved = Stage.cv_ready in path
             needs_draft = key == "quartzo-llm"
             if not (needs_approved or needs_draft):
                 continue
-            content = gen.generate(snapshot, experience).model_dump()
+            # Sample CVs from the sandbox pool via the mock generator; PDFs compile on first view.
+            plan, issues = check_plan(gen.generate(build_request(s, application, pool)), pool)
+            content = build_document(plan, pool, initial_state(plan)).model_dump()
+            plan_data = {"plan": plan.model_dump(), "fit": initial_state(plan).to_dict()}
             base_at = application.stage_changed_at - timedelta(hours=3)
             versions: list[tuple[int, CVStatus]] = []
             if key == "lumiere-mlops":
@@ -312,9 +314,11 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                         application_id=application.id,
                         version=version,
                         content=content,
+                        plan=plan_data,
+                        violations=issues,
                         tex=None,
                         pdf_path=None,
-                        page_count=1,
+                        page_count=None,
                         status=status,
                         generator_model="claude-sonnet-5 (mock)",
                         created_at=base_at + timedelta(minutes=version * 20),

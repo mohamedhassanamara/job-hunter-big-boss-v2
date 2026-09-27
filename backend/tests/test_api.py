@@ -1,3 +1,5 @@
+import shutil
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -79,21 +81,40 @@ def test_dismiss_and_invalid_transition(client: TestClient) -> None:
     assert "Can't move" in bad.json()["detail"]
 
 
+@pytest.mark.skipif(shutil.which("latexmk") is None, reason="needs TeX Live")
 def test_cv_flow(client: TestClient) -> None:
     job = _job_by_title(client, "LLM Engineer")
     app_id = job["application"]["id"]
+    profile = client.get("/api/settings").json()["values"]["profile"]
+    blocked = client.put("/api/settings/profile", json={"value": {**profile, "full_name": ""}})
+    assert blocked.status_code == 200
+    no_name = client.post(f"/api/applications/{app_id}/cv/generate", json={})
+    assert no_name.status_code == 422 and "full name" in no_name.json()["detail"]
+    client.put("/api/settings/profile", json={"value": {**profile, "full_name": "Test Person"}})
+
+    new = client.post(f"/api/applications/{app_id}/cv/generate", json={}).json()
+    assert new["status"] == "draft" and new["page_count"] == 1 and new["has_pdf"]
     studio = client.get(f"/api/applications/{app_id}/cv").json()
-    draft = studio["versions"][0]
-    assert draft["status"] == "draft"
-    content = draft["content"] | {"headline": "Edited headline"}
-    assert client.patch(f"/api/cv/{draft['id']}", json={"content": content}).status_code == 200
-    new = client.post(f"/api/applications/{app_id}/cv/generate").json()
-    assert new["version"] == draft["version"] + 1
+    assert studio["versions"][0]["id"] == new["id"] and studio["usage"]["roles"]
+    pdf = client.get(f"/api/cv/{new['id']}/pdf?download=true")
+    assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+    assert "Test_Person_CV_" in pdf.headers["content-disposition"]
+
+    # Edit a bullet and force a project out: re-rendered in place, no generator call.
+    bullet = studio["usage"]["roles"][0]["bullets"][0]
+    edited = client.patch(f"/api/cv/{new['id']}", json={
+        "text": {bullet["key"]: bullet["text"] + " Quickly."}}).json()
+    assert edited["id"] == new["id"] and edited["page_count"] == 1
+    assert any(bullet["text"] + " Quickly." in b for r in edited["content"]["roles"]
+               for b in r["bullets"])
+
     result = client.post(f"/api/cv/{new['id']}/approve").json()
     assert result["stage"] == "cv_ready"
     assert result["next_step"] == "draft_email"  # this job has a contact
-    edit_approved = client.patch(f"/api/cv/{new['id']}", json={"content": content})
-    assert edit_approved.status_code == 409
+    # Changing an approved CV creates a new draft instead of editing it.
+    again = client.patch(f"/api/cv/{new['id']}", json={"force_out": []}).json()
+    assert again["id"] != new["id"] and again["status"] == "draft"
+    client.put("/api/settings/profile", json={"value": profile})
 
 
 def test_outreach_flow(client: TestClient) -> None:

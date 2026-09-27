@@ -1,21 +1,19 @@
 """Deterministic mock providers: no network, no LLM, stable output for the same input."""
 
 import hashlib
+import re
 from datetime import UTC, datetime, timedelta
 
 from app.models.enums import RemoteType, Source
 from app.providers.base import (
     ContactSnapshot,
-    CVContent,
-    CVEntry,
-    CVSkillGroup,
+    CVPlan,
+    CVRequest,
     DraftResult,
-    ExperienceSnapshot,
     FitAssessment,
     JobSnapshot,
     ProfileSpec,
     RawJob,
-    RenderedCV,
     SubScore,
 )
 
@@ -96,49 +94,52 @@ class MockFitScorer:
 
 
 class MockCVGenerator:
+    """Deterministic plan from the pool: relevance = keyword overlap with the job text, facts
+    kept in their original wording and order. Used by tests and the tour sandbox."""
+
     model = "mock-cv"
+    prompt_version = "cv_generate/mock"
 
-    def generate(self, job: JobSnapshot, experience: list[ExperienceSnapshot]) -> CVContent:
-        jobs = [e for e in experience if e.kind == "job"]
-        projects = [e for e in experience if e.kind == "project"]
-        skills = [e for e in experience if e.kind == "skill"]
-        edu = [e for e in experience if e.kind in ("education", "certification")]
-        return CVContent(
-            name="Your Name",
-            headline=f"{job.title.split('(')[0].strip()} · Data platforms & applied AI",
-            contact=["Madrid, Spain", "hello@example.com", "linkedin.com/in/example"],
-            summary=(
-                "Senior data engineer with 7+ years building batch and streaming platforms on "
-                "AWS and GCP, and the last two shipping LLM-powered features to production. "
-                "I own systems end to end, from ingestion and modelling to evaluation and cost, "
-                f"and I care about clear data contracts. Keen to bring this to {job.company}."
-            ),
-            experience=[
-                CVEntry(title=e.title, org=e.org or "", dates=e.dates or "", bullets=e.bullets[:5])
-                for e in jobs[:3]
-            ],
-            projects=[
-                CVEntry(title=e.title, org=e.org or "", bullets=e.bullets[:2]) for e in projects[:3]
-            ],
-            skills=[CVSkillGroup(group=e.title, items=e.tags[:8]) for e in skills[:4]],
-            education=[
-                CVEntry(title=e.title, org=e.org or "", dates=e.dates or "", bullets=e.bullets[:1])
-                for e in edu
-            ],
+    def generate(self, request: CVRequest) -> CVPlan:
+        pool, job = request.pool, request.job
+        words = {w for w in re.findall(r"[a-z0-9+#]+", " ".join(
+            str(job.get(k) or "") for k in ("title", "description", "matched_track")).lower())
+            if len(w) > 2}
+
+        def relevance(entry: dict) -> int:
+            text = " ".join([entry.get("title") or "", *entry.get("tags", []),
+                             *entry.get("facts", {}).values()]).lower()
+            hits = sum(1 for w in words if w in text)
+            return max(1, min(10, 3 + hits))
+
+        def entry(e: dict) -> dict:
+            return {"item_id": e["id"], "relevance": relevance(e), "bullets": [
+                {"source_index": int(k), "text": v, "priority": n + 1}
+                for n, (k, v) in enumerate(e.get("facts", {}).items())]}
+
+        snippets = pool.get("summary_snippets") or []
+        summary = snippets[0]["text"] if snippets else " ".join(
+            r["title"] + (f" at {r['org']}" if r.get("org") else "") + "."
+            for r in pool.get("roles", [])[:2])
+        projects = sorted(pool.get("projects", []), key=relevance, reverse=True)
+        return CVPlan(
+            summary=summary,
+            summary_short=summary.split(". ")[0].rstrip(".") + ".",
+            summary_source_ids=[snippets[0]["id"]] if snippets else [],
+            skills=[{"item_id": g["id"], "items": g["skills"]}
+                    for g in pool.get("skill_groups", [])],
+            roles=[entry(r) for r in pool.get("roles", [])],
+            projects=[{**entry(p), "stack": p.get("tags", [])[:6]} for p in projects],
+            certification_ids=[c["id"] for c in pool.get("certifications", [])],
+            education_ids=[e["id"] for e in pool.get("education", [])],
         )
-
-
-class MockCVRenderer:
-    def render(self, content: CVContent, out_name: str) -> RenderedCV:
-        tex = f"% mock render of {out_name}\n\\documentclass{{article}}\n% {content.headline}\n"
-        return RenderedCV(tex=tex, pdf_path=None, page_count=1)
 
 
 class MockEmailDrafter:
     model = "mock-drafter"
 
     def draft(
-        self, job: JobSnapshot, contact: ContactSnapshot, cv: CVContent | None
+        self, job: JobSnapshot, contact: ContactSnapshot, cv: dict | None
     ) -> DraftResult:
         first = contact.full_name.split()[0]
         return DraftResult(

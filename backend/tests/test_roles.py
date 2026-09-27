@@ -115,7 +115,7 @@ def test_no_role_titles_are_hardcoded_outside_settings_and_fixtures() -> None:
     for path in list((app_dir / "services").rglob("*.py")) + list(
         (app_dir / "providers").rglob("*.py")
     ) + list((app_dir / "prompts").glob("*.md")):
-        if "mock" in path.parts:  # offline sample listings for the sandbox/tests, not role config
+        if "mock" in path.parts or path.name == "cv_sample.py":  # fictional samples, not config
             continue
         for n, line in enumerate(path.read_text().splitlines(), 1):
             # Docstring/comment examples are fine; code and prompts are not.
