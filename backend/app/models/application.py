@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Text
+from sqlalchemy import Column, ForeignKey, Integer, Text
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field, utcnow
@@ -30,7 +30,10 @@ class Application(TableBase, table=True):
     applied_at: datetime | None = dt_field()
     # Recorded by "Mark applied": how, with which (locked) CV version, and notes.
     applied_method: ApplyMethod | None = enum_field(None)
-    applied_cv_version_id: int | None = Field(default=None, foreign_key="cv_version.id")
+    # use_alter: cv_version also points at application, so this FK must not drive table order.
+    applied_cv_version_id: int | None = Field(default=None, sa_column=Column(
+        Integer, ForeignKey("cv_version.id", use_alter=True,
+                            name="fk_application_applied_cv_version"), nullable=True))
     applied_notes: str = Field(default="", sa_type=Text)
     stage_changed_at: datetime = dt_field(default_factory=utcnow)
 
