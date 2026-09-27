@@ -536,6 +536,7 @@ export interface ScoringStatus {
   failed: number
   total: number
   avg_seconds: number | null
+  output_stats: Record<string, number>
   eta_seconds: number | null
   last_error: string | null
   jobs_total: number
