@@ -3,7 +3,13 @@
 export type Stage = 'new' | 'shortlisted' | 'cv_ready' | 'ready' | 'done' | 'interview' | 'closed'
 export type Route = 'undecided' | 'cold_email' | 'web_apply'
 export type ContactTier = 'apollo_dump' | 'lookup_queued' | 'lookup_found' | 'none'
-export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj'
+export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt'
+
+export interface CompanyBoard {
+  ats: 'greenhouse' | 'lever' | 'ashby' | 'workable' | 'smartrecruiters'
+  token: string
+  company: string
+}
 export type RemoteType = 'remote' | 'hybrid' | 'onsite' | 'unknown'
 export type FitBand = 'strong' | 'good' | 'fair' | 'weak' | 'failed' | 'pending'
 export type CloseReason = 'dismissed' | 'rejected' | 'withdrawn' | 'no_response' | 'offer'
@@ -390,6 +396,8 @@ export interface SourceRun {
     reasons?: Record<string, number>
     samples?: FilteredSample[]
     dry_run?: boolean
+    /** Company boards source: board label → job count, or an error message. */
+    boards?: Record<string, string | number>
   }
 }
 

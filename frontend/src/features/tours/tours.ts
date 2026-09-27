@@ -161,7 +161,7 @@ export const TOURS: Record<TourId, Tour> = {
     resolveRoute: async () => '/settings',
     steps: [
       { target: 'settings-card', title: 'Search profile', body: 'Roles, countries, remote preference and max age drive discovery. Title exclusions filter noise, and seniority is never filtered unless you add it.', placement: 'left' },
-      { target: 'settings-card', title: 'Sources', body: 'Each source shows its last run, counts and errors, plus a Test button (dry run) and a filter report for tuning.', route: '/settings?section=sources', placement: 'left' },
+      { target: 'settings-card', title: 'Sources', body: 'Each source shows its last run, counts and errors, plus a Test button (dry run) and a filter report for tuning. Company job boards takes a list of employers you can extend: pick their job-board platform and paste the id from their careers URL.', route: '/settings?section=sources', placement: 'left' },
       { target: 'settings-card', title: 'Daily schedule', body: 'Discovery runs automatically at this time every day. The Run discovery button works anytime.', route: '/settings?section=schedule', placement: 'left' },
     ],
   },

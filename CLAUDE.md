@@ -41,6 +41,10 @@ Secrets and keys go in `.env` (see `.env.example`): `ADZUNA_APP_ID/KEY`, optiona
 - Mapper tests run offline against real responses in `backend/tests/fixtures/sources/`, recorded with
   `.venv/bin/python scripts/record_fixtures.py <source>` (manual; makes real requests). The test suite
   blocks the network. The Adzuna fixture is synthetic until keys exist, so re-record it.
+- Gulf coverage: `boards.py` (public ATS APIs; company list = `app_setting.company_boards`, handed to the source by
+  `discovery.prepare_source` via `settings_key`/`apply_settings`; one failing board is a warning, all failing fails
+  the source) and `bayt.py` (public country search pages only, 3s spacing, 6h cooldown; robots.txt disallows
+  `/en/jobs/…-jobs/` and `filters[`, never request those).
 - Orchestration lives in `services/discovery.py`: lock (one run), per-source isolation, cooldown, and a filter
   report into `source_run.details` plus `data/logs/discovery.log`. Pre-filter rules are in `services/prefilter.py`
   (never filter seniority by default), idempotent upsert and dedupe in `services/ingest.py`.
