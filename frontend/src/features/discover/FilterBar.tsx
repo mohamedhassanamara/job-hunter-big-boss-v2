@@ -1,4 +1,4 @@
-import { ArrowDownWideNarrow, ChevronDown, Search, X } from 'lucide-react'
+import { ChevronDown, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -177,19 +177,6 @@ export function FilterBar({
             Clear filters
           </Button>
         )}
-        <div className="flex items-center gap-1.5">
-          <ArrowDownWideNarrow className="size-3.5 text-fg-subtle" />
-          <Select
-            size="sm"
-            aria-label="Sort"
-            value={filters.sort ?? 'fit'}
-            onValueChange={(v) => onChange({ sort: v as JobFilters['sort'] })}
-            options={[
-              { value: 'fit', label: 'Best fit' },
-              { value: 'newest', label: 'Newest' },
-            ]}
-          />
-        </div>
       </div>
     </div>
   )
