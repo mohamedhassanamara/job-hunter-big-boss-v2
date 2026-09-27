@@ -28,7 +28,8 @@ _TOOLS = {
     "aws", "flutter", "dart", "fastapi", "graphql", "jenkins", "ansible", "langchain",
     "llamaindex", "huggingface", "mlflow", "kubeflow", "sagemaker", "firebase", "supabase",
 }
-_NOT_TOOLS = {"i", "ai", "api", "apis", "ui", "ux", "it", "ok", "etl", "elt", "ci", "cd"}
+_NOT_TOOLS = {"i", "ai", "api", "apis", "ui", "ux", "it", "ok", "etl", "elt", "ci", "cd", "cv",
+              "ml", "llm", "llms", "nlp", "qa", "ios"}
 
 
 def numbers(text: str) -> list[str]:
