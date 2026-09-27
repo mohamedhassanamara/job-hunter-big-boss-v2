@@ -105,7 +105,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 
 ### 3.8 Experience (`/experience`)
 *Purpose:* maintain the master experience, which is the source for all CVs and scoring.
-- Grouped by kind (Work, Projects, Skills, Education, Certifications) with a count per group. Tag filter chips appear at the top.
+- Grouped by kind (Work, Projects, Volunteering & leadership, Skills, Education, Certifications; volunteering matters most for juniors with little paid experience) with a count per group. Tag filter chips appear at the top.
 - Each item row shows the title, org, dates, tags, and bullet count. Rows can be dragged to reorder within a group (with ↑/↓ buttons as a keyboard-accessible alternative), and an active toggle is available.
 - **Add / Edit** opens a side sheet with fields matching the kind: title, org, location, dates (with a "present" toggle), summary, bullets (add/remove/reorder), and tags (token input).
 - Delete offers Undo in the toast.

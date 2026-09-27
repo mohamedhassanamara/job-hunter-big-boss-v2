@@ -137,6 +137,14 @@ def test_experience_crud_and_reorder(client: TestClient) -> None:
     assert client.delete(f"/api/experience/{item['id']}").status_code == 204
 
 
+def test_experience_volunteering_kind(client: TestClient) -> None:
+    body = {"kind": "volunteering", "title": "Flutter Instructor", "org": "Android Club"}
+    item = client.post("/api/experience", json=body).json()
+    assert item["kind"] == "volunteering"
+    assert client.post("/api/experience", json={**body, "kind": "hobby"}).status_code == 422
+    assert client.delete(f"/api/experience/{item['id']}").status_code == 204
+
+
 def test_settings_and_profile(client: TestClient) -> None:
     r = client.put("/api/settings/sources", json={"value": {"adzuna": False, "wttj": True}})
     assert r.json()["values"]["sources"]["adzuna"] is False
