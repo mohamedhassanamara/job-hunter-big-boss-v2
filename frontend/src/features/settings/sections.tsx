@@ -13,6 +13,7 @@ import { absoluteDate, COUNTRY_LABELS } from '@/lib/format'
 import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/queries/library'
 import type { SearchProfile, SettingsView } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { OllamaStatus } from './ScoringSections'
 
 export function Card({
   title,
@@ -150,21 +151,6 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
           <span className="text-sm text-fg-muted">days</span>
         </div>
       </Field>
-      <Field label="Highlight threshold" hint="Min fit for Today's highlights">
-        <div className="flex items-center gap-3">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={p.min_fit_score}
-            onChange={(e) => set({ min_fit_score: Number(e.target.value) })}
-            className="w-64 accent-(--primary)"
-            aria-label="Minimum fit score"
-          />
-          <span className="w-8 text-sm font-medium tabular-nums">{p.min_fit_score}</span>
-        </div>
-      </Field>
     </Card>
   )
 }
@@ -243,8 +229,9 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="amber">Mock</ToneBadge>
-        Phase 0 runs deterministic mock providers regardless of these choices.
+        Fit scoring runs on Ollama. CV generation and email drafting are still mocked.
       </div>
+      <OllamaStatus />
       <Field label="Fit scoring" hint="Ollama, runs locally">
         <Input
           value={m.scoring.model}
