@@ -2,7 +2,7 @@
 
     .venv/bin/python scripts/check_fingerprint.py ../data/backups/scores-before-0005.json
 
-Exit code 1 if any fingerprinted job changed (score row, score, status, model, prompt, label, stage).
+Exit code 1 if a fingerprinted job changed (score row, score, status, model, prompt, label, stage).
 """
 
 import json
