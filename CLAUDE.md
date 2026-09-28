@@ -153,6 +153,15 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Import dedupe: email (case-folded) → company (`normalize_company`) + folded name → create. Fill-only updates.
   The DB is backed up before imports (`contacts_import.backup_db`, sqlite online backup; never `cp` a WAL DB).
 
+## Outreach (services/outreach.py, outreach_check.py, send_queue.py)
+
+- Drafts: one job at a time (a lock), from the **approved** CV's items only; Claude via `providers/claude_email.py`
+  (subclass of the CV generator: same isolation, `apiKeySource == "none"`). Prompt `app/prompts/outreach.md` is
+  versioned like the others. Checks reuse `cv_check.sentence_problems`; one retry with feedback; errors block approval.
+- Sending: `send_queue.tick` (worker thread in the real workspace, `SEND_WORKER_ENABLED`), Gmail SMTP
+  (`providers/smtp_mailer.py`, `SMTP_APP_PASSWORD` via `get_settings()`). Tests and the sandbox use `MockMailer`;
+  never send real email from tests. A test send must succeed before `resume`.
+
 ## Tracking after the CV (services/tracking.py, api/tracking.py)
 
 - No model calls. Mark applied (from `cv_ready`/`ready`) locks the CV version sent (`locked_at`, `pdf_sha256`); locked
