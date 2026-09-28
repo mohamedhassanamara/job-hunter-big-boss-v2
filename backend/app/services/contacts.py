@@ -164,6 +164,14 @@ def _apply(s: Session, app: Application, contact: Contact | None, tier: ContactT
     return True
 
 
+def _drop_pending_lookup(s: Session, company_id: int) -> None:
+    """The company has contacts now (e.g. a later import): it no longer needs a lookup."""
+    row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
+    if row is not None and row.status in (LookupStatus.queued, LookupStatus.skipped):
+        s.delete(row)
+        s.flush()
+
+
 def _lookup_for(s: Session, company_id: int, priority: int) -> CompanyLookup:
     row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
     if row is None:
@@ -188,6 +196,7 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
         contacts = list(s.exec(select(Contact).where(Contact.company_id == job.company_id)).all())
     best = best_contact(contacts)
     if best is not None:
+        _drop_pending_lookup(s, job.company_id)
         tier = (ContactTier.lookup_found if best.source == ContactSource.apollo_lookup
                 else ContactTier.apollo_dump)
         role = f" ({best.title})" if best.title else ""
