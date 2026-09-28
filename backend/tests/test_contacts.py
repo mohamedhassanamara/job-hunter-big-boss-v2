@@ -239,6 +239,23 @@ def test_tier_2_queues_the_company_once_for_all_its_jobs(seeded: None) -> None:
         s.rollback()
 
 
+def test_a_later_import_takes_the_company_out_of_the_lookup_queue(seeded: None) -> None:
+    with Session(engine) as s:
+        company = make_company(s)
+        app = make_job(s, company, score=90)
+        contacts.resolve(s, app)
+        assert app.contact_tier == ContactTier.lookup_queued
+        s.add(Contact(company_id=company.id, full_name="Late Import", title="CTO",
+                      normalized_name="late import", role_rank=0))
+        s.flush()
+        contacts.resolve(s, app)
+        assert app.contact_tier == ContactTier.apollo_dump
+        assert s.exec(select(CompanyLookup).where(
+            CompanyLookup.company_id == company.id)).first() is None
+        assert company.id not in [r.company.id for r in contacts.lookup_queue(s).rows]
+        s.rollback()
+
+
 def test_found_resolves_every_job_and_not_found_is_tier_3(seeded: None) -> None:
     with Session(engine) as s:
         found_co, empty_co = make_company(s), make_company(s)

@@ -72,7 +72,7 @@ function JobsTable({ data }: { data: CompanyDetail }) {
                 value={j.contact_id ? String(j.contact_id) : AUTO}
                 onValueChange={(v) => pick(j.application_id, v)}
                 options={options}
-                className="w-56"
+                className="w-60 [&>span]:truncate"
               />
             )}
           </div>
