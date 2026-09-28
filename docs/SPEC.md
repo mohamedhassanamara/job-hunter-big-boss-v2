@@ -16,7 +16,8 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
 | 6 | **Route** | With a contact, the route is **cold email** (a draft is generated). Without one, it is **web apply** (I get the CV and the listing link, and apply myself) | Job detail, Pipeline |
 | 7 | **Human review** | I review and edit every CV and every email | CV Studio, Outreach → Review |
-| 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs are tracked when I mark them applied | Outreach → Queue, Pipeline |
+| 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV, then Mark applied (date, method, CV version locked) | Outreach → Queue, Applications |
+| 9 | **Follow up** | Follow-up reminders (7/14 days, configurable), replies and interview rounds logged, closed with an outcome; stats and CSV export. No model calls | Today, Applications |
 
 Pipeline stages: **New → Shortlisted → CV ready → Ready to send / Ready to apply → Sent / Applied → Interview → Closed**
 (see DATA_MODEL.md for the allowed transitions).
@@ -35,10 +36,11 @@ Pipeline stages: **New → Shortlisted → CV ready → Ready to send / Ready to
 | `s` | Shortlist | Discover, Pipeline table |
 | `d` | Dismiss (with undo) | Discover, Pipeline table |
 | `a` / `r` | Approve / reject draft | Outreach review |
+| `o` / `a` | Open listing + download CV / Mark applied | Applications → Ready to apply |
 | `Esc` | Close panel / dialog | Everywhere |
 | `/` | Focus page search or filter | Everywhere |
 | `⌘K` | Command palette | Everywhere |
-| `g` then `t d p o c e s` | Go to Today, Discover, Pipeline, Outreach, Contacts, Experience, Settings | Everywhere |
+| `g` then `t d p a o c e s` | Go to Today, Discover, Pipeline, Applications, Outreach, Contacts, Experience, Settings | Everywhere |
 | `?` | Shortcut help | Everywhere |
 
 Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
@@ -50,12 +52,15 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 
 ### 3.1 Today (`/`)
 *Purpose:* the "what needs me now" inbox. It is the landing page.
-- A greeting with the date and a one-line summary ("4 things need you").
+- A greeting with the date and a one-line summary ("4 things need you"), plus a stats line once you have applied
+  ("2 applied this week · response rate 67% (2/3)", links to Applications → Stats).
 - **Attention cards**, each with a count, the top 3 items, and a "View all" deep link:
   - *New high-fit jobs:* stage `new` with fit ≥ the profile's min score → Discover filtered to `new` and sorted by fit.
   - *CVs to review:* the latest CV version in `draft` → CV Studio.
   - *Drafts to approve:* outreach drafts in `draft` → Outreach Review.
-  - *Ready to apply manually:* stage `ready` with route `web_apply` → the Job page (shows the "Open listing" and "Download CV" actions and a "Mark applied" button).
+  - *Ready to apply manually:* approved CV, route `web_apply`, not applied → Applications → Ready to apply; "Mark applied" opens the dialog.
+  - *Follow-ups:* due reminders (Snooze 3 days / Dismiss / Log reply) and ghosting suggestions ("no reply in 30 days: close as no response?" → Close as no response / Not yet). Nothing closes without the click.
+  - *Upcoming interviews:* pending rounds in the next 14 days.
   - *Send queue:* status, next send time, count pending, and an inline Pause/Resume.
 - **Last discovery:** per-source result of the latest run (new / duplicates / failed) + a "Run discovery now" button.
 - *Brand-new workspace* (discovery never ran): a 3-step onboarding card (add experience → import contacts → run discovery).
@@ -74,17 +79,34 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 ### 3.3 Pipeline (`/pipeline`)
 *Purpose:* see and move everything I'm pursuing.
 - **Board view** (default): 7 columns with a count per column. Cards show the title, company, fit badge, route icon (mail / globe), and days in stage. Cards can be dragged between columns, but only allowed transitions are accepted (the target highlights; a disallowed move snaps back with a toast explanation). Clicking a card opens the Job page.
-- The **Closed** column hides dismissed jobs unless "Show dismissed" is on. Dropping a card on Closed asks for a reason (rejected, no response, withdrew, offer, not a fit).
+- The **Closed** column hides dismissed jobs unless "Show dismissed" is on. Dropping a card on Closed asks for a reason: after applying rejected, no response, withdrew, offer accepted, offer declined; before, not a fit or withdrew.
+- Dropping a web-apply card on **Applied** opens Mark applied; dropping on **Interview** opens Log interview.
 - **Table view** (`?view=table`): sortable columns (Job, Company, Stage, Route, Fit, Contact, Updated), j/k selection, s/d shortcuts, and Enter to open.
 - *Empty:* "Nothing in your pipeline yet. Shortlist jobs from Discover", with a "Go to Discover" action. *Loading:* column skeletons. *Error:* retry.
 
 ### 3.4 Job detail (`/jobs/:id`)
 *Purpose:* everything about one opportunity in one place.
 - **Header:** title, company, location/remote, source, and posted date. There is a stage selector (only allowed transitions are offered), a route toggle (cold email / web apply), and the primary next-step action, which depends on stage:
-  new → Shortlist · shortlisted → Generate CV · cv_ready → Draft email *or* Mark ready to apply · ready (email) → Approve & queue · ready (web) → Mark applied · done → Log interview.
+  new → Shortlist · shortlisted → Generate CV · cv_ready (email) → Draft email · cv_ready/ready (web) → Mark applied · ready (email) → View send queue · done → Log interview · interview → Record outcome.
+- Web apply with an approved CV: a callout with **Open listing + CV** (one click: listing in a new tab, PDF downloaded), Download CV only, Mark applied.
+- Once applied, an **Application** section: applied on, method, CV sent (locked version, download), notes, replies, interview rounds (outcome editable), with Log reply / Log interview / Close…. CV versions sent show a "Sent" badge.
 - **Main column:** Listing (description, Open original ↗), Fit breakdown, CV versions (list with status + "Open in CV Studio"), Email draft (preview + "Edit in Outreach"), Notes (autosaving textarea).
 - **Right column:** Contact (tier, person, email, "Queue Apollo lookup" when tier is none), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
 - *Not found:* "This job doesn't exist or was removed", with "Back to Discover".
+
+### 3.4b Applications (`/applications`)
+*Purpose:* everything after the CV. Nothing here calls a model. Tabs in the URL (`?tab=ready|applied|stats`).
+- **Ready to apply:** approved CV + no contact, not applied (`cv_ready`/`ready`, web apply). Rows: job, company, track,
+  country, approved CV version. **Open listing + CV** (one click) and **Mark applied** (dialog: date default today,
+  method, the CV version that gets locked, notes). Keys: j/k, `o`, `a`.
+- **Applied:** every application with `applied_at`, filtered by track, country, source, stage and applied date range
+  (URL params). Row: date, job, stage (close reason when closed), source, reply/interview counts, days to first answer.
+  j/k, Enter opens the job, the side panel (`?app=`) shows applied facts, Log reply / Log interview / Close…, and the
+  timeline. **Export CSV** (same filters; one row per application).
+- A positive reply suggests "Log interview"; a rejection suggests "Close as rejected" (toast actions, nothing automatic).
+- **Stats:** applied count, response rate (any reply or interview ÷ applied), interview rate, median days to the first
+  answer, applications per ISO week (CSS bars), and both rates by track, country and source, always with counts ("2/3").
+- *Empty:* each tab explains the next step (approve a CV / go to Ready to apply) with "See how it works".
 
 ### 3.5 CV Studio (`/jobs/:id/cv`)
 *Purpose:* review and adjust the tailored CV for one job. The contract is in docs/CV_TEMPLATES.md.
@@ -134,6 +156,8 @@ Sections in a left sub-nav:
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).
+- **Tracking:** follow-up days (e.g. 7, 14) and the ghosting suggestion delay (30 days). Applies immediately (reminders are computed).
+- **Candidate** also has "Total years of experience (override)": used instead of the role-date total in CV facts and checks; never makes scores stale.
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
 - **Email (SMTP):** Gmail address, from name, and send interval / cap (read-only defaults). The app password is set in `.env` and shown as "configured / not configured".
 - **Data:** DB path, plus "Reset demo data" and "Start with an empty workspace" (dev only, with a confirmation dialog).
@@ -187,7 +211,7 @@ Sections in a left sub-nav:
 ## 6. Sample data and guided tours
 
 - The real workspace **never contains fake data**. A fresh install shows real empty states and an onboarding card.
-- **Guided tours, one per feature** (Today, Discover, Pipeline, Job detail, CV Studio, Outreach, Contacts, Experience, Settings), start from the **?** menu, the ⌘K palette, or an empty state's "See how it works".
+- **Guided tours, one per feature** (Today, Discover, Pipeline, Applications, Job detail, CV Studio, Outreach, Contacts, Experience, Settings), start from the **?** menu, the ⌘K palette, or an empty state's "See how it works".
 - A tour rebuilds the sandbox, switches the app to it (a persistent "Tour · Sample data" strip), spotlights 3–6 elements with a short explanation (→ / ← / Esc), and returns to the real workspace on exit. Anything clicked during a tour only changes the sandbox.
 
 ## 7. Phase 0 scope

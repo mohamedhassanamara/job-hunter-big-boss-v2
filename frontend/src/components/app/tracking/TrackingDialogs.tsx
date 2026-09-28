@@ -81,7 +81,7 @@ export function MarkAppliedDialog({
       { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, notes },
       {
         onSuccess: () => {
-          toast.success('Marked applied', { description: `${target.title} · CV v${cvVersion ?? '?'} locked` })
+          toast.success('Marked applied', { description: `${target.title} · ${cvVersion ? `CV v${cvVersion}` : 'approved CV'} locked` })
           onOpenChange(false)
           onDone?.()
         },
