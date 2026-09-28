@@ -542,7 +542,7 @@ SETTINGS: dict[str, dict] = {
                  "sign_off": "Best regards,",
                  "opt_out": "If this isn't relevant for you, just let me know and I won't "
                             "follow up.",
-                 "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "auto"},
+                 "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "en"},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
     "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
                  "large_order": DEFAULT_LARGE_ORDER,

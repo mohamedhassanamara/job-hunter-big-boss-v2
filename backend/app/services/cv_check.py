@@ -43,7 +43,8 @@ _TOOLS = {
     "llamaindex", "huggingface", "mlflow", "kubeflow", "sagemaker", "firebase", "supabase",
 }
 _NOT_TOOLS = {"i", "ai", "api", "apis", "ui", "ux", "it", "ok", "etl", "elt", "ci", "cd", "cv",
-              "ml", "llm", "llms", "nlp", "qa", "ios"}
+              "ml", "llm", "llms", "nlp", "qa", "ios",
+              "ia", "ki"}  # "AI" in French/Spanish/Italian and German
 
 
 def numbers(text: str) -> list[str]:
