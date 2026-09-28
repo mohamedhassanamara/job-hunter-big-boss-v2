@@ -205,7 +205,7 @@ def test_a_guide_following_summary_passes() -> None:
     ("Engineer who ingested 140K+ records.", "repeats numbers"),
     ("Engineer backed by a DeepLearning.AI certificate.", "certifications"),
     ("Engineer who trained models during an internship at Orange Digital Center.", "internship"),
-    ("Engineer skilled in dbt, Airflow, DuckDB and Python.", "lists tools"),
+    ("Engineer who works with dbt, Airflow, DuckDB and Python.", "lists tools"),
 ])
 def test_summary_rules(text: str, expected: str) -> None:
     assert any(expected in p for p in problems(text))
@@ -236,6 +236,13 @@ def test_summary_must_name_something_concrete_from_the_cited_items() -> None:
                 "lakehouse for Premier League data.")
     assert any("concrete" in p for p in v5(vague, cited))
     assert not any("concrete" in p for p in v5(concrete, cited))
+
+
+def test_tools_inside_a_description_are_not_a_tool_list() -> None:
+    tools = {"dbt", "Airflow", "Mistral", "LLM", "Python", "SQL"}
+    assert cv_rules.tool_list("Recent work includes a dbt/Airflow lakehouse for football data "
+                              "and a resume parser on a local Mistral LLM.", tools) == []
+    assert cv_rules.tool_list("Skilled in Python, SQL, dbt and Airflow.", tools)
 
 
 def test_data_ai_summaries_lead_with_what_you_build_not_a_career_change() -> None:
