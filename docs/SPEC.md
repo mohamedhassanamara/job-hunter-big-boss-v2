@@ -127,8 +127,29 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - *Empty:* "No CV for this job yet" with Generate (or "Open Candidate settings" when the full name is missing).
 
 ### 3.6 Outreach (`/outreach`)
-- **Review tab:** a list of drafts (filter: To review | Approved | Rejected) on the left. The editor on the right has To (contact), Subject, Body, the linked job and CV, and **Approve** (primary), Reject, and Regenerate. Keys: j/k, a, r.
-- **Queue tab:** a status header (Running / Paused / Idle, next send countdown, "15 min between sends · max 20 per queue"), with Pause/Resume. The items table shows position, recipient, company, subject, scheduled time, and status. Pending items can be removed from the queue.
+*Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
+- **Drafting** (`services/outreach.py`): Claude Code headless with the CV generator's isolation and subscription
+  check (`providers/claude_email.py`, prompt `app/prompts/outreach.md`, versioned). Input: the job listing, the
+  contact (first name, title, role group), the items on the **approved CV** (the only candidate facts it may use),
+  the years facts, and the rules. Output: subject, greeting, 2–4 sentences (each citing CV items, or marked as
+  about the listing) and one ask. Needs an approved CV and a contact with an email.
+- **Checks** (`services/outreach_check.py`): candidate sentences grounded in the cited items (the CV checks:
+  numbers, tools, capabilities, scope, years); listing sentences only state what the listing says; ≤ word limit;
+  exactly one ask; the greeting uses the contact's first name; the company is named; no other draft's company;
+  no banned phrase (editable list); near-duplicates of drafts to other people are warnings. One retry with the
+  problems as feedback, then the draft is kept with its problems listed. Errors block approval. Edits are
+  re-checked (text-level).
+- **Review tab:** list (To review | Approved | Rejected | All); editor with the checks panel, subject, your text,
+  "Added when sent" (signature + opt-out from Settings → Email), "Where each sentence comes from" (hover for the
+  cited CV items), **Approve & queue** (primary), Send test to me, Regenerate, Reject. Keys: j/k, a, r.
+- **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage
+  change. **The queue can't start before one successful test send.**
+- **Queue tab:** Running / Paused / Idle, next send countdown, 15 min between sends, max 20 per queue. The worker
+  sends one email per interval through Gmail SMTP (`SMTP_APP_PASSWORD` in `.env`), attaching the approved CV and
+  locking that version. Failures are shown with Retry; a login/config failure pauses the queue. An email caught
+  mid-send by a restart becomes "Check Gmail" (never resent blindly): Retry or "I found it in Sent". Every attempt
+  is in `send_log`. A sent email moves the job to **Sent** (`done`, method email) and feeds follow-ups, replies
+  and stats (Applications).
 - *Empty review:* "No drafts waiting. Drafts appear after you approve a CV for a job with a contact." *Empty queue:* "Queue is empty. Approved drafts land here."
 
 ### 3.7 Contacts (`/contacts`)
@@ -136,19 +157,30 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Resolution (3 tiers, `services/contacts.py`):** (1) the best-ranked imported contact at the job's company
   (Settings → Contacts ranking: CTO → VP/Head of Engineering → Head of Data/AI → Engineering Manager → Tech Lead →
   HR/Talent → Founder/CEO; ties: has an email, then most recent); (2) no contact → the **company** joins the lookup
-  queue (one row per company, priority = best fit); (3) the lookup found nobody → "No contact", web apply.
+  queue (one row per company); (3) the lookup found nobody, or the company is marked "never look up" (a job
+  board / aggregator) → "No contact", web apply.
+- **Ranking by company size:** "small" (exact headcount below the threshold, or an "under N" bound at most the
+  threshold; default 200, Settings → Contacts) uses CTO → Founder/CEO → Head of Eng → Head of Data → EM → Tech Lead
+  → HR; large or unknown size uses HR/Talent → EM → CTO → Head of Eng → Head of Data → Tech Lead → Founder. Both
+  orders are editable. Companies from the Apollo lists are "under 200"; set any company's size in its detail pane.
   Runs after every discovery run and import, and on demand. Never replaces a contact you picked, never touches jobs
   applied to or closed, never changes a route (a web-apply job with a new contact offers "Switch to cold email?").
 - **Companies:** filters With jobs / Has contacts / Needs lookup / No contact, search, j/k. Detail: contacts ranked
   (role group label, "Written to first"), the company's jobs with their tier and a per-job contact picker
   (Automatic or a person), "Add contact".
-- **Lookup queue:** per company, best fit first; daily counter "3 / 10 today" (resolved lookups since local
+- **Lookup queue:** per company: shortlisted jobs first, then the best fit, then the newest job, each row showing
+  why ("1 shortlisted job", "Best fit 92", "Fit 92, newest job 3 days ago"). Companies that look like job boards
+  (name contains remote/jobs/hire/recruit/talent…, most listings "for a client", many jobs across tracks) show a
+  suggestion: Never look up / It's an employer. Never (X) takes the company out, with Undo. Daily counter "3 / 10 today" (resolved lookups since local
   midnight, cap in Settings). Enter contact (E) → every open job there gets it; Nobody found (N) → tier 3; Skip →
   hidden until tomorrow. At the cap: "next lookups tomorrow", entering results still works.
 - **Import CSV:** several files at once; per-file mapping (auto-detected), row counts, "already imported"/"same
   content as another file" (SHA-256) flags. Imports run one file after another in the background (batches of 500,
   progress bar), after a DB backup (once per 15 min). Dedupe: same email (case-folded) → fill empty fields only;
   else same company (normalized) + folded name → fill; else create. Unknown companies are created. Then matching runs.
+- **Merges:** suggested duplicates (one name is the other plus a country/legal/group word, or the same website),
+  confirmed one by one: Keep A / Keep B / Different companies. Never automatic. Merging moves jobs, contacts and the
+  lookup, records the other spelling as an alias (future jobs and imports map to it) and re-matches.
 - **Match report:** open jobs with a contact / waiting on a lookup / no contact, by track and by country, plus
   "Run matching now".
 - *Empty:* each tab explains the next step, with "See how it works".

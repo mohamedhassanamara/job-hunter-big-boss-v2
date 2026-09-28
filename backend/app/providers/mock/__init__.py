@@ -186,7 +186,7 @@ class MockEmailDrafter:
         return (f"{title} at {company}", (
             f"Hi {first_name},\n\nI saw that {company} is hiring for the {title} role. At my "
             "last company I built batch and streaming data pipelines on Spark and Airflow.\n\n"
-            "Would you be open to a 15-minute call next week?\n\nBest,\nSample Candidate"))
+            "Would you be open to a 15-minute call next week?"))
 
 
 class MockMailer:

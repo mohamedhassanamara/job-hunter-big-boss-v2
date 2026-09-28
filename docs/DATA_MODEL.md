@@ -100,6 +100,12 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | full_fetched_at | datetime? | Fetched/pasted full listing (never overwritten by the feed) |
 | user_label / labeled_at | enum `good \| maybe \| no`? | Your judgment for `make eval`, not a stage |
 
+### company (size, aliases, merges)
+`company` also has `employees` (exact), `employees_max` ("under N"), `size_source` (`manual | apollo_list`) and
+`aggregator_reviewed` (you said "it's an employer" to the job-board suggestion). `company_alias`
+(`normalized_name` unique → `company_id`) maps merged-away spellings; `company_merge_decision` (`pair_key` unique,
+`decision merged | rejected`) remembers your answer to each suggestion.
+
 ### contact
 | Column | Type | Notes |
 |---|---|---|
@@ -129,8 +135,8 @@ Tier 2 of contact resolution, **one row per company**: a manual Apollo-extension
 | Column | Type | Notes |
 |---|---|---|
 | company_id | FK company unique | |
-| status | enum `queued \| found \| not_found \| skipped` | not_found → the company's jobs become tier 3 ("No contact") |
-| priority | int | Best fit among its open jobs |
+| status | enum `queued \| found \| not_found \| skipped \| never` | not_found / never (job board) → the company's jobs become tier 3 ("No contact") |
+| priority | int | Best fit among its open jobs (display order is computed: shortlisted, fit, newest) |
 | queued_at / resolved_at / snoozed_until | datetime | Resolved today (local midnight) = the daily counter; skip snoozes until tomorrow |
 | notes | text | |
 
@@ -281,6 +287,14 @@ a ghosting suggestion at `applied_at + ghost_after_days`. This table only record
 | model | str | |
 | edited | bool | True once the user changed the generated text |
 
+`outreach_draft` also stores `cv_version_id` (the approved CV it's written from and attaches), `plan` (the
+model's sentences with citations, attempts), `violations` (the checks), `prompt_version`, `duration_ms`, `error`,
+`test_sent_at`, `sent_at`, `message_id`. `body` is your text only; signature and opt-out are added at send time.
+
+### send_log
+Every send attempt (never deleted): `draft_id`, `kind test | real`, `to`, `subject`, `status sent | failed`,
+`error`, `message_id`, `attachment`, `at`. A successful `test` row is required before the queue can start.
+
 ### send_queue
 A single row in v2 (the global queue).
 | Column | Type | Notes |
@@ -297,7 +311,8 @@ A single row in v2 (the global queue).
 | draft_id | FK outreach_draft unique | |
 | position | int | |
 | scheduled_at / sent_at | datetime? | |
-| status | enum `pending \| sending \| sent \| failed \| cancelled` | |
+| status | enum `pending \| sending \| sent \| failed \| cancelled \| unknown` | `sending` at startup → `unknown` (never resent blindly) |
+| attempts / last_attempt_at / message_id | int / datetime? / str? | |
 | error | str? | |
 
 ### app_setting
