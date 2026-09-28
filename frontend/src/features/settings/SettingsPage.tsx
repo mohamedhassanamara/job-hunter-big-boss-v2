@@ -14,6 +14,7 @@ import {
   TrackingSection,
 } from './sections'
 import { CVSettingsSection, TemplatesSection } from './CVSections'
+import { CVWritingSection } from './CVWritingSection'
 import { CandidateSection, ScoringSection } from './ScoringSections'
 import { ContactsSection } from './ContactsSection'
 import { OutreachSection } from './OutreachSection'
@@ -74,7 +75,10 @@ export default function SettingsPage() {
             ) : section === 'scoring' ? (
               <ScoringSection key={JSON.stringify(settings.data.values.scoring)} settings={settings.data} />
             ) : section === 'cv' ? (
-              <CVSettingsSection key={JSON.stringify(settings.data.values.cv)} settings={settings.data} />
+              <div className="space-y-6">
+                <CVSettingsSection key={JSON.stringify(settings.data.values.cv)} settings={settings.data} />
+                <CVWritingSection key={`w-${JSON.stringify(settings.data.values.cv)}`} settings={settings.data} />
+              </div>
             ) : section === 'templates' ? (
               <TemplatesSection settings={settings.data} />
             ) : section === 'sources' ? (

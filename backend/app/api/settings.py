@@ -51,6 +51,11 @@ def last_runs(session: Session) -> list[SourceRunOut]:
 @router.get("/settings", response_model=SettingsOut)
 def get_settings_view(session: SessionDep) -> SettingsOut:
     values = {s.key: s.value for s in session.exec(select(AppSetting)).all()}
+    from app.services.cv_rules import structure
+    from app.services.cv_service import cv_settings
+
+    cv = cv_settings(session)  # defaults for keys added by newer versions (guide, structure…)
+    values["cv"] = {**cv, "structure": structure(cv)}
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -77,6 +82,40 @@ def _check_cv(value: dict) -> None:
         fields = {f for _, f, _, _ in string.Formatter().parse(pattern) if f}
         if unknown := fields - {"full_name", "company", "job_title", "version"}:
             raise HTTPException(422, f"Unknown filename fields: {', '.join(sorted(unknown))}")
+    _check_cv_structure(value)
+
+
+def _check_cv_structure(value: dict) -> None:
+    from app.services.cv_rules import DEFAULT_STRUCTURE, parse_merges
+
+    guide = value.get("writing_guide")
+    if guide is not None and (not isinstance(guide, str) or len(guide) > 4000):
+        raise HTTPException(422, "The writing guide must be text (at most 4000 characters)")
+    rules = value.get("structure")
+    if rules is not None:
+        if not isinstance(rules, dict):
+            raise HTTPException(422, "structure must be an object")
+        for key, v in rules.items():
+            default = DEFAULT_STRUCTURE.get(key)
+            if default is None:
+                raise HTTPException(422, f"Unknown structure rule {key}")
+            if isinstance(default, list):
+                if not (isinstance(v, list) and len(v) == 2 and all(isinstance(x, int) for x in v)
+                        and 0 <= v[0] <= v[1] <= 8):
+                    raise HTTPException(422, f"{key} must be [min, max] bullets (0-8)")
+            elif key == "fill_min":
+                if not isinstance(v, int | float) or not 0.5 <= v <= 1:
+                    raise HTTPException(422, "fill_min must be between 0.5 and 1")
+            elif not isinstance(v, int) or not 0 <= v <= 400:
+                raise HTTPException(422, f"{key} must be a whole number")
+    merges = value.get("skill_merges")
+    if merges is not None:
+        if not isinstance(merges, list) or not all(isinstance(m, str) for m in merges):
+            raise HTTPException(422, "skill_merges must be a list of lines")
+        bad = [m for m in merges if m.strip() and not parse_merges([m])]
+        if bad:
+            raise HTTPException(422, f"Can't read merge rule “{bad[0]}” (use “Parent: A, B”, "
+                                     "“A + B” or “A / B”)")
 
 
 def _check_boards(value: dict) -> None:
