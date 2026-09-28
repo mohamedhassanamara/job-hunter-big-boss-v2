@@ -17,7 +17,9 @@ DEFAULT_GUIDE = "\n".join([
     "with what I build (e.g. \"Software engineer building data pipelines and local LLM "
     "systems\"). Sentence 2: what I bring to THIS role, naming at least one concrete thing I "
     "built from the cited items (e.g. \"a privacy-first resume parser on a local Mistral LLM\", "
-    "\"a dbt/Airflow lakehouse for football data\"). Vary the opening between CVs. No numbers "
+    "\"a dbt/Airflow lakehouse for football data\"). Give sentence 2 a subject without \"I\" "
+    "(e.g. \"Recent work includes…\", \"Projects include…\", \"That work spans…\"), never a bare "
+    "verb like \"Built…\" or \"Delivered…\". Vary the opening between CVs. No numbers "
     "that also appear in bullets, no certifications, no internships, no tool lists.",
     "Bullets: impact first (what I built and why it mattered), strong and varied verbs, one idea "
     "per bullet. Prefer bullets with concrete outcomes; skip generic ones (\"collaborated in Agile "
@@ -336,7 +338,8 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
         first = (re.findall(r"[a-z]+", body.lower()) or [""])[0]
         if first in _FRAGMENT_START:
             start = " ".join(sentence.split()[:3])
-            out.append(f"“{start}…” has no subject: write a full sentence")
+            out.append(f"“{start}…” has no subject: start it with a subject such as “Recent "
+                       "work includes…” or “Projects include…” (no “I”)")
             break
     first_words = " ".join(text.split()[:8])
     if lead_with_build and _TRANSITION.search(first_words):
@@ -352,12 +355,30 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
     if other_openings and opening(text) in set(other_openings):
         out.append(f"opens like another CV (“{' '.join(text.split()[:4])}…”): vary the opening")
     for sentence in sentences(text):
-        found = sorted({t.lower() for t in tools
-                        if re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])", sentence, re.I)})
-        if len(found) >= 3:
-            out.append(f"lists tools ({', '.join(found[:5])})")
+        listed = tool_list(sentence, tools)
+        if listed:
+            out.append(f"lists tools ({', '.join(listed)})")
             break
     return out
+
+
+def tool_list(sentence: str, tools: set[str]) -> list[str]:
+    """An enumeration of 3+ tools ("Python, SQL, dbt and Airflow"). Tools inside a description
+    of something built ("a dbt/Airflow lakehouse", "a local Mistral LLM") don't count."""
+    def tool_in(chunk: str) -> str | None:
+        words = chunk.split()
+        if not 0 < len(words) <= 3:
+            return None
+        return next((t for t in tools if re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])",
+                                                    chunk, re.I)), None)
+
+    run: list[str] = []
+    for chunk in re.split(r",|;|\band\b|\bor\b|&", sentence):
+        hit = tool_in(chunk.strip(" ."))
+        run = [*run, hit] if hit else []
+        if len(run) >= 3:
+            return [r.lower() for r in run]
+    return []
 
 
 # ------------------------------------------------------------------------------ exemplar
