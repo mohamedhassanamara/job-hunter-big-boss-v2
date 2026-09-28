@@ -117,6 +117,19 @@ def cv_pdf(cv_id: int, session: SessionDep, engine: EngineDep, download: bool = 
                         content_disposition_type="attachment" if download else "inline")
 
 
+@router.post("/cv/{cv_id}/summary", response_model=CVVersionOut)
+def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
+                       workspace: WorkspaceDep) -> CVVersionOut:
+    """New summary for a draft; bullets and layout stay as they are."""
+    get_or_404(session, CVVersion, cv_id, "CV version")
+    generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
+    try:
+        v = cv_service.regenerate_summary(engine, cv_id, generator)
+    except cv_service.CVError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return _out(v)
+
+
 @router.post("/cv/{cv_id}/approve", response_model=CVApproveResult)
 def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
     v = get_or_404(session, CVVersion, cv_id, "CV version")

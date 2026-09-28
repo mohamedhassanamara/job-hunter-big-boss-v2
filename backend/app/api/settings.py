@@ -108,6 +108,10 @@ def _check_cv_structure(value: dict) -> None:
                     raise HTTPException(422, "fill_min must be between 0.5 and 1")
             elif not isinstance(v, int) or not 0 <= v <= 400:
                 raise HTTPException(422, f"{key} must be a whole number")
+    banned = value.get("banned_phrases")
+    if banned is not None and (not isinstance(banned, list)
+                               or not all(isinstance(b, str) for b in banned)):
+        raise HTTPException(422, "banned_phrases must be a list of phrases")
     merges = value.get("skill_merges")
     if merges is not None:
         if not isinstance(merges, list) or not all(isinstance(m, str) for m in merges):

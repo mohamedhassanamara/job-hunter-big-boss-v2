@@ -14,7 +14,7 @@ import { apiUrl } from '@/lib/api'
 import { keys } from '@/lib/queries/keys'
 import { relativeTime } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
-import { useApproveCV, useCVStudio, useGenerateCV, useGenerateDraft, usePatchCV } from '@/lib/queries/workflow'
+import { useApproveCV, useCVStudio, useGenerateCV, useGenerateDraft, usePatchCV, useRegenerateSummary } from '@/lib/queries/workflow'
 import type { CVPatchInput, CVStudio, CVVersion } from '@/lib/types'
 import { CVContentPanel } from './CVContentPanel'
 
@@ -104,6 +104,7 @@ export default function CVStudioPage() {
   const appId = job.data?.application.id ?? NaN
   const studio = useCVStudio(appId)
   const generate = useGenerateCV()
+  const regenSummary = useRegenerateSummary()
   const patch = usePatchCV()
   const approve = useApproveCV()
   const generateDraft = useGenerateDraft()
@@ -202,6 +203,23 @@ export default function CVStudioPage() {
                 options={templates.map((t) => ({ value: t.name, label: `Template: ${t.name}` }))}
                 className="w-44"
               />
+            )}
+            {version.status === 'draft' && (
+              <Tooltip content="A new summary; bullets and layout stay as they are">
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    regenSummary.mutate(version.id, {
+                      onSuccess: () => toast.success('New summary written'),
+                      onError: (e) => toast.error(e.message),
+                    })
+                  }
+                  disabled={regenSummary.isPending || generate.isPending}
+                >
+                  <RefreshCw className={regenSummary.isPending ? 'animate-spin' : undefined} />
+                  {regenSummary.isPending ? 'Writing…' : 'New summary'}
+                </Button>
+              </Tooltip>
             )}
             <Button onClick={runGenerate} disabled={generate.isPending || blockers.length > 0}>
               <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />

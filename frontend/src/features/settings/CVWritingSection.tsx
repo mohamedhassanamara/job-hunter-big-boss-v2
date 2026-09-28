@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { TagInput } from '@/components/app/TagInput'
 import { Input, Textarea } from '@/components/ui/input'
 import { useSaveSetting } from '@/lib/queries/library'
 import type { SettingsView } from '@/lib/types'
@@ -50,6 +51,7 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
     writing_guide: String(cv.writing_guide ?? ''),
     structure: cv.structure as Structure,
     skill_merges: ((cv.skill_merges as string[] | undefined) ?? []).join('\n'),
+    banned_phrases: (cv.banned_phrases as string[] | undefined) ?? [],
   }
   const [v, setV] = useState(initial)
   const save = useSaveSetting()
@@ -82,6 +84,7 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
                 value: {
                   ...cv,
                   writing_guide: v.writing_guide,
+                  banned_phrases: v.banned_phrases,
                   structure: v.structure,
                   skill_merges: v.skill_merges.split('\n').map((l) => l.trim()).filter(Boolean),
                 },
@@ -96,6 +99,9 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
         <p className="text-sm font-medium">Writing guide</p>
         <Textarea value={v.writing_guide} onChange={(e) => setV({ ...v, writing_guide: e.target.value })} className="min-h-40 font-mono text-xs leading-5" aria-label="Writing guide" />
       </div>
+      <Field label="Banned phrases" hint="Checked in every summary; a summary using one is rewritten once">
+        <TagInput tags={v.banned_phrases} onChange={(banned_phrases) => setV({ ...v, banned_phrases })} placeholder="add a phrase (Enter)" />
+      </Field>
       {RANGES.map((r) => (
         <Field key={r.key} label={r.label} hint={r.hint}>
           <RangeInput label={r.label} value={s[r.key] as Range} onChange={(range) => set({ [r.key]: range } as Partial<Structure>)} />
