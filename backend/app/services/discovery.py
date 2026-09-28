@@ -9,6 +9,7 @@ import threading
 from collections.abc import Callable
 from datetime import timedelta
 from logging.handlers import RotatingFileHandler
+from typing import Any
 
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
@@ -244,6 +245,19 @@ def execute_run(
             on_jobs(job_ids)
         except Exception:
             _logger().exception("could not queue scoring")
+
+
+def after_discovery(engine: Engine, job_ids: list[int], queue: Any = None) -> None:
+    """What every run does with its jobs: resolve contacts (local, instant), then queue scoring
+    for jobs never scored. Each step is isolated: one failing never blocks the other."""
+    from app.services.contacts import resolve_after_discovery
+
+    try:
+        resolve_after_discovery(engine, job_ids)
+    except Exception:
+        _logger().exception("contact matching after discovery failed")
+    if queue is not None:
+        queue.enqueue_never_scored()
 
 
 def run_discovery(

@@ -19,7 +19,12 @@ _scheduler: BackgroundScheduler | None = None
 
 def _run_scheduled() -> None:
     from app.db import engine
-    from app.services.discovery import RunInProgress, enabled_sources, run_discovery
+    from app.services.discovery import (
+        RunInProgress,
+        after_discovery,
+        enabled_sources,
+        run_discovery,
+    )
     from app.services.scoring import workspace_queue
 
     with Session(engine) as s:
@@ -27,7 +32,7 @@ def _run_scheduled() -> None:
     try:
         queue = workspace_queue("real")
         run_discovery(engine, sources, RunTrigger.scheduled,
-                      on_jobs=lambda _ids: queue.enqueue_never_scored())
+                      on_jobs=lambda ids: after_discovery(engine, ids, queue))
     except RunInProgress:
         log.info("Scheduled discovery skipped: a run is already in progress")
 

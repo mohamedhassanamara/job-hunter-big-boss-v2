@@ -21,6 +21,7 @@ from app.models import (
     ApplicationResponse,
     AppSetting,
     Company,
+    CompanyLookup,
     Contact,
     CVVersion,
     ExperienceItem,
@@ -40,6 +41,7 @@ from app.models.enums import (
     EventKind,
     InterviewOutcome,
     InterviewType,
+    LookupStatus,
     QueueItemStatus,
     QueueStatus,
     ResponseKind,
@@ -50,6 +52,7 @@ from app.models.enums import (
 from app.providers.base import ContactSnapshot, JobSnapshot
 from app.providers.registry import cv_generator, email_drafter
 from app.seed import fixtures as fx
+from app.services.contacts import normalize_person, rank
 from app.services.cv_build import build_document, initial_state
 from app.services.cv_check import check_plan
 from app.services.cv_pool import load_pool
@@ -162,11 +165,17 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                 first, last = full_name.split(" ", 1)
                 slug = unicodedata.normalize("NFKD", f"{first}.{last}".lower().replace(" ", ""))
                 slug = slug.encode("ascii", "ignore").decode()
+                email = f"{slug}@{fx.COMPANIES[key]['domain']}"
                 contact = Contact(
                     company_id=companies[key].id,
                     full_name=full_name,
+                    first_name=first,
+                    last_name=last,
+                    normalized_name=normalize_person(full_name),
                     title=title,
-                    email=f"{slug}@{fx.COMPANIES[key]['domain']}",
+                    role_rank=rank(title, fx.SETTINGS["contacts"]["role_ranking"])[0],
+                    email=email,
+                    email_normalized=email.lower(),
                     linkedin_url=f"https://linkedin.com/in/{slug.replace('.', '-')}",
                     source=source,
                     imported_batch="apollo-2026-09-01.csv" if source == "apollo_dump" else None,
@@ -429,7 +438,31 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                         )
                     )
         _seed_tracking(s, apps, now)
+        _seed_lookups(s, apps, jobs, now)
         s.commit()
+
+
+def _seed_lookups(s: Session, apps: dict[str, Application], jobs: dict[str, Job],
+                  now: datetime) -> None:
+    """Tier 2 in the sandbox: queued companies (one row each) and the ones already looked up."""
+    done: set[int] = set()
+    for key, application in apps.items():
+        job = jobs[key]
+        if job.company_id in done:
+            continue
+        if application.contact_tier == "lookup_queued":
+            s.add(CompanyLookup(company_id=job.company_id, priority=fx_score(key),
+                                queued_at=now - timedelta(days=1)))
+            done.add(job.company_id)
+        elif application.contact_tier == "lookup_found":
+            s.add(CompanyLookup(company_id=job.company_id, status=LookupStatus.found,
+                                queued_at=now - timedelta(days=4),
+                                resolved_at=now - timedelta(days=3)))
+            done.add(job.company_id)
+
+
+def fx_score(key: str) -> int:
+    return next((j.score for j in fx.JOBS if j.key == key), 0)
 
 
 def _seed_tracking(s: Session, apps: dict[str, Application], now: datetime) -> None:
