@@ -24,6 +24,7 @@ search_profile 1─* source_run 1─* job *─1 company 1─* contact
                      ┌───────────┼──────────────┐
                      *           *              *
           application_event  cv_version   outreach_draft 1─0..1 send_queue_item *─1 send_queue
+          application_response · interview · reminder_action   (*─1 application, tracking after applying)
 experience_item (standalone master data)      app_setting (key/value)
 ```
 
@@ -159,9 +160,12 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | route | enum `undecided \| cold_email \| web_apply` | Derived from contact resolution. Can be overridden |
 | contact_id | FK contact? | |
 | contact_tier | enum `apollo_dump \| lookup_queued \| lookup_found \| none` | 3-tier resolution result |
-| close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer` | Only when `closed` |
+| close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer_accepted \| offer_declined \| offer` | Only when `closed`. After applying only rejected / no_response / withdrawn / offer_accepted / offer_declined (`services/tracking.close`); `offer` is legacy (shown as "Offer") |
 | notes | text | |
-| applied_at | datetime? | When it hit `done` |
+| applied_at | datetime? | The date you applied (user-chosen in "Mark applied", noon UTC); for cold email, when it hit `done` |
+| applied_method | enum? `company_site \| job_board \| email \| other` | Set by "Mark applied" |
+| applied_cv_version_id | FK cv_version? | The CV version sent (locked). `use_alter` FK: cv_version also points at application |
+| applied_notes | text | Notes from "Mark applied" |
 | stage_changed_at | datetime | Last stage change, which drives "days in stage" on cards |
 
 UI labels for `ready` / `done` depend on route: *Ready to send / Sent* (cold_email) versus *Ready to apply / Applied* (web_apply).
@@ -178,12 +182,20 @@ closed → new (reopen, clears close_reason)
 ```
 Dismiss = `→ closed` with `close_reason=dismissed`. Every transition writes an `application_event`.
 
+Tracked moves (`services/tracking.py`, always through `pipeline.transition`):
+- **Mark applied** (`POST /applications/{id}/applied`): only from `cv_ready`/`ready` (steps through `ready`), needs an
+  approved CV of this job (default: the latest), locks it, sets `applied_*`, → `done`. `PATCH stage=done` is refused
+  for web apply, and `PATCH stage=interview` always (use Mark applied / Log interview).
+- Approving a CV with no contact moves `cv_ready → ready` (Ready to apply) at once.
+- **Log interview**: the first one moves `done → interview`. **Log reply** never moves the stage.
+- **Ghosting** is only suggested (a reminder); `POST /reminders/{id}/ghost/confirm` closes as `no_response`.
+
 ### application_event
 Timeline and stage history.
 | Column | Type | Notes |
 |---|---|---|
 | application_id | FK | |
-| kind | enum `discovered \| stage_change \| note \| cv_generated \| cv_approved \| draft_created \| draft_approved \| sent \| applied \| contact_resolved` | |
+| kind | enum `discovered \| stage_change \| note \| cv_generated \| cv_approved \| draft_created \| draft_approved \| sent \| applied \| contact_resolved \| response \| interview \| reminder` | |
 | from_stage / to_stage | str? | For stage_change |
 | message | str? | Human-readable line |
 | payload | JSON | Extra data |
@@ -205,6 +217,35 @@ Timeline and stage history.
 | duration_ms / error | int? / text? | Total generation time; LaTeX error + log tail |
 | status | enum `draft \| approved \| superseded` | Approving one supersedes the others; changing an approved one creates a new draft |
 | generator_model | str | e.g. `claude-sonnet-5`, `mock-cv` |
+| locked_at / pdf_sha256 | datetime? / str? | Set when sent with an application: never re-rendered, re-approved or superseded (edits create a new draft); the hash proves the PDF never changes |
+
+### application_response
+| Column | Type | Notes |
+|---|---|---|
+| application_id | FK | |
+| kind | enum `positive \| rejection \| other` | |
+| received_at | datetime | |
+| notes | text | |
+
+### interview
+| Column | Type | Notes |
+|---|---|---|
+| application_id | FK | |
+| round | int | 1, 2… (automatic) |
+| scheduled_at | datetime | |
+| type | enum `hr \| technical \| take_home \| final \| other` | |
+| outcome | enum `pending \| passed \| failed \| cancelled` | |
+| notes | text | |
+
+### reminder_action
+Reminders are **computed** (`tracking.reminders`), not stored: for applications in `done`/`interview` with no reply and
+no interview, a follow-up at `applied_at + d` for each `d` in `tracking.followup_days` (only the latest due one shows) and
+a ghosting suggestion at `applied_at + ghost_after_days`. This table only records what you did with one.
+| Column | Type | Notes |
+|---|---|---|
+| application_id | FK | |
+| key | str | `followup:7`, `followup:14`, `ghost` |
+| snoozed_until / dismissed_at | datetime? | Snoozed hides until then; dismissed hides for good |
 
 ### outreach_draft
 | Column | Type | Notes |
@@ -238,5 +279,5 @@ A single row in v2 (the global queue).
 ### app_setting
 | Column | Type | Notes |
 |---|---|---|
-| key | str unique | `sources`, `models`, `smtp`, `schedule` |
+| key | str unique | `sources`, `models`, `smtp`, `schedule`, `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |

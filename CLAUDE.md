@@ -144,6 +144,14 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
 - The style golden test (`tests/test_cv_render.py`) compiles the default template against the reference: keep it pixel-equal.
 
+## Tracking after the CV (services/tracking.py, api/tracking.py)
+
+- No model calls. Mark applied (from `cv_ready`/`ready`) locks the CV version sent (`locked_at`, `pdf_sha256`); locked
+  versions are never re-rendered, re-approved or superseded. `PATCH stage` refuses `done` (web apply) and `interview`.
+- Replies, interview rounds and reminder actions are their own tables; reminders are computed from `app_setting.tracking`.
+  Ghosting is only suggested; closing needs the user's click. Stats/CSV come from `tracking.tracked()` rows.
+- Frontend: `components/app/tracking/*` (dialogs, AppliedFacts, TrackingActions), `features/applications/*`.
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.
