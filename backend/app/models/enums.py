@@ -88,6 +88,19 @@ class Route(StrEnum):
     web_apply = "web_apply"
 
 
+class ImportStatus(StrEnum):
+    running = "running"
+    done = "done"
+    failed = "failed"
+
+
+class LookupStatus(StrEnum):
+    queued = "queued"
+    found = "found"
+    not_found = "not_found"
+    skipped = "skipped"
+
+
 class ContactTier(StrEnum):
     apollo_dump = "apollo_dump"
     lookup_queued = "lookup_queued"
