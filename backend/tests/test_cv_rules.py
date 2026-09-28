@@ -220,7 +220,9 @@ def v5(text: str, cited: list[str] | None = None, openings: list[str] | None = N
 @pytest.mark.parametrize(("text", "expected"), [
     ("Engineer with hands-on experience in data. It ships.", "banned phrase “hands-on experience”"),
     ("Engineer building pipelines. I love data.", "first person"),
-    ("Engineer building pipelines. Brings experience in data.", "fragment"),
+    ("Engineer building pipelines. Brings experience in data.", "no subject"),
+    ("Engineer building pipelines. Built a resume parser on Mistral.", "no subject"),
+    ("Engineer building pipelines. At Nexaminds, built a resume parser.", "no subject"),
 ])
 def test_v5_summary_rules(text: str, expected: str) -> None:
     assert any(expected in p for p in v5(text))
@@ -234,6 +236,17 @@ def test_summary_must_name_something_concrete_from_the_cited_items() -> None:
                 "lakehouse for Premier League data.")
     assert any("concrete" in p for p in v5(vague, cited))
     assert not any("concrete" in p for p in v5(concrete, cited))
+
+
+def test_data_ai_summaries_lead_with_what_you_build_not_a_career_change() -> None:
+    change = "Software engineer transitioning into Data Engineering. He built a lakehouse."
+    got = cv_rules.summary_problems(change, rules=RULES, bullet_texts=[], certifications=[],
+                                    internships=[], tools=set(), lead_with_build=True)
+    assert any("career change" in p for p in got)
+    ok = "Software engineer building data pipelines and local LLM systems. He built a lakehouse."
+    assert not any("career change" in p for p in cv_rules.summary_problems(
+        ok, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set(),
+        lead_with_build=True))
 
 
 def test_summary_openings_must_vary_between_cvs() -> None:
