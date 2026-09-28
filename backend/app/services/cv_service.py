@@ -90,13 +90,21 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
         },
         pool=prompt_pool(pool),
         emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
-        facts={"years": years_facts(pool, _tracks(s))},
+        facts={"years": summary_years(years_facts(pool, _tracks(s)), track or "")},
         guide=cv_rules.guide(cv_settings(s)) + (
             "\nNever use these phrases: " + "; ".join(cv_rules.banned(cv_settings(s)))
             if cv_rules.banned(cv_settings(s)) else ""),
         style=cv_rules.style_exemplar(),
         layout=layout_hints(pool, cv_rules.structure(cv_settings(s))),
     )
+
+
+def summary_years(facts: list[dict[str, Any]], track: str) -> list[dict[str, Any]]:
+    """Years the summary may state. In a Data/AI CV, a track's years under 2 read as junior:
+    state the total (or nothing) instead, so those facts aren't offered or allowed."""
+    if not _data_ai(track.lower()):
+        return facts
+    return [f for f in facts if f.get("kind") != "track" or int(f["years"]) >= 2]
 
 
 def layout_hints(pool: Pool, rules: dict[str, Any]) -> dict[str, Any]:

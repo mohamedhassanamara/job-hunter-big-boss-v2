@@ -20,7 +20,9 @@ DEFAULT_GUIDE = "\n".join([
     "\"a dbt/Airflow lakehouse for football data\"). Give sentence 2 a subject without \"I\" "
     "(e.g. \"Recent work includes…\", \"Projects include…\", \"That work spans…\"), never a bare "
     "verb like \"Built…\" or \"Delivered…\". Vary the opening between CVs. No numbers "
-    "that also appear in bullets, no certifications, no internships, no tool lists.",
+    "that also appear in bullets, no certifications, no internships, no tool lists. In Data/AI "
+    "summaries, state track years only when they are 2 or more; otherwise the total years, or "
+    "no years at all.",
     "Bullets: impact first (what I built and why it mattered), strong and varied verbs, one idea "
     "per bullet. Prefer bullets with concrete outcomes; skip generic ones (\"collaborated in Agile "
     "sprints\") unless nothing else fits.",
@@ -34,6 +36,7 @@ DEFAULT_GUIDE = "\n".join([
 DEFAULT_CV_BANNED = [
     "hands-on experience", "well suited", "strong foundation", "real-world applications",
     "production-ready", "brings experience", "passionate", "proven track record", "leveraging",
+    "moving into", "moving from", "transitioning into", "career change",
 ]
 
 DEFAULT_STRUCTURE: dict[str, Any] = {
