@@ -2,16 +2,19 @@ from datetime import timedelta
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, col, select
 
-from app.api.deps import SessionDep, get_or_404
+from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.models import (
     Application,
+    AppSetting,
     Company,
     Contact,
     CVVersion,
+    ExperienceItem,
     Job,
     OutreachDraft,
+    SendLog,
     SendQueue,
     SendQueueItem,
 )
@@ -22,11 +25,10 @@ from app.models.enums import (
     EventKind,
     QueueItemStatus,
     QueueStatus,
-    Route,
     Stage,
 )
-from app.providers.base import ContactSnapshot, JobSnapshot
-from app.providers.registry import email_drafter
+from app.providers.base import SendFailed
+from app.providers.registry import email_drafter, mailer
 from app.schemas.outreach import (
     DraftContact,
     DraftOut,
@@ -34,8 +36,10 @@ from app.schemas.outreach import (
     QueueCounts,
     QueueItemOut,
     QueueOut,
+    SendLogOut,
 )
-from app.services import pipeline
+from app.services import contacts as contacts_svc
+from app.services import outreach, pipeline, send_queue
 from app.services.views import fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -76,6 +80,11 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
     ).all():
         cvs[cv.application_id] = cv.version
     fits = latest_fits(session, jobs.keys())
+    ranking = contacts_svc.ranking_settings(session)
+    cited = {c for d in drafts for s in ((d.plan or {}).get("plan") or {}).get("sentences", [])
+             for c in s.get("citations", [])}
+    items = {i.id: i for i in session.exec(select(ExperienceItem).where(
+        col(ExperienceItem.id).in_(cited))).all()} if cited else {}
     out = []
     for d in drafts:
         app = apps[d.application_id]
@@ -89,7 +98,8 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 job_title=job.title,
                 company_name=companies[job.company_id].name,
                 fit=fit_brief(fits.get(job.id)),
-                contact=DraftContact(id=c.id, full_name=c.full_name, title=c.title, email=c.email)
+                contact=DraftContact(id=c.id, full_name=c.full_name, title=c.title, email=c.email,
+                                     role_label=ranking.label(c.role_rank))
                 if c
                 else None,
                 subject=d.subject,
@@ -100,6 +110,17 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 cv_version=cvs.get(app.id),
                 created_at=d.created_at,
                 updated_at=d.updated_at,
+                cv_version_id=d.cv_version_id,
+                sentences=((d.plan or {}).get("plan") or {}).get("sentences", []),
+                citations={str(k): f"{v.title}{f' · {v.org}' if v.org else ''}"
+                           for k, v in items.items()},
+                violations=d.violations or [],
+                attempts=(d.plan or {}).get("attempts", 1),
+                prompt_version=d.prompt_version,
+                duration_ms=d.duration_ms,
+                full_body=outreach.full_body(session, d),
+                test_sent_at=d.test_sent_at,
+                sent_at=d.sent_at,
             )
         )
     return out
@@ -143,6 +164,8 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
         d.subject, d.edited = body.subject, True
     if body.body is not None and body.body != d.body:
         d.body, d.edited = body.body, True
+    if d.edited:
+        d.violations = outreach.recheck(session, d)
     session.add(d)
     session.commit()
     session.refresh(d)
@@ -151,36 +174,51 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
 
 @router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
 def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
-    """Approve → append to the send queue (or wait as `approved` if the queue is full)."""
+    """Approve → append to the send queue (or wait as `approved` if the queue is full). A draft
+    with unresolved errors (grounding, names, banned phrases, length) can't be approved."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
         raise HTTPException(409, "Only drafts under review can be approved")
+    blocking = [v for v in d.violations or [] if v.get("severity") == "error"]
+    if blocking:
+        raise HTTPException(409, f"Fix {len(blocking)} problem(s) first: {blocking[0]['message']}")
     app = get_or_404(session, Application, d.application_id)
-    queue = _queue(session)
-    pending = session.exec(
-        select(func.count()).select_from(SendQueueItem).where(
-            SendQueueItem.queue_id == queue.id, SendQueueItem.status == QueueItemStatus.pending
-        )
-    ).one()
-    last_pos = session.exec(
-        select(func.max(SendQueueItem.position)).where(SendQueueItem.queue_id == queue.id)
-    ).one()
-    if pending < queue.max_items:
-        d.status = DraftStatus.queued
-        session.add(
-            SendQueueItem(
-                queue_id=queue.id, draft_id=d.id, position=(last_pos or 0) + 1
-            )
-        )
-    else:
+    contact = session.get(Contact, d.contact_id) if d.contact_id else None
+    if contact is None or not contact.email:
+        raise HTTPException(409, "The contact has no email address")
+    if not send_queue.enqueue(session, d):
         d.status = DraftStatus.approved
-    pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved and queued")
+        session.add(d)
+    pipeline.log_event(session, app, EventKind.draft_approved,
+                       "Email draft approved" + (" and queued" if d.status == "queued" else
+                                                 " (queue full: waiting)"))
     if app.stage == Stage.cv_ready:
         pipeline.transition(session, app, Stage.ready)
-    session.add(d)
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/test-send", response_model=SendLogOut)
+def test_send_draft(draft_id: int, session: SessionDep, engine: EngineDep,
+                    workspace: WorkspaceDep) -> SendLogOut:
+    """Send this exact email (CV attached) to your own address, subject "[TEST] …"."""
+    get_or_404(session, OutreachDraft, draft_id, "Draft")
+    try:
+        m = _mailer(session, workspace)
+        entry = outreach.test_send(engine, draft_id, m)
+    except (outreach.OutreachError, SendFailed) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    if entry.status != "sent":
+        raise HTTPException(502, entry.error or "Sending failed")
+    return SendLogOut.model_validate(entry, from_attributes=True)
+
+
+def _mailer(session: Session, workspace: str):  # noqa: ANN202
+    smtp = session.exec(select(AppSetting).where(AppSetting.key == "smtp")).first()
+    cfg = smtp.value if smtp else {}
+    return mailer(mock=True if workspace == "demo" else None, address=cfg.get("address", ""),
+                  from_name=cfg.get("from_name", ""))
 
 
 @router.post("/outreach/drafts/{draft_id}/reject", response_model=DraftOut)
@@ -209,48 +247,29 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
 
 
 @router.post("/applications/{app_id}/draft/generate", response_model=DraftOut)
-def generate_draft(app_id: int, session: SessionDep) -> DraftOut:
-    app = get_or_404(session, Application, app_id, "Application")
-    if app.contact_id is None:
-        raise HTTPException(409, "No contact for this job. Route it to web apply instead")
-    job = get_or_404(session, Job, app.job_id)
-    company = get_or_404(session, Company, job.company_id)
-    contact = get_or_404(session, Contact, app.contact_id)
-    cv = session.exec(
-        select(CVVersion).where(
-            CVVersion.application_id == app.id, CVVersion.status == CVStatus.approved
-        )
-    ).first()
-    for old in session.exec(
-        select(OutreachDraft).where(
-            OutreachDraft.application_id == app.id, OutreachDraft.status == DraftStatus.draft
-        )
-    ).all():
-        old.status = DraftStatus.rejected
-        session.add(old)
-    drafter = email_drafter()
-    result = drafter.draft(
-        JobSnapshot(title=job.title, company=company.name, description=job.description),
-        ContactSnapshot(full_name=contact.full_name, title=contact.title, email=contact.email),
-        dict(cv.content) if cv else None,
-    )
-    d = OutreachDraft(
-        application_id=app.id,
-        contact_id=contact.id,
-        subject=result.subject,
-        body=result.body,
-        model=result.model,
-    )
-    if app.route == Route.undecided:
-        app.route = Route.cold_email
-        session.add(app)
-    session.add(d)
-    pipeline.log_event(
-        session, app, EventKind.draft_created, f"Email draft created for {contact.full_name}"
-    )
-    session.commit()
-    session.refresh(d)
-    return _drafts_out(session, [d])[0]
+def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
+                   workspace: WorkspaceDep) -> DraftOut:
+    """One job at a time: Claude (your subscription) in the real workspace, the mock in the
+    sandbox and tests. Checked, retried once, then shown with anything still wrong."""
+    get_or_404(session, Application, app_id, "Application")
+    models = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    model = (((models.value if models else {}).get("email") or {}).get("model")
+             or "claude-sonnet-5")
+    if model.startswith("claude-haiku"):  # the default was a haiku placeholder; drafts need care
+        model = "claude-sonnet-5"
+    drafter = email_drafter(mock=True if workspace == "demo" else None, model=model)
+    try:
+        draft = outreach.generate(engine, app_id, drafter)
+    except outreach.OutreachError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.expire_all()
+    return _drafts_out(session, [get_or_404(session, OutreachDraft, draft.id)])[0]
+
+
+@router.get("/outreach/send-log", response_model=list[SendLogOut])
+def send_log(session: SessionDep, limit: int = 100) -> list[SendLogOut]:
+    rows = session.exec(select(SendLog).order_by(col(SendLog.id).desc()).limit(limit)).all()
+    return [SendLogOut.model_validate(r, from_attributes=True) for r in rows]
 
 
 # ---------------------------------------------------------------------------------------- queue
@@ -296,6 +315,7 @@ def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
                 scheduled_at=projected.get(i.id, i.scheduled_at),
                 sent_at=i.sent_at,
                 error=i.error,
+                attempts=i.attempts,
                 draft_id=d.id,
                 job_id=d.job_id,
                 subject=d.subject,
@@ -321,8 +341,11 @@ def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
             pending=len(pending),
             sent=sum(1 for i in items if i.status == QueueItemStatus.sent),
             failed=sum(1 for i in items if i.status == QueueItemStatus.failed),
+            unknown=sum(1 for i in items if i.status == QueueItemStatus.unknown),
         ),
         items=out,
+        test_sent=outreach.has_successful_test(session),
+        own_address=outreach.own_address(session),
     )
 
 
@@ -343,13 +366,36 @@ def pause_queue(session: SessionDep) -> QueueOut:
 
 @router.post("/queue/resume", response_model=QueueOut)
 def resume_queue(session: SessionDep) -> QueueOut:
-    """Phase 0: marks the queue running and projects send times. Nothing is actually sent."""
-    queue = _queue(session)
-    queue.status = QueueStatus.running
-    queue.next_send_at = utcnow() + timedelta(minutes=queue.interval_minutes)
-    session.add(queue)
+    """Start sending: one email per interval. Requires one successful test send first."""
+    try:
+        q = send_queue.resume(session)
+    except send_queue.QueueError as exc:
+        raise HTTPException(409, str(exc)) from exc
     session.commit()
-    return _queue_out(session, queue)
+    return _queue_out(session, q)
+
+
+@router.post("/queue/items/{item_id}/retry", response_model=QueueOut)
+def retry_item(item_id: int, session: SessionDep) -> QueueOut:
+    item = get_or_404(session, SendQueueItem, item_id, "Queue item")
+    try:
+        send_queue.retry(session, item)
+    except send_queue.QueueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    return _queue_out(session, _queue(session))
+
+
+@router.post("/queue/items/{item_id}/mark-sent", response_model=QueueOut)
+def mark_item_sent(item_id: int, session: SessionDep) -> QueueOut:
+    """An item with an unknown outcome that you found in Gmail's Sent folder."""
+    item = get_or_404(session, SendQueueItem, item_id, "Queue item")
+    try:
+        send_queue.mark_sent(session, item)
+    except send_queue.QueueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    return _queue_out(session, _queue(session))
 
 
 @router.delete("/queue/items/{item_id}", response_model=QueueOut)

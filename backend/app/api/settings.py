@@ -1,4 +1,3 @@
-import os
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -54,7 +53,7 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     values = {s.key: s.value for s in session.exec(select(AppSetting)).all()}
     return SettingsOut(
         values=values,
-        smtp_password_configured=bool(os.environ.get("SMTP_APP_PASSWORD")),
+        smtp_password_configured=bool(get_settings().smtp_app_password),
         database_path=get_settings().database_url.removeprefix("sqlite:///"),
         last_runs=last_runs(session),
         next_run_at=scheduler.next_run_at(),

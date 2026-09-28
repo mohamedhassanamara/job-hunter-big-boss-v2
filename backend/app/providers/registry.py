@@ -57,11 +57,31 @@ def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5") ->
     return ClaudeCVGenerator(model)
 
 
-@lru_cache
-def email_drafter() -> EmailDrafter:
-    return MockEmailDrafter()
+def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> EmailDrafter:
+    """Real workspace: Claude Code headless (subscription only). Tests and the sandbox: mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        return MockEmailDrafter()
+    from app.providers.claude_email import ClaudeEmailDrafter
+
+    return ClaudeEmailDrafter(model)
 
 
-@lru_cache
-def mailer() -> Mailer:
-    return MockMailer()
+_mock_mailer = MockMailer()
+
+
+def mailer(*, mock: bool | None = None, address: str = "", from_name: str = "") -> Mailer:
+    """Gmail SMTP when an address and SMTP_APP_PASSWORD are configured; otherwise (and in the
+    sandbox and tests) the mock, which never sends anything."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    password = get_settings().smtp_app_password
+    if use_mock:
+        return _mock_mailer
+    if not address or not password:
+        from app.providers.base import SendFailed
+
+        raise SendFailed("Email isn't configured: set the Gmail address in Settings → Email and "
+                         "SMTP_APP_PASSWORD in .env", fatal=True)
+    from app.providers.smtp_mailer import GmailMailer
+
+    return GmailMailer(address, password, from_name)

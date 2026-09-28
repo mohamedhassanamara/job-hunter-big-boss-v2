@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     log_dir: Path = DATA_DIR / "logs"
     # Daily discovery via APScheduler (tests turn it off).
     scheduler_enabled: bool = True
+    # Gmail app password for sending (never stored in the database).
+    smtp_app_password: str = ""
+    # The send queue worker (real workspace only; tests turn it off).
+    send_worker_enabled: bool = True
 
 
 @lru_cache

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -10,6 +11,7 @@ class DraftContact(BaseModel):
     full_name: str
     title: str | None
     email: str | None
+    role_label: str | None = None
 
 
 class DraftOut(BaseModel):
@@ -28,6 +30,16 @@ class DraftOut(BaseModel):
     cv_version: int | None
     created_at: datetime
     updated_at: datetime
+    cv_version_id: int | None = None
+    sentences: list[dict[str, Any]] = []  # [{text, citations, about_job}] as generated
+    citations: dict[str, str] = {}  # pool id -> "Role at Org" (for hover)
+    violations: list[dict[str, Any]] = []  # [{type, severity, message, where}]
+    attempts: int = 1
+    prompt_version: str | None = None
+    duration_ms: int | None = None
+    full_body: str = ""  # as sent: your text + signature + opt-out
+    test_sent_at: datetime | None = None
+    sent_at: datetime | None = None
 
 
 class DraftPatch(BaseModel):
@@ -42,6 +54,7 @@ class QueueItemOut(BaseModel):
     scheduled_at: datetime | None
     sent_at: datetime | None
     error: str | None
+    attempts: int = 0
     draft_id: int
     job_id: int
     subject: str
@@ -54,6 +67,7 @@ class QueueCounts(BaseModel):
     pending: int
     sent: int
     failed: int
+    unknown: int = 0
 
 
 class QueueOut(BaseModel):
@@ -63,3 +77,18 @@ class QueueOut(BaseModel):
     next_send_at: datetime | None
     counts: QueueCounts
     items: list[QueueItemOut]
+    test_sent: bool = False  # a test email reached your inbox (required before starting)
+    own_address: str = ""
+
+
+class SendLogOut(BaseModel):
+    id: int
+    draft_id: int | None
+    kind: str
+    to: str
+    subject: str
+    status: str
+    error: str | None
+    message_id: str | None
+    attachment: str | None
+    at: datetime

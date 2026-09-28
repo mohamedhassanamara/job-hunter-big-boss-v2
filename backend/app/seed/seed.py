@@ -30,6 +30,7 @@ from app.models import (
     Job,
     OutreachDraft,
     SearchProfile,
+    SendLog,
     SendQueue,
     SendQueueItem,
     SourceRun,
@@ -49,8 +50,8 @@ from app.models.enums import (
     Source,
     Stage,
 )
-from app.providers.base import ContactSnapshot, JobSnapshot
-from app.providers.registry import cv_generator, email_drafter
+from app.providers.mock import MockEmailDrafter
+from app.providers.registry import cv_generator
 from app.seed import fixtures as fx
 from app.services.contacts import normalize_person, rank
 from app.services.contacts import report as contacts_report
@@ -369,7 +370,6 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                     )
 
         # Outreach drafts + queue.
-        drafter = email_drafter()
         plan = [
             ("sierra-gcp", DraftStatus.draft, None),
             ("lumiere-mlops", DraftStatus.rejected, None),
@@ -385,17 +385,14 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             job = jobs[key]
             contact = s.get(Contact, application.contact_id)
             assert contact is not None
-            result = drafter.draft(
-                JobSnapshot(title=job.title, company=companies[fx_company(key)].name),
-                ContactSnapshot(full_name=contact.full_name, title=contact.title),
-                None,
-            )
+            subject, body = MockEmailDrafter.sample(job.title, companies[fx_company(key)].name,
+                                                    contact.full_name.split(" ")[0])
             created = application.stage_changed_at - timedelta(hours=1)
             draft = OutreachDraft(
                 application_id=application.id,
                 contact_id=contact.id,
-                subject=result.subject,
-                body=result.body,
+                subject=subject,
+                body=body,
                 status=status,
                 model="claude-haiku-4-5 (mock)",
                 edited=key == "kelpie-staff",
@@ -440,6 +437,9 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                     )
         _seed_tracking(s, apps, now)
         _seed_lookups(s, apps, jobs, now)
+        # The tour can start the send queue: a test send to yourself already went through.
+        s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
+                      at=now - timedelta(days=2)))
         s.flush()
         s.add(AppSetting(key="contacts_last_match", value=contacts_report(s)))
         s.commit()

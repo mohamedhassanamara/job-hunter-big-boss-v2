@@ -9,6 +9,8 @@ os.environ["DEMO_DATABASE_URL"] = f"sqlite:///{_tmp / 'demo.db'}"
 os.environ["MOCK_LATENCY_MS"] = "0"
 os.environ["JOB_SOURCES"] = "mock"
 os.environ["SCHEDULER_ENABLED"] = "false"
+os.environ["SEND_WORKER_ENABLED"] = "false"
+os.environ["SMTP_APP_PASSWORD"] = ""
 
 import socket  # noqa: E402
 

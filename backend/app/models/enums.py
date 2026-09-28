@@ -190,6 +190,8 @@ class QueueItemStatus(StrEnum):
     sent = "sent"
     failed = "failed"
     cancelled = "cancelled"
+    # Was being sent when the app stopped: never resent blindly; check Gmail's Sent folder.
+    unknown = "unknown"
 
 
 class FitStatus(StrEnum):
