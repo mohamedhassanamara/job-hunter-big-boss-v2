@@ -109,7 +109,7 @@ def allowance(kind: str, item: ExperienceItem | None, relevance: int, rules: dic
         lo, hi = rules[kind_]
         if kind_ in ("short_role", "graduation"):  # 1-3 by how much it matters for this job
             hi = min(hi, 3 if relevance >= 8 else 2 if relevance >= 5 else 1)
-            lo = min(lo, hi)
+            lo = max(lo, 2) if relevance >= 8 and hi >= 2 else min(lo, hi)
     hi = min(hi, available)
     return min(lo, hi), hi
 
@@ -120,6 +120,41 @@ def is_generic(text: str) -> bool:
 
 
 # ----------------------------------------------------------------------------------- skills
+
+# Conventional spellings for tag slugs (used when your own text never spells the term).
+DISPLAY = {
+    "sql": "SQL", "postgresql": "PostgreSQL", "mysql": "MySQL", "mongodb": "MongoDB",
+    "mlflow": "MLflow", "github-actions": "GitHub Actions", "gitlab-ci": "GitLab CI",
+    "ollama": "Ollama", "terraform": "Terraform", "git": "Git", "linux": "Linux", "bash": "Bash",
+    "docker": "Docker", "docker-compose": "Docker Compose", "python": "Python",
+    "fastapi": "FastAPI", "flask": "Flask", "django": "Django", "spring-boot": "Spring Boot",
+    "java": "Java", "rest-api": "REST API", "graphql": "GraphQL", "mqtt": "MQTT",
+    "testflight": "TestFlight", "yolov8": "YOLOv8", "spacy": "spaCy", "openai": "OpenAI",
+    "rag": "RAG", "nlp": "NLP", "llm": "LLM", "llms": "LLMs", "tf-idf": "TF-IDF",
+    "localstack": "LocalStack", "s3": "S3", "duckdb": "DuckDB", "dbt": "dbt",
+    "airflow": "Airflow", "dart": "Dart", "flutter": "Flutter", "riverpod": "Riverpod",
+    "gorouter": "GoRouter", "bff": "BFF", "aws": "AWS", "gcp": "GCP", "azure": "Azure",
+    "kafka": "Kafka", "spark": "Spark", "pyspark": "PySpark", "pandas": "pandas",
+    "numpy": "NumPy", "pytorch": "PyTorch", "tensorflow": "TensorFlow", "keras": "Keras",
+    "scikit-learn": "scikit-learn", "kubernetes": "Kubernetes", "javascript": "JavaScript",
+    "typescript": "TypeScript", "react": "React", "nodejs": "Node.js", "node": "Node.js",
+    "computer-vision": "Computer Vision", "deep-learning": "Deep Learning", "lstm": "LSTM",
+    "cnn": "CNN", "etl": "ETL", "elt": "ELT", "ci-cd": "CI/CD", "firebase": "Firebase",
+    "mistral": "Mistral", "whisper": "Whisper", "prophet": "Prophet", "esp32": "ESP32",
+    "raspberry-pi": "Raspberry Pi", "iot": "IoT", "clean-architecture": "Clean Architecture",
+    "mockito": "Mockito", "google-maps": "Google Maps", "snowflake": "Snowflake",
+    "bigquery": "BigQuery", "redis": "Redis", "power-bi": "Power BI", "tableau": "Tableau",
+}
+
+
+def display(term: str, spelled: str | None = None) -> str:
+    """How a skill is written: your own spelling if you ever wrote it with capitals, else the
+    conventional name for a known slug, else the term as given."""
+    if spelled and spelled != spelled.lower():
+        return spelled
+    if term != term.lower():
+        return term
+    return DISPLAY.get(term.strip().lower(), spelled or term)
 
 
 @dataclass
@@ -238,16 +273,16 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
     if repeated:
         out.append(f"repeats numbers from the bullets ({', '.join(repeated)})")
     low = text.lower()
-    if re.search(r"\bcertif", low) or any(
-            (c.org and c.org.lower() in low) or (c.title and len(c.title) > 12
-                                                 and c.title.lower() in low)
-            for c in certifications):
+    # The issuer or the word itself: a certificate titled "Data Engineer" mustn't match a
+    # summary saying "data engineering".
+    if re.search(r"\bcertif", low) or any(c.org and len(c.org) > 3 and c.org.lower() in low
+                                          for c in certifications):
         out.append("mentions certifications")
     if _INTERN.search(text) or any(i.org and i.org.lower() in low for i in internships):
         out.append("mentions an internship")
     for sentence in sentences(text):
-        found = sorted({t for t in tools if re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])",
-                                                      sentence, re.I)})
+        found = sorted({t.lower() for t in tools
+                        if re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])", sentence, re.I)})
         if len(found) >= 3:
             out.append(f"lists tools ({', '.join(found[:5])})")
             break
