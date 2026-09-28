@@ -1,6 +1,7 @@
 """Builds API DTOs from ORM rows with a handful of batched queries (no N+1)."""
 
 from collections.abc import Iterable, Sequence
+from typing import Any
 
 from sqlmodel import Session, col, func, select
 
@@ -8,6 +9,7 @@ from app.models import (
     Application,
     ApplicationEvent,
     Company,
+    CompanyLookup,
     Contact,
     CVVersion,
     FitScore,
@@ -208,7 +210,10 @@ def pipeline_cards(session: Session, apps: Sequence[Application]) -> list[Pipeli
     return cards
 
 
-def contact_out(c: Contact) -> ContactOut:
+def contact_out(c: Contact, ranking: list[dict[str, Any]] | None = None) -> ContactOut:
+    label = None
+    if ranking is not None and 0 <= c.role_rank < len(ranking):
+        label = ranking[c.role_rank].get("label")
     return ContactOut(
         id=c.id,
         company_id=c.company_id,
@@ -217,6 +222,8 @@ def contact_out(c: Contact) -> ContactOut:
         email=c.email,
         linkedin_url=c.linkedin_url,
         source=c.source,
+        role_rank=c.role_rank,
+        role_label=label,
     )
 
 
@@ -305,7 +312,8 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         else None,
         notes=app.notes,
         tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
-        contact=contact_out(contact) if contact else None,
+        contact=contact_out(contact, _ranking(session)) if contact else None,
+        lookup_status=_lookup_status(session, company.id),
         company_contacts=contact_count,
         other_jobs_at_company=related_jobs(session, others),
         duplicates=related_jobs(session, dups),
@@ -369,3 +377,14 @@ def tracked_item(session: Session, r: tracking.TrackedRow) -> TrackedItem:
         interviews=[InterviewOut.model_validate(x, from_attributes=True) for x in r.interviews],
         days_to_first_response=round(days, 1) if days is not None else None,
     )
+
+
+def _ranking(session: Session) -> list[dict[str, Any]]:
+    from app.services.contacts import role_ranking
+
+    return role_ranking(session)
+
+
+def _lookup_status(session: Session, company_id: int) -> str | None:
+    row = session.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
+    return row.status if row else None

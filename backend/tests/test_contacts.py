@@ -334,3 +334,79 @@ def test_add_contact_rejects_a_known_email(seeded: None) -> None:
 
 def test_lookup_status_values() -> None:
     assert {s.value for s in LookupStatus} == {"queued", "found", "not_found", "skipped"}
+
+
+# ------------------------------------------------------------------------------------ API
+
+
+def test_import_through_the_api_with_preview_polling_and_hash_guard(client) -> None:  # noqa: ANN001
+    import json
+    import time
+
+    co = f"Api Co {next(_n)}"
+    raw = csv_bytes(f"Ana,Api,CTO,{co},ana{next(_n)}@api.io", f"Bo,Api,Recruiter,{co},")
+    [preview] = client.post("/api/contacts/import/preview",
+                            files=[("files", ("api.csv", raw, "text/csv"))]).json()
+    assert preview["total_rows"] == 2 and preview["mapping"]["company"] == "Company"
+    assert preview["already_imported_at"] is None
+    r = client.post("/api/contacts/import", files={"file": ("api.csv", raw, "text/csv")},
+                    data={"mapping": json.dumps(preview["mapping"])})
+    assert r.status_code == 202
+    run_id = r.json()["id"]
+    for _ in range(100):
+        run = client.get(f"/api/contacts/imports/{run_id}").json()
+        if run["status"] != "running":
+            break
+        time.sleep(0.05)
+    assert run["status"] == "done" and run["created"] == 2
+    again = client.post("/api/contacts/import", files={"file": ("api.csv", raw, "text/csv")},
+                        data={"mapping": json.dumps(preview["mapping"])})
+    assert again.status_code == 409
+    bad = client.post("/api/contacts/import", files={"file": ("x.csv", raw, "text/csv")},
+                      data={"mapping": json.dumps({"email": "Email"})})
+    assert bad.status_code == 422
+
+
+def test_lookup_and_per_job_contact_endpoints(client) -> None:  # noqa: ANN001
+    with Session(engine) as s:
+        company = make_company(s)
+        app = make_job(s, company, score=97)
+        contacts.resolve(s, app)
+        s.commit()
+        company_id, app_id, job_id = company.id, app.id, app.job_id
+    queue = client.get("/api/contacts/lookups").json()
+    assert company_id in [i["company_id"] for i in queue["items"]]
+    after = client.post(f"/api/contacts/lookups/{company_id}/found",
+                        json={"full_name": "Lia Found", "title": "CTO", "email": "lia@f.io"})
+    assert after.status_code == 200 and after.json()["used_today"] >= 1
+    detail = client.get(f"/api/jobs/{job_id}").json()
+    assert detail["contact"]["full_name"] == "Lia Found"
+    assert detail["contact"]["role_label"] == "CTO"
+    assert detail["application"]["contact_tier"] == "lookup_found"
+    assert detail["lookup_status"] == "found"
+    mine = client.post(f"/api/applications/{app_id}/contact",
+                       json={"full_name": "Max Manual", "title": "Tech Lead"})
+    assert mine.json()["contact"]["full_name"] == "Max Manual"
+    cleared = client.delete(f"/api/applications/{app_id}/contact").json()
+    assert cleared["contact"]["full_name"] == "Lia Found"  # CTO outranks the tech lead
+
+
+def test_contacts_settings_are_validated_and_rerank(client) -> None:  # noqa: ANN001
+    bad = client.put("/api/settings/contacts", json={"value": {"role_ranking": []}})
+    assert bad.status_code == 422
+    custom = [{"label": "Recruiters first", "keywords": ["recruiter"]}]
+    ok = client.put("/api/settings/contacts", json={"value": {"role_ranking": custom}})
+    assert ok.status_code == 200
+    with Session(engine) as s:
+        recruiter = s.exec(select(Contact).where(Contact.title == "Recruiter")).first()
+        assert recruiter.role_rank == 0
+    client.put("/api/settings/contacts", json={"value": {"role_ranking": DEFAULT_ROLE_RANKING}})
+    assert client.put("/api/settings/lookup", json={"value": {"daily_cap": 0}}).status_code == 422
+
+
+def test_companies_list_filters(client) -> None:  # noqa: ANN001
+    body = client.get("/api/companies", params={"filter": "needs_lookup"}).json()
+    assert body["total"] == len(body["items"]) or body["total"] > 100
+    assert all(i["contact_count"] == 0 for i in body["items"])
+    has = client.get("/api/companies", params={"filter": "has_contacts"}).json()
+    assert has["items"] and all(i["contact_count"] > 0 for i in has["items"])
