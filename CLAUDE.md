@@ -137,8 +137,13 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 - Templates are **style only** (`templates/<name>/cv.tex.j2` + `cv.config.yaml`); `templates/reference/cv.tex` is the
   style reference (example content, never used for generation). Jinja delimiters `\VAR{}` (auto-escaped) / `\BLOCK{}`.
-- The generator returns a `CVPlan` (pool ids, ranked reworded bullets), never LaTeX, titles, companies or dates.
-  `cv_check` validates it; `cv_build.fit_to_page` makes it exactly one full page in code (≤ 4 passes, no model call).
+- The generator returns a `CVPlan` (pool ids, ranked reworded bullets with a `strength`), never LaTeX, titles,
+  companies or dates. `cv_check` validates it; `cv_build.fit_to_page` fits one page in code (no model call).
+- Structure is decided in code (`services/cv_rules.py`, Settings → CV): bullet allowances by role type (current,
+  roles over a year, graduation/short by relevance, internships ≤ 2, ≤ 2 projects of 2-3 bullets, never 1), entries
+  start at their minimum and grow only within allowances while under the fill target (88%): never filler. Skills
+  are capped/merged/deduplicated; the summary is checked against the writing guide and regenerated once. The
+  writing guide and a style exemplar (plain text from `templates/reference/cv.tex`) go to the model.
 - `claude -p` runs with `--system-prompt`, `--tools ""`, `--setting-sources ""`, `--strict-mcp-config`, `--json-schema`
   in a temp dir (never `--bare`: it skips the user's login). Prompt: `app/prompts/cv_generate.md` (versioned).
 - Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
