@@ -59,7 +59,7 @@ def start_discovery(
         queue = scoring.workspace_queue(workspace)
         # Additive discovery: only jobs that have never been scored enter the queue.
         run_id = discovery.start_run_in_background(
-            engine, sources, on_jobs=lambda _ids: queue.enqueue_never_scored()
+            engine, sources, on_jobs=lambda ids: discovery.after_discovery(engine, ids, queue)
         )
     except discovery.RunInProgress as exc:
         raise HTTPException(409, str(exc)) from exc

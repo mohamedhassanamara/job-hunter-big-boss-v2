@@ -18,7 +18,7 @@ from app.schemas.settings import (
     SourceRunOut,
 )
 from app.seed.seed import reset_sandbox, seed
-from app.services import scheduler
+from app.services import contacts, scheduler
 from app.services.discovery import is_running
 from app.services.geo import country_catalog
 from app.services.roles import all_titles, suggest_variants, with_suggested_variants
@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking",
+    "cv", "tracking", "contacts",
 }
 
 
@@ -106,12 +106,23 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
             raise HTTPException(422, "followup_days must be a list of days between 1 and 365")
         if not isinstance(ghost, int) or not 1 <= ghost <= 365:
             raise HTTPException(422, "ghost_after_days must be between 1 and 365")
+    if key == "contacts":
+        _check_contacts(body.value)
+    if key == "lookup":
+        cap = body.value.get("daily_cap")
+        if not isinstance(cap, int) or not 1 <= cap <= 100:
+            raise HTTPException(422, "daily_cap must be between 1 and 100")
+        body.value = {"daily_cap": cap}  # "used today" is computed, never stored
     row = session.exec(select(AppSetting).where(AppSetting.key == key)).first()
     if row is None:
         row = AppSetting(key=key, value={})
     row.value = body.value
     session.add(row)
     session.commit()
+    if key == "contacts":
+        contacts.rerank_all(session)
+        contacts.match_all(session)  # a new ranking can change who each job is written to
+        session.commit()
     if key == "schedule":
         scheduler.configure(body.value)
     if key in ("scoring", "profile"):
@@ -119,6 +130,19 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         # every stored score from its sub-scores (no LLM). Profile edits also make scores stale.
         recompute_all(session.get_bind())  # type: ignore[arg-type]
     return get_settings_view(session)
+
+
+def _check_contacts(value: dict) -> None:
+    ranking = value.get("role_ranking")
+    if not isinstance(ranking, list) or not ranking:
+        raise HTTPException(422, "role_ranking must be a non-empty list")
+    for group in ranking:
+        keywords = group.get("keywords") if isinstance(group, dict) else None
+        if not isinstance(group.get("label"), str) or not group["label"].strip():
+            raise HTTPException(422, "Every ranking group needs a label")
+        if not isinstance(keywords, list) or not keywords or \
+                not all(isinstance(k, str) and k.strip() for k in keywords):
+            raise HTTPException(422, f"“{group['label']}” needs at least one keyword")
 
 
 def _profile(session: Session) -> SearchProfile:
