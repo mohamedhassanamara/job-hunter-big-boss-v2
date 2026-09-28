@@ -129,6 +129,16 @@ def _visible(entry: PlanEntry, key: str, count: int, overrides: dict[str, Any],
     return [(k, texts.get(k, t)) for k, t in shown]
 
 
+def _spell(term: str, pool: Pool) -> str:
+    from app.services.cv_claims import Canon
+
+    canon = getattr(pool, "_canon", None)
+    if canon is None:
+        canon = Canon(pool)
+        pool._canon = canon  # type: ignore[attr-defined]
+    return cv_rules.display(term, canon.word(term))
+
+
 def build_document(plan: CVPlan, pool: Pool, state: FitState,
                    overrides: dict[str, Any] | None = None, max_stack: int = 6,
                    lay: Layout | None = None) -> CVDocument:
@@ -161,7 +171,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         bullets = _visible(p, key, max(count, 2), overrides, keep_one=False)
         if len(bullets) < 2 and key not in forced_in:
             continue  # never a 1-bullet project
-        stack = (list(p.stack) or item.tags)[:max_stack]
+        stack = [_spell(x, pool) for x in (list(p.stack) or item.tags)[:max_stack]]
         projects.append(CVProject(item_id=item.id, name=item.title,
                                   stack=stack, label=item.org or "",
                                   bullets=[t for _, t in bullets]))
@@ -199,7 +209,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
     for g in plan.skills:
         item = pool.get(g.item_id, "skill")
         if item and g.items:
-            groups.append((item.title, list(g.items)))
+            groups.append((item.title, [_spell(x, pool) for x in g.items]))
     lay = lay or layout(plan, pool)
     skills = [CVSkillGroup(category=c, items=items)
               for c, items in cv_rules.shape_skills(groups, lay.rules, lay.merges)]

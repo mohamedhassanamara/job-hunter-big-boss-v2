@@ -92,7 +92,7 @@ def test_allowances_follow_recency_and_duration_not_relevance() -> None:
     assert b["role:1"] == (3, 4)  # current, even with modest relevance
     assert b["role:3"] == (2, 3)  # 2.5-year role, relevance 4
     assert b["role:4"] == (1, 2)  # internship, relevance 10: still max 2
-    assert b["role:2"] == (1, 3)  # graduation project, relevant
+    assert b["role:2"] == (2, 3)  # graduation project, highly relevant: starts at 2
     assert b["role:5"] == (1, 1)  # short, barely relevant
     assert b["project:6"] == (2, 3) and b["project:8"] == (1, 1)
 
@@ -101,7 +101,7 @@ def test_initial_state_minimums_two_projects_never_one_bullet() -> None:
     plan = make_plan()
     state = initial_state(plan, layout(plan, make_pool(), RULES, today=TODAY))
     c = state.counts
-    assert (c["role:1"], c["role:3"], c["role:4"], c["role:2"]) == (3, 2, 1, 1)
+    assert (c["role:1"], c["role:3"], c["role:4"], c["role:2"]) == (3, 2, 1, 2)
     shown = [k for k in c if k.startswith("project:") and c[k]]
     assert shown == ["project:6", "project:7"] and c["project:8"] == 0  # "Tiny" has 1 fact
     doc = build_document(plan, make_pool(), state, lay=layout(plan, make_pool(), RULES,
@@ -164,6 +164,25 @@ def test_skills_are_capped_merged_and_not_repeated() -> None:
     assert ai[0] == "LLMs (Mistral, Ollama, OpenAI)" and "LLM" not in ai and "Mistral" not in ai
     tools = dict(out)["Tools"]
     assert "LocalStack (S3)" in tools and "Linux/Bash" in tools and "Python" not in tools
+
+
+def test_skill_slugs_are_displayed_with_their_usual_spelling() -> None:
+    assert cv_rules.display("sql") == "SQL" and cv_rules.display("github-actions") == \
+        "GitHub Actions"
+    assert cv_rules.display("dbt", "dbt") == "dbt"  # the pool's own spelling wins
+    assert cv_rules.display("postgres", "Postgres") == "Postgres"
+    assert cv_rules.display("someunknowntool") == "someunknowntool"
+
+
+def test_a_certificate_titled_like_a_role_is_not_a_certification_mention() -> None:
+    cert = item(30, "certification", "Data Engineer", n=0, org="DataCamp")
+    ok = cv_rules.summary_problems("Software engineer moving into data engineering.",
+                                   rules=RULES, bullet_texts=[], certifications=[cert],
+                                   internships=[], tools=set())
+    assert ok == []
+    assert cv_rules.summary_problems("Engineer certified by DataCamp.", rules=RULES,
+                                     bullet_texts=[], certifications=[cert], internships=[],
+                                     tools=set())
 
 
 # ---------------------------------------------------------------------------- summary
