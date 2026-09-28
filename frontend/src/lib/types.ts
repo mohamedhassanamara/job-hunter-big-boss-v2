@@ -363,15 +363,45 @@ export interface Draft {
   job_title: string
   company_name: string
   fit: FitBrief | null
-  contact: { id: number; full_name: string; title: string | null; email: string | null } | null
+  contact: { id: number; full_name: string; title: string | null; email: string | null; role_label: string | null } | null
   subject: string
-  body: string
+  body: string // your text (greeting, sentences, ask); signature and opt-out are added when sent
   status: DraftStatus
   edited: boolean
   model: string
   cv_version: number | null
   created_at: string
   updated_at: string
+  cv_version_id: number | null
+  sentences: { text: string; citations: number[]; about_job: boolean }[]
+  citations: Record<string, string> // pool id -> "Role · Org"
+  violations: Violation[]
+  attempts: number
+  prompt_version: string | null
+  duration_ms: number | null
+  full_body: string // exactly as sent
+  test_sent_at: string | null
+  sent_at: string | null
+}
+
+export interface Violation {
+  type: string
+  severity: 'error' | 'warning'
+  message: string
+  where: string
+}
+
+export interface SendLogEntry {
+  id: number
+  draft_id: number | null
+  kind: 'test' | 'real'
+  to: string
+  subject: string
+  status: 'sent' | 'failed'
+  error: string | null
+  message_id: string | null
+  attachment: string | null
+  at: string
 }
 
 export type QueueStatus = 'idle' | 'running' | 'paused'
@@ -379,7 +409,8 @@ export type QueueStatus = 'idle' | 'running' | 'paused'
 export interface QueueItem {
   id: number
   position: number
-  status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+  status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled' | 'unknown'
+  attempts: number
   scheduled_at: string | null
   sent_at: string | null
   error: string | null
@@ -396,8 +427,10 @@ export interface Queue {
   interval_minutes: number
   max_items: number
   next_send_at: string | null
-  counts: { pending: number; sent: number; failed: number }
+  counts: { pending: number; sent: number; failed: number; unknown: number }
   items: QueueItem[]
+  test_sent: boolean // a test email reached you: required before starting
+  own_address: string
 }
 
 // Experience

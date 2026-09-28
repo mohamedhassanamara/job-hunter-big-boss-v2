@@ -8,6 +8,7 @@ from app.services.contacts import (
     DEFAULT_SMALL_ORDER,
     DEFAULT_SMALL_THRESHOLD,
 )
+from app.services.outreach_check import DEFAULT_BANNED
 
 # --------------------------------------------------------------------------------------------
 # Companies: (name, domain, city/country hint). Contacts are generated per company below.
@@ -535,6 +536,13 @@ SETTINGS: dict[str, dict] = {
     "smtp": {"address": "", "from_name": "", "interval_minutes": 15, "max_per_queue": 20},
     "schedule": {"enabled": True, "time": "07:00"},
     "lookup": {"daily_cap": 10},
+    # Cold emails: signature (empty fields use Settings → Candidate), opt-out, lint rules.
+    "outreach": {"signature": {"name": "", "title": "", "email": "", "phone": "",
+                               "photo_path": ""},
+                 "sign_off": "Best regards,",
+                 "opt_out": "If this isn't relevant for you, just let me know and I won't "
+                            "follow up.",
+                 "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "auto"},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
     "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
                  "large_order": DEFAULT_LARGE_ORDER,
