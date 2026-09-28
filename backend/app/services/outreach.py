@@ -47,7 +47,7 @@ DEFAULT_OUTREACH: dict[str, Any] = {
     "opt_out": "If this isn't relevant for you, just let me know and I won't follow up.",
     "banned_phrases": oc.DEFAULT_BANNED,
     "max_words": oc.DEFAULT_MAX_WORDS,
-    "language": "auto",  # auto = the listing's language, or a code like "en"
+    "language": "en",  # the CV and signature are in English; "auto" = the listing's language
 }
 _one_at_a_time = threading.Lock()
 
@@ -70,7 +70,8 @@ def outreach_settings(s: Session) -> dict[str, Any]:
     sig["name"] = sig["name"] or profile.get("full_name", "")
     sig["email"] = sig["email"] or profile.get("email", "")
     sig["phone"] = sig["phone"] or profile.get("phone", "")
-    sig["title"] = sig["title"] or profile.get("headline", "")
+    headline = (profile.get("headline") or "").strip()
+    sig["title"] = sig["title"] or (headline if len(headline) <= 60 else "")
     out["signature"] = sig
     return out
 
