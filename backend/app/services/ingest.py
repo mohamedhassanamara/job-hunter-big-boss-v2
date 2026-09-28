@@ -39,6 +39,10 @@ class IngestStats:
 def _company(session: Session, name: str) -> Company:
     norm = normalize_company(name)
     company = session.exec(select(Company).where(Company.normalized_name == norm)).first()
+    if company is None:  # a spelling merged into another company (Contacts → Merges)
+        from app.services.company_merge import resolve_alias
+
+        company = resolve_alias(session, norm)
     if company is None:
         company = Company(name=name.strip(), normalized_name=norm)
         session.add(company)

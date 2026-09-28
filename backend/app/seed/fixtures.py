@@ -2,7 +2,12 @@
 
 from dataclasses import dataclass, field
 
-from app.services.contacts import DEFAULT_ROLE_RANKING
+from app.services.contacts import (
+    DEFAULT_LARGE_ORDER,
+    DEFAULT_ROLE_RANKING,
+    DEFAULT_SMALL_ORDER,
+    DEFAULT_SMALL_THRESHOLD,
+)
 
 # --------------------------------------------------------------------------------------------
 # Companies: (name, domain, city/country hint). Contacts are generated per company below.
@@ -531,7 +536,9 @@ SETTINGS: dict[str, dict] = {
     "schedule": {"enabled": True, "time": "07:00"},
     "lookup": {"daily_cap": 10},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
-    "contacts": {"role_ranking": DEFAULT_ROLE_RANKING},
+    "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
+                 "large_order": DEFAULT_LARGE_ORDER,
+                 "small_company_threshold": DEFAULT_SMALL_THRESHOLD},
     # The candidate, as the fit scorer sees them (edited in Settings → Candidate).
     "profile": {
         "full_name": "",

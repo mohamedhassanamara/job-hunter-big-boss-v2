@@ -18,6 +18,32 @@ class Company(TableBase, table=True):
     linkedin_url: str | None = None
     notes: str | None = None
     contacted_at: datetime | None = dt_field()
+    # Headcount: an exact number, or an upper bound (e.g. 200 for "under 200" from an Apollo list).
+    employees: int | None = None
+    employees_max: int | None = None
+    size_source: str | None = None  # manual | apollo_list
+    # You looked at the "looks like a job board" suggestion and said no.
+    aggregator_reviewed: bool = False
+
+
+class CompanyAlias(TableBase, table=True):
+    """Another spelling of a company (after you confirm a merge): ingest and imports map it."""
+
+    __tablename__ = "company_alias"
+
+    normalized_name: str = Field(unique=True, index=True)
+    company_id: int = Field(foreign_key="company.id", index=True)
+
+
+class CompanyMergeDecision(TableBase, table=True):
+    """Your answer to a merge suggestion, so it isn't suggested again."""
+
+    __tablename__ = "company_merge_decision"
+
+    pair_key: str = Field(unique=True, index=True)  # "<norm a>|<norm b>", sorted
+    decision: str  # merged | rejected
+    kept_company_id: int | None = None
+    merged_name: str | None = None
 
 
 class Contact(TableBase, table=True):

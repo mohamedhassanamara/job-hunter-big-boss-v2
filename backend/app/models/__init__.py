@@ -1,7 +1,14 @@
 """Importing this package registers every table on SQLModel.metadata (used by Alembic)."""
 
 from app.models.application import Application, ApplicationEvent, CVVersion, OutreachDraft
-from app.models.company import Company, CompanyLookup, Contact, ContactImport
+from app.models.company import (
+    Company,
+    CompanyAlias,
+    CompanyLookup,
+    CompanyMergeDecision,
+    Contact,
+    ContactImport,
+)
 from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
@@ -17,7 +24,9 @@ __all__ = [
     "ApplicationEvent",
     "CVVersion",
     "Company",
+    "CompanyAlias",
     "CompanyLookup",
+    "CompanyMergeDecision",
     "Contact",
     "ContactImport",
     "DiscoveryRun",

@@ -18,7 +18,7 @@ from typing import Any
 from sqlalchemy import Engine
 from sqlmodel import Session, select
 
-from app.models import Company, Contact, ContactImport
+from app.models import Company, CompanyAlias, Contact, ContactImport
 from app.models.base import utcnow
 from app.models.enums import ContactSource, ImportStatus
 from app.services.contacts import normalize_person, rank, role_ranking
@@ -160,6 +160,8 @@ def run_import(engine: Engine, import_id: int, rows: list[dict[str, str]],
     with Session(engine) as s:
         ranking = role_ranking(s)
         companies = {c.normalized_name: c.id for c in s.exec(select(Company)).all()}
+        companies.update({a.normalized_name: a.company_id  # merged-away spellings
+                          for a in s.exec(select(CompanyAlias)).all()})
         by_email = {c.email_normalized: c.id for c in s.exec(select(Contact)).all()
                     if c.email_normalized}
         by_name = {(c.company_id, c.normalized_name): c.id for c in s.exec(select(Contact)).all()

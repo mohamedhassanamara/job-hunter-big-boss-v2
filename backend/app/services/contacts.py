@@ -65,6 +65,12 @@ DEFAULT_ROLE_RANKING: list[dict[str, Any]] = [
         "founder", "co founder", "cofounder", "ceo", "chief executive officer", "fondateur",
         "fondatrice", "fundador", "fundadora", "gerente", "managing director", "geschaftsfuhrer"]},
 ]
+# Who to write to first depends on company size (labels of the groups above).
+DEFAULT_SMALL_ORDER = ["CTO", "Founder / CEO", "VP / Head of Engineering", "Head of Data / AI / ML",
+                       "Engineering Manager", "Tech Lead", "HR / Talent"]
+DEFAULT_LARGE_ORDER = ["HR / Talent", "Engineering Manager", "CTO", "VP / Head of Engineering",
+                       "Head of Data / AI / ML", "Tech Lead", "Founder / CEO"]
+DEFAULT_SMALL_THRESHOLD = 200  # employees; "under 200" (Apollo lists) counts as small
 DEFAULT_LOOKUP = {"daily_cap": 10}
 UNRANKED = 999
 FROZEN_STAGES = (Stage.done, Stage.interview, Stage.closed)
@@ -102,6 +108,58 @@ def role_ranking(s: Session) -> list[dict[str, Any]]:
     return (value or {}).get("role_ranking") or DEFAULT_ROLE_RANKING
 
 
+@dataclass
+class Ranking:
+    """The role groups plus the order to use at small and at large (or unknown-size) companies."""
+
+    groups: list[dict[str, Any]]
+    small: list[int]  # group indices, most relevant first
+    large: list[int]
+    threshold: int
+
+    def order_for(self, company: Company | None) -> list[int]:
+        return self.small if is_small(company, self.threshold) else self.large
+
+    def position(self, contact: Contact, order: list[int]) -> int:
+        return order.index(contact.role_rank) if contact.role_rank in order else UNRANKED
+
+    def label(self, group: int) -> str | None:
+        return self.groups[group].get("label") if 0 <= group < len(self.groups) else None
+
+
+def _order(labels: list[str] | None, groups: list[dict[str, Any]],
+           default: list[str]) -> list[int]:
+    by_label = {g.get("label"): i for i, g in enumerate(groups)}
+    wanted = [by_label[x] for x in (labels or default) if x in by_label]
+    return wanted + [i for i in range(len(groups)) if i not in wanted]  # unlisted groups last
+
+
+def ranking_settings(s: Session) -> Ranking:
+    value = _setting(s, "contacts", {}) or {}
+    groups = value.get("role_ranking") or DEFAULT_ROLE_RANKING
+    return Ranking(groups, _order(value.get("small_order"), groups, DEFAULT_SMALL_ORDER),
+                   _order(value.get("large_order"), groups, DEFAULT_LARGE_ORDER),
+                   int(value.get("small_company_threshold") or DEFAULT_SMALL_THRESHOLD))
+
+
+def is_small(company: Company | None, threshold: int) -> bool:
+    """Exact headcount below the threshold, or an upper bound at or below it ("under 200").
+    Unknown size counts as large."""
+    if company is None:
+        return False
+    if company.employees is not None:
+        return company.employees < threshold
+    return company.employees_max is not None and company.employees_max <= threshold
+
+
+def size_label(company: Company) -> str:
+    if company.employees is not None:
+        return f"{company.employees} employees"
+    if company.employees_max is not None:
+        return f"under {company.employees_max} employees"
+    return "size unknown"
+
+
 def daily_cap(s: Session) -> int:
     return int((_setting(s, "lookup", DEFAULT_LOOKUP) or {}).get("daily_cap", 10))
 
@@ -119,13 +177,21 @@ def rerank_all(s: Session) -> int:
     return changed
 
 
-def best_contact(contacts: list[Contact]) -> Contact | None:
-    """Most relevant role first; then one with an email; then the most recently imported."""
-    if not contacts:
-        return None
-    return sorted(contacts, key=lambda c: (c.role_rank, c.email is None,
+def ranked(contacts: list[Contact], order: list[int] | None = None) -> list[Contact]:
+    """Most relevant role first (by the company's size order); then one with an email; then the
+    most recently imported. Without an order, the groups' own order."""
+    def pos(c: Contact) -> int:
+        if order is None:
+            return c.role_rank
+        return order.index(c.role_rank) if c.role_rank in order else UNRANKED
+
+    return sorted(contacts, key=lambda c: (pos(c), c.email is None,
                                            -(c.created_at.timestamp() if c.created_at else 0),
-                                           -(c.id or 0)))[0]
+                                           -(c.id or 0)))
+
+
+def best_contact(contacts: list[Contact], order: list[int] | None = None) -> Contact | None:
+    return ranked(contacts, order)[0] if contacts else None
 
 
 def _manual(s: Session, app: Application) -> bool:
@@ -185,8 +251,9 @@ def _lookup_for(s: Session, company_id: int, priority: int) -> CompanyLookup:
 
 
 def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = None,
-            priority: int = 0) -> Resolution:
-    """Resolve one application. `contacts` (the company's) can be passed in by batch callers."""
+            priority: int = 0, ranking: Ranking | None = None) -> Resolution:
+    """Resolve one application. `contacts` (the company's) and `ranking` can be passed in by
+    batch callers."""
     if Stage(app.stage) in FROZEN_STAGES or _manual(s, app):
         return Resolution(False, app.contact_tier, app.contact_id)
     job = s.get(Job, app.job_id)
@@ -194,7 +261,14 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
         return Resolution(False, app.contact_tier, app.contact_id)
     if contacts is None:
         contacts = list(s.exec(select(Contact).where(Contact.company_id == job.company_id)).all())
-    best = best_contact(contacts)
+    never = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == job.company_id,
+                                               CompanyLookup.status == LookupStatus.never)).first()
+    if never is not None:  # a job board: nobody there to write to about this job
+        changed = _apply(s, app, None, ContactTier.none,
+                         "No contact: never looked up (job board or aggregator)")
+        return Resolution(changed, ContactTier.none, None)
+    ranking = ranking or ranking_settings(s)
+    best = best_contact(contacts, ranking.order_for(s.get(Company, job.company_id)))
     if best is not None:
         _drop_pending_lookup(s, job.company_id)
         tier = (ContactTier.lookup_found if best.source == ContactSource.apollo_lookup
@@ -239,10 +313,11 @@ def resolve_many(s: Session, pairs: list[tuple[Application, Job]]) -> int:
     priority: dict[int, int] = defaultdict(int)
     for _, j in pairs:
         priority[j.company_id] = max(priority[j.company_id], _fit_score(fits.get(j.id)))
+    ranking = ranking_settings(s)
     changed = 0
     for app, job in pairs:
         r = resolve(s, app, contacts=by_company.get(job.company_id, []),
-                    priority=priority[job.company_id])
+                    priority=priority[job.company_id], ranking=ranking)
         changed += r.changed
     return changed
 
@@ -330,14 +405,21 @@ def used_today(s: Session, now: datetime | None = None) -> int:
         col(CompanyLookup.resolved_at) >= since)).all())
 
 
+ACTIVE_STAGES = (Stage.shortlisted, Stage.cv_ready, Stage.ready)
+
+
 @dataclass
 class QueueRow:
     lookup: CompanyLookup
     company: Company
     open_jobs: int
+    shortlisted: int  # open jobs you shortlisted (or later)
     best_job_id: int | None
     best_job_title: str | None
     best_fit: int | None
+    newest_at: datetime | None
+    reason: str  # why this company sits at this position
+    aggregator: list[str]  # signals it looks like a job board (a suggestion; you confirm)
 
 
 @dataclass
@@ -348,28 +430,55 @@ class LookupQueueView:
     rows: list[QueueRow] = field(default_factory=list)
 
 
+def _age(at: datetime | None, now: datetime) -> str:
+    if at is None:
+        return "no date"
+    days = (now - at).days
+    return "today" if days <= 0 else "1 day ago" if days == 1 else f"{days} days ago"
+
+
 def lookup_queue(s: Session, now: datetime | None = None, limit: int = 100) -> LookupQueueView:
+    """Shortlisted jobs first, then the highest fit, then the newest job; each row says why."""
+    from app.services.aggregators import signals
+
     now = now or utcnow()
     lookups = [lk for lk in s.exec(select(CompanyLookup).where(col(CompanyLookup.status).in_(
         [LookupStatus.queued, LookupStatus.skipped]))).all()
         if lk.status == LookupStatus.queued or not lk.snoozed_until or lk.snoozed_until <= now]
-    lookups.sort(key=lambda lk: (-lk.priority, lk.queued_at))
-    shown = lookups[:limit]
-    pairs = _open_apps(s, company_ids={lk.company_id for lk in shown})
+    pairs = _open_apps(s, company_ids={lk.company_id for lk in lookups})
     fits = latest_fits(s, [j.id for _, j in pairs])
-    jobs_by_company: dict[int, list[Job]] = defaultdict(list)
-    for _, j in pairs:
-        jobs_by_company[j.company_id].append(j)
+    by_company: dict[int, list[tuple[Application, Job]]] = defaultdict(list)
+    for a, j in pairs:
+        by_company[j.company_id].append((a, j))
+
+    def facts(lk: CompanyLookup) -> tuple[int, int, datetime | None, Job | None]:
+        rows = by_company.get(lk.company_id, [])
+        shortlisted = sum(1 for a, _ in rows if Stage(a.stage) in ACTIVE_STAGES)
+        best = max((j for _, j in rows), key=lambda j: _fit_score(fits.get(j.id)), default=None)
+        newest = max((j.discovered_at for _, j in rows if j.discovered_at), default=None)
+        return shortlisted, _fit_score(fits.get(best.id)) if best else 0, newest, best
+
+    scored = [(lk, *facts(lk)) for lk in lookups]
+    scored.sort(key=lambda x: (-(x[1] > 0), -x[2], -(x[3].timestamp() if x[3] else 0),
+                               x[0].queued_at))
     rows = []
-    for lk in shown:
-        jobs = jobs_by_company.get(lk.company_id, [])
-        best = max(jobs, key=lambda j: _fit_score(fits.get(j.id)), default=None)
-        company = s.get(Company, lk.company_id)
+    companies = {c.id: c for c in s.exec(select(Company).where(col(Company.id).in_(
+        [x[0].company_id for x in scored[:limit]]))).all()}
+    for i, (lk, shortlisted, fit, newest, best) in enumerate(scored[:limit]):
+        company = companies.get(lk.company_id)
         if company is None:
             continue
-        best_fit = _fit_score(fits.get(best.id)) if best else 0
-        rows.append(QueueRow(lk, company, len(jobs), best.id if best else None,
-                             best.title if best else None, best_fit or None))
+        prev = scored[i - 1] if i else None
+        if shortlisted:
+            reason = f"{shortlisted} shortlisted job{'s' if shortlisted > 1 else ''}"
+        elif prev is None or prev[1] > 0 or prev[2] != fit:
+            reason = f"Best fit {fit}" if fit else "Not scored yet"
+        else:  # same fit as the row above: the newer job wins the tie
+            reason = f"Fit {fit}, newest job {_age(newest, now)}"
+        jobs = [j for _, j in by_company.get(lk.company_id, [])]
+        rows.append(QueueRow(lk, company, len(jobs), shortlisted, best.id if best else None,
+                             best.title if best else None, fit or None, newest, reason,
+                             [] if company.aggregator_reviewed else signals(company, jobs)))
     return LookupQueueView(daily_cap(s), used_today(s, now), len(lookups), rows)
 
 
@@ -422,6 +531,24 @@ def lookup_not_found(s: Session, company_id: int, notes: str = "") -> CompanyLoo
     row = lookup_for_company(s, company_id)
     row.status, row.resolved_at, row.snoozed_until = LookupStatus.not_found, utcnow(), None
     row.notes = notes.strip()
+    s.add(row)
+    resolve_company(s, company_id)
+    return row
+
+
+def lookup_never(s: Session, company_id: int) -> CompanyLookup:
+    """A job board or aggregator: never looked up; its jobs go to web apply."""
+    row = lookup_for_company(s, company_id)
+    row.status, row.resolved_at, row.snoozed_until = LookupStatus.never, None, None
+    s.add(row)
+    resolve_company(s, company_id)
+    return row
+
+
+def lookup_again(s: Session, company_id: int) -> CompanyLookup:
+    """Undo "never" / "nobody found": back in the queue."""
+    row = lookup_for_company(s, company_id)
+    row.status, row.resolved_at, row.snoozed_until = LookupStatus.queued, None, None
     s.add(row)
     resolve_company(s, company_id)
     return row
