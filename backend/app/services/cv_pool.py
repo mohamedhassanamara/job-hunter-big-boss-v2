@@ -111,7 +111,7 @@ def years_facts(pool: Pool, tracks: list[dict[str, Any]],
             n = int(float(years))
             if n >= 1:
                 facts.append({"label": f"{track['name']} experience (Settings)", "years": n,
-                              "wording": f"{n}+ year{'s' if n > 1 else ''}"})
+                              "wording": f"{n}+ year{'s' if n > 1 else ''}", "kind": "track"})
     override = pool.profile.get("total_years_override")
     if override not in (None, ""):
         total, source = int(float(override)), "Settings"
@@ -119,7 +119,7 @@ def years_facts(pool: Pool, tracks: list[dict[str, Any]],
         total, source = int(role_years(pool, today)), "from role dates"
     if total >= 1:
         facts.append({"label": f"professional experience ({source})", "years": total,
-                      "wording": f"{total}+ year{'s' if total > 1 else ''}"})
+                      "wording": f"{total}+ year{'s' if total > 1 else ''}", "kind": "total"})
     return facts
 
 

@@ -346,3 +346,22 @@ def test_regenerating_the_summary_keeps_bullets_layout_and_status(seeded: None, 
         s.commit()
     with pytest.raises(cv_service.CVError, match="draft"):
         cv_service.regenerate_summary(engine, v.id, MockCVGenerator())
+
+
+def test_data_ai_summaries_never_state_track_years_under_two() -> None:
+    facts = [{"label": "Data/AI experience (Settings)", "years": 1, "kind": "track"},
+             {"label": "Mobile experience (Settings)", "years": 3, "kind": "track"},
+             {"label": "professional experience", "years": 3, "kind": "total"}]
+    assert [f["years"] for f in cv_service.summary_years(facts, "Data/AI")] == [3, 3]
+    assert len(cv_service.summary_years(facts, "Mobile")) == 3  # other tracks unchanged
+    from app.services.cv_claims import bad_years
+
+    allowed = {int(f["years"]) for f in cv_service.summary_years(facts, "Data/AI")}
+    assert bad_years("Engineer with 1+ year of AI work", allowed) == ["1+ year"]
+    assert bad_years("Engineer with 3+ years of experience", allowed) == []
+
+
+def test_career_change_phrases_are_banned_in_cv_summaries() -> None:
+    for phrase in ("moving into", "moving from", "transitioning into", "career change"):
+        assert phrase in cv_rules.DEFAULT_CV_BANNED
+    assert any("banned phrase" in p for p in v5("Engineer moving into data. It works."))

@@ -220,7 +220,7 @@ def test_total_years_override_replaces_role_dates() -> None:
     pool.profile["total_years_override"] = 2
     facts = years_facts(pool, [], today=date(2026, 10, 1))
     assert facts == [{"label": "professional experience (Settings)", "years": 2,
-                      "wording": "2+ years"}]
+                      "wording": "2+ years", "kind": "total"}]
     pool.profile["total_years_override"] = ""
     assert years_facts(pool, [], today=date(2026, 10, 1))[0]["years"] == 4
 
