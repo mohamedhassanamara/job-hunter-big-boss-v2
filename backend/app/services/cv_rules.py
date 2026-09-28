@@ -266,7 +266,16 @@ _FRAGMENT_START = {
     "specialises", "focuses", "builds", "building", "designs", "designing", "develops",
     "developing", "creates", "adds", "enjoys", "excels", "thrives", "possesses", "demonstrates",
     "leverages", "leveraging", "skilled", "experienced", "adept", "known", "eager", "able",
+    # past tense: "Built a resume parser…" has no subject either
+    "built", "designed", "developed", "created", "delivered", "led", "shipped", "engineered",
+    "architected", "implemented", "launched", "trained", "deployed", "automated", "migrated",
+    "optimized", "optimised", "worked", "contributed", "managed", "owned", "drove", "spearheaded",
 }
+# A career change isn't what you build: kept out of the first words of a Data/AI summary.
+_TRANSITION = re.compile(r"\b(transition\w*|moving (?:into|from|toward\w*|to)|pivot\w*|"
+                         r"shifting|switching|career change)\b", re.I)
+_LEADING_CLAUSE = re.compile(r"^(?:at|in|on|for|during|with|across|since|as)\b[^,]{0,60},\s*",
+                             re.I)
 _STOP = {"a", "an", "the", "and", "or", "of", "for", "to", "in", "on", "with", "by", "at", "from",
          "into", "as", "is", "are", "that", "this", "its", "their", "using", "based", "via"}
 
@@ -284,7 +293,8 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
                      tools: set[str], max_sentences: int | None = None,
                      max_words: int | None = None, banned_phrases: list[str] | None = None,
                      cited_texts: list[str] | None = None,
-                     other_openings: list[str] | None = None) -> list[str]:
+                     other_openings: list[str] | None = None,
+                     lead_with_build: bool = False) -> list[str]:
     """Why a summary breaks the guide (empty = fine). Checked in code; the summary is
     regenerated once with these reasons."""
     max_sentences = max_sentences or int(rules["summary_max_sentences"])
@@ -322,10 +332,16 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
     if re.search(r"\b(i|my|me|i'm|i've)\b", low):
         out.append("uses the first person (no “I”)")
     for sentence in sentences(text):
-        first = (re.findall(r"[a-z]+", sentence.lower()) or [""])[0]
+        body = _LEADING_CLAUSE.sub("", sentence.strip())  # "At Acme, built…" → "built…"
+        first = (re.findall(r"[a-z]+", body.lower()) or [""])[0]
         if first in _FRAGMENT_START:
-            out.append(f"“{sentence.split()[0]}…” is a fragment: every sentence needs a subject")
+            start = " ".join(sentence.split()[:3])
+            out.append(f"“{start}…” has no subject: write a full sentence")
             break
+    first_words = " ".join(text.split()[:8])
+    if lead_with_build and _TRANSITION.search(first_words):
+        out.append("opens with a career change: lead with what you build (e.g. “Software "
+                   "engineer building data pipelines and local LLM systems”)")
     if cited_texts is not None:
         source = _content_words(" ".join(cited_texts))
         pairs = {" ".join(source[i:i + 2]) for i in range(len(source) - 1)}

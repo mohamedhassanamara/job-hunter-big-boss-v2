@@ -104,11 +104,11 @@ REQUEST = CVRequest(job={}, pool={}, facts={"years": [{"label": "Mobile", "years
 
 
 def test_rejected_summary_is_regenerated_once_and_passes() -> None:
-    gen = SummaryScript([[s("Architected BFF endpoints in Spring Boot.", 1)]])
+    gen = SummaryScript([[s("The engineer architected BFF endpoints in Spring Boot.", 1)]])
     plan, issues, report = cv_service.ground_summary(
         plan_with([s("Expert in Kubernetes.", 1)]), POOL, REQUEST, gen)
     assert len(gen.feedback) == 1 and "Kubernetes" in gen.feedback[0]
-    assert plan.summary == "Architected BFF endpoints in Spring Boot."
+    assert plan.summary == "The engineer architected BFF endpoints in Spring Boot."
     assert report["attempts"] == 2 and report["fallback"] is None and not issues
 
 

@@ -125,23 +125,28 @@ def fit_layout(s: Session, plan: CVPlan, pool: Pool) -> Layout:
 def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
                   items: list[SummarySentence], short: bool = False,
                   banned: list[str] | None = None,
-                  other_openings: list[str] | None = None) -> list[str]:
+                  other_openings: list[str] | None = None, track: str = "") -> list[str]:
     """The guide's summary rules, checked in code (see cv_rules.summary_problems)."""
     text = " ".join(s.text.strip() for s in items)
     bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
     internships = [i for i in pool.of("job") if cv_rules.role_type(i, rules) == "internship"]
     tools = {t for i in pool.items.values() for t in i.tags if len(t) > 2}
     tools |= {x for g in plan.skills for x in g.items if len(x) > 2}
-    cited = [pool.get(c) for s in items for c in s.citations]
-    cited_texts = [p for i in cited if i is not None and i.kind in ("job", "project")
-                   for p in [i.title, *i.bullets]]
+    # Anything on the CV counts as "something you built" (grounding is checked separately).
+    on_cv = [pool.get(e.item_id) for e in [*plan.roles, *plan.projects]]
+    cited_texts = [p for i in on_cv if i is not None for p in [i.title, *i.bullets]]
     return cv_rules.summary_problems(
         text, rules=rules, bullet_texts=bullets, certifications=pool.of("certification"),
         internships=internships, tools=tools, max_sentences=1 if short else None,
         max_words=max(15, int(rules["summary_max_words"]) // 2) if short else None,
         banned_phrases=banned if banned is not None else cv_rules.DEFAULT_CV_BANNED,
-        cited_texts=None if short else cited_texts,
-        other_openings=None if short else other_openings)
+        cited_texts=None if short or not cited_texts else cited_texts,
+        other_openings=None if short else other_openings,
+        lead_with_build=not short and _data_ai(track.lower()))
+
+
+def _data_ai(track: str) -> bool:
+    return bool(re.search(r"\b(data|ai|ml|machine learning|analytics)\b", track))
 
 
 def other_openings(s: Session, app_id: int) -> list[str]:
@@ -259,7 +264,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
 
     good, bad = ground_sentences(plan.summary_sentences, pool, allowed)
     short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed)
-    style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings)
+    track = str((request.job or {}).get("matched_track") or "")
+    style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings,
+                          track)
     short_style = summary_style(plan, pool, rules, plan.summary_short_sentences, True, banned)
     if bad or short_bad or style or short_style:
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
@@ -273,7 +280,8 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
         report["attempts"] = 2
         good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed)
         short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed)
-        style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned, openings)
+        style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned,
+                               openings, track)
         short_style2 = summary_style(plan, pool, rules, retry.summary_short_sentences, True,
                                      banned)
         report["style"].append({"summary": style2, "short": short_style2})
