@@ -15,6 +15,7 @@ import type {
   ScoringHealth,
   ScoringStatus,
   SearchHit,
+  SendLogEntry,
   Source,
   SourceInfo,
   SourceTestResult,
@@ -179,6 +180,28 @@ export function useGenerateDraft() {
     mutationFn: (appId: number) => api.post<Draft>(`/applications/${appId}/draft/generate`),
     onSettled: () => invalidateWork(qc),
   })
+}
+
+export function useTestSend() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (draftId: number) => api.post<SendLogEntry>(`/outreach/drafts/${draftId}/test-send`),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useQueueItemAction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ itemId, action }: { itemId: number; action: 'retry' | 'mark-sent' }) =>
+      api.post<Queue>(`/queue/items/${itemId}/${action}`),
+    onSuccess: (queue) => qc.setQueryData(keys.queue, queue),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useSendLog() {
+  return useQuery({ queryKey: ['send-log'], queryFn: () => api.get<SendLogEntry[]>('/outreach/send-log') })
 }
 
 export function useQueue() {

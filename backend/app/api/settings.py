@@ -27,7 +27,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking", "contacts",
+    "cv", "tracking", "contacts", "outreach",
 }
 
 
@@ -107,6 +107,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
             raise HTTPException(422, "ghost_after_days must be between 1 and 365")
     if key == "contacts":
         _check_contacts(body.value)
+    if key == "outreach":
+        _check_outreach(body.value)
     if key == "lookup":
         cap = body.value.get("daily_cap")
         if not isinstance(cap, int) or not 1 <= cap <= 100:
@@ -129,6 +131,26 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         # every stored score from its sub-scores (no LLM). Profile edits also make scores stale.
         recompute_all(session.get_bind())  # type: ignore[arg-type]
     return get_settings_view(session)
+
+
+def _check_outreach(value: dict) -> None:
+    from pathlib import Path
+
+    words = value.get("max_words", 150)
+    if not isinstance(words, int) or not 50 <= words <= 400:
+        raise HTTPException(422, "max_words must be between 50 and 400")
+    banned = value.get("banned_phrases", [])
+    if not isinstance(banned, list) or not all(isinstance(b, str) for b in banned):
+        raise HTTPException(422, "banned_phrases must be a list of phrases")
+    sig = value.get("signature") or {}
+    if not isinstance(sig, dict) or not all(isinstance(v, str) for v in sig.values()):
+        raise HTTPException(422, "signature fields must be text")
+    photo = (sig.get("photo_path") or "").strip()
+    if photo and not Path(photo).expanduser().is_file():
+        raise HTTPException(422, f"Signature photo not found: {photo}")
+    lang = value.get("language", "auto")
+    if lang != "auto" and not (isinstance(lang, str) and len(lang) == 2):
+        raise HTTPException(422, "language must be auto or a 2-letter code (en, fr…)")
 
 
 def _check_contacts(value: dict) -> None:

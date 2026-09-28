@@ -16,6 +16,7 @@ import {
 import { CVSettingsSection, TemplatesSection } from './CVSections'
 import { CandidateSection, ScoringSection } from './ScoringSections'
 import { ContactsSection } from './ContactsSection'
+import { OutreachSection } from './OutreachSection'
 import { SourcesSection } from './SourcesSection'
 
 const SECTIONS = [
@@ -87,7 +88,10 @@ export default function SettingsPage() {
             ) : section === 'models' ? (
               <ModelsSection key={JSON.stringify(settings.data.values.models)} settings={settings.data} />
             ) : section === 'email' ? (
-              <EmailSection key={JSON.stringify(settings.data.values.smtp)} settings={settings.data} />
+              <div className="space-y-6">
+                <EmailSection key={JSON.stringify(settings.data.values.smtp)} settings={settings.data} />
+                <OutreachSection key={JSON.stringify(settings.data.values.outreach)} settings={settings.data} />
+              </div>
             ) : section === 'data' ? (
               <DataSection settings={settings.data} />
             ) : (

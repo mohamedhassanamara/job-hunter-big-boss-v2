@@ -142,10 +142,12 @@ export const TOURS: Record<TourId, Tour> = {
     description: 'Review emails and the send queue',
     resolveRoute: async () => '/outreach',
     steps: [
-      { target: 'outreach-list', title: 'Every email is reviewed', body: 'Drafted cold emails wait here. J / K to move, A to approve, R to reject.', placement: 'right' },
-      { target: 'outreach-editor', title: 'Edit freely', body: 'Subject and body autosave, and the approved CV is attached automatically.', placement: 'left' },
+      { target: 'outreach-list', title: 'Every email is reviewed', body: 'Drafted cold emails wait here, one per job (never in bulk). J / K to move, A to approve, R to reject.', placement: 'right' },
+      { target: 'outreach-checks', title: 'Checked before you see it', body: 'Every sentence must come from your approved CV (or the listing), with one ask, the right first name and company, no banned phrases, under the word limit. Problems block approval; near-copies of other emails are flagged.', placement: 'left' },
+      { target: 'outreach-editor', title: 'Edit freely', body: 'Edits autosave and are re-checked. Your signature and a polite opt-out line are added when it is sent, and the approved CV is attached.', placement: 'left' },
+      { target: 'outreach-test-send', title: 'Test on yourself first', body: 'Sends this exact email, CV attached, to your own address with a [TEST] subject. The queue cannot start before one test went through.', placement: 'top' },
       { target: 'outreach-approve', title: 'Approve & queue', body: 'Approved emails join the send queue. Nothing is sent before that.', placement: 'top' },
-      { target: 'outreach-queue', title: 'Send queue', body: 'One email every 15 minutes, at most 20 per queue. Pause or resume anytime, and remove an item to send it back to review.', route: '/outreach?tab=queue' },
+      { target: 'outreach-queue', title: 'Send queue', body: 'One email every 15 minutes, at most 20 per queue, pause anytime. It survives restarts; an email caught mid-send is never resent blindly. A sent email moves the job to Sent and starts the follow-up reminders.', route: '/outreach?tab=queue' },
     ],
   },
   contacts: {

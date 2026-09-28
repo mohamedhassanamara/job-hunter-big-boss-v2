@@ -1,4 +1,4 @@
-import { CircleCheck, FileText, Inbox, Mail, RefreshCw, RotateCcw, X } from 'lucide-react'
+import { CircleCheck, CircleX, FileText, Inbox, Mail, RefreshCw, RotateCcw, Send, TriangleAlert, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -14,8 +14,9 @@ import { useHotkeys } from '@/hooks/useHotkeys'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { relativeTime, shortAge } from '@/lib/format'
-import { useDraftAction, useDrafts, useGenerateDraft, useSaveDraft } from '@/lib/queries/workflow'
-import type { Draft, DraftStatus } from '@/lib/types'
+import { useDraftAction, useDrafts, useGenerateDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
+import { Tooltip } from '@/components/ui/tooltip'
+import type { Draft, DraftStatus, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const STATUS: Record<DraftStatus, { tone: Tone; label: string }> = {
@@ -25,6 +26,58 @@ const STATUS: Record<DraftStatus, { tone: Tone; label: string }> = {
   sent: { tone: 'green', label: 'Sent' },
   rejected: { tone: 'gray', label: 'Rejected' },
   failed: { tone: 'red', label: 'Failed' },
+}
+
+function Checks({ violations }: { violations: Violation[] }) {
+  if (violations.length === 0)
+    return (
+      <p data-tour="outreach-checks" className="flex items-center gap-2 rounded-md bg-success-bg px-3 py-2 text-sm text-success-fg">
+        <CircleCheck className="size-4" />
+        Every check passed: grounded in your CV, one ask, names right, no banned phrases, under the word limit.
+      </p>
+    )
+  return (
+    <ul data-tour="outreach-checks" className="space-y-1 rounded-md border border-border bg-surface px-3 py-2">
+      {violations.map((v, i) => (
+        <li key={i} className={cn('flex items-start gap-2 text-sm', v.severity === 'error' ? 'text-danger-fg' : 'text-warning-fg')}>
+          {v.severity === 'error' ? <CircleX className="mt-0.5 size-4 shrink-0" /> : <TriangleAlert className="mt-0.5 size-4 shrink-0" />}
+          <span>{v.message}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** Each generated sentence and what it is based on (hover for the cited items). */
+function Sources({ draft }: { draft: Draft }) {
+  if (draft.sentences.length === 0) return null
+  return (
+    <details className="rounded-md border border-border bg-surface px-3 py-2 text-sm" open={!draft.edited}>
+      <summary className="cursor-default text-xs font-medium text-fg-subtle">
+        Where each sentence comes from{draft.edited ? ' (as generated, before your edits)' : ''}
+      </summary>
+      <ul className="mt-2 space-y-1.5">
+        {draft.sentences.map((s, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="flex-1">{s.text}</span>
+            {s.about_job ? (
+              <ToneBadge tone="gray" dot={false}>the listing</ToneBadge>
+            ) : (
+              s.citations.map((c) => (
+                <Tooltip key={c} content={draft.citations[String(c)] ?? `item ${c}`}>
+                  <span>
+                    <ToneBadge tone="blue" dot={false}>
+                      {(draft.citations[String(c)] ?? `#${c}`).split(' · ')[0]}
+                    </ToneBadge>
+                  </span>
+                </Tooltip>
+              ))
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
 }
 
 function DraftEditor({
@@ -39,6 +92,9 @@ function DraftEditor({
   const save = useSaveDraft()
   const regenerate = useGenerateDraft()
   const action = useDraftAction()
+  const testSend = useTestSend()
+  const errors = draft.violations.filter((v) => v.severity === 'error')
+  const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
   const [body, setBody] = useState(draft.body)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -103,6 +159,7 @@ function DraftEditor({
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+        {draft.status === 'draft' && <Checks violations={draft.violations} />}
         <div className="space-y-1.5">
           <Label htmlFor="subject">Subject</Label>
           <Input
@@ -126,9 +183,19 @@ function DraftEditor({
               setBody(e.target.value)
               queueSave({ body: e.target.value })
             }}
-            className="field-sizing-content min-h-72 text-base leading-7"
+            className="field-sizing-content min-h-48 text-base leading-7"
           />
         </div>
+        {added && (
+          <div className="space-y-1.5">
+            <Label>Added when sent (Settings → Email)</Label>
+            <p className="rounded-md border border-dashed border-border-strong px-3 py-2 text-sm whitespace-pre-line text-fg-muted">{added}</p>
+          </div>
+        )}
+        <Sources draft={draft} />
+        {draft.test_sent_at && (
+          <p className="text-xs text-fg-subtle">Test sent to you {relativeTime(draft.test_sent_at)}</p>
+        )}
       </div>
 
       <div className="flex h-14 shrink-0 items-center gap-2 border-t border-border px-6">
@@ -161,13 +228,30 @@ function DraftEditor({
                 disabled={regenerate.isPending}
               >
                 <RefreshCw className={regenerate.isPending ? 'animate-spin' : undefined} />
-                Regenerate
+                {regenerate.isPending ? 'Drafting…' : 'Regenerate'}
               </Button>
-              <Button variant="default" onClick={onApprove} data-tour="outreach-approve">
-                <CircleCheck />
-                Approve & queue
-                <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
+              <Button
+                data-tour="outreach-test-send"
+                onClick={() =>
+                  testSend.mutate(draft.id, {
+                    onSuccess: (log) => toast.success('Test email sent', { description: `To ${log.to}, with the CV attached. Check your inbox.` }),
+                    onError: (e) => toast.error(e.message),
+                  })
+                }
+                disabled={testSend.isPending}
+              >
+                <Send />
+                {testSend.isPending ? 'Sending…' : 'Send test to me'}
               </Button>
+              <Tooltip content={errors.length ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first` : null}>
+                <span>
+                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0}>
+                    <CircleCheck />
+                    Approve & queue
+                    <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
+                  </Button>
+                </span>
+              </Tooltip>
             </>
           )}
           {draft.status === 'rejected' && (
