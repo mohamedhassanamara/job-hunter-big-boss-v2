@@ -69,6 +69,12 @@ def plan_schema(model: type = CVPlanDraft) -> dict[str, Any]:
 def user_message(request: CVRequest, feedback: str = "") -> str:
     return (
         (f"REJECTED SENTENCES\n{feedback}\n\n" if feedback else "")
+        + (f"WRITING GUIDE (follow it)\n{request.guide}\n\n" if request.guide else "")
+        + ("STYLE EXEMPLAR (tone, summary length and bullet length only; its content is already "
+           "in the pool)\n" + json.dumps(request.style, ensure_ascii=False, indent=1) + "\n\n"
+           if request.style else "")
+        + ("LAYOUT (what code will show; rank facts with this in mind)\n"
+           + json.dumps(request.layout, ensure_ascii=False) + "\n\n" if request.layout else "")
         + "FACTS (the only years claims allowed)\n"
         + json.dumps(request.facts or {}, ensure_ascii=False) + "\n\n"
         + "JOB\n" + json.dumps(request.job, ensure_ascii=False, indent=1)

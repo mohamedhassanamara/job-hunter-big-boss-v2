@@ -19,8 +19,8 @@ from app.providers.base import (
     CVRequest,
     SummarySentence,
 )
-from app.services import pipeline
-from app.services.cv_build import FitState, fit_to_page
+from app.services import cv_rules, pipeline
+from app.services.cv_build import FitState, Layout, fit_to_page, layout
 from app.services.cv_check import (
     canonicalize,
     check_plan,
@@ -44,6 +44,10 @@ DEFAULT_SETTINGS = {
     "default_template": "default",
     "filename_pattern": "{full_name}_CV_{company}.pdf",
     "track_emphasis": {},  # track name → {"skill_groups": [...], "tags": [...]}
+    # Writing guide (given to the model), structure rules and skill merges (applied in code).
+    "writing_guide": cv_rules.DEFAULT_GUIDE,
+    "structure": cv_rules.DEFAULT_STRUCTURE,
+    "skill_merges": cv_rules.DEFAULT_SKILL_MERGES,
 }
 
 
@@ -86,7 +90,46 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
         pool=prompt_pool(pool),
         emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
         facts={"years": years_facts(pool, _tracks(s))},
+        guide=cv_rules.guide(cv_settings(s)),
+        style=cv_rules.style_exemplar(),
+        layout=layout_hints(pool, cv_rules.structure(cv_settings(s))),
     )
+
+
+def layout_hints(pool: Pool, rules: dict[str, Any]) -> dict[str, Any]:
+    """What code will show, so the model ranks every entry's facts with that in mind."""
+    roles = {}
+    for item in pool.of("job"):
+        kind = cv_rules.role_type(item, rules)
+        lo, hi = rules[kind]
+        roles[str(item.id)] = f"{kind.replace('_', ' ')}: {lo}-{hi} bullets"
+    lo, hi = rules["project_bullets"]
+    return {
+        "roles": roles,
+        "projects": f"at most {rules['projects_max']} projects, {lo}-{hi} bullets each",
+        "skills": f"at most {rules['skill_groups_max']} groups, {rules['skill_items_max']} "
+                  "skills each",
+        "summary": f"at most {rules['summary_max_sentences']} sentences, about "
+                   f"{rules['summary_max_words']} words",
+    }
+
+
+def fit_layout(s: Session, plan: CVPlan, pool: Pool) -> Layout:
+    settings = cv_settings(s)
+    return layout(plan, pool, cv_rules.structure(settings), cv_rules.merges(settings))
+
+
+def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any], text: str,
+                  short: bool = False) -> list[str]:
+    """The guide's summary rules, checked in code (see cv_rules.summary_problems)."""
+    bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
+    internships = [i for i in pool.of("job") if cv_rules.role_type(i, rules) == "internship"]
+    tools = {t for i in pool.items.values() for t in i.tags if len(t) > 2}
+    tools |= {x for g in plan.skills for x in g.items if len(x) > 2}
+    return cv_rules.summary_problems(
+        text, rules=rules, bullet_texts=bullets, certifications=pool.of("certification"),
+        internships=internships, tools=tools, max_sentences=1 if short else None,
+        max_words=max(15, int(rules["summary_max_words"]) // 2) if short else None)
 
 
 def _tracks(s: Session) -> list[dict[str, Any]]:
@@ -101,7 +144,7 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
     template = load_template(template_name)
     out_dir = CV_DIR / str(v.application_id) / f"v{v.version}"
     result = fit_to_page(plan, pool, cv_profile(pool), template, out_dir, state=state,
-                         overrides=overrides)
+                         overrides=overrides, lay=fit_layout(s, plan, pool))
     v.content = result.document.model_dump()
     v.tex = result.tex
     v.template = template_name
@@ -129,10 +172,11 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
             raise CVError(" ".join(blockers))
         template_name = _template(template, s)
         request = build_request(s, app, pool)
+        rules = cv_rules.structure(cv_settings(s))
     try:
         plan = generator.generate(request)
         plan, issues = check_plan(plan, pool)
-        plan, summary_issues, grounding = ground_summary(plan, pool, request, generator)
+        plan, summary_issues, grounding = ground_summary(plan, pool, request, generator, rules)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
     plan = canonicalize(plan, pool)
@@ -168,30 +212,48 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
 
 
 def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGenerator,
+                   rules: dict[str, Any] | None = None,
                    ) -> tuple[CVPlan, list[dict[str, Any]], dict[str, Any]]:
-    """Every summary sentence must cite pool items and say only what they say. Rejected
-    sentences → the summary is regenerated once (told why) → still rejected → the user's summary
-    snippet verbatim (or, with no snippet, only the grounded sentences)."""
+    """Every summary sentence must cite pool items and say only what they say, and the summary
+    must follow the writing guide (length, no repeated numbers, certifications, internships or
+    tool lists). Any problem → the summary is regenerated once (told why). Grounding still
+    failing → the user's summary snippet verbatim (or only the grounded sentences); guide
+    problems still there → kept, with a warning to review."""
+    rules = rules or dict(cv_rules.DEFAULT_STRUCTURE)
     allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
-    report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None}
+    report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None, "style": []}
+
+    def join(items: list[SummarySentence]) -> str:
+        return " ".join(s.text.strip() for s in items)
+
     good, bad = ground_sentences(plan.summary_sentences, pool, allowed)
     short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed)
-    if bad or short_bad:
+    style = summary_style(plan, pool, rules, join(plan.summary_sentences))
+    short_style = summary_style(plan, pool, rules, join(plan.summary_short_sentences), True)
+    if bad or short_bad or style or short_style:
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
                                    for s, r in bad + short_bad])
-        retry = generator.generate_summary(request, feedback(bad + short_bad))
+        report["style"].append({"summary": style, "short": short_style})
+        notes = feedback(bad + short_bad)
+        if style or short_style:
+            notes += ("\n" if notes else "") + "\n".join(
+                [f"- Summary: {p}" for p in style] + [f"- Short summary: {p}" for p in short_style])
+        retry = generator.generate_summary(request, notes)
         report["attempts"] = 2
         good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed)
         short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed)
+        style2 = summary_style(plan, pool, rules, join(retry.summary_sentences))
+        short_style2 = summary_style(plan, pool, rules, join(retry.summary_short_sentences), True)
+        report["style"].append({"summary": style2, "short": short_style2})
         if bad2:
             report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
                                        for s, r in bad2])
-        if not bad2 and good2:
-            good, bad = good2, []
-        else:
+        if not bad2 and good2 and (bad or len(style2) <= len(style)):
+            good, bad, style = good2, [], style2
+        elif bad:
             good = good2 if len(good2) >= len(good) else good
-        if not short_bad2 and short2:
-            short_good, short_bad = short2, []
+        if not short_bad2 and short2 and (short_bad or len(short_style2) <= len(short_style)):
+            short_good, short_bad, short_style = short2, [], short_style2
     issues: list[dict[str, Any]] = []
     snippets = pool.of("summary")
     if bad:
@@ -209,12 +271,14 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
             issues.append(violation("summary_fallback", "Summary sentences failed the grounding "
                                     "check twice and you have no summary snippet: kept only the "
                                     f"{len(good)} grounded sentence(s)", "summary"))
+    elif style:
+        issues.append(violation("summary_style", "The summary still breaks the writing guide "
+                                f"after one retry: {'; '.join(style)}", "summary"))
     if bad or short_bad:
         short_good = short_good if short_good and not short_bad else good[:1]
     return plan.model_copy(update={
         "summary_sentences": good, "summary_short_sentences": short_good,
-        "summary": " ".join(s.text.strip() for s in good),
-        "summary_short": " ".join(s.text.strip() for s in short_good),
+        "summary": join(good), "summary_short": join(short_good),
         "summary_source_ids": sorted({c for s in good for c in s.citations}),
     }), issues, report
 

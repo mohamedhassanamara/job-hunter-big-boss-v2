@@ -144,6 +144,9 @@ class PlanBullet(BaseModel):
     source_index: int = Field(description="Index of the fact this bullet rewords")
     text: str = Field(description="The reworded bullet (same facts and numbers as the source)")
     priority: int = Field(ge=1, description="1 = most relevant to this job")
+    strength: int = Field(default=3, ge=1, le=5, description=(
+        "How strong the bullet is on its own: 5 = a concrete outcome or impact, 3 = a specific "
+        "thing built, 1 = a generic process line (e.g. 'collaborated in Agile sprints')"))
 
 
 class PlanEntry(BaseModel):
@@ -221,6 +224,9 @@ class CVRequest(BaseModel):
     emphasis: dict[str, Any] = {}  # Settings → CV track emphasis for the job's track
     # Facts computed in code that the model may state, e.g. {"years": [{"label", "years"}]}.
     facts: dict[str, Any] = {}
+    guide: str = ""  # Settings → CV writing guide
+    style: dict[str, Any] = {}  # the reference CV's summary and bullets (tone and length only)
+    layout: dict[str, Any] = {}  # how many bullets code will show per entry, skills limits
 
 
 class CVGenerationFailed(RuntimeError):
