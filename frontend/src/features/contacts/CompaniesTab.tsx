@@ -15,7 +15,15 @@ import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { ApiError } from '@/lib/api'
 import { initials, pluralize, relativeTime } from '@/lib/format'
-import { useAddCompanyContact, useClearJobContact, useCompanies, useCompany, useSetJobContact } from '@/lib/queries/library'
+import {
+  useAddCompanyContact,
+  useClearJobContact,
+  useCompanies,
+  useCompany,
+  useLookupAction,
+  useSetCompanySize,
+  useSetJobContact,
+} from '@/lib/queries/library'
 import type { CompanyDetail, CompanyFilter, Contact } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { NewContactDialog } from '@/components/app/NewContactDialog'
@@ -82,9 +90,70 @@ function JobsTable({ data }: { data: CompanyDetail }) {
   )
 }
 
+function SizeEditor({ data }: { data: CompanyDetail }) {
+  const set = useSetCompanySize()
+  const [kind, setKind] = useState<'unknown' | 'max' | 'exact'>(data.employees !== null ? 'exact' : data.employees_max !== null ? 'max' : 'unknown')
+  const [value, setValue] = useState(String(data.employees ?? data.employees_max ?? ''))
+  const [editing, setEditing] = useState(false)
+  if (!editing)
+    return (
+      <Tooltip content={data.small ? 'Small company: CTO and founders are written to first' : 'Large or unknown size: HR/Talent and engineering managers first'}>
+        <button onClick={() => setEditing(true)} className="inline-flex">
+          <ToneBadge tone={data.small ? 'teal' : 'gray'}>
+            {data.size_label}
+            {data.size_source === 'apollo_list' && ' (Apollo list)'}
+          </ToneBadge>
+        </button>
+      </Tooltip>
+    )
+  const n = Number(value)
+  const save = () =>
+    set.mutate(
+      {
+        companyId: data.id,
+        employees: kind === 'exact' ? n : null,
+        employees_max: kind === 'max' ? n : null,
+      },
+      {
+        onSuccess: (d) => {
+          toast.success('Company size saved', { description: `${d.size_label}: jobs here re-matched` })
+          setEditing(false)
+        },
+        onError: (e) => toast.error(e.message),
+      },
+    )
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Select
+        size="sm"
+        aria-label="Size"
+        value={kind}
+        onValueChange={(v) => setKind(v as typeof kind)}
+        options={[
+          { value: 'unknown', label: 'Size unknown' },
+          { value: 'max', label: 'Under' },
+          { value: 'exact', label: 'Exactly' },
+        ]}
+        className="w-32"
+      />
+      {kind !== 'unknown' && (
+        <Input type="number" min={1} value={value} onChange={(e) => setValue(e.target.value)} className="h-7 w-24" aria-label="Employees" />
+      )}
+      {kind !== 'unknown' && <span className="text-xs">employees</span>}
+      <Button size="xs" variant="default" disabled={set.isPending || (kind !== 'unknown' && !(n > 0))} onClick={save}>
+        Save
+      </Button>
+      <Button size="xs" variant="ghost" onClick={() => setEditing(false)}>
+        Cancel
+      </Button>
+    </span>
+  )
+}
+
 function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => void }) {
   const { data, isPending, error, refetch } = useCompany(id)
   const add = useAddCompanyContact()
+  const lookupAct = useLookupAction()
   const [adding, setAdding] = useState(false)
   const missing = error instanceof ApiError && error.status === 404
   // A stale ?company= (another workspace, a removed company): fall back to the list's first.
@@ -123,8 +192,24 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
             ) : (
               <ToneBadge tone="gray">Not contacted</ToneBadge>
             )}
+            <SizeEditor key={`${data.employees}-${data.employees_max}`} data={data} />
             {data.lookup_status === 'not_found' && <ToneBadge tone="gray">Lookup found nobody</ToneBadge>}
+            {data.lookup_status === 'never' && <ToneBadge tone="gray">Never looked up (job board)</ToneBadge>}
             {data.lookup_status === 'queued' && <ToneBadge tone="amber">In the lookup queue</ToneBadge>}
+            {(data.lookup_status === 'never' || data.lookup_status === 'not_found') && (
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={() =>
+                  lookupAct.mutate(
+                    { companyId: data.id, action: 'again' },
+                    { onSuccess: () => toast.success('Back in the lookup queue'), onError: (e) => toast.error(e.message) },
+                  )
+                }
+              >
+                Look up again
+              </Button>
+            )}
           </div>
         </div>
         <Button size="sm" onClick={() => setAdding(true)}>
@@ -137,7 +222,7 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
 
       <div>
         <p className="mb-2 text-xs font-medium text-fg-subtle">
-          {pluralize(data.contacts.length, 'contact')} · most relevant first (Settings → Contacts)
+          {pluralize(data.contacts.length, 'contact')} · most relevant first for a {data.small ? 'small' : 'large or unknown-size'} company (Settings → Contacts)
         </p>
         {data.contacts.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border-strong p-6 text-center text-sm text-fg-muted">

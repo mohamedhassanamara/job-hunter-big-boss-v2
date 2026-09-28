@@ -424,7 +424,7 @@ export interface ExperienceItem extends ExperienceInput {
 }
 
 // Contacts
-export type LookupStatus = 'queued' | 'found' | 'not_found' | 'skipped'
+export type LookupStatus = 'queued' | 'found' | 'not_found' | 'skipped' | 'never'
 export type CompanyFilter = 'with_jobs' | 'has_contacts' | 'needs_lookup' | 'no_contact' | 'all'
 
 export interface CompanyListItem {
@@ -436,6 +436,11 @@ export interface CompanyListItem {
   contacted_at: string | null
   lookup_status: LookupStatus | null
   best_contact: string | null
+  employees: number | null
+  employees_max: number | null // "under N"
+  size_source: 'manual' | 'apollo_list' | null
+  size_label: string
+  small: boolean // uses the small-company contact order
 }
 
 export interface CompanyList {
@@ -499,6 +504,10 @@ export interface LookupItem {
   best_job_title: string | null
   best_fit: number | null
   queued_at: string
+  shortlisted: number
+  newest_at: string | null
+  reason: string // why it's at this position
+  aggregator: string[] // "looks like a job board" signals (you confirm)
 }
 
 export interface LookupQueue {
@@ -533,6 +542,19 @@ export interface MatchReport {
   companies_with_contacts: number
   changed: number | null
   at: string
+}
+
+export interface MergeSide {
+  id: number
+  name: string
+  jobs: number
+  contacts: number
+}
+
+export interface MergeSuggestion {
+  a: MergeSide
+  b: MergeSide
+  reason: string
 }
 
 export interface RoleGroup {

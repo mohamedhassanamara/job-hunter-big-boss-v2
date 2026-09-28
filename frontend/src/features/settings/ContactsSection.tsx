@@ -8,14 +8,59 @@ import { useSaveSetting } from '@/lib/queries/library'
 import type { RoleGroup, SettingsView } from '@/lib/types'
 import { Card, Field, SaveBar } from './sections'
 
-/** Who to write to first at a company, and the daily cap of manual Apollo lookups. */
+const SMALL_DEFAULT = ['CTO', 'Founder / CEO', 'VP / Head of Engineering', 'Head of Data / AI / ML', 'Engineering Manager', 'Tech Lead', 'HR / Talent']
+const LARGE_DEFAULT = ['HR / Talent', 'Engineering Manager', 'CTO', 'VP / Head of Engineering', 'Head of Data / AI / ML', 'Tech Lead', 'Founder / CEO']
+
+/** The saved order, limited to existing groups, with any new group appended. */
+function normalizeOrder(order: string[] | undefined, groups: RoleGroup[], fallback: string[]): string[] {
+  const labels = groups.map((g) => g.label)
+  const kept = (order ?? fallback).filter((l) => labels.includes(l))
+  return [...kept, ...labels.filter((l) => !kept.includes(l))]
+}
+
+function OrderList({ title, order, onChange }: { title: string; order: string[]; onChange: (o: string[]) => void }) {
+  const move = (i: number, d: -1 | 1) => {
+    const next = [...order]
+    ;[next[i], next[i + d]] = [next[i + d], next[i]]
+    onChange(next)
+  }
+  return (
+    <div className="flex-1 rounded-lg border border-border bg-surface">
+      <p className="border-b border-border px-3 py-2 text-xs font-medium text-fg-subtle">{title}</p>
+      <ol>
+        {order.map((label, i) => (
+          <li key={label} className="flex items-center gap-2 border-b border-border px-3 py-1.5 text-sm last:border-b-0">
+            <span className="w-4 text-right text-xs text-fg-subtle tabular-nums">{i + 1}</span>
+            <span className="flex-1 truncate">{label}</span>
+            <Button size="icon-sm" variant="ghost" aria-label={`Move ${label} up`} disabled={i === 0} onClick={() => move(i, -1)}>
+              <ArrowUp />
+            </Button>
+            <Button size="icon-sm" variant="ghost" aria-label={`Move ${label} down`} disabled={i === order.length - 1} onClick={() => move(i, 1)}>
+              <ArrowDown />
+            </Button>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+/** Who to write to first at a company (by size), and the daily cap of manual Apollo lookups. */
 export function ContactsSection({ settings }: { settings: SettingsView }) {
-  const initialRanking = ((settings.values.contacts?.role_ranking as RoleGroup[] | undefined) ?? []).map((g) => ({ ...g }))
+  const saved = settings.values.contacts ?? {}
+  const initialRanking = ((saved.role_ranking as RoleGroup[] | undefined) ?? []).map((g) => ({ ...g }))
+  const initialSmall = normalizeOrder(saved.small_order as string[] | undefined, initialRanking, SMALL_DEFAULT)
+  const initialLarge = normalizeOrder(saved.large_order as string[] | undefined, initialRanking, LARGE_DEFAULT)
+  const initialThreshold = Number(saved.small_company_threshold ?? 200)
   const initialCap = Number(settings.values.lookup?.daily_cap ?? 10)
   const [ranking, setRanking] = useState<RoleGroup[]>(initialRanking)
+  const [small, setSmall] = useState(initialSmall)
+  const [large, setLarge] = useState(initialLarge)
+  const [threshold, setThreshold] = useState(initialThreshold)
   const [cap, setCap] = useState(initialCap)
   const save = useSaveSetting()
-  const rankingDirty = JSON.stringify(ranking) !== JSON.stringify(initialRanking)
+  const rankingDirty =
+    JSON.stringify([ranking, small, large, threshold]) !== JSON.stringify([initialRanking, initialSmall, initialLarge, initialThreshold])
   const capDirty = cap !== initialCap
   const invalid = ranking.length === 0 || ranking.some((g) => !g.label.trim() || g.keywords.length === 0)
 
@@ -32,12 +77,25 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
       toast.error('Every group needs a label and at least one keyword')
       return
     }
+    if (!Number.isInteger(threshold) || threshold < 1) {
+      toast.error('The size threshold must be a number of employees')
+      return
+    }
     if (!Number.isInteger(cap) || cap < 1 || cap > 100) {
       toast.error('The daily cap must be between 1 and 100')
       return
     }
     try {
-      if (rankingDirty) await save.mutateAsync({ key: 'contacts', value: { role_ranking: ranking } })
+      if (rankingDirty)
+        await save.mutateAsync({
+          key: 'contacts',
+          value: {
+            role_ranking: ranking,
+            small_order: normalizeOrder(small, ranking, SMALL_DEFAULT),
+            large_order: normalizeOrder(large, ranking, LARGE_DEFAULT),
+            small_company_threshold: threshold,
+          },
+        })
       if (capDirty) await save.mutateAsync({ key: 'lookup', value: { daily_cap: cap } })
       toast.success('Contacts settings saved', { description: rankingDirty ? 'Every contact was re-ranked and jobs re-matched.' : undefined })
     } catch (e) {
@@ -48,13 +106,16 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
   return (
     <Card
       title="Contacts"
-      description="The order decides who each job's email goes to: the first group with someone at the company wins. Keywords match whole words in the title, ignoring accents and case."
+      description="The order decides who each job's email goes to: the first group with someone at the company wins, in the order for its size. Keywords match whole words in the title, ignoring accents and case."
       footer={
         <SaveBar
           dirty={rankingDirty || capDirty}
           saving={save.isPending}
           onReset={() => {
             setRanking(initialRanking)
+            setSmall(initialSmall)
+            setLarge(initialLarge)
+            setThreshold(initialThreshold)
             setCap(initialCap)
           }}
           onSave={() => void onSave()}
@@ -87,6 +148,17 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
           Add group
         </Button>
         <p className="text-xs text-fg-subtle">Titles matching no group rank last. Ties: someone with an email, then the most recently imported.</p>
+      </div>
+      <Field label="Small company" hint="Uses the small-company order">
+        <div className="flex items-center gap-2 text-sm">
+          Up to
+          <Input type="number" min={1} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className="w-24" aria-label="Small company threshold" />
+          employees. An “under N” size (Apollo lists) counts as small when N is at most this; unknown size uses the large order.
+        </div>
+      </Field>
+      <div data-tour="settings-contacts-orders" className="flex gap-3">
+        <OrderList title={`Small companies (up to ${threshold})`} order={normalizeOrder(small, ranking, SMALL_DEFAULT)} onChange={setSmall} />
+        <OrderList title="Large or unknown size" order={normalizeOrder(large, ranking, LARGE_DEFAULT)} onChange={setLarge} />
       </div>
       <Field label="Apollo lookups per day" hint="The extension's free quota">
         <Input type="number" min={1} max={100} value={cap} onChange={(e) => setCap(Number(e.target.value))} className="w-24" />
