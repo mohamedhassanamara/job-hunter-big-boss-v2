@@ -195,9 +195,8 @@ def problems(text: str) -> list[str]:
 
 
 def test_a_guide_following_summary_passes() -> None:
-    assert problems("Software engineer with 2+ years building data pipelines and backend "
-                    "services. I bring production Python experience and a habit of shipping "
-                    "reliable, well-tested systems.") == []
+    assert problems("Software engineer building data pipelines and backend services. His "
+                    "recent work pairs production Python with careful testing.") == []
 
 
 @pytest.mark.parametrize(("text", "expected"), [
@@ -210,6 +209,38 @@ def test_a_guide_following_summary_passes() -> None:
 ])
 def test_summary_rules(text: str, expected: str) -> None:
     assert any(expected in p for p in problems(text))
+
+
+def v5(text: str, cited: list[str] | None = None, openings: list[str] | None = None):  # noqa: ANN201
+    return cv_rules.summary_problems(
+        text, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set(),
+        banned_phrases=cv_rules.DEFAULT_CV_BANNED, cited_texts=cited, other_openings=openings)
+
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("Engineer with hands-on experience in data. It ships.", "banned phrase “hands-on experience”"),
+    ("Engineer building pipelines. I love data.", "first person"),
+    ("Engineer building pipelines. Brings experience in data.", "fragment"),
+])
+def test_v5_summary_rules(text: str, expected: str) -> None:
+    assert any(expected in p for p in v5(text))
+
+
+def test_summary_must_name_something_concrete_from_the_cited_items() -> None:
+    cited = ["FPL Batch Data Lakehouse", "Built an end-to-end local lakehouse ingesting Premier "
+             "League data into LocalStack S3"]
+    vague = "Software engineer building data systems. The work spans many domains and teams."
+    concrete = ("Software engineer building data pipelines. Recent work includes a local "
+                "lakehouse for Premier League data.")
+    assert any("concrete" in p for p in v5(vague, cited))
+    assert not any("concrete" in p for p in v5(concrete, cited))
+
+
+def test_summary_openings_must_vary_between_cvs() -> None:
+    text = "Software engineer transitioning into data engineering. It works."
+    assert any("opens like another CV" in p
+               for p in v5(text, openings=[cv_rules.opening(text)]))
+    assert not any("opens like" in p for p in v5(text, openings=["something else entirely"]))
 
 
 class SummaryScript:
@@ -266,3 +297,32 @@ def test_cv_settings_structure_is_validated(client) -> None:  # noqa: ANN001
     ok = client.put("/api/settings/cv", json={"value": {**cv, "structure": {"internship": [1, 1]},
                                                          "writing_guide": "Be brief."}})
     assert ok.status_code == 200
+
+
+def test_regenerating_the_summary_keeps_bullets_layout_and_status(seeded: None, monkeypatch,
+                                                                  tmp_path) -> None:  # noqa: ANN001
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models import Application, AppSetting, CVVersion
+    from app.models.enums import CVStatus
+    from app.providers.mock import MockCVGenerator
+
+    monkeypatch.setattr(cv_build, "compile_tex", fake_compiler(capacity=60, calls=[]))
+    with Session(engine) as s:
+        row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).one()
+        row.value = {**row.value, "full_name": "Ada"}
+        s.add(row)
+        s.commit()
+        app_id = s.exec(select(Application.id)).first()
+    v = cv_service.generate(engine, app_id, MockCVGenerator())
+    before = (v.content["roles"], v.content["projects"], v.plan["fit"]["counts"], v.version)
+    after = cv_service.regenerate_summary(engine, v.id, MockCVGenerator())
+    assert (after.content["roles"], after.content["projects"], after.plan["fit"]["counts"],
+            after.version) == before
+    assert after.status == CVStatus.draft and after.plan["summary_history"]
+    with Session(engine) as s:
+        s.get(CVVersion, v.id).status = CVStatus.approved
+        s.commit()
+    with pytest.raises(cv_service.CVError, match="draft"):
+        cv_service.regenerate_summary(engine, v.id, MockCVGenerator())

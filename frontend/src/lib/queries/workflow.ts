@@ -87,6 +87,15 @@ export function useCVStudio(appId: number) {
   })
 }
 
+/** A new summary for a draft; bullets and layout stay as they are. */
+export function useRegenerateSummary() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (cvId: number) => api.post<CVVersion>(`/cv/${cvId}/summary`),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useGenerateCV() {
   const qc = useQueryClient()
   return useMutation({

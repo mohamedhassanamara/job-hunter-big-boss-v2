@@ -12,9 +12,13 @@ from typing import Any
 from app.models import ExperienceItem
 
 DEFAULT_GUIDE = "\n".join([
-    "Summary: at most 2 sentences, about 45 words. Sentence 1: who I am, positioned for this "
-    "job's track. Sentence 2: what I bring to THIS role. No numbers that also appear in bullets, "
-    "no certifications, no internships, no tool lists.",
+    "Summary: two full sentences with a subject (never a fragment like \"Brings…\"), no \"I\", "
+    "about 45 words. Sentence 1: who I am, positioned for this job's track; for Data/AI jobs lead "
+    "with what I build (e.g. \"Software engineer building data pipelines and local LLM "
+    "systems\"). Sentence 2: what I bring to THIS role, naming at least one concrete thing I "
+    "built from the cited items (e.g. \"a privacy-first resume parser on a local Mistral LLM\", "
+    "\"a dbt/Airflow lakehouse for football data\"). Vary the opening between CVs. No numbers "
+    "that also appear in bullets, no certifications, no internships, no tool lists.",
     "Bullets: impact first (what I built and why it mattered), strong and varied verbs, one idea "
     "per bullet. Prefer bullets with concrete outcomes; skip generic ones (\"collaborated in Agile "
     "sprints\") unless nothing else fits.",
@@ -23,6 +27,12 @@ DEFAULT_GUIDE = "\n".join([
     "Use the style exemplar for tone, bullet length and summary length (its content is already "
     "in the pool).",
 ])
+
+# Phrases that make a CV read as generated (editable in Settings → CV, like the email list).
+DEFAULT_CV_BANNED = [
+    "hands-on experience", "well suited", "strong foundation", "real-world applications",
+    "production-ready", "brings experience", "passionate", "proven track record", "leveraging",
+]
 
 DEFAULT_STRUCTURE: dict[str, Any] = {
     "current": [3, 4],        # the role you're in now
@@ -67,6 +77,11 @@ def structure(cv_settings: dict[str, Any]) -> dict[str, Any]:
 
 def guide(cv_settings: dict[str, Any]) -> str:
     return (cv_settings.get("writing_guide") or "").strip() or DEFAULT_GUIDE
+
+
+def banned(cv_settings: dict[str, Any]) -> list[str]:
+    rules = cv_settings.get("banned_phrases")
+    return DEFAULT_CV_BANNED if rules is None else list(rules)
 
 
 def merges(cv_settings: dict[str, Any]) -> list[str]:
@@ -245,10 +260,31 @@ def sentences(text: str) -> list[str]:
     return [s for s in _SENTENCE.split(text.strip()) if s.strip()]
 
 
+# A sentence opening on one of these is a fragment ("Brings experience…"), not a sentence.
+_FRAGMENT_START = {
+    "brings", "bringing", "delivers", "offers", "combines", "has", "having", "specializes",
+    "specialises", "focuses", "builds", "building", "designs", "designing", "develops",
+    "developing", "creates", "adds", "enjoys", "excels", "thrives", "possesses", "demonstrates",
+    "leverages", "leveraging", "skilled", "experienced", "adept", "known", "eager", "able",
+}
+_STOP = {"a", "an", "the", "and", "or", "of", "for", "to", "in", "on", "with", "by", "at", "from",
+         "into", "as", "is", "are", "that", "this", "its", "their", "using", "based", "via"}
+
+
+def _content_words(text: str) -> list[str]:
+    return [w for w in re.findall(r"[a-z0-9][a-z0-9+#.-]*", text.lower()) if w not in _STOP]
+
+
+def opening(text: str, n: int = 4) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", text.lower())[:n])
+
+
 def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str],
                      certifications: list[ExperienceItem], internships: list[ExperienceItem],
                      tools: set[str], max_sentences: int | None = None,
-                     max_words: int | None = None) -> list[str]:
+                     max_words: int | None = None, banned_phrases: list[str] | None = None,
+                     cited_texts: list[str] | None = None,
+                     other_openings: list[str] | None = None) -> list[str]:
     """Why a summary breaks the guide (empty = fine). Checked in code; the summary is
     regenerated once with these reasons."""
     max_sentences = max_sentences or int(rules["summary_max_sentences"])
@@ -280,6 +316,25 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
         out.append("mentions certifications")
     if _INTERN.search(text) or any(i.org and i.org.lower() in low for i in internships):
         out.append("mentions an internship")
+    for phrase in banned_phrases or []:
+        if phrase.strip() and re.search(rf"\b{re.escape(phrase.strip().lower())}\b", low):
+            out.append(f"banned phrase “{phrase.strip()}”")
+    if re.search(r"\b(i|my|me|i'm|i've)\b", low):
+        out.append("uses the first person (no “I”)")
+    for sentence in sentences(text):
+        first = (re.findall(r"[a-z]+", sentence.lower()) or [""])[0]
+        if first in _FRAGMENT_START:
+            out.append(f"“{sentence.split()[0]}…” is a fragment: every sentence needs a subject")
+            break
+    if cited_texts is not None:
+        source = _content_words(" ".join(cited_texts))
+        pairs = {" ".join(source[i:i + 2]) for i in range(len(source) - 1)}
+        words = _content_words(text)
+        if not any(" ".join(words[i:i + 2]) in pairs for i in range(len(words) - 1)):
+            out.append("names nothing concrete you built (use a project or system from the "
+                       "cited items)")
+    if other_openings and opening(text) in set(other_openings):
+        out.append(f"opens like another CV (“{' '.join(text.split()[:4])}…”): vary the opening")
     for sentence in sentences(text):
         found = sorted({t.lower() for t in tools
                         if re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])", sentence, re.I)})
