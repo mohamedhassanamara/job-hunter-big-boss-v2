@@ -86,3 +86,14 @@ class OutreachDraft(TableBase, table=True):
     status: DraftStatus = enum_field(DraftStatus.draft, index=True)
     model: str = "mock"
     edited: bool = False
+    # The approved CV the email is written from (and attached when sent).
+    cv_version_id: int | None = Field(default=None, foreign_key="cv_version.id")
+    # The model's sentences with their citations, and the automatic checks' findings.
+    plan: dict[str, Any] = json_field(dict)
+    violations: list[dict[str, Any]] = json_field()
+    prompt_version: str | None = None
+    duration_ms: int | None = None
+    error: str | None = Field(default=None, sa_type=Text)
+    test_sent_at: datetime | None = dt_field()
+    sent_at: datetime | None = dt_field()
+    message_id: str | None = None

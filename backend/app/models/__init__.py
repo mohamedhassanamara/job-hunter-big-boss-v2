@@ -12,7 +12,7 @@ from app.models.company import (
 from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
-from app.models.queue import SendQueue, SendQueueItem
+from app.models.queue import SendLog, SendQueue, SendQueueItem
 from app.models.scoring import ScoringRun, ScoringTask
 from app.models.settings import AppSetting
 from app.models.tracking import ApplicationResponse, Interview, ReminderAction
@@ -39,6 +39,7 @@ __all__ = [
     "SearchProfile",
     "ScoringRun",
     "ScoringTask",
+    "SendLog",
     "SendQueue",
     "SendQueueItem",
     "SourceRun",

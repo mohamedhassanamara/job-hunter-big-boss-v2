@@ -11,7 +11,7 @@ from app.api import router as api_router
 from app.config import get_settings
 from app.db import demo_engine, engine
 from app.seed.seed import ensure_defaults
-from app.services import scheduler
+from app.services import scheduler, send_queue
 from app.services.discovery import mark_stale_runs
 from app.services.pipeline import TransitionError
 from app.services.scoring import workspace_queue
@@ -33,8 +33,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         workspace_queue("real").resume()
     if settings.scheduler_enabled:
         scheduler.start(engine)
+    if settings.send_worker_enabled:  # real workspace only; the sandbox never sends
+        send_queue.start_worker(engine)
     yield
     scheduler.shutdown()
+    send_queue.stop_worker()
 
 
 app = FastAPI(title="Job Hunter v2", version="0.1.0", lifespan=lifespan)

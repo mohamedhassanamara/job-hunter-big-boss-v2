@@ -6,15 +6,18 @@ from datetime import UTC, datetime, timedelta
 
 from app.models.enums import RemoteType, Source
 from app.providers.base import (
-    ContactSnapshot,
     CVPlan,
     CVPlanDraft,
     CVRequest,
-    DraftResult,
+    EmailDraftPlan,
+    EmailRequest,
+    EmailSentence,
     FitAssessment,
     JobSnapshot,
+    OutgoingEmail,
     ProfileSpec,
     RawJob,
+    SendFailed,
     SubScore,
     SummaryDraft,
     SummarySentence,
@@ -154,35 +157,47 @@ class MockCVGenerator:
 
 
 class MockEmailDrafter:
-    model = "mock-drafter"
+    """A short, grounded draft built from the request (sandbox and tests; no model call)."""
 
-    def draft(
-        self, job: JobSnapshot, contact: ContactSnapshot, cv: dict | None
-    ) -> DraftResult:
-        first = contact.full_name.split()[0]
-        return DraftResult(
-            subject=f"{job.title} at {job.company}: data engineer with LLM platform experience",
-            body=(
-                f"Hi {first},\n\n"
-                f"I saw {job.company} is hiring a {job.title} and wanted to reach out directly. "
-                "I've spent the last few years building batch and streaming data platforms "
-                "(Spark, dbt, Airflow) and, more recently, retrieval pipelines for LLM "
-                "features.\n\n"
-                "A couple of things that seem relevant to the role:\n"
-                "- Cut warehouse costs ~35% by re-modelling core pipelines in dbt\n"
-                "- Shipped a RAG service used by 2k internal users\n\n"
-                "I've attached a one-page CV. Would you be open to a short call next week?\n\n"
-                "Best,\nYour Name"
-            ),
-            model=self.model,
+    model = "mock-drafter"
+    prompt_version = "outreach/mock"
+
+    def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan:
+        job, contact = request.job, request.contact
+        role = next((r for r in request.pool.get("roles", []) if r.get("facts")), None)
+        sentences = [EmailSentence(
+            text=f"I saw that {job.get('company')} is hiring for the {job.get('title')} role.",
+            about_job=True)]
+        if role:
+            fact = next(iter(role["facts"].values()))
+            sentences.append(EmailSentence(
+                text=f"At {role.get('org')}, I {fact[0].lower()}{fact[1:].rstrip('.')}.",
+                citations=[role["id"]]))
+        return EmailDraftPlan(
+            subject=f"{job.get('title')} at {job.get('company')}"[:80],
+            greeting=f"Hi {contact.get('first_name')},",
+            sentences=sentences,
+            ask="Would you be open to a 15-minute call next week?",
         )
+
+    @staticmethod
+    def sample(title: str, company: str, first_name: str) -> tuple[str, str]:
+        """Static sample text for the tour sandbox's seeded drafts."""
+        return (f"{title} at {company}", (
+            f"Hi {first_name},\n\nI saw that {company} is hiring for the {title} role. At my "
+            "last company I built batch and streaming data pipelines on Spark and Airflow.\n\n"
+            "Would you be open to a 15-minute call next week?\n\nBest,\nSample Candidate"))
 
 
 class MockMailer:
-    """Never sends anything. Records calls for tests."""
+    """Never sends anything. Records calls for tests (and can be told to fail)."""
 
     def __init__(self) -> None:
-        self.sent: list[tuple[str, str]] = []
+        self.sent: list[OutgoingEmail] = []
+        self.fail: SendFailed | None = None
 
-    def send(self, to: str, subject: str, body: str, attachment_path: str | None) -> None:
-        self.sent.append((to, subject))
+    def send(self, email: OutgoingEmail) -> str:
+        if self.fail is not None:
+            raise self.fail
+        self.sent.append(email)
+        return f"<mock-{len(self.sent)}@job-hunter.local>"

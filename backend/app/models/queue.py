@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlmodel import Field
 
-from app.models.base import TableBase, dt_field, enum_field
+from app.models.base import TableBase, dt_field, enum_field, utcnow
 from app.models.enums import QueueItemStatus, QueueStatus
 
 
@@ -25,3 +25,22 @@ class SendQueueItem(TableBase, table=True):
     sent_at: datetime | None = dt_field()
     status: QueueItemStatus = enum_field(QueueItemStatus.pending)
     error: str | None = None
+    attempts: int = 0
+    last_attempt_at: datetime | None = dt_field()
+    message_id: str | None = None
+
+
+class SendLog(TableBase, table=True):
+    """Every send attempt, test or real, success or failure. Never deleted."""
+
+    __tablename__ = "send_log"
+
+    draft_id: int | None = Field(default=None, foreign_key="outreach_draft.id", index=True)
+    kind: str  # test | real
+    to: str
+    subject: str
+    status: str  # sent | failed
+    error: str | None = None
+    message_id: str | None = None
+    attachment: str | None = None
+    at: datetime = dt_field(default_factory=utcnow)

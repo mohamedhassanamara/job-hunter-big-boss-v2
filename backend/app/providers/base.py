@@ -233,6 +233,38 @@ class DraftResult(BaseModel):
     model: str
 
 
+class DraftFailed(RuntimeError):
+    """The email drafter couldn't produce a valid draft; the message is shown to the user."""
+
+
+class EmailSentence(BaseModel):
+    text: str
+    citations: list[int] = Field(default_factory=list, description=(
+        "Pool ids this sentence is based on (roles, projects, skill groups, education…). Empty "
+        "only for a sentence about the company or the role, which must then set about_job"))
+    about_job: bool = Field(default=False, description=(
+        "True when the sentence is about the company or the role, stated only from the JOB "
+        "listing (no claims about the candidate)"))
+
+
+class EmailDraftPlan(BaseModel):
+    """What the model returns; code adds the signature and the opt-out line."""
+
+    subject: str = Field(description="Specific to the role and company, at most 8 words")
+    greeting: str = Field(description="e.g. 'Hi Franck,' with the contact's first name")
+    sentences: list[EmailSentence] = Field(description=(
+        "2-4 body sentences: why this company and role, then 1-2 proof points from the CV"))
+    ask: str = Field(description="The one clear ask, one sentence (e.g. a 15-minute call)")
+
+
+class EmailRequest(BaseModel):
+    job: dict[str, Any]
+    contact: dict[str, Any]
+    candidate: dict[str, Any]  # name, headline, location, years facts
+    pool: dict[str, Any]  # the experience items used in the approved CV, with ids
+    rules: dict[str, Any] = Field(default_factory=dict)  # max words, banned phrases
+
+
 class ContactSnapshot(BaseModel):
     full_name: str
     title: str | None = None
@@ -274,10 +306,30 @@ class CVGenerator(Protocol):
 
 
 class EmailDrafter(Protocol):
-    def draft(
-        self, job: JobSnapshot, contact: ContactSnapshot, cv: dict[str, Any] | None
-    ) -> DraftResult: ...
+    model: str
+    prompt_version: str
+
+    def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan: ...
+
+
+class SendFailed(RuntimeError):
+    """A send attempt failed. `fatal` (auth/config) pauses the queue; otherwise only this item
+    fails and can be retried."""
+
+    def __init__(self, message: str, *, fatal: bool = False):
+        super().__init__(message)
+        self.fatal = fatal
+
+
+class OutgoingEmail(BaseModel):
+    to: str
+    subject: str
+    body: str  # plain text
+    html: str | None = None  # optional alternative (signature photo)
+    attachment_path: str | None = None
+    attachment_name: str | None = None
+    inline_images: dict[str, str] = Field(default_factory=dict)  # cid -> file path
 
 
 class Mailer(Protocol):
-    def send(self, to: str, subject: str, body: str, attachment_path: str | None) -> None: ...
+    def send(self, email: OutgoingEmail) -> str: ...  # returns the Message-ID
