@@ -110,6 +110,17 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 
 ### 3.5 CV Studio (`/jobs/:id/cv`)
 *Purpose:* review and adjust the tailored CV for one job. The contract is in docs/CV_TEMPLATES.md.
+- **How a CV is shaped** (Settings → CV → "How CVs are written"): a writing guide (given to Claude with the
+  reference CV's summary and bullets as a style example) and structure rules enforced in code:
+  - bullets by role type, not relevance alone: current role 3-4, roles over a year 2-3, graduation project /
+    short roles 1-3 by relevance (2+ when highly relevant), internships at most 2; at most 2 projects with 2-3
+    bullets each (never a 1-bullet project); inside each entry, the most relevant bullets first, generic ones last;
+  - page fill target 88%: entries start at their minimum and only grow within the allowances; a CV that can't
+    reach it stays shorter (never filler);
+  - skills: at most 4 groups of ~8, most relevant first, known pairs merged ("LLMs (Mistral, Ollama)",
+    "LocalStack (S3)", "Linux/Bash"), nothing repeated across groups, tools spelled as usual;
+  - summary: at most 2 sentences, ~45 words, no numbers from the bullets, no certifications, no internships, no
+    tool lists; checked in code and regenerated once, then flagged if still off.
 - **Generate / Regenerate:** one Claude call per job (never in bulk). It returns a plan (pool ids, reworded and ranked bullets, skill order, summary). Code then checks it (nothing invented, numbers exact, every role kept) and fits it to exactly one full page (≤ 4 compile passes, no further model call). About a minute.
 - **Left, "From your experience pool":**
   - readiness warnings (e.g. no full name blocks generation; no education or summary snippet warns)
