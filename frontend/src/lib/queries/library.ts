@@ -13,6 +13,7 @@ import type {
   JobDetail,
   LookupQueue,
   MatchReport,
+  MergeSuggestion,
   NewContact,
   SearchProfile,
   SettingsView,
@@ -94,6 +95,29 @@ export function useAddCompanyContact() {
   })
 }
 
+export function useSetCompanySize() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ companyId, employees, employees_max }: { companyId: number; employees: number | null; employees_max: number | null }) =>
+      api.patch<CompanyDetail>(`/companies/${companyId}/size`, { employees, employees_max }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useMergeSuggestions() {
+  return useQuery({ queryKey: ['company-merges'], queryFn: () => api.get<MergeSuggestion[]>('/company-merges') })
+}
+
+export function useMergeAction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { keep_id: number; merge_id: number } | { a_id: number; b_id: number }) =>
+      'keep_id' in body ? api.post<MergeSuggestion[]>('/company-merges', body) : api.post<MergeSuggestion[]>('/company-merges/reject', body),
+    onSuccess: (list) => qc.setQueryData(['company-merges'], list),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useLookups() {
   return useQuery({ queryKey: keys.lookups, queryFn: () => api.get<LookupQueue>('/contacts/lookups') })
 }
@@ -103,12 +127,12 @@ export function useLookupAction() {
   return useMutation({
     mutationFn: ({ companyId, action, contact, notes }: {
       companyId: number
-      action: 'found' | 'not-found' | 'skip'
+      action: 'found' | 'not-found' | 'skip' | 'never' | 'again' | 'not-aggregator'
       contact?: NewContact
       notes?: string
     }) =>
       api.post<LookupQueue>(
-        `/contacts/lookups/${companyId}/${action}`,
+        action === 'not-aggregator' ? `/companies/${companyId}/not-aggregator` : `/contacts/lookups/${companyId}/${action}`,
         action === 'found' ? { ...contact } : action === 'not-found' ? { notes: notes ?? '' } : undefined,
       ),
     onSuccess: (queue) => qc.setQueryData(keys.lookups, queue),

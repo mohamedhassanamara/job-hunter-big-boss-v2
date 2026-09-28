@@ -1,8 +1,8 @@
-import { ExternalLink, Search, UserPlus, UserRoundX } from 'lucide-react'
+import { Ban, ExternalLink, Search, UserPlus, UserRoundX } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
-import { FitBadge } from '@/components/app/badges'
+import { FitBadge, ToneBadge } from '@/components/app/badges'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
@@ -27,14 +27,27 @@ export function LookupTab() {
   const items = data?.items ?? []
   const byId = (id: number) => items.find((i) => i.company_id === id)
 
-  const run = (item: LookupItem, action: 'not-found' | 'skip') =>
+  const MESSAGES = {
+    skip: ['Skipped until tomorrow', ''],
+    'not-found': ['Marked: nobody found', "'s jobs go to web apply"],
+    never: ['Never looked up', ' is treated as a job board; its jobs go to web apply'],
+    'not-aggregator': ['Kept in the queue', ' is an employer'],
+  } as const
+  const run = (item: LookupItem, action: keyof typeof MESSAGES) =>
     act.mutate(
       { companyId: item.company_id, action },
       {
-        onSuccess: () =>
-          toast.success(action === 'skip' ? 'Skipped until tomorrow' : 'Marked: nobody found', {
-            description: action === 'skip' ? item.company_name : `${item.company_name}'s jobs go to web apply`,
-          }),
+        onSuccess: () => {
+          const [title, tail] = MESSAGES[action]
+          toast.success(title, {
+            description: tail ? `${item.company_name}${tail}` : item.company_name,
+            duration: action === 'never' || action === 'not-found' ? 8000 : undefined,
+            action:
+              action === 'never' || action === 'not-found'
+                ? { label: 'Undo', onClick: () => act.mutate({ companyId: item.company_id, action: 'again' }) }
+                : undefined,
+          })
+        },
         onError: (e) => toast.error(e.message),
       },
     )
@@ -48,6 +61,10 @@ export function LookupTab() {
       n: (id) => {
         const item = byId(id)
         if (item) run(item, 'not-found')
+      },
+      x: (id) => {
+        const item = byId(id)
+        if (item) run(item, 'never')
       },
     },
     enabled: !entering,
@@ -65,8 +82,9 @@ export function LookupTab() {
           <div>
             <p className="text-sm font-semibold">Manual Apollo lookups</p>
             <p className="text-xs text-fg-muted">
-              Companies with jobs but no imported contact, best fit first. Look each one up with the Apollo extension,
-              then enter who you found (or mark nobody). The cap is in Settings → Contacts.
+              Companies with jobs but no imported contact: shortlisted jobs first, then the best fit, then the newest.
+              Look each one up with the Apollo extension, then enter who you found (or mark nobody). The cap is in
+              Settings → Contacts.
             </p>
           </div>
           <p className="shrink-0 text-sm font-medium tabular-nums">
@@ -79,7 +97,7 @@ export function LookupTab() {
         {capped && <p className="mt-2 text-xs text-warning-fg">Daily cap reached: next lookups tomorrow. You can still enter results.</p>}
       </div>
       <p className="text-xs text-fg-subtle">
-        {pluralize(data.total, 'company', 'companies')} queued · <Kbd>J</Kbd> <Kbd>K</Kbd> move · <Kbd>E</Kbd> enter contact · <Kbd>N</Kbd> nobody found
+        {pluralize(data.total, 'company', 'companies')} queued · <Kbd>J</Kbd> <Kbd>K</Kbd> move · <Kbd>E</Kbd> enter contact · <Kbd>N</Kbd> nobody found · <Kbd>X</Kbd> never look up
       </p>
       <div data-tour="contacts-lookups" className="rounded-lg border border-border bg-surface" role="listbox" aria-label="Lookup queue">
         {items.length === 0 ? (
@@ -123,7 +141,10 @@ export function LookupTab() {
                       </a>
                     )}
                   </p>
-                  <p className="truncate text-xs text-fg-muted">
+                  <p className="flex items-center gap-1.5 truncate text-xs text-fg-muted">
+                    <ToneBadge tone={i.shortlisted ? 'blue' : 'gray'} dot={false}>
+                      {i.reason}
+                    </ToneBadge>
                     {i.best_job_id ? (
                       <Link to={`/jobs/${i.best_job_id}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
                         {i.best_job_title}
@@ -133,9 +154,24 @@ export function LookupTab() {
                     )}
                     {i.open_jobs > 1 && ` · ${pluralize(i.open_jobs, 'open job')}`} · queued {relativeTime(i.queued_at)}
                   </p>
+                  {i.aggregator.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 rounded-md bg-warning-bg px-2 py-1 text-xs text-warning-fg">
+                      <span>Looks like a job board: {i.aggregator.join(' · ')}.</span>
+                      <button className="font-medium underline" onClick={(e) => { e.stopPropagation(); run(i, 'never') }}>
+                        Never look up
+                      </button>
+                      <button className="underline" onClick={(e) => { e.stopPropagation(); run(i, 'not-aggregator') }}>
+                        It's an employer
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <Button size="sm" variant="ghost" onClick={() => run(i, 'skip')}>
                   Skip
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => run(i, 'never')} aria-label="Never look up">
+                  <Ban />
+                  Never
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => run(i, 'not-found')}>
                   <UserRoundX />
