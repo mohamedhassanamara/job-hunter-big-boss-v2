@@ -99,6 +99,7 @@ class LookupStatus(StrEnum):
     found = "found"
     not_found = "not_found"
     skipped = "skipped"
+    never = "never"  # a job board / aggregator: never looked up, its jobs go to web apply
 
 
 class ContactTier(StrEnum):

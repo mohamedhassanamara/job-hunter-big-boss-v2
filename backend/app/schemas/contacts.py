@@ -13,8 +13,13 @@ class CompanyListItem(BaseModel):
     contact_count: int
     open_jobs: int
     contacted_at: datetime | None
-    lookup_status: str | None  # queued | found | not_found | skipped
+    lookup_status: str | None  # queued | found | not_found | skipped | never
     best_contact: str | None  # name · role of who its jobs are written to
+    employees: int | None = None
+    employees_max: int | None = None  # "under N" (e.g. from an Apollo list)
+    size_source: str | None = None  # manual | apollo_list
+    size_label: str = "size unknown"
+    small: bool = False  # uses the small-company contact order (Settings → Contacts)
 
 
 class CompanyList(BaseModel):
@@ -78,6 +83,10 @@ class LookupItem(BaseModel):
     best_job_title: str | None
     best_fit: int | None
     queued_at: datetime
+    shortlisted: int
+    newest_at: datetime | None
+    reason: str  # why it's at this position
+    aggregator: list[str]  # "looks like a job board" signals (suggestion only)
 
 
 class LookupQueue(BaseModel):
@@ -120,3 +129,31 @@ class MatchReport(BaseModel):
     companies_with_contacts: int
     changed: int | None = None
     at: str
+
+
+class CompanySize(BaseModel):
+    employees: int | None = None
+    employees_max: int | None = None
+
+
+class MergeSide(BaseModel):
+    id: int
+    name: str
+    jobs: int
+    contacts: int
+
+
+class MergeSuggestion(BaseModel):
+    a: MergeSide
+    b: MergeSide
+    reason: str
+
+
+class MergeIn(BaseModel):
+    keep_id: int
+    merge_id: int
+
+
+class MergeReject(BaseModel):
+    a_id: int
+    b_id: int

@@ -214,29 +214,47 @@ def make_company(s: Session, *people: tuple[str, str, str]) -> Company:
     return company
 
 
-def test_tier_1_picks_the_most_relevant_role(seeded: None) -> None:
+def test_tier_1_order_depends_on_company_size(seeded: None) -> None:
     with Session(engine) as s:
-        company = make_company(s, ("Rita Recruiter", "Recruiter", "apollo_dump"),
-                               ("Eve Manager", "Engineering Manager", "apollo_dump"),
-                               ("Carl Cto", "CTO", "apollo_dump"))
-        app = make_job(s, company)
-        r = contacts.resolve(s, app)
-        assert r.changed and app.contact_tier == ContactTier.apollo_dump
-        assert s.get(Contact, app.contact_id).full_name == "Carl Cto"
-        assert app.route == "undecided"  # routing waits for CV approval
-        assert not contacts.resolve(s, app).changed  # idempotent
+        people = (("Rita Recruiter", "Recruiter", "apollo_dump"),
+                  ("Eve Manager", "Engineering Manager", "apollo_dump"),
+                  ("Fred Founder", "Founder & CEO", "apollo_dump"),
+                  ("Carl Cto", "CTO", "apollo_dump"))
+        large, small, bound = make_company(s, *people), make_company(s, *people), \
+            make_company(s, *people)
+        small.employees = 12
+        bound.employees_max = 200  # "under 200" from an Apollo list; threshold 200 → small
+        apps = {name: make_job(s, c) for name, c in
+                (("large", large), ("small", small), ("bound", bound))}
+        for app in apps.values():
+            contacts.resolve(s, app)
+        who = {k: s.get(Contact, a.contact_id).full_name for k, a in apps.items()}
+        assert who == {"large": "Rita Recruiter", "small": "Carl Cto", "bound": "Carl Cto"}
+        assert apps["large"].route == "undecided"  # routing waits for CV approval
+        assert not contacts.resolve(s, apps["large"]).changed  # idempotent
+        small.employees = 5000  # set by hand: now a large company
+        s.add(small)
+        contacts.resolve(s, apps["small"])
+        assert s.get(Contact, apps["small"].contact_id).full_name == "Rita Recruiter"
         s.rollback()
 
 
-def test_tier_2_queues_the_company_once_for_all_its_jobs(seeded: None) -> None:
-    with Session(engine) as s:
-        company = make_company(s)
-        a, b = make_job(s, company, score=70), make_job(s, company, score=85)
-        contacts.resolve_many(s, [(a, s.get(Job, a.job_id)), (b, s.get(Job, b.job_id))])
-        rows = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company.id)).all()
-        assert len(rows) == 1 and rows[0].priority == 85 and rows[0].status == "queued"
-        assert a.contact_tier == b.contact_tier == ContactTier.lookup_queued
-        s.rollback()
+def test_small_order_puts_founders_before_heads_of_engineering() -> None:
+    from app.models import Company as Co
+
+    r = contacts.Ranking(DEFAULT_ROLE_RANKING,
+                         contacts._order(None, DEFAULT_ROLE_RANKING, contacts.DEFAULT_SMALL_ORDER),
+                         contacts._order(None, DEFAULT_ROLE_RANKING, contacts.DEFAULT_LARGE_ORDER),
+                         50)
+    labels = lambda order: [r.label(i) for i in order]  # noqa: E731
+    assert labels(r.small)[:4] == ["CTO", "Founder / CEO", "VP / Head of Engineering",
+                                   "Head of Data / AI / ML"]
+    assert labels(r.small)[-1] == "HR / Talent"
+    assert labels(r.large)[:2] == ["HR / Talent", "Engineering Manager"]
+    assert contacts.is_small(Co(name="x", normalized_name="x", employees=49), 50)
+    assert not contacts.is_small(Co(name="x", normalized_name="x", employees=50), 50)
+    assert not contacts.is_small(Co(name="x", normalized_name="x", employees_max=200), 50)
+    assert not contacts.is_small(Co(name="x", normalized_name="x"), 50)  # unknown = large
 
 
 def test_a_later_import_takes_the_company_out_of_the_lookup_queue(seeded: None) -> None:
@@ -350,7 +368,7 @@ def test_add_contact_rejects_a_known_email(seeded: None) -> None:
 
 
 def test_lookup_status_values() -> None:
-    assert {s.value for s in LookupStatus} == {"queued", "found", "not_found", "skipped"}
+    assert {s.value for s in LookupStatus} == {"queued", "found", "not_found", "skipped", "never"}
 
 
 # ------------------------------------------------------------------------------------ API
@@ -427,3 +445,123 @@ def test_companies_list_filters(client) -> None:  # noqa: ANN001
     assert all(i["contact_count"] == 0 for i in body["items"])
     has = client.get("/api/companies", params={"filter": "has_contacts"}).json()
     assert has["items"] and all(i["contact_count"] > 0 for i in has["items"])
+
+
+# ------------------------------------------------------------------ queue order, never, boards
+
+
+def test_queue_orders_shortlisted_then_fit_then_newest_with_reasons(seeded: None) -> None:
+    with Session(engine) as s:
+        now = datetime.now(UTC)
+        shortlisted, high, tie_old, tie_new = (make_company(s) for _ in range(4))
+        make_job(s, shortlisted, stage=Stage.shortlisted, score=60)
+        make_job(s, high, score=99)
+        old = make_job(s, tie_old, score=95)
+        new = make_job(s, tie_new, score=95)
+        s.get(Job, old.job_id).discovered_at = now - timedelta(days=9)
+        s.get(Job, new.job_id).discovered_at = now - timedelta(days=1)
+        s.flush()
+        contacts.resolve_many(s, contacts._open_apps(s, company_ids={
+            shortlisted.id, high.id, tie_old.id, tie_new.id}))
+        rows = [r for r in contacts.lookup_queue(s, limit=5000).rows
+                if r.company.id in {shortlisted.id, high.id, tie_old.id, tie_new.id}]
+        assert [r.company.id for r in rows] == [shortlisted.id, high.id, tie_new.id, tie_old.id]
+        assert rows[0].reason == "1 shortlisted job"
+        assert rows[1].reason == "Best fit 99"
+        assert rows[2].reason.startswith("Best fit 95") or "newest" in rows[2].reason
+        assert "newest job 9 days ago" in rows[3].reason
+        s.rollback()
+
+
+def test_never_look_up_sends_jobs_to_web_apply_even_with_contacts(seeded: None) -> None:
+    with Session(engine) as s:
+        board = make_company(s, ("Tina Talent", "Recruiter", "apollo_dump"))
+        app = make_job(s, board)
+        contacts.resolve(s, app)
+        assert app.contact_id is not None
+        contacts.lookup_never(s, board.id)
+        assert (app.contact_tier, app.contact_id) == (ContactTier.none, None)
+        assert board.id not in [r.company.id for r in contacts.lookup_queue(s, limit=5000).rows]
+        contacts.lookup_again(s, board.id)
+        assert app.contact_id is not None
+        s.rollback()
+
+
+@pytest.mark.parametrize(("name", "descriptions", "tracks", "expected"), [
+    ("RemoteJobsOne", ["x"] * 9, ["A", "B"],
+     ["name contains “remote”", "9 open jobs across 2 tracks"]),
+    ("Hire Feed", ["x"], ["A"], ["name contains “hire”"]),
+    # "for a client" in only 2 of 9 listings: not a signal; many jobs alone is too weak
+    ("Acme Consulting", ["Pour le compte d'un client, nous cherchons"] * 2 + ["x"] * 7,
+     ["A", "B"], []),
+    ("Staffy", ["Pour le compte d'un client, nous cherchons"] * 5 + ["x"] * 4, ["A", "B"],
+     ["5 of 9 listings are “for a client”", "9 open jobs across 2 tracks"]),
+    ("Nomadia", ["We build routing software"], ["A"], []),
+])
+def test_aggregator_signals(name: str, descriptions: list[str], tracks: list[str],
+                            expected: list[str]) -> None:
+    from app.services.aggregators import signals
+
+    company = Company(name=name, normalized_name=name.lower())
+    jobs = [Job(title="Engineer", description=d, matched_track=tracks[i % len(tracks)],
+                source="adzuna", external_id=str(i), url="u", company_id=0, dedupe_key=str(i))
+            for i, d in enumerate(descriptions)]
+    assert signals(company, jobs) == expected
+
+
+# ---------------------------------------------------------------------------------- merges
+
+
+def test_merge_suggestions_confirm_and_reject(seeded: None) -> None:
+    from app.services import company_merge, ingest
+
+    with Session(engine) as s:
+        n = next(_n)
+        base = Company(name=f"Mergeco{n}", normalized_name=f"mergeco{n}")
+        belgium = Company(name=f"Mergeco{n} Belgium", normalized_name=f"mergeco{n} belgium")
+        other = Company(name=f"Mergeco{n} Robotics", normalized_name=f"mergeco{n} robotics")
+        s.add_all([base, belgium, other])
+        s.flush()
+        s.add(Contact(company_id=base.id, full_name="Carl Cto", title="CTO",
+                      normalized_name="carl cto", role_rank=0))
+        app = make_job(s, belgium)
+        make_job(s, other)
+        pairs = {(x.a.id, x.b.id) for x in company_merge.suggestions(s, limit=10_000)}
+        assert (base.id, belgium.id) in pairs
+        assert not any(other.id in p for p in pairs)  # "robotics" is a different company
+        company_merge.merge(s, base.id, belgium.id)
+        assert s.get(Job, app.job_id).company_id == base.id
+        assert s.get(Contact, app.contact_id).full_name == "Carl Cto"  # re-matched after merge
+        assert company_merge.resolve_alias(s, f"mergeco{n} belgium").id == base.id
+        assert ingest._company(s, f"Mergeco{n} Belgium").id == base.id  # future jobs land here
+        assert not any(base.id in p for p in {(x.a.id, x.b.id)
+                                              for x in company_merge.suggestions(s, limit=10_000)})
+        third = Company(name=f"Mergeco{n} Spain", normalized_name=f"mergeco{n} spain")
+        s.add(third)
+        s.flush()
+        make_job(s, third)
+        company_merge.reject(s, base.id, third.id)
+        assert (base.id, third.id) not in {(x.a.id, x.b.id)
+                                          for x in company_merge.suggestions(s, limit=10_000)}
+        s.rollback()
+
+
+def test_merge_and_size_endpoints(client) -> None:  # noqa: ANN001
+    with Session(engine) as s:
+        company = make_company(s, ("Rita Recruiter", "Recruiter", "apollo_dump"),
+                               ("Carl Cto", "CTO", "apollo_dump"))
+        app = make_job(s, company)
+        contacts.resolve(s, app)
+        s.commit()
+        cid, job_id = company.id, app.job_id
+    assert client.get(f"/api/jobs/{job_id}").json()["contact"]["full_name"] == "Rita Recruiter"
+    r = client.patch(f"/api/companies/{cid}/size", json={"employees": 20})
+    assert r.status_code == 200 and r.json()["small"] and r.json()["size_label"] == "20 employees"
+    assert r.json()["contacts"][0]["full_name"] == "Carl Cto"
+    assert client.get(f"/api/jobs/{job_id}").json()["contact"]["full_name"] == "Carl Cto"
+    assert client.get("/api/company-merges").status_code == 200
+    same = client.post("/api/company-merges", json={"keep_id": cid, "merge_id": cid})
+    assert same.status_code == 422
+    bad = client.put("/api/settings/contacts", json={"value": {
+        "role_ranking": DEFAULT_ROLE_RANKING, "small_order": ["Nope"]}})
+    assert bad.status_code == 422

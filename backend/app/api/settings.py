@@ -143,6 +143,19 @@ def _check_contacts(value: dict) -> None:
         if not isinstance(keywords, list) or not keywords or \
                 not all(isinstance(k, str) and k.strip() for k in keywords):
             raise HTTPException(422, f"“{group['label']}” needs at least one keyword")
+    labels = {g["label"] for g in ranking}
+    for key in ("small_order", "large_order"):
+        order = value.get(key)
+        if order is None:
+            continue
+        if not isinstance(order, list) or not all(isinstance(x, str) for x in order):
+            raise HTTPException(422, f"{key} must be a list of group labels")
+        unknown = [x for x in order if x not in labels]
+        if unknown:
+            raise HTTPException(422, f"{key}: unknown group {', '.join(unknown)}")
+    threshold = value.get("small_company_threshold")
+    if threshold is not None and (not isinstance(threshold, int) or not 1 <= threshold <= 100_000):
+        raise HTTPException(422, "small_company_threshold must be a number of employees")
 
 
 def _profile(session: Session) -> SearchProfile:

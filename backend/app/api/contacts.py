@@ -23,6 +23,7 @@ from app.schemas.contacts import (
     CompanyJob,
     CompanyList,
     CompanyListItem,
+    CompanySize,
     FilePreview,
     ImportRunOut,
     LookupFound,
@@ -30,10 +31,14 @@ from app.schemas.contacts import (
     LookupNotFound,
     LookupQueue,
     MatchReport,
+    MergeIn,
+    MergeReject,
+    MergeSide,
+    MergeSuggestion,
     NewContact,
 )
 from app.schemas.jobs import JobDetail
-from app.services import contacts, contacts_import
+from app.services import company_merge, contacts, contacts_import
 from app.services.pipeline import stage_label
 from app.services.views import contact_out, fit_brief, job_detail, latest_fits
 
@@ -42,6 +47,17 @@ router = APIRouter(tags=["contacts"])
 # One backup covers a burst of imports (several files in a row).
 _BACKUP_WINDOW_S = 15 * 60
 _last_backup: dict[str, tuple[float, str]] = {}
+
+
+
+def _backup(engine, label: str) -> tuple[float, str] | None:  # noqa: ANN001
+    key = str(engine.url)
+    last = _last_backup.get(key)
+    if last is None or time.time() - last[0] > _BACKUP_WINDOW_S:
+        path = contacts_import.backup_db(engine, label)
+        if path is not None:
+            last = _last_backup[key] = (time.time(), str(path))
+    return last
 
 # ------------------------------------------------------------------------------ companies
 
@@ -62,15 +78,18 @@ def _company_items(s: Session, companies: list[Company]) -> list[CompanyListItem
     by_company: dict[int, list[Contact]] = defaultdict(list)
     for c in s.exec(select(Contact).where(col(Contact.company_id).in_(ids))).all():
         by_company[c.company_id].append(c)
+    ranking = contacts.ranking_settings(s)
     out = []
     for c in companies:
-        best = contacts.best_contact(by_company.get(c.id, []))
+        best = contacts.best_contact(by_company.get(c.id, []), ranking.order_for(c))
         out.append(CompanyListItem(
             id=c.id, name=c.name, domain=c.domain, contact_count=counts.get(c.id, 0),
             open_jobs=open_jobs.get(c.id, 0), contacted_at=c.contacted_at,
             lookup_status=lookups.get(c.id),
             best_contact=f"{best.full_name}{f' · {best.title}' if best.title else ''}"
-            if best else None))
+            if best else None,
+            employees=c.employees, employees_max=c.employees_max, size_source=c.size_source,
+            size_label=contacts.size_label(c), small=contacts.is_small(c, ranking.threshold)))
     return out
 
 
@@ -107,9 +126,10 @@ def list_companies(
 def get_company(company_id: int, session: SessionDep) -> CompanyDetail:
     company = get_or_404(session, Company, company_id, "Company")
     base = _company_items(session, [company])[0]
-    ranking = contacts.role_ranking(session)
-    people = sorted(session.exec(select(Contact).where(Contact.company_id == company.id)).all(),
-                    key=lambda c: (c.role_rank, c.email is None, c.full_name))
+    ranking = contacts.ranking_settings(session)
+    people = contacts.ranked(
+        list(session.exec(select(Contact).where(Contact.company_id == company.id)).all()),
+        ranking.order_for(company))
     rows = session.exec(
         select(Application, Job).join(Job, col(Job.id) == col(Application.job_id))
         .where(Job.company_id == company.id, col(Job.duplicate_of_id).is_(None))
@@ -117,12 +137,57 @@ def get_company(company_id: int, session: SessionDep) -> CompanyDetail:
     fits = latest_fits(session, [j.id for _, j in rows])
     return CompanyDetail(
         **base.model_dump(), website=company.website,
-        contacts=[contact_out(c, ranking) for c in people],
+        contacts=[contact_out(c, ranking.groups) for c in people],
         jobs=[CompanyJob(application_id=a.id, job_id=j.id, title=j.title, stage=a.stage,
                          stage_label=stage_label(a.stage, a.route), route=a.route,
                          contact_tier=a.contact_tier, contact_id=a.contact_id,
                          fit=fit_brief(fits.get(j.id))) for a, j in rows],
     )
+
+
+@router.patch("/companies/{company_id}/size", response_model=CompanyDetail)
+def set_company_size(company_id: int, body: CompanySize, session: SessionDep) -> CompanyDetail:
+    """Headcount (exact, or "under N"); decides the contact order. Both empty = unknown."""
+    company = get_or_404(session, Company, company_id, "Company")
+    for v in (body.employees, body.employees_max):
+        if v is not None and not 1 <= v <= 10_000_000:
+            raise HTTPException(422, "Employees must be a positive number")
+    company.employees, company.employees_max = body.employees, body.employees_max
+    company.size_source = "manual" if (body.employees or body.employees_max) else None
+    session.add(company)
+    contacts.resolve_company(session, company_id)
+    session.commit()
+    return get_company(company_id, session)
+
+
+@router.get("/company-merges", response_model=list[MergeSuggestion])
+def merge_suggestions(session: SessionDep) -> list[MergeSuggestion]:
+    return [MergeSuggestion(
+        a=MergeSide(id=x.a.id, name=x.a.name, jobs=x.a_jobs, contacts=x.a_contacts),
+        b=MergeSide(id=x.b.id, name=x.b.name, jobs=x.b_jobs, contacts=x.b_contacts),
+        reason=x.reason) for x in company_merge.suggestions(session)]
+
+
+@router.post("/company-merges", response_model=list[MergeSuggestion])
+def confirm_merge(body: MergeIn, session: SessionDep, engine: EngineDep) -> list[MergeSuggestion]:
+    """Merge one pair you confirmed (backs up the DB first, once per 15 minutes)."""
+    _backup(engine, "merge")
+    try:
+        company_merge.merge(session, body.keep_id, body.merge_id)
+    except company_merge.MergeError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return merge_suggestions(session)
+
+
+@router.post("/company-merges/reject", response_model=list[MergeSuggestion])
+def reject_merge(body: MergeReject, session: SessionDep) -> list[MergeSuggestion]:
+    try:
+        company_merge.reject(session, body.a_id, body.b_id)
+    except company_merge.MergeError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return merge_suggestions(session)
 
 
 @router.post("/companies/{company_id}/contacts", response_model=CompanyDetail, status_code=201)
@@ -192,12 +257,7 @@ async def import_contacts(session: SessionDep, engine: EngineDep, file: UploadFi
     if done and not force:
         raise HTTPException(409, f"{file.filename} was already imported on "
                                  f"{done.finished_at:%d %b %Y}; re-import only fills gaps")
-    key = str(engine.url)
-    last = _last_backup.get(key)
-    if last is None or time.time() - last[0] > _BACKUP_WINDOW_S:
-        path = contacts_import.backup_db(engine, "import")
-        if path is not None:
-            last = _last_backup[key] = (time.time(), str(path))
+    last = _backup(engine, "import")
     run = contacts_import.begin(session, file.filename or "upload.csv", digest, len(rows),
                                 {k: v for k, v in columns.items() if v})
 
@@ -250,7 +310,9 @@ def lookup_queue(session: SessionDep, limit: int = 100) -> LookupQueue:
                           domain=r.company.domain, status=r.lookup.status,
                           priority=r.lookup.priority, open_jobs=r.open_jobs,
                           best_job_id=r.best_job_id, best_job_title=r.best_job_title,
-                          best_fit=r.best_fit, queued_at=r.lookup.queued_at) for r in view.rows])
+                          best_fit=r.best_fit, queued_at=r.lookup.queued_at,
+                          shortlisted=r.shortlisted, newest_at=r.newest_at, reason=r.reason,
+                          aggregator=r.aggregator) for r in view.rows])
 
 
 @router.post("/contacts/lookups/{company_id}/found", response_model=LookupQueue)
@@ -269,6 +331,32 @@ def lookup_found(company_id: int, body: LookupFound, session: SessionDep) -> Loo
 def lookup_not_found(company_id: int, body: LookupNotFound, session: SessionDep) -> LookupQueue:
     get_or_404(session, Company, company_id, "Company")
     contacts.lookup_not_found(session, company_id, body.notes)
+    session.commit()
+    return lookup_queue(session)
+
+
+@router.post("/contacts/lookups/{company_id}/never", response_model=LookupQueue)
+def lookup_never(company_id: int, session: SessionDep) -> LookupQueue:
+    get_or_404(session, Company, company_id, "Company")
+    contacts.lookup_never(session, company_id)
+    session.commit()
+    return lookup_queue(session)
+
+
+@router.post("/contacts/lookups/{company_id}/again", response_model=LookupQueue)
+def lookup_again(company_id: int, session: SessionDep) -> LookupQueue:
+    get_or_404(session, Company, company_id, "Company")
+    contacts.lookup_again(session, company_id)
+    session.commit()
+    return lookup_queue(session)
+
+
+@router.post("/companies/{company_id}/not-aggregator", response_model=LookupQueue)
+def not_aggregator(company_id: int, session: SessionDep) -> LookupQueue:
+    """You checked the "looks like a job board" suggestion: it's a real employer."""
+    company = get_or_404(session, Company, company_id, "Company")
+    company.aggregator_reviewed = True
+    session.add(company)
     session.commit()
     return lookup_queue(session)
 
