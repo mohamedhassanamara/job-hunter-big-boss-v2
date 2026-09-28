@@ -82,6 +82,8 @@ class ContactOut(BaseModel):
     email: str | None
     linkedin_url: str | None
     source: str
+    role_rank: int = 999
+    role_label: str | None = None  # the Settings → Contacts group the title matched
 
 
 class EventOut(BaseModel):
@@ -138,6 +140,7 @@ class JobDetail(JobListItem):
     events: list[EventOut]
     allowed_stages: list[str]
     tracking: TrackedItem | None = None  # set once applied: how, CV sent, replies, interviews
+    lookup_status: str | None = None  # company Apollo lookup: queued|found|not_found|skipped
 
 
 class PipelineCard(BaseModel):

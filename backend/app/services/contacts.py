@@ -368,7 +368,7 @@ class ContactError(ValueError):
     pass
 
 
-def _lookup(s: Session, company_id: int) -> CompanyLookup:
+def lookup_for_company(s: Session, company_id: int) -> CompanyLookup:
     row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
     if row is None:
         row = CompanyLookup(company_id=company_id)
@@ -402,7 +402,7 @@ def add_contact(s: Session, company_id: int, *, full_name: str, title: str | Non
 
 def lookup_found(s: Session, company_id: int, **contact: Any) -> Contact:
     c = add_contact(s, company_id, source=ContactSource.apollo_lookup, **contact)
-    row = _lookup(s, company_id)
+    row = lookup_for_company(s, company_id)
     row.status, row.resolved_at, row.snoozed_until = LookupStatus.found, utcnow(), None
     s.add(row)
     resolve_company(s, company_id)
@@ -410,7 +410,7 @@ def lookup_found(s: Session, company_id: int, **contact: Any) -> Contact:
 
 
 def lookup_not_found(s: Session, company_id: int, notes: str = "") -> CompanyLookup:
-    row = _lookup(s, company_id)
+    row = lookup_for_company(s, company_id)
     row.status, row.resolved_at, row.snoozed_until = LookupStatus.not_found, utcnow(), None
     row.notes = notes.strip()
     s.add(row)
@@ -420,7 +420,7 @@ def lookup_not_found(s: Session, company_id: int, notes: str = "") -> CompanyLoo
 
 def lookup_skip(s: Session, company_id: int, now: datetime | None = None) -> CompanyLookup:
     """Not today: hidden until tomorrow (local midnight)."""
-    row = _lookup(s, company_id)
+    row = lookup_for_company(s, company_id)
     row.status = LookupStatus.skipped
     row.snoozed_until = local_midnight(now) + timedelta(days=1)
     s.add(row)

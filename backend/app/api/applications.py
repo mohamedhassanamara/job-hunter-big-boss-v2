@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, select
 
 from app.api.deps import SessionDep, get_or_404
-from app.models import Application, Contact, Job
-from app.models.enums import CloseReason, ContactTier, EventKind, Route, Stage
+from app.models import Application, Job
+from app.models.enums import CloseReason, EventKind, LookupStatus, Route, Stage
 from app.schemas.jobs import ApplicationPatch, JobDetail, PipelineCard
-from app.services import pipeline, tracking
+from app.services import contacts, pipeline, tracking
 from app.services.views import job_detail, pipeline_cards
 
 router = APIRouter(prefix="/applications", tags=["pipeline"])
@@ -56,33 +56,14 @@ def patch_application(app_id: int, body: ApplicationPatch, session: SessionDep) 
 
 @router.post("/{app_id}/lookup", response_model=JobDetail)
 def queue_lookup(app_id: int, session: SessionDep) -> JobDetail:
-    """Queue a manual Apollo extension lookup (tier b)."""
+    """Queue the job's company for a manual Apollo extension lookup (tier 2)."""
     app = get_or_404(session, Application, app_id, "Application")
     if app.contact_id is not None:
         raise HTTPException(409, "This job already has a contact")
-    app.contact_tier = ContactTier.lookup_queued
-    pipeline.log_event(session, app, EventKind.contact_resolved, "Queued for Apollo lookup")
-    session.add(app)
+    job = get_or_404(session, Job, app.job_id)
+    lookup = contacts.lookup_for_company(session, job.company_id)
+    lookup.status, lookup.snoozed_until = LookupStatus.queued, None
+    session.add(lookup)
+    contacts.resolve_company(session, job.company_id)
     session.commit()
-    return job_detail(session, get_or_404(session, Job, app.job_id))
-
-
-@router.post("/{app_id}/contact/{contact_id}", response_model=JobDetail)
-def set_contact(app_id: int, contact_id: int, session: SessionDep) -> JobDetail:
-    app = get_or_404(session, Application, app_id, "Application")
-    contact = get_or_404(session, Contact, contact_id, "Contact")
-    app.contact_id = contact.id
-    if app.contact_tier in (ContactTier.none, ContactTier.lookup_queued):
-        app.contact_tier = (
-            ContactTier.lookup_found
-            if app.contact_tier == ContactTier.lookup_queued
-            else ContactTier.apollo_dump
-        )
-    if app.route == Route.undecided:
-        app.route = Route.cold_email
-    pipeline.log_event(
-        session, app, EventKind.contact_resolved, f"Contact set: {contact.full_name}"
-    )
-    session.add(app)
-    session.commit()
-    return job_detail(session, get_or_404(session, Job, app.job_id))
+    return job_detail(session, job)

@@ -237,9 +237,9 @@ def test_countries_and_remote_scope(client: TestClient) -> None:
 def test_contacts_import_preview(client: TestClient) -> None:
     csv_data = "First Name,Last Name,Title,Email,Company\nAna,Ruiz,CTO,ana@x.example,X\n"
     r = client.post(
-        "/api/contacts/import/preview", files={"file": ("apollo.csv", csv_data, "text/csv")}
+        "/api/contacts/import/preview", files=[("files", ("apollo.csv", csv_data, "text/csv"))]
     )
-    body = r.json()
+    [body] = r.json()
     assert body["total_rows"] == 1
     assert body["mapping"]["email"] == "Email"
     assert body["mapping"]["company"] == "Company"
