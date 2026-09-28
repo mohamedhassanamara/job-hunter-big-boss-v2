@@ -144,6 +144,15 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
 - The style golden test (`tests/test_cv_render.py`) compiles the default template against the reference: keep it pixel-equal.
 
+## Contacts (services/contacts.py, contacts_import.py)
+
+- Three tiers per job: best-ranked imported contact at the company (ranking in `app_setting.contacts`, cached on
+  `contact.role_rank`) → company in the lookup queue (`company_lookup`, one per company) → "No contact" after a
+  not-found lookup. `resolve` never replaces a manual pick, never touches done/interview/closed, never changes routes.
+- Matching runs after discovery (`discovery.after_discovery`), after each import, and via `POST /contacts/match`.
+- Import dedupe: email (case-folded) → company (`normalize_company`) + folded name → create. Fill-only updates.
+  The DB is backed up before imports (`contacts_import.backup_db`, sqlite online backup; never `cp` a WAL DB).
+
 ## Tracking after the CV (services/tracking.py, api/tracking.py)
 
 - No model calls. Mark applied (from `cv_ready`/`ready`) locks the CV version sent (`locked_at`, `pdf_sha256`); locked

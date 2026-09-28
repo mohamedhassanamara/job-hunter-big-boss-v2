@@ -104,11 +104,35 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | Column | Type | Notes |
 |---|---|---|
 | company_id | FK company | |
-| full_name / title | str | |
-| email | str? | |
+| full_name / first_name / last_name / title | str | |
+| normalized_name | str | Accent/case-folded name; dedupe key with company_id (index) |
+| email / email_normalized | str? | Lowercased copy is unique when present (partial index) |
 | linkedin_url | str? | |
-| source | enum `apollo_dump \| apollo_lookup \| manual` | Tier (a) = apollo_dump, tier (b) = apollo_lookup |
-| imported_batch | str? | Import file identifier |
+| source | enum `apollo_dump \| apollo_lookup \| manual` | Import / lookup result / added by hand (manual picks are never replaced) |
+| imported_batch | str? | `contact_import.id` |
+| role_rank | int | Position in `app_setting.contacts.role_ranking` (999 = unranked); re-derived when the ranking changes |
+| notes | text | |
+
+### contact_import
+One Apollo CSV import run (background, batches of 500).
+| Column | Type | Notes |
+|---|---|---|
+| filename / file_sha256 | str | The hash flags a file imported before |
+| status | enum `running \| done \| failed` | A failure keeps committed batches; re-running is idempotent |
+| total / processed / created / updated / skipped / companies_created | int | Progress and result |
+| skipped_reasons | JSON | `{duplicate_in_file, already_known, no_company, no_name_or_email}` counts |
+| mapping | JSON | Our field → CSV column |
+| error / started_at / finished_at | | |
+
+### company_lookup
+Tier 2 of contact resolution, **one row per company**: a manual Apollo-extension lookup.
+| Column | Type | Notes |
+|---|---|---|
+| company_id | FK company unique | |
+| status | enum `queued \| found \| not_found \| skipped` | not_found → the company's jobs become tier 3 ("No contact") |
+| priority | int | Best fit among its open jobs |
+| queued_at / resolved_at / snoozed_until | datetime | Resolved today (local midnight) = the daily counter; skip snoozes until tomorrow |
+| notes | text | |
 
 ### experience_item
 The master experience that CVs are generated from.
@@ -159,7 +183,7 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | stage | enum `new \| shortlisted \| cv_ready \| ready \| done \| interview \| closed` | |
 | route | enum `undecided \| cold_email \| web_apply` | Derived from contact resolution. Can be overridden |
 | contact_id | FK contact? | |
-| contact_tier | enum `apollo_dump \| lookup_queued \| lookup_found \| none` | 3-tier resolution result |
+| contact_tier | enum `apollo_dump \| lookup_queued \| lookup_found \| none` | 3-tier resolution result (`services/contacts.resolve`); `lookup_queued` mirrors the company's `company_lookup` row |
 | close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer_accepted \| offer_declined \| offer` | Only when `closed`. After applying only rejected / no_response / withdrawn / offer_accepted / offer_declined (`services/tracking.close`); `offer` is legacy (shown as "Offer") |
 | notes | text | |
 | applied_at | datetime? | The date you applied (user-chosen in "Mark applied", noon UTC); for cold email, when it hit `done` |
@@ -279,5 +303,5 @@ A single row in v2 (the global queue).
 ### app_setting
 | Column | Type | Notes |
 |---|---|---|
-| key | str unique | `sources`, `models`, `smtp`, `schedule`, `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
+| key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`), `contacts` (`{role_ranking: [{label, keywords[]}]}`), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |

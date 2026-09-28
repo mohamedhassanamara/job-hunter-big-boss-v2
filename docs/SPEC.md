@@ -132,10 +132,26 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - *Empty review:* "No drafts waiting. Drafts appear after you approve a CV for a job with a contact." *Empty queue:* "Queue is empty. Approved drafts land here."
 
 ### 3.7 Contacts (`/contacts`)
-- **Companies tab:** a searchable company list with contact count, contacted flag, and open-jobs count. Selecting a company shows its contacts (name, title, email, source tier badge, LinkedIn).
-- **Import tab:** Apollo CSV import in 3 steps: (1) dropzone / file picker (plus "Try a sample file"), (2) column mapping with auto-detected fields and the first 5 rows, (3) summary (new / updated / skipped). In phase 0 the preview parses the real file, but the import itself is a mock that writes nothing.
-- **Lookup queue** (section): jobs with `lookup_queued` and the daily cap indicator (e.g. 3/10 today).
-- *Empty:* "No contacts yet. Import your Apollo export to resolve contacts automatically", with "Import CSV".
+*Purpose:* who each job is written to. Tabs in the URL (`?tab=companies|lookups|import|match`).
+- **Resolution (3 tiers, `services/contacts.py`):** (1) the best-ranked imported contact at the job's company
+  (Settings → Contacts ranking: CTO → VP/Head of Engineering → Head of Data/AI → Engineering Manager → Tech Lead →
+  HR/Talent → Founder/CEO; ties: has an email, then most recent); (2) no contact → the **company** joins the lookup
+  queue (one row per company, priority = best fit); (3) the lookup found nobody → "No contact", web apply.
+  Runs after every discovery run and import, and on demand. Never replaces a contact you picked, never touches jobs
+  applied to or closed, never changes a route (a web-apply job with a new contact offers "Switch to cold email?").
+- **Companies:** filters With jobs / Has contacts / Needs lookup / No contact, search, j/k. Detail: contacts ranked
+  (role group label, "Written to first"), the company's jobs with their tier and a per-job contact picker
+  (Automatic or a person), "Add contact".
+- **Lookup queue:** per company, best fit first; daily counter "3 / 10 today" (resolved lookups since local
+  midnight, cap in Settings). Enter contact (E) → every open job there gets it; Nobody found (N) → tier 3; Skip →
+  hidden until tomorrow. At the cap: "next lookups tomorrow", entering results still works.
+- **Import CSV:** several files at once; per-file mapping (auto-detected), row counts, "already imported"/"same
+  content as another file" (SHA-256) flags. Imports run one file after another in the background (batches of 500,
+  progress bar), after a DB backup (once per 15 min). Dedupe: same email (case-folded) → fill empty fields only;
+  else same company (normalized) + folded name → fill; else create. Unknown companies are created. Then matching runs.
+- **Match report:** open jobs with a contact / waiting on a lookup / no contact, by track and by country, plus
+  "Run matching now".
+- *Empty:* each tab explains the next step, with "See how it works".
 
 ### 3.8 Experience (`/experience`)
 *Purpose:* maintain the master experience, which is the source for all CVs and scoring.
@@ -156,6 +172,8 @@ Sections in a left sub-nav:
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).
+- **Contacts:** the role-ranking groups (label + keywords, reorderable; saving re-ranks every contact and re-matches
+  open jobs) and the daily Apollo lookup cap.
 - **Tracking:** follow-up days (e.g. 7, 14) and the ghosting suggestion delay (30 days). Applies immediately (reminders are computed).
 - **Candidate** also has "Total years of experience (override)": used instead of the role-date total in CV facts and checks; never makes scores stale.
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
