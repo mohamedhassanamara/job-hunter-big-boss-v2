@@ -53,6 +53,7 @@ from app.providers.base import ContactSnapshot, JobSnapshot
 from app.providers.registry import cv_generator, email_drafter
 from app.seed import fixtures as fx
 from app.services.contacts import normalize_person, rank
+from app.services.contacts import report as contacts_report
 from app.services.cv_build import build_document, initial_state
 from app.services.cv_check import check_plan
 from app.services.cv_pool import load_pool
@@ -439,6 +440,8 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                     )
         _seed_tracking(s, apps, now)
         _seed_lookups(s, apps, jobs, now)
+        s.flush()
+        s.add(AppSetting(key="contacts_last_match", value=contacts_report(s)))
         s.commit()
 
 

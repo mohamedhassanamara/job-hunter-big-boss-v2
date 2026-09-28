@@ -1,5 +1,5 @@
 import { Building2, Copy, ExternalLink, Search, SearchX, UserPlus, UserRoundCheck, Users } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { ContactTierBadge, FitBadge, StageDot, ToneBadge } from '@/components/app/badges'
@@ -13,6 +13,7 @@ import { SegmentedList, SegmentedTrigger, Tabs } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
+import { ApiError } from '@/lib/api'
 import { initials, pluralize, relativeTime } from '@/lib/format'
 import { useAddCompanyContact, useClearJobContact, useCompanies, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { CompanyDetail, CompanyFilter, Contact } from '@/lib/types'
@@ -81,10 +82,15 @@ function JobsTable({ data }: { data: CompanyDetail }) {
   )
 }
 
-function CompanyDetailPane({ id }: { id: number }) {
+function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => void }) {
   const { data, isPending, error, refetch } = useCompany(id)
   const add = useAddCompanyContact()
   const [adding, setAdding] = useState(false)
+  const missing = error instanceof ApiError && error.status === 404
+  // A stale ?company= (another workspace, a removed company): fall back to the list's first.
+  useEffect(() => {
+    if (missing) onMissing()
+  }, [missing, onMissing])
   if (isPending)
     return (
       <div className="space-y-3 p-6">
@@ -217,6 +223,7 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
   }, [selected, companies, q, url])
 
   useListKeyboard({ ids, selectedId: selected, onSelect: (id) => url.set({ company: id }) })
+  const clearSelection = useCallback(() => url.set({ company: null }), [url])
 
   if (!isPending && !error && companies.length === 0 && !q && filter === 'with_jobs') {
     return (
@@ -310,7 +317,7 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
       </div>
       <div data-tour="contacts-detail" className="min-w-0 flex-1 overflow-y-auto">
         {selected !== null ? (
-          <CompanyDetailPane key={selected} id={selected} />
+          <CompanyDetailPane key={selected} id={selected} onMissing={clearSelection} />
         ) : (
           <EmptyState icon={Building2} title="Select a company" description="Contacts and jobs for the company appear here." />
         )}
