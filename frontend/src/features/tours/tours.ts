@@ -151,12 +151,15 @@ export const TOURS: Record<TourId, Tour> = {
   contacts: {
     id: 'contacts',
     title: 'Contacts',
-    description: 'Apollo contacts and lookups',
+    description: 'Who each job is written to',
     resolveRoute: async () => '/contacts',
     steps: [
-      { target: 'contacts-companies', title: 'Contacts by company', body: 'Everything from your Apollo import, grouped by company. A contact at a company routes its jobs to a cold email.', placement: 'right' },
-      { target: 'contacts-detail', title: 'Who to email', body: 'Titles, emails and where each contact came from: Apollo import or a manual lookup.', placement: 'left' },
-      { target: 'contacts-tabs', title: 'Lookups and imports', body: 'The lookup queue lists jobs waiting for a manual Apollo lookup (daily cap). Import CSV loads a new Apollo export.' },
+      { target: 'contacts-companies', title: 'Companies and who to write to', body: 'Every company with jobs, and the person its emails go to. Filter to those that still need a lookup or where nobody was found.', placement: 'right' },
+      { target: 'contacts-detail', title: 'Ranked by role', body: 'Contacts are ordered by the ranking in Settings → Contacts (CTO, head of engineering or data, engineering manager, tech lead, then HR). Pick another person for a single job; matching never overrides your choice.', placement: 'left' },
+      { target: 'contacts-lookups', title: 'Manual Apollo lookups', body: 'Companies with jobs but no imported contact, best fit first. Look one up with the Apollo extension, then enter who you found (E) or mark nobody (N): that job then goes to web apply.', route: '/contacts?tab=lookups', placement: 'top' },
+      { target: 'contacts-lookup-counter', title: 'Daily cap', body: 'The extension has a free daily quota; the counter resets at midnight. The cap is a setting.', route: '/contacts?tab=lookups' },
+      { target: 'contacts-import', title: 'Import your Apollo exports', body: 'Drop several CSVs at once. Contacts are deduplicated by email and by company + name, imported in batches with a progress bar, and the database is backed up first.', route: '/contacts?tab=import' },
+      { target: 'contacts-match', title: 'Match report', body: 'How many open jobs have a contact, wait on a lookup, or have nobody, by track and country. Matching also runs after every discovery run and import.', route: '/contacts?tab=match' },
     ],
   },
   experience: {
@@ -182,6 +185,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'settings-card', title: 'Sources', body: 'Each source shows its last run, counts and errors, plus a Test button (dry run) and a filter report for tuning. Company job boards takes a list of employers you can extend: pick their job-board platform and paste the id from their careers URL.', route: '/settings?section=sources', placement: 'left' },
       { target: 'settings-cv-emphasis', title: 'CV per track', body: 'Choose which skill groups and tags lead the CV for each track (Data/AI, Mobile…), and how downloads are named.', route: '/settings?section=cv', placement: 'left' },
       { target: 'settings-templates', title: 'CV templates', body: 'Templates are style only. Add your own (.tex.j2 + config); it must compile to one page with sample data before you can pick it.', route: '/settings?section=templates', placement: 'left' },
+      { target: 'settings-contacts-ranking', title: 'Who to write to', body: 'Order the role groups: the first group with someone at the company gets the email. Saving re-ranks every contact and re-matches open jobs.', route: '/settings?section=contacts', placement: 'left' },
       { target: 'settings-card', title: 'Daily schedule', body: 'Discovery runs automatically at this time every day. The Run discovery button works anytime.', route: '/settings?section=schedule', placement: 'left' },
     ],
   },

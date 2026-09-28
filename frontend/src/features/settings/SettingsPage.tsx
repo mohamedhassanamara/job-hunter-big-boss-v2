@@ -1,4 +1,4 @@
-import { BellRing, Bot, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Radar, SlidersHorizontal, UserRound } from 'lucide-react'
+import { BellRing, Bot, Contact as ContactIcon, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Radar, SlidersHorizontal, UserRound } from 'lucide-react'
 import { PageHeader } from '@/components/app/PageHeader'
 import { ErrorState } from '@/components/app/states'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -15,6 +15,7 @@ import {
 } from './sections'
 import { CVSettingsSection, TemplatesSection } from './CVSections'
 import { CandidateSection, ScoringSection } from './ScoringSections'
+import { ContactsSection } from './ContactsSection'
 import { SourcesSection } from './SourcesSection'
 
 const SECTIONS = [
@@ -25,6 +26,7 @@ const SECTIONS = [
   { id: 'templates', label: 'Templates', icon: LayoutTemplate },
   { id: 'sources', label: 'Sources', icon: Radar },
   { id: 'schedule', label: 'Schedule', icon: CalendarClock },
+  { id: 'contacts', label: 'Contacts', icon: ContactIcon },
   { id: 'tracking', label: 'Tracking', icon: BellRing },
   { id: 'models', label: 'Models', icon: Bot },
   { id: 'email', label: 'Email', icon: Mail },
@@ -78,6 +80,8 @@ export default function SettingsPage() {
               <SourcesSection settings={settings.data} />
             ) : section === 'schedule' ? (
               <ScheduleSection key={JSON.stringify(settings.data.values.schedule)} settings={settings.data} />
+            ) : section === 'contacts' ? (
+              <ContactsSection key={JSON.stringify([settings.data.values.contacts, settings.data.values.lookup])} settings={settings.data} />
             ) : section === 'tracking' ? (
               <TrackingSection key={JSON.stringify(settings.data.values.tracking)} settings={settings.data} />
             ) : section === 'models' ? (
