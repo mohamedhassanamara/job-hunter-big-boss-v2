@@ -2,19 +2,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
   CompanyDetail,
-  CompanyListItem,
+  CompanyFilter,
+  CompanyList,
+  Country,
   ExperienceInput,
   ExperienceItem,
-  Country,
   ExperienceKind,
-  ImportPreview,
-  ImportResult,
+  FilePreview,
+  ImportRun,
+  JobDetail,
   LookupQueue,
+  MatchReport,
+  NewContact,
   SearchProfile,
   SettingsView,
   VariantLang,
 } from '@/lib/types'
-import { keys } from './keys'
+import { invalidateWork, keys } from './keys'
 
 // ---- Experience --------------------------------------------------------------------------
 
@@ -65,10 +69,10 @@ export function useReorderExperience() {
 
 // ---- Contacts ----------------------------------------------------------------------------
 
-export function useCompanies(q: string) {
+export function useCompanies(q: string, filter: CompanyFilter, limit = 200) {
   return useQuery({
-    queryKey: keys.companies(q),
-    queryFn: () => api.get<CompanyListItem[]>(`/companies${qs({ q })}`),
+    queryKey: [...keys.companies(q), filter, limit],
+    queryFn: () => api.get<CompanyList>(`/companies${qs({ q, filter, limit })}`),
     placeholderData: (prev) => prev,
   })
 }
@@ -81,27 +85,105 @@ export function useCompany(id: number | null) {
   })
 }
 
+export function useAddCompanyContact() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ companyId, ...body }: NewContact & { companyId: number }) =>
+      api.post<CompanyDetail>(`/companies/${companyId}/contacts`, { ...body }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useLookups() {
   return useQuery({ queryKey: keys.lookups, queryFn: () => api.get<LookupQueue>('/contacts/lookups') })
 }
 
+export function useLookupAction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ companyId, action, contact, notes }: {
+      companyId: number
+      action: 'found' | 'not-found' | 'skip'
+      contact?: NewContact
+      notes?: string
+    }) =>
+      api.post<LookupQueue>(
+        `/contacts/lookups/${companyId}/${action}`,
+        action === 'found' ? { ...contact } : action === 'not-found' ? { notes: notes ?? '' } : undefined,
+      ),
+    onSuccess: (queue) => qc.setQueryData(keys.lookups, queue),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useImportPreview() {
   return useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: (files: File[]) => {
       const form = new FormData()
-      form.append('file', file)
-      return api.post<ImportPreview>('/contacts/import/preview', form)
+      files.forEach((f) => form.append('files', f))
+      return api.post<FilePreview[]>('/contacts/import/preview', form)
     },
   })
 }
 
-export function useImportContacts() {
+export function useStartImport() {
   return useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: ({ file, mapping, force = false }: { file: File; mapping: Record<string, string | null>; force?: boolean }) => {
       const form = new FormData()
       form.append('file', file)
-      return api.post<ImportResult>('/contacts/import', form)
+      form.append('mapping', JSON.stringify(mapping))
+      form.append('force', String(force))
+      return api.post<ImportRun>('/contacts/import', form)
     },
+  })
+}
+
+/** Polls every second while the import runs; refreshes contacts views when it ends. */
+export function useImportRun(id: number | null) {
+  const qc = useQueryClient()
+  return useQuery({
+    queryKey: ['contact-import', id],
+    queryFn: async () => {
+      const run = await api.get<ImportRun>(`/contacts/imports/${id}`)
+      if (run.status !== 'running') invalidateWork(qc)
+      return run
+    },
+    enabled: id !== null,
+    refetchInterval: (query) => (query.state.data?.status === 'running' || !query.state.data ? 1000 : false),
+  })
+}
+
+export function useImports() {
+  return useQuery({ queryKey: ['contact-imports'], queryFn: () => api.get<ImportRun[]>('/contacts/imports') })
+}
+
+export function useMatchReport() {
+  return useQuery({ queryKey: ['match-report'], queryFn: () => api.get<MatchReport | null>('/contacts/match/report') })
+}
+
+export function useRunMatch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<MatchReport>('/contacts/match'),
+    onSuccess: (report) => qc.setQueryData(['match-report'], report),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useSetJobContact() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ appId, contactId, contact }: { appId: number; contactId?: number; contact?: NewContact }) =>
+      api.post<JobDetail>(`/applications/${appId}/contact${contactId ? `?contact_id=${contactId}` : ''}`, contact ? { ...contact } : undefined),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useClearJobContact() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (appId: number) => api.del<JobDetail>(`/applications/${appId}/contact`),
+    onSettled: () => invalidateWork(qc),
   })
 }
 

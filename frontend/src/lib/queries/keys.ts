@@ -45,6 +45,8 @@ export function invalidateWork(qc: QueryClient) {
     'company',
     'scoring-status',
     'tracking',
+    'match-report',
+    'contact-imports',
   ]) {
     void qc.invalidateQueries({ queryKey: [key] })
   }

@@ -130,6 +130,8 @@ export interface Contact {
   email: string | null
   linkedin_url: string | null
   source: 'apollo_dump' | 'apollo_lookup' | 'manual'
+  role_rank: number // position in Settings → Contacts ranking (999 = unranked)
+  role_label: string | null
 }
 
 export interface TimelineEvent {
@@ -186,6 +188,7 @@ export interface JobDetail extends JobListItem {
   events: TimelineEvent[]
   allowed_stages: Stage[]
   tracking: TrackedApplication | null // set once applied
+  lookup_status: LookupStatus | null // the company's Apollo lookup
 }
 
 export interface PipelineCard {
@@ -421,6 +424,9 @@ export interface ExperienceItem extends ExperienceInput {
 }
 
 // Contacts
+export type LookupStatus = 'queued' | 'found' | 'not_found' | 'skipped'
+export type CompanyFilter = 'with_jobs' | 'has_contacts' | 'needs_lookup' | 'no_contact' | 'all'
+
 export interface CompanyListItem {
   id: number
   name: string
@@ -428,40 +434,110 @@ export interface CompanyListItem {
   contact_count: number
   open_jobs: number
   contacted_at: string | null
+  lookup_status: LookupStatus | null
+  best_contact: string | null
+}
+
+export interface CompanyList {
+  items: CompanyListItem[]
+  total: number
+}
+
+export interface CompanyJob {
+  application_id: number
+  job_id: number
+  title: string
+  stage: Stage
+  stage_label: string
+  route: Route
+  contact_tier: ContactTier
+  contact_id: number | null
+  fit: FitBrief | null
 }
 
 export interface CompanyDetail extends CompanyListItem {
   website: string | null
-  contacts: Contact[]
-  jobs: RelatedJob[]
+  contacts: Contact[] // most relevant role first
+  jobs: CompanyJob[]
 }
 
-export interface ImportPreview {
+export interface FilePreview {
   filename: string
+  sha256: string
   total_rows: number
   columns: string[]
   mapping: Record<string, string | null>
   sample: Record<string, string>[]
+  already_imported_at: string | null
 }
 
-export interface ImportResult {
+export interface ImportRun {
+  id: number
+  filename: string
+  status: 'running' | 'done' | 'failed'
+  total: number
+  processed: number
   created: number
   updated: number
   skipped: number
-  mock: boolean
+  skipped_reasons: Record<string, number>
+  companies_created: number
+  error: string | null
+  started_at: string
+  finished_at: string | null
+  backup_path: string | null
+}
+
+export interface LookupItem {
+  company_id: number
+  company_name: string
+  domain: string | null
+  status: LookupStatus
+  priority: number
+  open_jobs: number
+  best_job_id: number | null
+  best_job_title: string | null
+  best_fit: number | null
+  queued_at: string
 }
 
 export interface LookupQueue {
   daily_cap: number
   used_today: number
-  items: {
-    application_id: number
-    job_id: number
-    job_title: string
-    company_name: string
-    fit: number | null
-    queued_at: string
-  }[]
+  total: number
+  items: LookupItem[]
+}
+
+export interface NewContact {
+  full_name: string
+  title?: string | null
+  email?: string | null
+  linkedin_url?: string | null
+  notes?: string
+}
+
+export interface MatchGroup {
+  group: string
+  jobs: number
+  with_contact: number
+  queued: number
+  no_contact: number
+}
+
+export interface MatchReport {
+  totals: { jobs: number; with_contact: number; queued: number; no_contact: number }
+  by_track: MatchGroup[]
+  by_country: MatchGroup[]
+  lookup_queue: number
+  contacts: number
+  companies_with_contacts: number
+  changed: number | null
+  at: string
+}
+
+export interface RoleGroup {
+  label: string
+  keywords: string[]
 }
 
 // Settings
