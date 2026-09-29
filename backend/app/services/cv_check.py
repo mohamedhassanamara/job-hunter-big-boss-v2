@@ -217,6 +217,18 @@ def feedback(rejected: list[tuple[SummarySentence, list[str]]]) -> str:
 # ---------------------------------------------------------------------- canonical spelling
 
 
+def capital(text: str) -> str:
+    """Canonical spelling may lower-case a word ("Mobile" → "mobile"); a sentence still starts
+    with a capital (unless the term is spelled lower-case on purpose, like "dbt")."""
+    def fix(m: re.Match) -> str:
+        word = m.group(2)
+        return m.group(1) + (word if word.lower() in _LOWERCASE_OK else word[:1].upper() + word[1:])
+    return re.sub(r"(^|[.!?]\s+)([a-z][\w-]*)", fix, text)
+
+
+_LOWERCASE_OK = {"dbt", "spacy", "npm", "pandas", "scikit-learn", "iphone", "ios", "macos"}
+
+
 def canonicalize(plan: CVPlan, pool: Pool) -> CVPlan:
     """Write every skill/tool exactly as the pool writes it (dbt, spaCy, Spring Boot), in skills,
     project stacks, bullets and the summary. Case-insensitive, same letters only."""
@@ -230,7 +242,7 @@ def canonicalize(plan: CVPlan, pool: Pool) -> CVPlan:
         return e.model_copy(update=update)
 
     def sentences(items: list[SummarySentence]) -> list[SummarySentence]:
-        return [s.model_copy(update={"text": canon.text(s.text)}) for s in items]
+        return [s.model_copy(update={"text": capital(canon.text(s.text))}) for s in items]
 
     return plan.model_copy(update={
         "skills": [g.model_copy(update={"items": [canon.word(x) for x in g.items]})
@@ -238,8 +250,8 @@ def canonicalize(plan: CVPlan, pool: Pool) -> CVPlan:
         "roles": [entry(e) for e in plan.roles],
         "projects": [entry(p) for p in plan.projects],
         "volunteering": [entry(v) for v in plan.volunteering],
-        "summary": canon.text(plan.summary),
-        "summary_short": canon.text(plan.summary_short),
+        "summary": capital(canon.text(plan.summary)),
+        "summary_short": capital(canon.text(plan.summary_short)),
         "summary_sentences": sentences(plan.summary_sentences),
         "summary_short_sentences": sentences(plan.summary_short_sentences),
     })

@@ -246,3 +246,10 @@ def test_with_an_exact_statement_every_other_years_claim_is_rejected() -> None:
     assert bad_years("Engineer with 3+ years of experience.", {3}, statement) == ["3+ years"]
     assert bad_years(f"{statement}, including 1 year of AI.", {3}, statement) == ["1 year"]
     assert bad_years("over three years of work", {3}, statement)
+
+
+def test_sentences_keep_their_capital_after_canonical_spelling() -> None:
+    from app.services.cv_check import capital
+
+    assert capital("mobile engineer building apps. dbt models too.") == \
+        "Mobile engineer building apps. dbt models too."
