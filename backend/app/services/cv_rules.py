@@ -299,7 +299,8 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
                      max_words: int | None = None, banned_phrases: list[str] | None = None,
                      cited_texts: list[str] | None = None,
                      other_openings: list[str] | None = None,
-                     lead_with_build: bool = False) -> list[str]:
+                     lead_with_build: bool = False,
+                     years_statement: str | None = None) -> list[str]:
     """Why a summary breaks the guide (empty = fine). Checked in code; the summary is
     regenerated once with these reasons."""
     max_sentences = max_sentences or int(rules["summary_max_sentences"])
@@ -344,6 +345,17 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
             out.append(f"“{start}…” has no subject: start it with a subject such as “Recent "
                        "work includes…” or “Projects include…” (no “I”)")
             break
+    if years_statement:
+        from app.services.cv_claims import short_form
+
+        short = short_form(years_statement)
+        for sentence in sentences(text):
+            if short and years_statement.lower() in sentence.lower() and re.search(
+                    rf"\b{re.escape(short[1])}\b(?!ing)", sentence.replace(years_statement, ""),
+                    re.I):
+                out.append(f"says “{short[1]}” and then “{years_statement}”: write "
+                           f"“{short[0]}” instead of repeating it")
+                break
     first_words = " ".join(text.split()[:8])
     if lead_with_build and _TRANSITION.search(first_words):
         out.append("opens with a career change: lead with what you build (e.g. “Software "

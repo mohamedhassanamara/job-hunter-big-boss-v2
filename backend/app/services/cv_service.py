@@ -134,7 +134,8 @@ def fit_layout(s: Session, plan: CVPlan, pool: Pool) -> Layout:
 def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
                   items: list[SummarySentence], short: bool = False,
                   banned: list[str] | None = None,
-                  other_openings: list[str] | None = None, track: str = "") -> list[str]:
+                  other_openings: list[str] | None = None, track: str = "",
+                  statement: str | None = None) -> list[str]:
     """The guide's summary rules, checked in code (see cv_rules.summary_problems)."""
     text = " ".join(s.text.strip() for s in items)
     bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
@@ -151,7 +152,8 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
         banned_phrases=banned if banned is not None else cv_rules.DEFAULT_CV_BANNED,
         cited_texts=None if short or not cited_texts else cited_texts,
         other_openings=None if short else other_openings,
-        lead_with_build=not short and _data_ai(track.lower()))
+        lead_with_build=not short and _data_ai(track.lower()),
+        years_statement=statement)
 
 
 def _data_ai(track: str) -> bool:
@@ -277,8 +279,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
                                              statement)
     track = str((request.job or {}).get("matched_track") or "")
     style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings,
-                          track)
-    short_style = summary_style(plan, pool, rules, plan.summary_short_sentences, True, banned)
+                          track, statement)
+    short_style = summary_style(plan, pool, rules, plan.summary_short_sentences, True, banned,
+                                statement=statement)
     if bad or short_bad or style or short_style:
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
                                    for s, r in bad + short_bad])
@@ -293,9 +296,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
         short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed,
                                               statement)
         style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned,
-                               openings, track)
+                               openings, track, statement)
         short_style2 = summary_style(plan, pool, rules, retry.summary_short_sentences, True,
-                                     banned)
+                                     banned, statement=statement)
         report["style"].append({"summary": style2, "short": short_style2})
         if bad2:
             report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
