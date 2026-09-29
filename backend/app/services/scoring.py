@@ -117,7 +117,7 @@ def load_context(s: Session) -> ScoringContext:
     ).all()
     snapshot = [
         {
-            "kind": i.kind, "title": i.title, "org": i.org, "summary": i.summary,
+            "id": i.id, "kind": i.kind, "title": i.title, "org": i.org, "summary": i.summary,
             "bullets": i.bullets, "tags": i.tags, "start": i.start_date, "end": i.end_date,
         }
         for i in items
@@ -137,7 +137,8 @@ def load_context(s: Session) -> ScoringContext:
         experience_items=snapshot,
         experience_text="\n".join(_experience_line(i) for i in items)
         or "(no experience entered yet)",
-        experience_version=fit.experience_version(snapshot, profile),
+        experience_version=fit.experience_version(snapshot, profile,
+                                                  search.tracks if search else []),
         config=fit.ScoringConfig.from_settings(scoring, profile),
     )
 

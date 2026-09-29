@@ -96,7 +96,8 @@ def test_cache_inputs_change_the_key() -> None:
                 cache_key("c1", "e1", "llama3", "fit_score/v1"),
                 cache_key("c1", "e1", "qwen2.5:7b", "fit_score/v2")}) == 5
     assert experience_version([{"t": 1}], {"email": "a"}) == experience_version([{"t": 1}], {"email": "b"})
-    assert experience_version([{"t": 1}], {}) != experience_version([{"t": 2}], {})
+    assert experience_version([{"id": 1, "kind": "job"}], {}) != \
+        experience_version([{"id": 2, "kind": "job"}], {})
 
 
 def test_truncate_keeps_head_and_tail() -> None:
@@ -176,3 +177,22 @@ def test_cv_header_fields_do_not_make_scores_stale() -> None:
     assert experience_version(items, {**base, "full_name": "B", "phone": "1", "links": [{}],
                                       "email": "x@y.z"}) == v
     assert experience_version(items, {**base, "based_in": "Other city"}) != v
+
+
+def test_only_structural_experience_changes_make_scores_stale() -> None:
+    from app.services.fit import experience_version
+
+    role = {"id": 1, "kind": "job", "title": "Mobile Developer", "bullets": ["Built x by 30%"],
+            "tags": ["flutter"], "start": "2022-10-01", "end": "2025-02-28"}
+    skill = {"id": 2, "kind": "skill", "title": "Mobile", "bullets": [], "tags": ["dart"]}
+    tracks = [{"name": "Mobile", "years_experience": 3, "roles": [{"title": "Flutter Developer"}]}]
+    base = experience_version([role, skill], {}, tracks)
+    reworded = {**role, "title": "Mobile Developer (Flutter)", "bullets": ["Built x, easier"],
+                "tags": ["flutter", "dart"]}
+    assert experience_version([reworded, skill], {}, tracks) == base  # rewording, typos, tags
+    assert experience_version([role], {}, tracks) != base  # removed an item
+    assert experience_version([role, skill, {"id": 3, "kind": "project"}], {}, tracks) != base
+    assert experience_version([role, {**skill, "tags": ["dart", "kotlin"]}], {}, tracks) != base
+    assert experience_version([{**role, "end": None}, skill], {}, tracks) != base  # dates/years
+    assert experience_version([role, skill], {}, [{**tracks[0], "years_experience": 4}]) != base
+    assert experience_version([role, skill], {"full_name": "X"}, tracks) == base  # header only

@@ -288,10 +288,23 @@ _HEADER_ONLY = {"email", "full_name", "phone", "links", "is_placeholder", "total
                 "experience_statement"}
 
 
-def experience_version(items: list[dict[str, Any]], profile: dict[str, Any]) -> str:
-    # CV-header-only fields never change a score: editing them must not mark scores stale.
+def experience_version(items: list[dict[str, Any]], profile: dict[str, Any],
+                       tracks: list[dict[str, Any]] | None = None) -> str:
+    """What makes scores stale: adding/removing an experience item (or changing its dates, i.e.
+    years), adding/removing a skill, changing a track (roles or years) or the candidate facts
+    the scorer uses. Rewording a bullet, a title or a summary, or fixing a typo, doesn't.
+    CV-header-only fields never change a score either."""
     candidate = {k: v for k, v in (profile or {}).items() if k not in _HEADER_ONLY}
-    raw = json.dumps({"items": items, "profile": candidate}, sort_keys=True, default=str)
+    structure = sorted(
+        (str(i.get("id", "")), i.get("kind"), str(i.get("start")), str(i.get("end")),
+         sorted(i.get("tags") or []) if i.get("kind") == "skill" else [])
+        for i in items)
+    track_facts = sorted(
+        (t.get("name") or "", str(t.get("years_experience")),
+         sorted((r.get("title") or "") for r in t.get("roles") or []))
+        for t in tracks or [])
+    raw = json.dumps({"items": structure, "profile": candidate, "tracks": track_facts},
+                     sort_keys=True, default=str)
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
