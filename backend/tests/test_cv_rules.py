@@ -401,3 +401,15 @@ def test_pdf_responses_are_never_cached(client, monkeypatch, tmp_path) -> None: 
         cv_id = v.id
     r = client.get(f"/api/cv/{cv_id}/pdf", params={"download": True})
     assert r.status_code == 200 and "no-store" in r.headers["cache-control"]
+
+
+def test_repeating_software_engineer_with_the_full_statement_is_flagged() -> None:
+    statement = "3 years of software engineering experience"
+    got = cv_rules.summary_problems(f"Software engineer with {statement}. It works.",
+                                    rules=RULES, bullet_texts=[], certifications=[],
+                                    internships=[], tools=set(), years_statement=statement)
+    assert any("instead of repeating" in p for p in got)
+    fine = cv_rules.summary_problems(f"Mobile engineer with {statement}. It works.", rules=RULES,
+                                     bullet_texts=[], certifications=[], internships=[],
+                                     tools=set(), years_statement=statement)
+    assert not any("repeating" in p for p in fine)
