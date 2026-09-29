@@ -58,6 +58,7 @@ interface Candidate {
   languages: { language: string; level: string }[]
   years_experience: number
   total_years_override?: number | null
+  experience_statement?: string
   headline: string
   is_placeholder?: boolean
 }
@@ -199,7 +200,7 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           className="w-24"
         />
       </Field>
-      <Field label="Total years of experience (override)" hint="CVs state years only from facts. When set, this replaces the total computed from your role dates, in generation and checks.">
+      <Field label="Total years of experience (override)" hint="When set, CVs and emails state your experience with exactly the wording below, and no years per track; every other years claim is rejected.">
         <Input
           type="number"
           step={1}
@@ -210,6 +211,15 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           className="w-36"
           aria-label="Total years override"
         />
+        {c.total_years_override ? (
+          <Input
+            value={c.experience_statement ?? ''}
+            placeholder={`${c.total_years_override} years of software engineering experience`}
+            onChange={(e) => set({ experience_statement: e.target.value })}
+            className="mt-2 w-96"
+            aria-label="How to state it"
+          />
+        ) : null}
       </Field>
       <Field label="Headline" hint="One or two sentences about where you are and where you're going">
         <Textarea value={c.headline} onChange={(e) => set({ headline: e.target.value })} className="min-h-20" />

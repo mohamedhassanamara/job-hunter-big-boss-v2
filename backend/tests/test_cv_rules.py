@@ -283,7 +283,7 @@ def test_a_summary_breaking_the_guide_is_regenerated_once(monkeypatch) -> None: 
                      summary_short_sentences=[SummarySentence(text="Software Engineer fact 0.",
                                                               citations=[1])])
     monkeypatch.setattr(cv_service, "ground_sentences",
-                        lambda sentences, pool, allowed: (list(sentences), []))
+                        lambda sentences, pool, allowed, *a: (list(sentences), []))
     gen = SummaryScript("Software Engineer fact 0.")
     out, issues, report = cv_service.ground_summary(plan, pool, CVRequest(job={}, pool={}), gen,
                                                     RULES)

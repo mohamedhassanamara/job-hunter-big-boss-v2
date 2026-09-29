@@ -218,9 +218,13 @@ def test_capability_phrases_not_in_the_pool_are_flagged() -> None:
 def test_total_years_override_replaces_role_dates() -> None:
     pool = make_pool(ROLE, NLP)
     pool.profile["total_years_override"] = 2
-    facts = years_facts(pool, [], today=date(2026, 10, 1))
-    assert facts == [{"label": "professional experience (Settings)", "years": 2,
-                      "wording": "2+ years", "kind": "total"}]
+    facts = years_facts(pool, [{"name": "Mobile", "years_experience": 3}],
+                        today=date(2026, 10, 1))
+    assert facts == [{"label": "total experience (Settings)", "years": 2, "kind": "total",
+                      "wording": "2 years of software engineering experience", "exact": True}]
+    pool.profile["experience_statement"] = "two years building software"
+    assert years_facts(pool, [])[0]["wording"] == "two years building software"
+    pool.profile["experience_statement"] = ""
     pool.profile["total_years_override"] = ""
     assert years_facts(pool, [], today=date(2026, 10, 1))[0]["years"] == 4
 
@@ -231,3 +235,14 @@ def test_override_is_what_the_checks_allow() -> None:
     allowed = {f["years"] for f in years_facts(pool, [], today=date(2026, 10, 1))}
     assert bad_years("2+ years building software", allowed) == []
     assert bad_years("4+ years building software", allowed) == ["4+ years"]
+
+
+def test_with_an_exact_statement_every_other_years_claim_is_rejected() -> None:
+    from app.services.cv_claims import exact_statement
+
+    statement = "3 years of software engineering experience"
+    assert exact_statement([{"wording": statement, "exact": True}]) == statement
+    assert bad_years(f"Engineer with {statement}.", {3}, statement) == []
+    assert bad_years("Engineer with 3+ years of experience.", {3}, statement) == ["3+ years"]
+    assert bad_years(f"{statement}, including 1 year of AI.", {3}, statement) == ["1 year"]
+    assert bad_years("over three years of work", {3}, statement)

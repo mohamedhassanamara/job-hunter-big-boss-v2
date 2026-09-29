@@ -172,7 +172,8 @@ def cited_text(pool: Pool, ids: list[int]) -> str:
     return "\n".join(p for p in parts if p)
 
 
-def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[int]) -> list[str]:
+def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[int],
+                      statement: str | None = None) -> list[str]:
     """Why a summary sentence isn't grounded (empty list = fine)."""
     if not sentence.citations:
         return ["no citations"]
@@ -181,9 +182,10 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
         return [f"cites unknown ids {', '.join(unknown)}"]
     source = cited_text(pool, sentence.citations)
     text = sentence.text
-    problems = [f"years claim “{c}” isn't one of the allowed facts"
-                for c in bad_years(text, allowed_years)]
-    without_years = text
+    problems = [f"years claim “{c}” isn't allowed" + (f" (write exactly “{statement}”)"
+                                                       if statement else "")
+                for c in bad_years(text, allowed_years, statement)]
+    without_years = re.sub(re.escape(statement), " ", text, flags=re.I) if statement else text
     for claim, _ in years_claims(text):
         without_years = without_years.replace(claim, " ")
     source_digits = {re.sub(r"[^\d]", "", n) for n in numbers(source)}
@@ -198,11 +200,12 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
 
 def ground_sentences(
     sentences: list[SummarySentence], pool: Pool, allowed_years: set[int],
+    statement: str | None = None,
 ) -> tuple[list[SummarySentence], list[tuple[SummarySentence, list[str]]]]:
     """(grounded sentences, [(rejected sentence, reasons)])."""
     good, bad = [], []
     for sentence in sentences:
-        problems = sentence_problems(sentence, pool, allowed_years)
+        problems = sentence_problems(sentence, pool, allowed_years, statement)
         (bad.append((sentence, problems)) if problems else good.append(sentence))
     return good, bad
 

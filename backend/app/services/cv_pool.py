@@ -99,11 +99,22 @@ def role_years(pool: Pool, today: date | None = None) -> float:
     return total / 365.25
 
 
+EXPERIENCE_STATEMENT = "{n} years of software engineering experience"
+
+
 def years_facts(pool: Pool, tracks: list[dict[str, Any]],
                 today: date | None = None) -> list[dict[str, Any]]:
-    """The only years-of-experience claims a CV may make: the user's per-track years (Settings →
-    Search profile) and the total, which is the Settings → Candidate override when set,
-    otherwise computed from role dates. Stated as "N+ years"."""
+    """The only years-of-experience claims a CV may make. With Settings → Candidate's total
+    override set, ONE exact statement ("3 years of software engineering experience", wording
+    editable there) and nothing per track. Otherwise the per-track years (Settings → Search
+    profile) and the total from role dates, stated as "N+ years"."""
+    override = pool.profile.get("total_years_override")
+    if override not in (None, ""):
+        n = int(float(override))
+        wording = (pool.profile.get("experience_statement") or "").strip() or \
+            EXPERIENCE_STATEMENT.format(n=n)
+        return [{"label": "total experience (Settings)", "years": n, "wording": wording,
+                 "kind": "total", "exact": True}] if n >= 1 else []
     facts = []
     for track in tracks:
         years = track.get("years_experience")
@@ -112,11 +123,7 @@ def years_facts(pool: Pool, tracks: list[dict[str, Any]],
             if n >= 1:
                 facts.append({"label": f"{track['name']} experience (Settings)", "years": n,
                               "wording": f"{n}+ year{'s' if n > 1 else ''}", "kind": "track"})
-    override = pool.profile.get("total_years_override")
-    if override not in (None, ""):
-        total, source = int(float(override)), "Settings"
-    else:
-        total, source = int(role_years(pool, today)), "from role dates"
+    total, source = int(role_years(pool, today)), "from role dates"
     if total >= 1:
         facts.append({"label": f"professional experience ({source})", "years": total,
                       "wording": f"{total}+ year{'s' if total > 1 else ''}", "kind": "total"})

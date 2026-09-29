@@ -72,10 +72,20 @@ def years_claims(text: str) -> list[tuple[str, float]]:
     return out
 
 
-def bad_years(text: str, allowed: set[int]) -> list[str]:
-    """Years claims whose number isn't one of the values computed in code."""
+def bad_years(text: str, allowed: set[int], statement: str | None = None) -> list[str]:
+    """Years claims whose number isn't one of the values computed in code. With an exact
+    `statement` ("3 years of software engineering experience"), that wording is the only years
+    claim allowed: anything else ("3+ years", "over three years", "1 year of AI") is rejected."""
+    if statement:
+        rest = re.sub(re.escape(statement), " ", text, flags=re.I)
+        return [claim for claim, _ in years_claims(rest)]
     return [claim for claim, value in years_claims(text)
             if not (value.is_integer() and int(value) in allowed)]
+
+
+def exact_statement(facts: list[dict] | None) -> str | None:
+    """The one years wording a CV/email may use, when Settings → Candidate fixes it."""
+    return next((f["wording"] for f in facts or [] if f.get("exact")), None)
 
 
 # -------------------------------------------------------------------------- capability phrases

@@ -60,6 +60,7 @@ class Context:
     max_words: int = DEFAULT_MAX_WORDS
     other_companies: list[str] = field(default_factory=list)  # in drafts to other companies
     others: list[tuple[int, str, str]] = field(default_factory=list)  # (draft id, to, text)
+    years_statement: str | None = None  # the only years wording allowed, when fixed
 
 
 # "a 15-minute call", "20 minutes", "30 min", "2 hours": a request's duration, not a claim.
@@ -70,6 +71,8 @@ _DURATION = re.compile(r"\b\d+\s*[-–]?\s*(?:minutes?|mins?|hours?|hrs?|h|minut
 def _claims_only(text: str, ctx: "Context") -> str:
     """Drop what isn't a claim: durations of the ask and the company's own name ("3E")."""
     text = _DURATION.sub(" ", text)
+    if ctx.years_statement:
+        text = re.sub(re.escape(ctx.years_statement), " ", text, flags=re.I)
     if ctx.company:
         text = re.sub(re.escape(ctx.company), " ", text, flags=re.I)
     return text
@@ -125,6 +128,12 @@ def lint(subject: str, greeting: str, body_parts: list[str], ask: str | None,
     if "!" in everything:
         out.append(violation("tone", "Exclamation mark", "body"))
     text = " ".join([*body_parts, ask or ""])
+    from app.services.cv_claims import bad_years
+
+    for claim in bad_years(everything, ctx.allowed_years, ctx.years_statement):
+        out.append(violation("years", f"Years claim “{claim}” isn't allowed" + (
+            f": write exactly “{ctx.years_statement}”" if ctx.years_statement else ""),
+            "body", "error"))
     for draft_id, to, other_text in ctx.others:
         score = similarity(text, other_text)
         if score >= DUPLICATE_THRESHOLD:
@@ -142,12 +151,14 @@ def check_plan(plan: EmailDraftPlan, ctx: Context) -> list[dict[str, str]]:
         else:
             problems = sentence_problems(
                 SummarySentence(text=_claims_only(s.text, ctx), citations=s.citations),
-                ctx.pool, ctx.allowed_years)
+                ctx.pool, ctx.allowed_years, ctx.years_statement)
         out += [violation("grounding", f"“{s.text}”: {p}", where, "error") for p in problems]
     out += [violation("grounding", f"The ask: {p}", "ask", "error")
             for p in _source_problems(plan.ask, ctx)]
-    return out + lint(plan.subject, plan.greeting, [s.text for s in plan.sentences], plan.ask,
-                      ctx)
+    out += lint(plan.subject, plan.greeting, [s.text for s in plan.sentences], plan.ask, ctx)
+    # A years claim is reported by both grounding and lint: keep the lint message only.
+    return [v for v in out if not (v["type"] == "grounding" and "years claim" in v["message"]
+                                   and ctx.years_statement)]
 
 
 def _source_problems(text: str, ctx: Context) -> list[str]:

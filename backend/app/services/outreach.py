@@ -39,6 +39,7 @@ from app.providers.base import (
 from app.services import outreach_check as oc
 from app.services import pipeline
 from app.services.contacts import ranking_settings
+from app.services.cv_claims import exact_statement
 from app.services.cv_pool import Pool, load_pool, prompt_pool, years_facts
 
 DEFAULT_OUTREACH: dict[str, Any] = {
@@ -101,7 +102,8 @@ def _context(s: Session, app: Application, job: Job, company: Company, contact: 
     from app.services.cv_service import _tracks
 
     cfg = outreach_settings(s)
-    allowed = {int(f["years"]) for f in years_facts(pool, _tracks(s))}
+    facts = years_facts(pool, _tracks(s))
+    allowed = {int(f["years"]) for f in facts}
     others = []
     other_companies = set()
     for d, _app, _job, c, person in s.exec(
@@ -121,7 +123,8 @@ def _context(s: Session, app: Application, job: Job, company: Company, contact: 
         pool=pool, allowed_years=allowed, job_text=f"{job.title}\n{job.description}",
         company=company.name, first_name=_first_name(contact),
         banned=list(cfg.get("banned_phrases") or []), max_words=int(cfg.get("max_words") or 150),
-        other_companies=sorted(other_companies), others=others)
+        other_companies=sorted(other_companies), others=others,
+        years_statement=exact_statement(facts))
 
 
 def build_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,

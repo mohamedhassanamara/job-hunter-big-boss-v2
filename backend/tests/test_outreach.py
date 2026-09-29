@@ -123,6 +123,17 @@ def test_each_rule_is_enforced(ctx: oc.Context, change: dict, expected: str) -> 
     assert expected in kinds(oc.check_plan(plan(**change), ctx))
 
 
+def test_emails_use_only_the_exact_years_statement(ctx: oc.Context) -> None:
+    ctx.years_statement = "3 years of software engineering experience"
+    ok = plan(sentences=[{"text": "I saw that Acme is hiring a Data Engineer, and I bring 3 "
+                                  "years of software engineering experience.", "about_job": True}])
+    assert "years" not in kinds(oc.check_plan(ok, ctx))
+    bad = plan(sentences=[{"text": "I saw that Acme is hiring, and I have 3+ years in data.",
+                           "about_job": True}])
+    assert "years" in kinds(oc.check_plan(bad, ctx))
+    ctx.years_statement = None
+
+
 def test_durations_in_the_ask_are_not_claims(ctx: oc.Context) -> None:
     assert "grounding" not in kinds(oc.check_plan(plan(ask="Could we talk for 20 minutes?"), ctx))
 
