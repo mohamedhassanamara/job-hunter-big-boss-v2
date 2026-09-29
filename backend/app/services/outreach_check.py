@@ -72,7 +72,9 @@ def _claims_only(text: str, ctx: "Context") -> str:
     """Drop what isn't a claim: durations of the ask and the company's own name ("3E")."""
     text = _DURATION.sub(" ", text)
     if ctx.years_statement:
-        text = re.sub(re.escape(ctx.years_statement), " ", text, flags=re.I)
+        from app.services.cv_claims import strip_statement
+
+        text = strip_statement(text, ctx.years_statement)
     if ctx.company:
         text = re.sub(re.escape(ctx.company), " ", text, flags=re.I)
     return text

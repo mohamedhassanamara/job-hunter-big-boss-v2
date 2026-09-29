@@ -77,10 +77,37 @@ def bad_years(text: str, allowed: set[int], statement: str | None = None) -> lis
     `statement` ("3 years of software engineering experience"), that wording is the only years
     claim allowed: anything else ("3+ years", "over three years", "1 year of AI") is rejected."""
     if statement:
-        rest = re.sub(re.escape(statement), " ", text, flags=re.I)
-        return [claim for claim, _ in years_claims(rest)]
+        return [claim for claim, _ in years_claims(strip_statement(text, statement))]
     return [claim for claim, value in years_claims(text)
             if not (value.is_integer() and int(value) in allowed)]
+
+
+_STATEMENT = re.compile(r"^(\d+) years? of (.+?) experience$", re.I)
+_SENTENCES = re.compile(r"(?<=[.!?])\s+")
+
+
+def short_form(statement: str) -> tuple[str, str] | None:
+    """("3 years of experience", "software engineer") for "3 years of software engineering
+    experience": the short wording, allowed only in a sentence that names the field."""
+    m = _STATEMENT.match(statement.strip())
+    if not m:
+        return None
+    field = re.sub(r"ing$", "", m.group(2).strip(), flags=re.I)  # engineering → engineer
+    return f"{m.group(1)} years of experience", field
+
+
+def strip_statement(text: str, statement: str) -> str:
+    """The text without its allowed years wording: the exact statement anywhere, and the short
+    form in a sentence that already says the field ("Software engineer with 3 years of
+    experience…")."""
+    short = short_form(statement)
+    out = []
+    for sentence in _SENTENCES.split(text):
+        sentence = re.sub(re.escape(statement), " ", sentence, flags=re.I)
+        if short and re.search(rf"\b{re.escape(short[1])}", sentence, re.I):
+            sentence = re.sub(re.escape(short[0]), " ", sentence, flags=re.I)
+        out.append(sentence)
+    return " ".join(out)
 
 
 def exact_statement(facts: list[dict] | None) -> str | None:

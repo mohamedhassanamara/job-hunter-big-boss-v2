@@ -24,6 +24,7 @@ from app.services.cv_claims import (
     capability_gaps,
     pool_vocabulary,
     scope_inflation,
+    strip_statement,
     years_claims,
 )
 from app.services.cv_pool import Pool, norm
@@ -185,7 +186,7 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
     problems = [f"years claim “{c}” isn't allowed" + (f" (write exactly “{statement}”)"
                                                        if statement else "")
                 for c in bad_years(text, allowed_years, statement)]
-    without_years = re.sub(re.escape(statement), " ", text, flags=re.I) if statement else text
+    without_years = strip_statement(text, statement) if statement else text
     for claim, _ in years_claims(text):
         without_years = without_years.replace(claim, " ")
     source_digits = {re.sub(r"[^\d]", "", n) for n in numbers(source)}

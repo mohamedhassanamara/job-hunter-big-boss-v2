@@ -113,8 +113,10 @@ def cv_pdf(cv_id: int, session: SessionDep, engine: EngineDep, download: bool = 
     if path is None:
         raise HTTPException(404, "No PDF for this version (LaTeX failed; see the error)")
     name = cv_service.download_name(session, v)
+    # Drafts are re-rendered in place (same URL): never let the browser keep an older copy.
     return FileResponse(path, media_type="application/pdf", filename=name,
-                        content_disposition_type="attachment" if download else "inline")
+                        content_disposition_type="attachment" if download else "inline",
+                        headers={"Cache-Control": "no-store, max-age=0"})
 
 
 @router.post("/cv/{cv_id}/summary", response_model=CVVersionOut)
