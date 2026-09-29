@@ -227,7 +227,7 @@ export default function CVStudioPage() {
             </Button>
             <Tooltip content={studio.data?.download_name ?? 'Download PDF'}>
               <Button variant="ghost" size="icon" asChild disabled={!onePage}>
-                <a href={apiUrl(`/cv/${version.id}/pdf`, { download: true })} aria-label="Download PDF">
+                <a href={apiUrl(`/cv/${version.id}/pdf`, { download: true, v: version.updated_at })} aria-label="Download PDF">
                   <Download />
                 </a>
               </Button>

@@ -221,7 +221,9 @@ def test_total_years_override_replaces_role_dates() -> None:
     facts = years_facts(pool, [{"name": "Mobile", "years_experience": 3}],
                         today=date(2026, 10, 1))
     assert facts == [{"label": "total experience (Settings)", "years": 2, "kind": "total",
-                      "wording": "2 years of software engineering experience", "exact": True}]
+                      "wording": "2 years of software engineering experience", "exact": True,
+                      "short_wording": "2 years of experience",
+                      "short_wording_when": "the same sentence already says “software engineer”"}]
     pool.profile["experience_statement"] = "two years building software"
     assert years_facts(pool, [])[0]["wording"] == "two years building software"
     pool.profile["experience_statement"] = ""
@@ -253,3 +255,15 @@ def test_sentences_keep_their_capital_after_canonical_spelling() -> None:
 
     assert capital("mobile engineer building apps. dbt models too.") == \
         "Mobile engineer building apps. dbt models too."
+
+
+def test_short_years_wording_only_next_to_software_engineer() -> None:
+    statement = "3 years of software engineering experience"
+    ok = "Software engineer with 3 years of experience building data pipelines."
+    assert bad_years(ok, {3}, statement) == []
+    assert bad_years("Mobile engineer with 3 years of experience.", {3}, statement) == \
+        ["3 years"]  # no "software engineer" in that sentence: the full statement is needed
+    assert bad_years("Software engineer with 4 years of experience.", {3}, statement) == \
+        ["4 years"]  # 3 is the only number
+    assert bad_years("Software engineer. He has 3 years of experience.", {3}, statement) == \
+        ["3 years"]  # the short form needs the field in the same sentence

@@ -365,3 +365,39 @@ def test_career_change_phrases_are_banned_in_cv_summaries() -> None:
     for phrase in ("moving into", "moving from", "transitioning into", "career change"):
         assert phrase in cv_rules.DEFAULT_CV_BANNED
     assert any("banned phrase" in p for p in v5("Engineer moving into data. It works."))
+
+
+def test_a_layout_from_an_older_version_is_clamped_to_the_allowances(monkeypatch,
+                                                                     tmp_path) -> None:  # noqa: ANN001
+    """EY v2 was copied from v1 (older rules: Mobile 4, internship 3, a 1-bullet project)."""
+    monkeypatch.setattr(cv_build, "compile_tex", fake_compiler(capacity=500, calls=[]))
+    plan = make_plan()
+    lay = layout(plan, make_pool(), RULES, today=TODAY)
+    old = cv_build.FitState(counts={"role:1": 4, "role:2": 3, "role:3": 4, "role:4": 3,
+                                    "role:5": 3, "project:6": 3, "project:7": 1, "project:9": 3})
+    result = fit_to_page(plan, make_pool(), CVProfile(full_name="Ada"), load_template("default"),
+                         tmp_path, state=old, lay=lay)
+    c = result.state.counts
+    assert c["role:3"] <= 3 and c["role:4"] <= 2 and c["role:5"] <= 1
+    assert c["project:7"] in (0, 2, 3) and c["project:7"] != 1
+    assert sum(1 for k, v in c.items() if k.startswith("project:") and v) <= 2
+    for key, count in c.items():
+        assert count <= lay.bounds[key][1], key
+
+
+def test_pdf_responses_are_never_cached(client, monkeypatch, tmp_path) -> None:  # noqa: ANN001
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models import CVVersion
+
+    pdf = tmp_path / "cv.pdf"
+    pdf.write_bytes(b"%PDF-1.4 current")
+    with Session(engine) as s:
+        v = s.exec(select(CVVersion)).first()
+        v.pdf_path = str(pdf)
+        s.add(v)
+        s.commit()
+        cv_id = v.id
+    r = client.get(f"/api/cv/{cv_id}/pdf", params={"download": True})
+    assert r.status_code == 200 and "no-store" in r.headers["cache-control"]

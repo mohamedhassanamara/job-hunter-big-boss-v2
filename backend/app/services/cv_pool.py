@@ -113,8 +113,14 @@ def years_facts(pool: Pool, tracks: list[dict[str, Any]],
         n = int(float(override))
         wording = (pool.profile.get("experience_statement") or "").strip() or \
             EXPERIENCE_STATEMENT.format(n=n)
-        return [{"label": "total experience (Settings)", "years": n, "wording": wording,
-                 "kind": "total", "exact": True}] if n >= 1 else []
+        fact = {"label": "total experience (Settings)", "years": n, "wording": wording,
+                "kind": "total", "exact": True}
+        from app.services.cv_claims import short_form
+
+        if short := short_form(wording):
+            fact["short_wording"] = short[0]
+            fact["short_wording_when"] = f"the same sentence already says “{short[1]}”"
+        return [fact] if n >= 1 else []
     facts = []
     for track in tracks:
         years = track.get("years_experience")

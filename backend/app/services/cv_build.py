@@ -107,6 +107,32 @@ def initial_state(plan: CVPlan, lay: Layout | None = None) -> FitState:
     return state
 
 
+def clamp(plan: CVPlan, state: FitState, lay: Layout) -> FitState:
+    """A layout carried over from an older version (or older rules) is brought back inside the
+    allowances: at most each entry's max, roles keep one bullet, no 1-bullet project, at most
+    projects_max projects (the most relevant kept) and volunteering_max volunteering entries."""
+    out = FitState.from_dict(state.to_dict())
+    for kind, entries in (("role", plan.roles), ("project", plan.projects),
+                          ("volunteering", plan.volunteering)):
+        for e in entries:
+            key = _key(kind, e)
+            _lo, hi = lay.bounds.get(key, (0, 0))
+            count = min(out.counts.get(key, 0), hi)
+            if kind == "role":
+                count = max(count, 1)
+            elif kind == "project" and count == 1:
+                count = 0
+            out.counts[key] = count
+    for kind, cap, entries in (("project", int(lay.rules["projects_max"]), plan.projects),
+                               ("volunteering", int(lay.rules["volunteering_max"]),
+                                plan.volunteering)):
+        shown = sorted((e for e in entries if out.counts.get(_key(kind, e), 0)),
+                       key=lambda e: -e.relevance)
+        for e in shown[cap:]:
+            out.counts[_key(kind, e)] = 0
+    return out
+
+
 def ordered(entry: PlanEntry) -> list[PlanBullet]:
     """Most relevant to the job first; generic process bullets last (used only if needed)."""
     return sorted(entry.bullets, key=lambda b: (b.strength <= 1 or cv_rules.is_generic(b.text),
@@ -307,7 +333,7 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
     target and within the allowances; keeps the best one-page result seen; if none fit, returns
     the last (with its page count, flagged by the caller)."""
     lay = lay or layout(plan, pool)
-    state = state or initial_state(plan, lay)
+    state = clamp(plan, state, lay) if state is not None else initial_state(plan, lay)
     target = float(lay.rules.get("fill_min") or template.min_fill)
     max_stack = int(template.config.get("max_stack_items") or 6)
     best: FitResult | None = None
