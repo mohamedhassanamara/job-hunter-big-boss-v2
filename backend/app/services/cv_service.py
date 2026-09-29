@@ -28,6 +28,7 @@ from app.services.cv_check import (
     ground_sentences,
     violation,
 )
+from app.services.cv_claims import exact_statement
 from app.services.cv_pool import (
     Pool,
     cv_profile,
@@ -265,13 +266,15 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
     problems still there → kept, with a warning to review."""
     rules = rules or dict(cv_rules.DEFAULT_STRUCTURE)
     allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
+    statement = exact_statement((request.facts or {}).get("years"))
     report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None, "style": []}
 
     def join(items: list[SummarySentence]) -> str:
         return " ".join(s.text.strip() for s in items)
 
-    good, bad = ground_sentences(plan.summary_sentences, pool, allowed)
-    short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed)
+    good, bad = ground_sentences(plan.summary_sentences, pool, allowed, statement)
+    short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed,
+                                             statement)
     track = str((request.job or {}).get("matched_track") or "")
     style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings,
                           track)
@@ -286,8 +289,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
                 [f"- Summary: {p}" for p in style] + [f"- Short summary: {p}" for p in short_style])
         retry = generator.generate_summary(request, notes)
         report["attempts"] = 2
-        good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed)
-        short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed)
+        good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed, statement)
+        short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed,
+                                              statement)
         style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned,
                                openings, track)
         short_style2 = summary_style(plan, pool, rules, retry.summary_short_sentences, True,
@@ -404,8 +408,9 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
             s.add(v)
             s.flush()
         issues = [i for i in (v.violations or []) if i.get("type") not in ("edit", "overflow")]
-        allowed = {int(f["years"]) for f in years_facts(pool, _tracks(s))}
-        issues += edit_violations(plan, pool, new_overrides, allowed)
+        facts = years_facts(pool, _tracks(s))
+        allowed = {int(f["years"]) for f in facts}
+        issues += edit_violations(plan, pool, new_overrides, allowed, exact_statement(facts))
         _save_render(s, v, plan, pool, template_name, new_overrides,
                      FitState.from_dict(v.plan.get("fit")))
         if v.page_count and v.page_count > 1:
@@ -438,7 +443,8 @@ def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) ->
 
 
 def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
-                    allowed_years: set[int] | None = None) -> list[dict[str, Any]]:
+                    allowed_years: set[int] | None = None,
+                    statement: str | None = None) -> list[dict[str, Any]]:
     """User-edited text goes through the same number/tool/claim checks as generated text."""
     from app.services.cv_check import new_tools, numbers
     from app.services.cv_claims import bad_years, capability_gaps, pool_vocabulary, scope_inflation
@@ -454,8 +460,9 @@ def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
             if n.lower() not in all_numbers and not re.search(rf"{re.escape(n)}\s*\+?\s*years?",
                                                               text):
                 add(f"“{n}” isn't anywhere in your experience")
-        for claim in bad_years(text, allowed_years or set()):
-            add(f"years claim “{claim}” isn't one of your allowed years facts")
+        for claim in bad_years(text, allowed_years or set(), statement):
+            add(f"years claim “{claim}” isn't allowed" + (f" (write exactly “{statement}”)"
+                                                          if statement else ""))
         if tools := new_tools(text, vocab):
             add(f"not in your experience: {', '.join(tools)}", "warning")
         for phrase in capability_gaps(text, text_all):
