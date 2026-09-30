@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api import (
     applications,
     contacts,
+    copilot,
     cv,
     discovery,
     experience,
@@ -24,7 +25,7 @@ def health() -> dict[str, str]:
 
 
 for module in (
-    today, jobs, tracking, applications, cv, letters, outreach, experience, contacts, settings,
-    discovery, scoring,
+    today, jobs, tracking, applications, cv, letters, copilot, outreach, experience, contacts,
+    settings, discovery, scoring,
 ):
     router.include_router(module.router)

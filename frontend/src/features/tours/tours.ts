@@ -23,6 +23,8 @@ export type TourId =
   | 'cv'
   | 'letter'
   | 'questions'
+  | 'copilot'
+  | 'studio'
   | 'email-route'
   | 'outreach'
   | 'contacts'
@@ -182,6 +184,27 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'job-tracks', title: 'Both routes', body: 'Every job can have a web application and a cold email to someone there. Each track shows its own status and next step; the stage reaches Applied / Emailed with the first one.', placement: 'bottom' },
       { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'No contact yet? The card says who to look for (by company size) with LinkedIn and Apollo search hints to copy. Then add the person you found, draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
+    ],
+  },
+  copilot: {
+    id: 'copilot',
+    title: 'Copilot',
+    description: 'Ask anything, answered from your data',
+    resolveRoute: async () => '/copilot',
+    steps: [
+      { target: 'copilot-threads', title: 'Your conversations', body: 'Global chats about your search, with your profile and experience pool as context. Each job also has its own Copilot on its page (the Copilot button, or C).', placement: 'right' },
+      { target: 'copilot-messages', title: 'Answers from your data', body: 'The local model (gemma4:12b via Ollama) answers. Numbers or tools that are neither in your experience nor the listing are flagged under the answer; copy any answer with one click.', placement: 'left' },
+      { target: 'copilot-input', title: 'It only answers', body: 'Interview prep, CV gaps, a LinkedIn message, a translation… It has no tools: it never changes anything in the app.', placement: 'top' },
+    ],
+  },
+  studio: {
+    id: 'studio',
+    title: 'Studio',
+    description: 'Every CV and cover letter in one place',
+    resolveRoute: async () => '/studio',
+    steps: [
+      { target: 'studio-filters', title: 'Filter by type and status', body: 'CVs, PDF letters and form texts across all jobs: drafts to review, approved ones, and those sent (locked).', placement: 'bottom' },
+      { target: 'studio-list', title: 'Open the studio', body: 'J / K to move, Enter opens the CV studio or the letter studio for that job.', placement: 'top' },
     ],
   },
   outreach: {

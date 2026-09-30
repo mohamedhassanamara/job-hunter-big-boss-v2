@@ -1098,3 +1098,37 @@ export interface ApplicationAnswer {
   created_at: string
   updated_at: string
 }
+
+// ---- Copilot (mirror app/schemas/copilot.py) ----------------------------------------------
+
+export interface CopilotMessage {
+  id: number
+  role: 'user' | 'assistant'
+  content: string
+  model: string | null
+  warnings: { type: string; message: string }[]
+  duration_ms: number | null
+  error: string | null
+  created_at: string
+}
+
+export interface CopilotThread {
+  id: number
+  application_id: number | null
+  job_id: number | null
+  title: string
+  message_count: number
+  updated_at: string
+}
+
+export interface CopilotThreadDetail extends CopilotThread {
+  messages: CopilotMessage[]
+  starters: string[]
+  model: string
+}
+
+export interface CopilotStatus {
+  ok: boolean
+  model: string
+  message: string
+}

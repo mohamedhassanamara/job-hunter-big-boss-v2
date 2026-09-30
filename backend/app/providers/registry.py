@@ -86,6 +86,14 @@ def letter_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") 
     return ClaudeLetterDrafter(model)
 
 
+def copilot(*, mock: bool | None = None, model: str = "gemma4:12b"):  # noqa: ANN201
+    """The Copilot's local model (Ollama). Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.ollama_chat import MockCopilot, OllamaCopilot
+
+    return MockCopilot() if use_mock else OllamaCopilot(model)
+
+
 _mock_mailer = MockMailer()
 
 
