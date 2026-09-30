@@ -22,6 +22,8 @@ export type TourId =
   | 'job'
   | 'cv'
   | 'letter'
+  | 'questions'
+  | 'email-route'
   | 'outreach'
   | 'contacts'
   | 'experience'
@@ -152,6 +154,34 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'letter-editor', title: 'Edit freely', body: 'Paragraphs autosave, are re-checked and the PDF re-renders, with no new Claude call. Header, date, salutation, closing formula and signature come from your settings.', placement: 'right' },
       { target: 'letter-preview', title: 'Same look as your CV', body: 'Rendered from the CV template with the same header, on one page.', placement: 'left' },
       { target: 'letter-approve', title: 'Approve, then apply', body: 'The approved letter joins the CV in Ready to apply: one click opens the listing and downloads both. Copy as text fills a form field instead. Mark applied locks the versions you sent.' },
+    ],
+  },
+  questions: {
+    id: 'questions',
+    title: 'Application questions',
+    description: 'Grounded answers for application forms',
+    resolveRoute: async () => {
+      const ready = await api.get<ReadyItem[]>('/applications/ready')
+      const item = ready.find((r) => r.letter_status !== 'none') ?? ready[0]
+      return item ? `/jobs/${item.job_id}` : '/applications?tab=ready'
+    },
+    steps: [
+      { target: 'job-letter', title: 'Cover letter', body: 'Web applications get an optional cover letter, written from the approved CV in the listing’s language. Open the studio to review and approve it.', placement: 'right' },
+      { target: 'job-questions', title: 'The form’s questions', body: 'Paste the questions with their character limits. Answers come from your approved CV (or the listing), are checked like the letter, and a limit is never exceeded silently: an answer that is too long is flagged, never cut. They stay saved on the job; copy each one into the form.', placement: 'right' },
+    ],
+  },
+  'email-route': {
+    id: 'email-route',
+    title: 'Cold email on the job page',
+    description: 'Contact → draft → review → queue → sent',
+    resolveRoute: async () => {
+      const cards = await api.get<PipelineCard[]>('/applications')
+      const card = cards.find((c) => c.stage === 'drafted') ?? cards.find((c) => c.effective_route === 'cold_email')
+      return card ? `/jobs/${card.job_id}#outreach` : '/pipeline'
+    },
+    steps: [
+      { target: 'job-route', title: 'The route', body: 'A job with a contact goes by cold email, one without goes to web apply. Switch it in the stage menu; when a contact turns up later, the page offers to switch.', placement: 'bottom' },
+      { target: 'job-outreach', title: 'One step at a time', body: 'Find a contact, draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
     ],
   },
   outreach: {

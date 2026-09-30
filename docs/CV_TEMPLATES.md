@@ -94,6 +94,24 @@ Leaving a section key out of `sections` hides that section in this template.
    - The fullest one-page result is kept.
 4. **Edit in CV Studio:** force in/out, edit text, switch template. Each change re-fits without calling Claude.
 
+## Cover letter (`cover_letter.tex.j2`)
+
+A template can also render cover letters: `templates/<name>/cover_letter.tex.j2`, enabled by
+`cover_letter: {enabled: true}` in `cv.config.yaml`. Without the file, the template renders CVs only and the
+Cover letter studio says so. Style only, like the CV: the preamble, colour and header block are copied from
+`cv.tex.j2`, so the two documents look like one set (T1 fonts, `babel` in the letter's language, justified body).
+
+| Variable | Meaning |
+|---|---|
+| `paper_class`, `babel` | Raw: `letterpaper`/`a4paper`, `french`/`english` |
+| `profile`, `header_lines` | Same as the CV (the header block must stay identical) |
+| `place_date` | "Tunis, le 30 septembre 2026" / "30 September 2026" |
+| `company`, `attention` | Recipient block ("À l'attention de …" / "Attn: …" when there's a contact) |
+| `subject` | "Objet : candidature au poste de …" / "Application for the … position" |
+| `salutation`, `paragraphs[]`, `closing` | The letter; the ask ends the last paragraph |
+
+The letter must compile to one page (a longer letter is flagged, never cut).
+
 ## Tests that guard this
 
 - `tests/test_cv_render.py`:
@@ -103,4 +121,5 @@ Leaving a section key out of `sections` hides that section in this template.
   - link counts
   - empty sections
   - paper size
+- `tests/test_cover_letter.py`: the letter template shares the CV's header block byte for byte and compiles to one page.
 - `tests/test_no_personal_data.py`: personal tokens are derived from the reference. It fails if any appear in templates, configs or source code.

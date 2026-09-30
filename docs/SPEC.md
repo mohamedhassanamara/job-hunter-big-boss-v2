@@ -14,12 +14,13 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 3 | **Dedupe** | The same job from 2 sources is flagged as a duplicate. Companies already contacted or applied to are flagged | Discover flags, Job detail |
 | 4 | **Resolve contact** | Tier (a) is the imported Apollo dump. Tier (b) queues a manual Apollo extension lookup, with a small daily cap. Tier (c) is no contact | Contact block, Contacts |
 | 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
-| 6 | **Route** | With a contact, the route is **cold email** (a draft is generated). Without one, it is **web apply** (I get the CV and the listing link, and apply myself) | Job detail, Pipeline |
-| 7 | **Human review** | I review and edit every CV and every email | CV Studio, Outreach → Review |
-| 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV, then Mark applied (date, method, CV version locked) | Outreach → Queue, Applications |
+| 6 | **Route** | With a contact, the route is **cold email** (drafted on the Job page: contact → draft → review → send queue → sent). Without one, it is **web apply**: the CV, an optional cover letter in the listing's language, grounded answers to the form's questions, and the listing link; I apply myself. The route badge is shown everywhere | Job detail, Pipeline, Cover letter studio |
+| 7 | **Human review** | I review and edit every CV, email, cover letter and answer | CV Studio, Job page, Outreach → Review, Cover letter studio |
+| 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV (+ approved cover letter) in one click, then Mark applied (date, method, CV and letter versions locked) | Outreach → Queue, Applications |
 | 9 | **Follow up** | Follow-up reminders (7/14 days, configurable), replies and interview rounds logged, closed with an outcome; stats and CSV export. No model calls | Today, Applications |
 
-Pipeline stages: **New → Shortlisted → CV ready → Ready to send / Ready to apply → Sent / Applied → Interview → Closed**
+Pipeline stages: **New → Shortlisted → CV ready → (Email drafted) → Ready to send / Ready to apply → Sent / Applied → Interview → Closed**.
+Email route: CV ready → Email drafted → Ready to send (approved) → Sent. Web route: CV ready → Ready to apply → Applied
 (see DATA_MODEL.md for the allowed transitions).
 
 ## 2. Global UX
@@ -57,7 +58,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Attention cards**, each with a count, the top 3 items, and a "View all" deep link:
   - *New high-fit jobs:* stage `new` with fit ≥ the profile's min score → Discover filtered to `new` and sorted by fit.
   - *CVs to review:* the latest CV version in `draft` → CV Studio.
-  - *Drafts to approve:* outreach drafts in `draft` → Outreach Review.
+  - *Cold emails:* drafts to review, approved emails not in the send queue yet (inline "Add to queue"), and the queue status.
   - *Ready to apply manually:* approved CV, route `web_apply`, not applied → Applications → Ready to apply; "Mark applied" opens the dialog.
   - *Follow-ups:* due reminders (Snooze 3 days / Dismiss / Log reply) and ghosting suggestions ("no reply in 30 days: close as no response?" → Close as no response / Not yet). Nothing closes without the click.
   - *Upcoming interviews:* pending rounds in the next 14 days.
@@ -81,14 +82,19 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Board view** (default): 7 columns with a count per column. Cards show the title, company, fit badge, route icon (mail / globe), and days in stage. Cards can be dragged between columns, but only allowed transitions are accepted (the target highlights; a disallowed move snaps back with a toast explanation). Clicking a card opens the Job page.
 - The **Closed** column hides dismissed jobs unless "Show dismissed" is on. Dropping a card on Closed asks for a reason: after applying rejected, no response, withdrew, offer accepted, offer declined; before, not a fit or withdrew.
 - Dropping a web-apply card on **Applied** opens Mark applied; dropping on **Interview** opens Log interview.
+- Email-route drops open the step instead of moving the card: **Email drafted**, **Ready to send** and **Sent** open the Job page's Cold email section (`#outreach`), where the draft is written, reviewed and queued, or recorded with "I sent it myself".
+- Cards and table rows show the **route badge** (cold email / web apply; derived from the contact until set).
 - **Table view** (`?view=table`): sortable columns (Job, Company, Stage, Route, Fit, Contact, Updated), j/k selection, s/d shortcuts, and Enter to open.
 - *Empty:* "Nothing in your pipeline yet. Shortlist jobs from Discover", with a "Go to Discover" action. *Loading:* column skeletons. *Error:* retry.
 
 ### 3.4 Job detail (`/jobs/:id`)
 *Purpose:* everything about one opportunity in one place.
-- **Header:** title, company, location/remote, source, and posted date. There is a stage selector (only allowed transitions are offered), a route toggle (cold email / web apply), and the primary next-step action, which depends on stage:
+- **Header:** title, company, location/remote, source, and posted date. There is a stage selector (only allowed transitions are offered; "Switch to web apply / cold email" is in its menu), the route badge, and the primary next-step action, which depends on stage:
   new → Shortlist · shortlisted → Generate CV · cv_ready (email) → Draft email · cv_ready/ready (web) → Mark applied · ready (email) → View send queue · done → Log interview · interview → Record outcome.
-- Web apply with an approved CV: a callout with **Open listing + CV** (one click: listing in a new tab, PDF downloaded), Download CV only, Mark applied.
+- **Cold email** section (email route): a stepper Contact → Draft → Review → Send queue → Sent with the next action always visible: find a contact (queue an Apollo lookup, pick one of the company's contacts, add one), "Draft email with AI" (needs an approved CV), the draft editor inline (checks, sources, test send, Regenerate, Reject, **Approve**), then **Add to send queue** (shows "#2 in the queue · sends around 14:30"), then the sent date. "I sent it myself" records the approved email as sent (date; CV locked). A web-apply job that gets a contact offers "Switch to cold email".
+- Web apply with an approved CV: a callout with **Open listing + CV** (+ cover letter when one is approved; one click: listing in a new tab, PDFs downloaded), Download CV only, Mark applied.
+- **Cover letter** (web apply): versions with status, language and word count, and the way into the Cover letter studio.
+- **Application questions** (web apply, approved CV): paste the form's questions with optional character limits; "Answer with AI" answers the batch in one Claude call (grounded like the letter, in its language). A limit is a hard check: over it → one retry → still over → kept with "412/300 characters" (never cut). Answers are saved on the job, editable (re-checked), with Copy and an undoable delete.
 - Once applied, an **Application** section: applied on, method, CV sent (locked version, download), notes, replies, interview rounds (outcome editable), with Log reply / Log interview / Close…. CV versions sent show a "Sent" badge.
 - **Main column:** Listing (description, Open original ↗), Fit breakdown, CV versions (list with status + "Open in CV Studio"), Email draft (preview + "Edit in Outreach"), Notes (autosaving textarea).
 - **Right column:** Contact (tier, person, email, "Queue Apollo lookup" when tier is none), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
@@ -97,8 +103,9 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 ### 3.4b Applications (`/applications`)
 *Purpose:* everything after the CV. Nothing here calls a model. Tabs in the URL (`?tab=ready|applied|stats`).
 - **Ready to apply:** approved CV + no contact, not applied (`cv_ready`/`ready`, web apply). Rows: job, company, track,
-  country, approved CV version. **Open listing + CV** (one click) and **Mark applied** (dialog: date default today,
-  method, the CV version that gets locked, notes). Keys: j/k, `o`, `a`.
+  country, approved CV version, cover letter version. **Open listing + CV** (+ **cover letter** once approved; one
+  click) or "Write / Review cover letter", and **Mark applied** (dialog: date default today, method, the CV version
+  and the cover letter, checked when one is approved, that get locked; notes). Keys: j/k, `o`, `a`.
 - **Applied:** every application with `applied_at`, filtered by track, country, source, stage and applied date range
   (URL params). Row: date, job, stage (close reason when closed), source, reply/interview counts, days to first answer.
   j/k, Enter opens the job, the side panel (`?app=`) shows applied facts, Log reply / Log interview / Close…, and the
@@ -137,6 +144,30 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   - Changing an approved CV creates a new draft.
 - *Empty:* "No CV for this job yet" with Generate (or "Open Candidate settings" when the full name is missing).
 
+### 3.5b Cover letter studio (`/jobs/:id/letter`)
+*Purpose:* a one-page cover letter (lettre de motivation) for a web application, from the approved CV.
+- **Generate / Regenerate:** one Claude call (`providers/claude_letter.py`, prompt `app/prompts/cover_letter.md`,
+  same isolation and subscription check as the CV). Input: the listing, the approved CV's items, the years facts
+  (exact statement, and its French wording), the language, the writing guide and banned phrases. Output: 3-4
+  paragraphs of cited sentences (or sentences marked as about the listing) and one closing ask.
+- **Language:** the listing's (a stop-word vote, `services/text.detect_language`), or Settings → Cover letter, or
+  the job's own choice in the studio ("Language of the next letter").
+- **Code adds** the CV template's header, the place and date in the letter's language ("Tunis, le 30 septembre
+  2026"), the company (and "À l'attention de" a contact), the subject line ("Objet : candidature au poste de …" /
+  "Application for the … position"), the salutation, the closing formula and the signature (Settings).
+- **Checks** (`services/letter_check.py`): grounding as for emails; word range (default 250-350); 3-4 paragraphs;
+  the opening names the company and says something from the listing; 2-3 concrete builds (warning); exactly one
+  ask, at the end; per-language banned phrases; only the exact years wording (English or French, with the short
+  form beside "software engineer" / "ingénieur logiciel"); one page. One retry with the problems, then kept with
+  the problems listed. Errors block approval.
+- **Editing:** salutation, each paragraph and the ask, autosaved (700ms) and re-checked; an edited paragraph is
+  checked at text level (numbers and tools must be in your experience or the listing); the PDF re-renders with no
+  Claude call. Editing an approved letter sends it back to review; a sent (locked) letter is never changed: edits
+  create a new draft.
+- **Toolbar:** versions, Regenerate, **Copy as text** (salutation, paragraphs, closing, name, for web forms),
+  Download (`{full_name}_Cover_Letter_{company}.pdf`), **Approve**.
+- *Empty:* "No cover letter for this job yet" with Write cover letter (or Open CV Studio without an approved CV).
+
 ### 3.6 Outreach (`/outreach`)
 *Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
 - **Drafting** (`services/outreach.py`): Claude Code headless with the CV generator's isolation and subscription
@@ -152,7 +183,8 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   re-checked (text-level).
 - **Review tab:** list (To review | Approved | Rejected | All); editor with the checks panel, subject, your text,
   "Added when sent" (signature + opt-out from Settings → Email), "Where each sentence comes from" (hover for the
-  cited CV items), **Approve & queue** (primary), Send test to me, Regenerate, Reject. Keys: j/k, a, r.
+  cited CV items), **Approve** (primary; the job becomes Ready to send), then **Add to send queue** on approved
+  drafts (a separate step), Send test to me, Regenerate, Reject. Keys: j/k, a, r. The same editor is on the Job page.
 - **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage
   change. **The queue can't start before one successful test send.**
 - **Queue tab:** Running / Paused / Idle, next send countdown, 15 min between sends, max 20 per queue. The worker
@@ -210,6 +242,7 @@ Sections in a left sub-nav:
 - **Company job boards** (a source): an editable list of employers (platform: Greenhouse, Lever, Ashby, Workable or SmartRecruiters, plus the board token and a display name), each with its job count or error from the last run. A board answering with 0 jobs is flagged ("check the token").
 - **Bayt** (a source): Gulf/MENA board read from its public per-country search pages; summaries only, the full listing is fetched per job.
 - **CV:** download filename pattern (`{full_name}_CV_{company}.pdf`), and per-track emphasis (skill groups and tags each track's CV leads with).
+- **Cover letter:** language (the listing's, or always French / English; a job can override it), the writing guide given to Claude, the word range (250-350), and per language the salutation, the closing formula and the banned phrases; the French years wording (empty = derived from the Candidate statement); the download name (`{full_name}_Cover_Letter_{company}.pdf`).
 - **Templates:** style-only CV templates. List, sample preview, set default, add (`.tex.j2` + config) with a validation report; only templates that compile to one page with sample data can be used.
 - **Candidate:** the CV header (full name, location, phone, email, links with type/label/URL); empty fields are left out of the CV.
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).

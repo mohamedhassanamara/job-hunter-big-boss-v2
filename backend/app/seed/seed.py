@@ -442,6 +442,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             lumiere.stage = Stage.drafted
             s.add(lumiere)
         _seed_tracking(s, apps, now)
+        _seed_letters(s, apps)
         _seed_lookups(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
@@ -472,6 +473,55 @@ def _seed_lookups(s: Session, apps: dict[str, Application], jobs: dict[str, Job]
 
 def fx_score(key: str) -> int:
     return next((j.score for j in fx.JOBS if j.key == key), 0)
+
+
+def _seed_letters(s: Session, apps: dict[str, Application]) -> None:
+    """A draft cover letter and two answered questions on the first web-apply job that is ready
+    to apply (Cover letter and Questions tours). Written by the mock; the PDF compiles on first
+    view."""
+    from app.models import ApplicationAnswer, CoverLetter
+    from app.providers.base import AnswersRequest
+    from app.providers.mock import MockLetterDrafter
+    from app.services import cover_letter as cl
+    from app.services import letter_check as lc
+
+    s.flush()
+    ready = [a for a in apps.values() if a.route == "web_apply"
+             and Stage(a.stage) in (Stage.cv_ready, Stage.ready) and cl.approved_cv(s, a)]
+    if not ready:
+        return
+    app = ready[0]
+    cv = cl.approved_cv(s, app)
+    job = s.get(Job, app.job_id)
+    drafter, pool = MockLetterDrafter(), load_pool(s)
+    language = cl.resolve_language(s, app, job)
+    request = cl.build_request(s, app, cv, pool, language)
+    salutation = cl.default_salutation(s, app, language)
+    letter = CoverLetter(application_id=app.id, version=1, language=language,
+                         content=cl.content_from_plan(drafter.draft_letter(request), salutation),
+                         cv_version_id=cv.id, generator_model="claude-sonnet-5 (mock)",
+                         prompt_version=drafter.prompt_version)
+    s.add(letter)
+    s.flush()
+    letter.text = cl.plain_text(s, letter)
+    letter.violations = cl.check(s, letter, pool)
+    s.add(letter)
+    s.add(ApplicationEvent(application_id=app.id, kind=EventKind.letter_generated,
+                           message=f"Cover letter v1 ({language}) written",
+                           at=app.stage_changed_at + timedelta(minutes=30)))
+    questions = [{"id": 1, "question": "Why do you want to join us?", "char_limit": 400},
+                 {"id": 2, "question": "Describe a data pipeline you built.", "char_limit": None}]
+    ctx = cl.context(s, app, language, pool)
+    plan = drafter.answer(AnswersRequest(job=request.job, candidate=request.candidate,
+                                         pool=request.pool, questions=questions))
+    for q, draft in zip(questions, plan.answers, strict=True):
+        text = " ".join(x.text for x in draft.sentences)
+        s.add(ApplicationAnswer(
+            application_id=app.id, question=q["question"], char_limit=q["char_limit"],
+            answer=text, language=language, position=q["id"],
+            generator_model="claude-sonnet-5 (mock)",
+            plan={"sentences": [x.model_dump() for x in draft.sentences]},
+            violations=lc.check_answer(draft.sentences, text, q["char_limit"], ctx)))
 
 
 def _seed_tracking(s: Session, apps: dict[str, Application], now: datetime) -> None:

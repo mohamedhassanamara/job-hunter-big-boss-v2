@@ -494,3 +494,11 @@ def test_cover_letter_settings_are_validated(client) -> None:  # noqa: ANN001
         assert client.put("/api/settings/cover_letter",
                           json={"value": {**values, **bad}}).status_code == 422
     client.put("/api/settings/cover_letter", json={"value": values})
+
+
+def test_the_sandbox_has_a_letter_and_answers_for_the_tours(seeded: None, client) -> None:  # noqa: ANN001
+    ready = client.get("/api/applications/ready").json()
+    with_letter = [r for r in ready if r["letter_status"] != "none"]
+    assert len(with_letter) == 1
+    answers = client.get(f"/api/applications/{with_letter[0]['application_id']}/answers").json()
+    assert len(answers) == 2 and all(a["sentences"] for a in answers)
