@@ -55,6 +55,17 @@ export function AppliedFacts({ tracking }: { tracking: TrackedApplication }) {
             '—'
           )}
         </Fact>
+        {t.applied_cover_letter_id && (
+          <Fact label="Cover letter sent">
+            <a
+              className="inline-flex items-center gap-1 hover:underline"
+              href={apiUrl(`/letters/${t.applied_cover_letter_id}/pdf`, { download: true })}
+            >
+              v{t.applied_cover_letter_version} (locked)
+              <Download className="size-3.5 text-fg-subtle" />
+            </a>
+          </Fact>
+        )}
       </dl>
       {t.applied_notes && <p className="text-sm whitespace-pre-line text-fg-muted">{t.applied_notes}</p>}
       {t.close_reason && t.stage === 'closed' && (

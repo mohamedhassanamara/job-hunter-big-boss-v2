@@ -1,4 +1,4 @@
-import { BellRing, Bot, Contact as ContactIcon, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Radar, SlidersHorizontal, UserRound } from 'lucide-react'
+import { BellRing, Bot, Contact as ContactIcon, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Radar, ScrollText, SlidersHorizontal, UserRound } from 'lucide-react'
 import { PageHeader } from '@/components/app/PageHeader'
 import { ErrorState } from '@/components/app/states'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,6 +17,7 @@ import { CVSettingsSection, TemplatesSection } from './CVSections'
 import { CVWritingSection } from './CVWritingSection'
 import { CandidateSection, ScoringSection } from './ScoringSections'
 import { ContactsSection } from './ContactsSection'
+import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
 import { SourcesSection } from './SourcesSection'
 
@@ -25,6 +26,7 @@ const SECTIONS = [
   { id: 'candidate', label: 'Candidate', icon: UserRound },
   { id: 'scoring', label: 'Scoring', icon: Gauge },
   { id: 'cv', label: 'CV', icon: FileText },
+  { id: 'letter', label: 'Cover letter', icon: ScrollText },
   { id: 'templates', label: 'Templates', icon: LayoutTemplate },
   { id: 'sources', label: 'Sources', icon: Radar },
   { id: 'schedule', label: 'Schedule', icon: CalendarClock },
@@ -79,6 +81,8 @@ export default function SettingsPage() {
                 <CVSettingsSection key={JSON.stringify(settings.data.values.cv)} settings={settings.data} />
                 <CVWritingSection key={`w-${JSON.stringify(settings.data.values.cv)}`} settings={settings.data} />
               </div>
+            ) : section === 'letter' ? (
+              <CoverLetterSection key={JSON.stringify(settings.data.values.cover_letter)} settings={settings.data} />
             ) : section === 'templates' ? (
               <TemplatesSection settings={settings.data} />
             ) : section === 'sources' ? (

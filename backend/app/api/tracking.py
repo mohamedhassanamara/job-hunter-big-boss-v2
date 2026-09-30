@@ -23,7 +23,7 @@ from app.schemas.tracking import (
     StatsOut,
     TrackedItem,
 )
-from app.services import pipeline, tracking
+from app.services import cover_letter, pipeline, tracking
 from app.services.views import pipeline_cards, tracked_item
 
 router = APIRouter(tags=["tracking"])
@@ -59,10 +59,15 @@ def ready(session: SessionDep) -> list[ReadyItem]:
         job = session.get(Job, app.job_id)
         company = session.get(Company, job.company_id)
         cv = tracking.approved_cv(session, app)
+        letters = [v for v in cover_letter.versions(session, app.id) if v.status != "superseded"]
+        letter = next((v for v in letters if v.status == "approved"), None) or next(
+            iter(letters), None)
         out.append(ReadyItem(application_id=app.id, job_id=job.id, title=job.title,
                              company=company.name, track=job.matched_track, country=job.country,
                              url=job.url, cv_version_id=cv.id, cv_version=cv.version,
-                             stage=app.stage))
+                             stage=app.stage, letter_id=letter.id if letter else None,
+                             letter_version=letter.version if letter else None,
+                             letter_status=letter.status if letter else "none"))
     return out
 
 
@@ -71,7 +76,7 @@ def mark_applied(app_id: int, body: AppliedIn, session: SessionDep) -> PipelineC
     app = get_or_404(session, Application, app_id, "Application")
     _run(session, tracking.mark_applied, app, applied_on=body.applied_on,
          method=_enum(ApplyMethod, body.method), cv_version_id=body.cv_version_id,
-         notes=body.notes)
+         cover_letter_id=body.cover_letter_id, notes=body.notes)
     return _card(session, app)
 
 

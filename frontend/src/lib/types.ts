@@ -875,6 +875,9 @@ export interface ReadyItem {
   cv_version_id: number
   cv_version: number
   stage: Stage
+  letter_id: number | null
+  letter_version: number | null
+  letter_status: 'none' | 'draft' | 'approved'
 }
 
 export interface ApplicationResponse {
@@ -909,6 +912,8 @@ export interface TrackedApplication {
   applied_method: ApplyMethod | null
   applied_cv_version_id: number | null
   applied_cv_version: number | null
+  applied_cover_letter_id: number | null
+  applied_cover_letter_version: number | null
   applied_notes: string
   responses: ApplicationResponse[]
   interviews: Interview[]
@@ -976,4 +981,69 @@ export interface TrackingFilters {
   stage?: string[]
   start?: string
   end?: string
+}
+
+// ---- Cover letters (mirror app/schemas/letters.py) -----------------------------------------
+
+export type LetterLanguage = 'fr' | 'en'
+
+export interface LetterSentence {
+  text: string
+  citations: number[]
+  about_job: boolean
+}
+
+export interface LetterParagraph {
+  text: string
+  edited: boolean
+  sentences: LetterSentence[]
+}
+
+export interface CoverLetter {
+  id: number
+  application_id: number
+  version: number
+  status: CVStatus
+  language: LetterLanguage
+  salutation: string
+  paragraphs: LetterParagraph[]
+  ask: string
+  closing: string
+  text: string
+  word_count: number
+  page_count: number | null
+  has_pdf: boolean
+  violations: Violation[]
+  sources: Record<string, string>
+  cv_version_id: number | null
+  cv_version: number | null
+  generator_model: string
+  duration_ms: number | null
+  error: string | null
+  locked_at: string | null
+  download_name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LetterStudio {
+  application_id: number
+  job_id: number
+  job_title: string
+  company_name: string
+  stage: Stage
+  route: Route
+  language_setting: 'auto' | LetterLanguage
+  detected_language: LetterLanguage
+  language: LetterLanguage
+  approved_cv_id: number | null
+  approved_cv_version: number | null
+  template_ok: boolean
+  letters: CoverLetter[]
+}
+
+export interface LetterPatchInput {
+  salutation?: string
+  paragraphs?: string[]
+  ask?: string
 }

@@ -8,6 +8,7 @@ class AppliedIn(BaseModel):
     applied_on: date | None = None  # default today
     method: str  # company_site | job_board | email | other
     cv_version_id: int | None = None  # default: the latest approved version
+    cover_letter_id: int | None = None  # the approved letter sent with it (None = no letter)
     notes: str = ""
 
 
@@ -52,6 +53,10 @@ class ReadyItem(BaseModel):
     cv_version_id: int
     cv_version: int
     stage: str
+    # The job's cover letter: the approved one (sent along), else the draft under review.
+    letter_id: int | None = None
+    letter_version: int | None = None
+    letter_status: str = "none"  # none | draft | approved
 
 
 class ResponseOut(BaseModel):
@@ -86,6 +91,8 @@ class TrackedItem(BaseModel):
     applied_method: str | None
     applied_cv_version_id: int | None
     applied_cv_version: int | None
+    applied_cover_letter_id: int | None = None
+    applied_cover_letter_version: int | None = None
     applied_notes: str
     responses: list[ResponseOut]
     interviews: list[InterviewOut]

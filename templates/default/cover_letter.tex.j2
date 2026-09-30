@@ -32,6 +32,7 @@
 % --- STYLING ---
 \definecolor{primaryColor}{RGB}{0, 70, 140}
 \setlength{\parindent}{0pt}
+\setlength{\JustifyingParindent}{0pt}
 \setlength{\parskip}{7pt}
 
 \BLOCK{macro contact(item)}\faIcon{\VAR{item.icon|raw}} \BLOCK{if item.url}\href{\VAR{item.url|url}}{\underline{\VAR{item.label}}}\BLOCK{else}\VAR{item.label}\BLOCK{endif}\BLOCK{endmacro}
