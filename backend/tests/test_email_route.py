@@ -1,93 +1,121 @@
-"""The cold-email route inside the job flow: effective route, the `drafted` stage, approve vs.
-add to queue, "I sent it myself", and the Job page step endpoint."""
+"""Both routes on one job: the Application and Outreach tracks, derived from the data; the stage
+reaches `done` with the first route and never goes back; approve vs. add to queue; "I sent it
+myself"; the Job page step endpoint."""
 
 from sqlmodel import Session
 
 from app.db import engine
-from app.models import Application, Contact, CVVersion
-from app.models.enums import Route, Stage
-from app.services import outreach, pipeline
+from app.models import Application, CVVersion, OutreachDraft
+from app.models.enums import DraftStatus, Stage
+from app.services import outreach, pipeline, tracks
 from tests.test_outreach import Script, good_plan, job_ready  # noqa: F401 (fixture)
 
 
-def test_effective_route_follows_the_contact_until_set() -> None:
-    app = Application(job_id=1, stage=Stage.new, route=Route.undecided)
-    assert pipeline.effective_route(app) == Route.web_apply
+def test_tracks_are_derived_from_the_data() -> None:
+    app = Application(id=1, job_id=1, stage=Stage.new)
+    assert tracks.application_status(app, has_approved_cv=False) == "not_ready"
+    assert tracks.application_status(app, has_approved_cv=True) == "ready"
+    assert tracks.outreach_status(app, None) == "no_contact"
     app.contact_id = 5
-    assert pipeline.effective_route(app) == Route.cold_email
-    app.route = Route.web_apply
-    assert pipeline.effective_route(app) == Route.web_apply  # an explicit route wins
+    assert tracks.outreach_status(app, None) == "contact"
+    drafts = [OutreachDraft(id=1, application_id=1, status=DraftStatus.sent),
+              OutreachDraft(id=2, application_id=1, status=DraftStatus.draft),
+              OutreachDraft(id=3, application_id=1, status=DraftStatus.rejected)]
+    assert tracks.latest_draft(drafts).id == 1  # the furthest along wins
+    assert tracks.outreach_status(app, tracks.latest_draft(drafts)) == "sent"
 
 
-def test_stage_labels_for_both_routes() -> None:
-    assert pipeline.stage_label(Stage.drafted, Route.cold_email) == "Email drafted"
-    assert pipeline.stage_label(Stage.ready, Route.cold_email) == "Ready to send"
-    assert pipeline.stage_label(Stage.ready, Route.web_apply) == "Ready to apply"
-    assert pipeline.stage_label(Stage.done, Route.cold_email) == "Sent"
-    assert pipeline.stage_label(Stage.done, Route.web_apply) == "Applied"
-    assert pipeline.can_transition(Stage.cv_ready, Stage.drafted)
-    assert pipeline.can_transition(Stage.drafted, Stage.ready)
-    assert not pipeline.can_transition(Stage.drafted, Stage.done)
+def test_stage_moves_no_longer_have_an_email_only_stage() -> None:
+    assert not any(s.value == "drafted" for s in Stage)
+    assert pipeline.can_transition(Stage.cv_ready, Stage.ready)
+    assert pipeline.can_transition(Stage.ready, Stage.done)
+    assert not pipeline.can_transition(Stage.cv_ready, Stage.done)
+
+
+def app_json(client, app_id: int) -> dict:  # noqa: ANN001
+    return next(c for c in client.get("/api/applications").json()
+                if c["application_id"] == app_id)
 
 
 def step(client, app_id: int) -> dict:  # noqa: ANN001
     return client.get(f"/api/applications/{app_id}/outreach").json()
 
 
-def test_email_route_end_to_end_through_the_api(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+def test_apply_then_email_on_the_same_job(job_ready: dict, client) -> None:  # noqa: F811, ANN001
     app_id = job_ready["app"]
-    assert step(client, app_id)["step"] == "draft"
+    card = app_json(client, app_id)
+    assert card["tracks"]["application"] == "ready" and card["tracks"]["outreach"] == "contact"
+
     draft = outreach.generate(engine, app_id, Script(good_plan(job_ready)))
-    with Session(engine) as s:
-        assert s.get(Application, app_id).stage == Stage.drafted
+    card = app_json(client, app_id)
+    assert card["stage"] == "cv_ready" and card["tracks"]["outreach"] == "drafted"
     assert step(client, app_id)["step"] == "review"
 
-    approved = client.post(f"/api/outreach/drafts/{draft.id}/approve").json()
-    assert approved["status"] == "approved"
-    with Session(engine) as s:
-        assert s.get(Application, app_id).stage == Stage.ready  # Ready to send, not queued
-    assert step(client, app_id)["step"] == "queue"
-
-    queued = client.post(f"/api/outreach/drafts/{draft.id}/queue").json()
-    assert queued["status"] == "queued"
-    now = step(client, app_id)
-    assert now["step"] == "queued" and now["queue_position"] >= 1
-
-    items = client.get("/api/queue").json()["items"]
-    item = next(i for i in items if i["draft_id"] == draft.id)
+    client.post(f"/api/outreach/drafts/{draft.id}/approve")
+    card = app_json(client, app_id)
+    assert (card["stage"], card["stage_label"]) == ("ready", "Ready to send")
+    client.post(f"/api/outreach/drafts/{draft.id}/queue")
+    assert app_json(client, app_id)["tracks"]["outreach"] == "queued"
+    item = next(i for i in client.get("/api/queue").json()["items"] if i["draft_id"] == draft.id)
     client.delete(f"/api/queue/items/{item['id']}")
-    assert step(client, app_id)["step"] == "queue"  # removed: still approved
+    assert app_json(client, app_id)["tracks"]["outreach"] == "approved"
 
-    sent = client.post(f"/api/applications/{app_id}/sent-manually",
-                       json={"sent_on": "2026-09-30"}).json()
-    assert sent["step"] == "sent" and sent["sent_at"].startswith("2026-09-30")
+    r = client.post(f"/api/applications/{app_id}/applied",
+                    json={"method": "company_site", "applied_on": "2026-09-29"})
+    assert r.status_code == 200, r.text
+    card = app_json(client, app_id)
+    assert (card["stage"], card["stage_label"]) == ("done", "Applied")
+    assert card["tracks"]["application"] == "applied"
+    assert card["tracks"]["outreach"] == "approved"  # the email can still go out
+
+    sent = client.post(f"/api/applications/{app_id}/sent-manually", json={"sent_on": "2026-09-30"})
+    assert sent.json()["step"] == "sent"
+    card = app_json(client, app_id)
+    assert (card["stage"], card["stage_label"]) == ("done", "Applied + emailed")
     with Session(engine) as s:
         app = s.get(Application, app_id)
-        assert (app.stage, app.applied_method) == (Stage.done, "email")
+        assert app.web_applied_at.date().isoformat() == "2026-09-29"
+        assert app.applied_at.date().isoformat() == "2026-09-29"  # the first time you reached out
         assert s.get(CVVersion, job_ready["cv"]).locked_at is not None
 
 
-def test_rejecting_the_last_draft_goes_back_to_cv_ready_and_restore_returns(
-        job_ready: dict, client) -> None:  # noqa: F811, ANN001
+def test_email_then_apply_on_the_same_job(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    app_id = job_ready["app"]
+    draft = outreach.generate(engine, app_id, Script(good_plan(job_ready)))
+    client.post(f"/api/outreach/drafts/{draft.id}/approve")
+    client.post(f"/api/applications/{app_id}/sent-manually", json={"sent_on": "2026-09-28"})
+    card = app_json(client, app_id)
+    assert (card["stage"], card["stage_label"]) == ("done", "Emailed")
+    ready = [r["application_id"] for r in client.get("/api/applications/ready").json()]
+    assert app_id in ready  # still to apply on the website
+    client.post(f"/api/applications/{app_id}/applied", json={"method": "company_site"})
+    card = app_json(client, app_id)
+    assert (card["stage"], card["stage_label"]) == ("done", "Applied + emailed")
+    with Session(engine) as s:
+        app = s.get(Application, app_id)
+        assert app.applied_at.date().isoformat() == "2026-09-28" and app.applied_method == "email"
+    assert app_id not in [r["application_id"] for r in client.get("/api/applications/ready").json()]
+
+
+def test_reject_and_restore_only_change_the_draft(job_ready: dict, client) -> None:  # noqa: F811, ANN001
     draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
     client.post(f"/api/outreach/drafts/{draft.id}/reject")
-    with Session(engine) as s:
-        assert s.get(Application, job_ready["app"]).stage == Stage.cv_ready
+    card = app_json(client, job_ready["app"])
+    assert card["stage"] == "cv_ready" and card["tracks"]["outreach"] == "contact"
     client.post(f"/api/outreach/drafts/{draft.id}/restore")
-    with Session(engine) as s:
-        assert s.get(Application, job_ready["app"]).stage == Stage.drafted
+    assert app_json(client, job_ready["app"])["tracks"]["outreach"] == "drafted"
 
 
-def test_patch_cannot_skip_the_email_steps(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+def test_patch_cannot_mark_done(job_ready: dict, client) -> None:  # noqa: F811, ANN001
     app_id = job_ready["app"]
-    assert client.patch(f"/api/applications/{app_id}", json={"stage": "drafted"}).status_code == 409
     with Session(engine) as s:
         app = s.get(Application, app_id)
         app.stage = Stage.ready
         s.add(app)
         s.commit()
     r = client.patch(f"/api/applications/{app_id}", json={"stage": "done"})
-    assert r.status_code == 409 and "sent" in r.json()["detail"].lower()
+    assert r.status_code == 409 and "Mark applied" in r.json()["detail"]
+    assert client.patch(f"/api/applications/{app_id}", json={"stage": "drafted"}).status_code == 422
 
 
 def test_sent_manually_needs_an_approved_email(job_ready: dict, client) -> None:  # noqa: F811, ANN001
@@ -112,13 +140,10 @@ def test_steps_before_a_draft_contact_then_cv(job_ready: dict, client) -> None: 
     assert step(client, app_id)["step"] == "cv"
 
 
-def test_dtos_carry_the_effective_route(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+def test_job_detail_carries_both_tracks(job_ready: dict, client) -> None:  # noqa: F811, ANN001
     with Session(engine) as s:
-        app = s.get(Application, job_ready["app"])
-        job_id = app.job_id
-        assert s.get(Contact, app.contact_id) is not None
+        job_id = s.get(Application, job_ready["app"]).job_id
     detail = client.get(f"/api/jobs/{job_id}").json()
-    assert detail["application"]["effective_route"] == "cold_email"
-    card = next(c for c in client.get("/api/applications").json()
-                if c["application_id"] == job_ready["app"])
-    assert card["effective_route"] == "cold_email"
+    assert detail["application"]["tracks"]["application"] == "ready"
+    assert detail["application"]["tracks"]["outreach"] == "contact"
+    assert detail["application"]["tracks"]["contact_name"].startswith("Ana")

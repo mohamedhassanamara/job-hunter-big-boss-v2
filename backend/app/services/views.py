@@ -31,10 +31,12 @@ from app.schemas.jobs import (
     JobListItem,
     PipelineCard,
     RelatedJob,
+    TracksOut,
 )
 from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
 from app.services import tracking
-from app.services.pipeline import ALLOWED, effective_route, stage_label
+from app.services import tracks as track_service
+from app.services.pipeline import ALLOWED, stage_label
 
 
 def fit_band(score: int | None) -> str:
@@ -103,13 +105,18 @@ def allowed_stages(app: Application) -> list[str]:
     return [s.value for s in sorted(ALLOWED[Stage(app.stage)], key=_STAGE_ORDER.index)]
 
 
-def application_brief(app: Application) -> ApplicationBrief:
+def tracks_out(t: track_service.Tracks | None) -> TracksOut:
+    return TracksOut(**vars(t)) if t else TracksOut()
+
+
+def application_brief(app: Application,
+                      tracks: track_service.Tracks | None = None) -> ApplicationBrief:
     return ApplicationBrief(
         id=app.id,
         stage=app.stage,
-        stage_label=stage_label(app.stage, effective_route(app)),
+        stage_label=stage_label(app.stage, tracks),
         route=app.route,
-        effective_route=effective_route(app),
+        tracks=tracks_out(tracks),
         contact_tier=app.contact_tier,
         close_reason=app.close_reason,
         stage_changed_at=app.stage_changed_at,
@@ -117,7 +124,8 @@ def application_brief(app: Application) -> ApplicationBrief:
 
 
 def _job_item(
-    job: Job, company: Company, app: Application, fit: FitScore | None, exp_version: str | None
+    job: Job, company: Company, app: Application, fit: FitScore | None, exp_version: str | None,
+    tracks: track_service.Tracks | None = None,
 ) -> JobListItem:
     return JobListItem(
         id=job.id,
@@ -136,7 +144,7 @@ def _job_item(
         posted_at=job.posted_at,
         discovered_at=job.discovered_at,
         fit=fit_brief(fit, exp_version),
-        application=application_brief(app),
+        application=application_brief(app, tracks),
         duplicate_of_id=job.duplicate_of_id,
         # "Already contacted" means *another* application at this company went out.
         company_contacted=company.contacted_at is not None and app.applied_at is None,
@@ -165,7 +173,9 @@ def job_rows(
 
 def job_items(session: Session, jobs: Sequence[Job]) -> list[JobListItem]:
     exp_version = current_experience_version(session) if jobs else None
-    return [_job_item(*row, exp_version) for row in job_rows(session, jobs)]
+    rows = job_rows(session, jobs)
+    tracks = track_service.for_apps(session, [r[2] for r in rows])
+    return [_job_item(*row, exp_version, tracks.get(row[2].id)) for row in rows]
 
 
 def job_item(session: Session, job: Job) -> JobListItem:
@@ -186,6 +196,7 @@ def pipeline_cards(session: Session, apps: Sequence[Application]) -> list[Pipeli
         ).all()
     }
     fits = latest_fits(session, jobs.keys())
+    tracks = track_service.for_apps(session, list(apps))
     cards = []
     for a in apps:
         job = jobs[a.job_id]
@@ -200,9 +211,9 @@ def pipeline_cards(session: Session, apps: Sequence[Application]) -> list[Pipeli
                 remote_type=job.remote_type,
                 fit=fit_brief(fits.get(job.id)),
                 stage=a.stage,
-                stage_label=stage_label(a.stage, effective_route(a)),
+                stage_label=stage_label(a.stage, tracks.get(a.id)),
                 route=a.route,
-                effective_route=effective_route(a),
+                tracks=tracks_out(tracks.get(a.id)),
                 contact_tier=a.contact_tier,
                 close_reason=a.close_reason,
                 stage_changed_at=a.stage_changed_at,
@@ -246,7 +257,7 @@ def related_jobs(session: Session, jobs: Sequence[Job]) -> list[RelatedJob]:
             source=j.source,
             url=j.url,
             stage=apps[j.id].stage,
-            stage_label=stage_label(apps[j.id].stage, apps[j.id].route),
+            stage_label=stage_label(apps[j.id].stage),
         )
         for j in jobs
         if j.id in apps
@@ -256,7 +267,7 @@ def related_jobs(session: Session, jobs: Sequence[Job]) -> list[RelatedJob]:
 def job_detail(session: Session, job: Job) -> JobDetail:
     (j, company, app, fit) = job_rows(session, [job])[0]
     exp_version = current_experience_version(session)
-    base = _job_item(j, company, app, fit, exp_version)
+    base = _job_item(j, company, app, fit, exp_version, track_service.for_app(session, app))
     brief = base.fit
     contact = session.get(Contact, app.contact_id) if app.contact_id else None
     contact_count = session.exec(
@@ -374,7 +385,8 @@ def tracked_item(session: Session, r: tracking.TrackedRow) -> TrackedItem:
         application_id=a.id, job_id=r.job.id, title=r.job.title,
         company=r.company.name if r.company else "", track=r.job.matched_track,
         country=r.job.country, source=r.job.source, url=r.job.url, stage=a.stage,
-        stage_label=stage_label(a.stage, a.route), close_reason=a.close_reason,
+        stage_label=stage_label(a.stage, track_service.for_app(session, a)),
+        close_reason=a.close_reason,
         applied_at=a.applied_at, applied_method=a.applied_method,
         applied_cv_version_id=a.applied_cv_version_id,
         applied_cv_version=cv.version if cv else None,

@@ -191,8 +191,8 @@ def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d.status = DraftStatus.approved
     session.add(d)
     pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved")
-    if app.stage in (Stage.cv_ready, Stage.drafted):
-        pipeline.transition(session, app, Stage.ready)
+    if app.stage == Stage.cv_ready:
+        pipeline.transition(session, app, Stage.ready)  # an email is ready to send
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -245,12 +245,7 @@ def reject_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d.status = DraftStatus.rejected
     session.add(d)
     app = get_or_404(session, Application, d.application_id)
-    others = session.exec(select(OutreachDraft).where(
-        OutreachDraft.application_id == app.id, OutreachDraft.id != d.id,
-        col(OutreachDraft.status).in_([DraftStatus.draft, DraftStatus.approved,
-                                       DraftStatus.queued]))).first()
-    if others is None and app.stage == Stage.drafted:
-        pipeline.transition(session, app, Stage.cv_ready, message="Email draft rejected")
+    pipeline.log_event(session, app, EventKind.note, "Email draft rejected")
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -265,8 +260,7 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d.status = DraftStatus.draft
     session.add(d)
     app = get_or_404(session, Application, d.application_id)
-    if app.stage == Stage.cv_ready:
-        pipeline.transition(session, app, Stage.drafted, message="Email draft restored")
+    pipeline.log_event(session, app, EventKind.note, "Email draft restored")
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -316,7 +310,7 @@ def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
     else:
         step = "draft"
     return OutreachStep(
-        step=step, route=pipeline.effective_route(app), contact_tier=app.contact_tier,
+        step=step, route=app.route, contact_tier=app.contact_tier,
         lookup_status=views_lookup_status(session, app), has_contact=contact is not None,
         has_email=bool(contact and contact.email), cv_version=cv.version if cv else None,
         draft=_drafts_out(session, [draft])[0] if draft else None, queue_position=position,

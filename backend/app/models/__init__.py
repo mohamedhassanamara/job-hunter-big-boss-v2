@@ -16,6 +16,7 @@ from app.models.company import (
     Contact,
     ContactImport,
 )
+from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
@@ -38,6 +39,8 @@ __all__ = [
     "Contact",
     "CoverLetter",
     "ContactImport",
+    "CopilotMessage",
+    "CopilotThread",
     "DiscoveryRun",
     "ExperienceItem",
     "FitScore",

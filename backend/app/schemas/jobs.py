@@ -37,12 +37,24 @@ class FitDetail(FitBrief):
     created_at: datetime
 
 
+class TracksOut(BaseModel):
+    """Both routes of a job (services/tracks.py)."""
+
+    application: str = "not_ready"  # not_ready | ready | applied
+    outreach: str = "no_contact"  # no_contact | contact | drafted | approved | queued | sent
+    applied_at: datetime | None = None
+    web_method: str | None = None
+    contact_name: str | None = None
+    draft_id: int | None = None
+    sent_at: datetime | None = None
+
+
 class ApplicationBrief(BaseModel):
     id: int
     stage: str
     stage_label: str
     route: str
-    effective_route: str = "web_apply"  # route, or derived from the contact while undecided
+    tracks: TracksOut = TracksOut()
     contact_tier: str
     close_reason: str | None
     stage_changed_at: datetime
@@ -156,7 +168,7 @@ class PipelineCard(BaseModel):
     stage: str
     stage_label: str
     route: str
-    effective_route: str = "web_apply"
+    tracks: TracksOut = TracksOut()
     contact_tier: str
     close_reason: str | None
     stage_changed_at: datetime

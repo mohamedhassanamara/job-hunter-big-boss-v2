@@ -76,7 +76,6 @@ class Stage(StrEnum):
     new = "new"
     shortlisted = "shortlisted"
     cv_ready = "cv_ready"
-    drafted = "drafted"  # email route only: a cold-email draft is waiting for review
     ready = "ready"
     done = "done"
     interview = "interview"

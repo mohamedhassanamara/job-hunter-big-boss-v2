@@ -153,8 +153,6 @@ def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
         if app.stage == Stage.new:
             pipeline.transition(session, app, Stage.shortlisted)
         pipeline.transition(session, app, Stage.cv_ready)
-    if app.route == Route.web_apply and app.stage == Stage.cv_ready:
-        pipeline.transition(session, app, Stage.ready)  # approved CV, no contact: ready to apply
     session.add(app)
     session.commit()
     session.refresh(v)

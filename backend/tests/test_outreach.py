@@ -285,7 +285,7 @@ def test_test_send_goes_to_you_with_the_cv_and_changes_nothing(job_ready: dict) 
     assert email.to != job_ready["email"] and email.attachment_path == str(job_ready["pdf"])
     assert "Best regards," in email.body
     with Session(engine) as s:
-        assert s.get(Application, job_ready["app"]).stage == Stage.drafted  # unchanged by it
+        assert s.get(Application, job_ready["app"]).stage == Stage.cv_ready  # not sent
         assert s.get(OutreachDraft, draft_id).test_sent_at is not None
 
 

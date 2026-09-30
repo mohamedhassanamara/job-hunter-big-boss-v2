@@ -34,7 +34,6 @@ from app.models.enums import (
     InterviewOutcome,
     InterviewType,
     ResponseKind,
-    Route,
     Stage,
 )
 from app.services import pipeline
@@ -77,10 +76,10 @@ def approved_cv(s: Session, app: Application) -> CVVersion | None:
 
 
 def ready_to_apply(s: Session) -> list[Application]:
-    """Approved CV, no contact (web apply), not applied yet."""
+    """Approved CV, web application not submitted yet (whether or not an email went out)."""
     apps = s.exec(select(Application).where(
-        col(Application.stage).in_([Stage.cv_ready, Stage.ready]),
-        Application.route == Route.web_apply,
+        col(Application.stage).in_([Stage.cv_ready, Stage.ready, Stage.done, Stage.interview]),
+        col(Application.web_applied_at).is_(None),
     ).order_by(col(Application.stage_changed_at).desc())).all()
     return [a for a in apps if approved_cv(s, a) is not None]
 
@@ -96,9 +95,10 @@ def lock_cv(v: CVVersion) -> None:
 def mark_applied(s: Session, app: Application, *, applied_on: date | None,
                  method: ApplyMethod, cv_version_id: int | None = None,
                  cover_letter_id: int | None = None, notes: str = "") -> Application:
-    if Stage(app.stage) not in (Stage.cv_ready, Stage.ready):
-        raise TrackingError("Only jobs with an approved CV (CV ready / Ready to apply) can be "
-                            "marked applied")
+    if app.web_applied_at is not None:
+        raise TrackingError("This application is already marked applied")
+    if Stage(app.stage) not in (Stage.cv_ready, Stage.ready, Stage.done, Stage.interview):
+        raise TrackingError("Only jobs with an approved CV can be marked applied")
     cv = s.get(CVVersion, cv_version_id) if cv_version_id else approved_cv(s, app)
     if cv is None or cv.application_id != app.id:
         raise TrackingError("Pick an approved CV version of this job")
@@ -116,13 +116,17 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
             raise TrackingError("Only an approved cover letter can be sent")
         lock_letter(letter)
         s.add(letter)
+    first = app.applied_at  # an email may already have gone out (both routes)
     if Stage(app.stage) == Stage.cv_ready:
         pipeline.transition(s, app, Stage.ready)
     lock_cv(cv)
     s.add(cv)
-    pipeline.transition(s, app, Stage.done)
-    app.applied_at = _at(applied_on)  # the date you applied, not the click time
-    app.applied_method = method
+    if Stage(app.stage) == Stage.ready:
+        pipeline.transition(s, app, Stage.done, message="Applied")
+    day = _at(applied_on)  # the date you applied, not the click time
+    app.web_applied_at, app.web_method = day, method
+    app.applied_at = min(first, day) if first else day  # the first time you reached out
+    app.applied_method = app.applied_method if first else method
     app.applied_cv_version_id = cv.id
     app.applied_cover_letter_id = letter.id if letter else None
     app.applied_notes = notes.strip()

@@ -4,14 +4,13 @@ from sqlmodel import Session
 
 from app.models import Application, ApplicationEvent, Company, Job
 from app.models.base import utcnow
-from app.models.enums import CloseReason, EventKind, Route, Stage
+from app.models.enums import CloseReason, EventKind, Stage
 
 ALLOWED: dict[Stage, set[Stage]] = {
     Stage.new: {Stage.shortlisted, Stage.closed},
     Stage.shortlisted: {Stage.cv_ready, Stage.new, Stage.closed},
-    Stage.cv_ready: {Stage.drafted, Stage.ready, Stage.shortlisted, Stage.closed},
-    Stage.drafted: {Stage.ready, Stage.cv_ready, Stage.closed},
-    Stage.ready: {Stage.done, Stage.drafted, Stage.cv_ready, Stage.closed},
+    Stage.cv_ready: {Stage.ready, Stage.shortlisted, Stage.closed},
+    Stage.ready: {Stage.done, Stage.cv_ready, Stage.closed},
     Stage.done: {Stage.interview, Stage.closed},
     Stage.interview: {Stage.closed, Stage.done},
     Stage.closed: {Stage.new},
@@ -21,7 +20,6 @@ STAGE_LABELS: dict[Stage, str] = {
     Stage.new: "New",
     Stage.shortlisted: "Shortlisted",
     Stage.cv_ready: "CV ready",
-    Stage.drafted: "Email drafted",
     Stage.ready: "Ready",
     Stage.done: "Done",
     Stage.interview: "Interview",
@@ -33,21 +31,11 @@ class TransitionError(ValueError):
     pass
 
 
-def effective_route(app: Application) -> Route:
-    """The route a job is on: the one set, else derived (a contact → cold email, none → web
-    apply). Approving the CV fixes it (cv.approve)."""
-    if Route(app.route) != Route.undecided:
-        return Route(app.route)
-    return Route.cold_email if app.contact_id else Route.web_apply
+def stage_label(stage: Stage | str, tracks: object = None) -> str:
+    """The stage's label; `done`/`ready` depend on the two tracks (services/tracks.py)."""
+    from app.services.tracks import stage_label as label
 
-
-def stage_label(stage: Stage | str, route: Route | str) -> str:
-    stage = Stage(stage)
-    if stage == Stage.ready:
-        return "Ready to apply" if route == Route.web_apply else "Ready to send"
-    if stage == Stage.done:
-        return "Applied" if route == Route.web_apply else "Sent"
-    return STAGE_LABELS[stage]
+    return label(stage, tracks)  # type: ignore[arg-type]
 
 
 def can_transition(src: Stage | str, dst: Stage | str) -> bool:
@@ -64,10 +52,10 @@ def transition(
 ) -> ApplicationEvent:
     src = Stage(app.stage)
     if src == to:
-        raise TransitionError(f"Already in {stage_label(to, app.route)}")
+        raise TransitionError(f"Already in {stage_label(to)}")
     if not can_transition(src, to):
         raise TransitionError(
-            f"Can't move from {stage_label(src, app.route)} to {stage_label(to, app.route)}"
+            f"Can't move from {stage_label(src)} to {stage_label(to)}"
         )
     if to == Stage.closed and close_reason is None:
         close_reason = CloseReason.dismissed
@@ -85,7 +73,7 @@ def transition(
             session.add(company)
 
     if message is None:
-        message = f"Moved to {stage_label(to, app.route)}"
+        message = f"Moved to {stage_label(to)}"
         if to == Stage.closed and close_reason:
             message = "Dismissed" if close_reason == CloseReason.dismissed else (
                 f"Closed ({close_reason.replace('_', ' ')})"

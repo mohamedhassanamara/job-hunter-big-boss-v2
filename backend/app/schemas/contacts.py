@@ -34,7 +34,6 @@ class CompanyJob(BaseModel):
     stage: str
     stage_label: str
     route: str
-    effective_route: str = "web_apply"
     contact_tier: str
     contact_id: int | None
     fit: FitBrief | None
