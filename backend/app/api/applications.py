@@ -37,14 +37,9 @@ def patch_application(app_id: int, body: ApplicationPatch, session: SessionDep) 
             reason = CloseReason(body.close_reason) if body.close_reason else None
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        route = pipeline.effective_route(app)
-        if stage == Stage.done and route == Route.web_apply:
-            raise HTTPException(409, "Use “Mark applied” (records the date, method and CV sent)")
         if stage == Stage.done:
-            raise HTTPException(409, "Emails are marked Sent by the send queue, or with “I sent "
-                                     "it myself” on the job page")
-        if stage == Stage.drafted:
-            raise HTTPException(409, "Use “Draft email with AI” on the job page")
+            raise HTTPException(409, "Use “Mark applied” (records the date, method and CV sent), "
+                                     "or send the email (the send queue, or “I sent it myself”)")
         if stage == Stage.interview:
             raise HTTPException(409, "Use “Log interview” (records the round)")
         try:

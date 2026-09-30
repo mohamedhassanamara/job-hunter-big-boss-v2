@@ -167,12 +167,13 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
         s.add(cv)
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if app is not None:
-        if Stage(app.stage) in (Stage.cv_ready, Stage.drafted):
+        first = app.applied_at  # a web application may already be in (both routes)
+        if Stage(app.stage) == Stage.cv_ready:
             pipeline.transition(s, app, Stage.ready)
         if Stage(app.stage) == Stage.ready:
-            pipeline.transition(s, app, Stage.done, message="Sent")
-        app.applied_at = at
-        app.applied_method = ApplyMethod.email
+            pipeline.transition(s, app, Stage.done, message="Emailed")
+        app.applied_at = min(first, at) if first else at  # the first time you reached out
+        app.applied_method = app.applied_method if first else ApplyMethod.email
         app.applied_cv_version_id = cv.id if cv else app.applied_cv_version_id
         s.add(app)
         pipeline.log_event(s, app, EventKind.sent,

@@ -40,6 +40,10 @@ class Application(TableBase, table=True):
         Integer, ForeignKey("cover_letter.id", use_alter=True,
                             name="fk_application_applied_cover_letter"), nullable=True))
     letter_language: str = "auto"  # auto (the listing's language) | fr | en
+    # The web application (Mark applied), tracked apart from the cold email: a job can have both.
+    # `applied_at` stays "the first time you reached out" (follow-ups and stats use it).
+    web_applied_at: datetime | None = dt_field()
+    web_method: ApplyMethod | None = enum_field(None)
     stage_changed_at: datetime = dt_field(default_factory=utcnow)
 
 
@@ -113,6 +117,9 @@ class CoverLetter(TableBase, table=True):
     version: int = 1
     status: CVStatus = enum_field(CVStatus.draft)
     language: str = "en"  # fr | en
+    format: str = "pdf"  # pdf (a letter to upload) | form (text answering the form's question)
+    question: str | None = Field(default=None, sa_type=Text)  # form: the form's question
+    char_limit: int | None = None  # form: the text box's limit (a hard check, never cut)
     # {salutation, paragraphs: [{sentences: [{text, citations, about_job}]}], closing}; after
     # you edit a paragraph, that paragraph is {text} (re-checked at text level).
     content: dict[str, Any] = json_field(dict)

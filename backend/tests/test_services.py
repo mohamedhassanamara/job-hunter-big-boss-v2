@@ -21,10 +21,14 @@ def test_transitions() -> None:
     assert can_transition(Stage.closed, Stage.new)
 
 
-def test_stage_labels_depend_on_route() -> None:
-    assert stage_label("ready", "web_apply") == "Ready to apply"
-    assert stage_label("ready", "cold_email") == "Ready to send"
-    assert stage_label("done", "web_apply") == "Applied"
+def test_stage_labels_depend_on_the_tracks() -> None:
+    from app.services.tracks import Tracks
+
+    assert stage_label("ready") == "Ready to apply"
+    assert stage_label("ready", Tracks("ready", "approved")) == "Ready to send"
+    assert stage_label("done", Tracks("applied", "contact")) == "Applied"
+    assert stage_label("done", Tracks("ready", "sent")) == "Emailed"
+    assert stage_label("done", Tracks("applied", "sent")) == "Applied + emailed"
 
 
 def test_fit_bands() -> None:

@@ -284,7 +284,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                     application.applied_at = at
                     if company.contacted_at is None:
                         company.contacted_at = at
-                message = f"Moved to {stage_label(dst, jf.route)}"
+                message = f"Moved to {stage_label(dst)}"
                 if dst == Stage.closed:
                     message = (
                         "Dismissed"
@@ -436,11 +436,6 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                             at=(sent_at or now) + timedelta(minutes=1),
                         )
                     )
-        # Lumière's draft is under review: that job sits at "Email drafted" (email route).
-        lumiere = apps["lumiere-mlops"]
-        if lumiere.stage == Stage.cv_ready:
-            lumiere.stage = Stage.drafted
-            s.add(lumiere)
         _seed_tracking(s, apps, now)
         _seed_letters(s, apps)
         _seed_lookups(s, apps, jobs, now)
@@ -486,7 +481,7 @@ def _seed_letters(s: Session, apps: dict[str, Application]) -> None:
     from app.services import letter_check as lc
 
     s.flush()
-    ready = [a for a in apps.values() if a.route == "web_apply"
+    ready = [a for a in apps.values() if a.route == "web_apply" and a.web_applied_at is None
              and Stage(a.stage) in (Stage.cv_ready, Stage.ready) and cl.approved_cv(s, a)]
     if not ready:
         return
@@ -537,6 +532,9 @@ def _seed_tracking(s: Session, apps: dict[str, Application], now: datetime) -> N
             application.applied_cv_version_id = cv.id
         application.applied_method = (
             ApplyMethod.email if application.route == "cold_email" else ApplyMethod.company_site)
+        if application.applied_method != ApplyMethod.email:
+            application.web_applied_at = application.applied_at
+            application.web_method = application.applied_method
         s.add(application)
 
     tessera = apps["tessera-applied"]

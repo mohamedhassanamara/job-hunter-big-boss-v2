@@ -96,11 +96,27 @@ def test_mark_applied_locks_the_cv_and_records_details(seeded: None, start: Stag
         s.rollback()
 
 
-@pytest.mark.parametrize("stage", [Stage.new, Stage.shortlisted, Stage.done])
-def test_mark_applied_refused_outside_cv_ready_and_ready(seeded: None, stage: Stage) -> None:
+@pytest.mark.parametrize("stage", [Stage.new, Stage.shortlisted])
+def test_mark_applied_refused_before_an_approved_cv(seeded: None, stage: Stage) -> None:
     with Session(engine) as s:
         app = make_app(s, stage=stage)
         with pytest.raises(tracking.TrackingError):
+            tracking.mark_applied(s, app, applied_on=None, method=ApplyMethod.other)
+        s.rollback()
+
+
+def test_mark_applied_after_an_email_keeps_the_stage_and_only_once(seeded: None) -> None:
+    from datetime import date
+
+    with Session(engine) as s:
+        app = make_app(s, stage=Stage.done)  # the email went out first
+        emailed = app.applied_at
+        tracking.mark_applied(s, app, applied_on=date(2026, 9, 30), method=ApplyMethod.company_site)
+        assert app.stage == Stage.done and app.web_applied_at is not None
+        assert app.web_method == ApplyMethod.company_site
+        if emailed is not None:
+            assert app.applied_at == min(emailed, app.web_applied_at)
+        with pytest.raises(tracking.TrackingError, match="already"):
             tracking.mark_applied(s, app, applied_on=None, method=ApplyMethod.other)
         s.rollback()
 
@@ -186,7 +202,7 @@ def test_approving_a_cv_without_contact_lands_in_ready_to_apply(client: TestClie
     r = client.post(f"/api/cv/{cv_id}/approve")
     assert r.status_code == 200
     body = r.json()
-    assert (body["stage"], body["route"], body["next_step"]) == ("ready", "web_apply", "apply")
+    assert (body["stage"], body["route"], body["next_step"]) == ("cv_ready", "web_apply", "apply")
     ready = client.get("/api/applications/ready").json()
     assert app_id in [x["application_id"] for x in ready]
 
