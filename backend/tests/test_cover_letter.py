@@ -393,7 +393,8 @@ def good_plan(info: dict, fr: bool = True, form: bool = False) -> CoverLetterPla
     company = info["company"]
     first, second = info["items"][0], info["items"][1]
     if fr:
-        opening = f"Chez {company}, les pipelines de données avec Spark me donnent envie de postuler."
+        opening = (f"Chez {company}, les pipelines de données avec Spark me donnent envie de "
+                   "postuler.")
         why = "C'est exactement le travail que je veux faire."
         ex = [f"Chez {i.org}, j'ai construit ce type de système, proche de votre besoin."
               for i in (first, second)]
