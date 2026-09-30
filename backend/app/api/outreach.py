@@ -51,6 +51,22 @@ from app.services.views import fit_brief, latest_fits
 router = APIRouter(tags=["outreach"])
 
 
+def _cited_signals(session: Session, d: OutreachDraft) -> list[dict[str, Any]]:
+    """The signals the hook cites, with their source links (as they were when drafted)."""
+    from app.models import CompanySignal
+
+    plan = d.plan or {}
+    ids = set(plan.get("signal_ids") or [])
+    out = []
+    for sig in plan.get("signals") or []:
+        if sig.get("id") in ids:
+            row = session.get(CompanySignal, sig["id"])
+            out.append({**sig, "source_url": row.source_url if row else "",
+                        "page_date": row.page_date.isoformat() if row and row.page_date
+                        else None})
+    return out
+
+
 def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]:
     if not drafts:
         return []
@@ -130,8 +146,13 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 generated_via=(d.plan or {}).get("via") or (
                     "claude -p" if d.model.startswith("claude") else "mock"),
                 auth=(d.plan or {}).get("auth"),
-                application_mention=(mention := outreach.application_mention(session, app)),
+                application_mention=(mention := outreach.application_mention(session, app))
+                if (d.plan or {}).get("format") != "intro" else None,
                 mention_included=bool(mention and mention in d.body),
+                format=(d.plan or {}).get("format") or "reply",
+                signals=_cited_signals(session, d),
+                needs_signal=any(v.get("type") == "needs_signal" for v in d.violations or []),
+                research_note=(d.plan or {}).get("research_note"),
             )
         )
     return out

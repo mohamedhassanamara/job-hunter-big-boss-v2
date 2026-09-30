@@ -19,6 +19,7 @@ import { CandidateSection, ScoringSection } from './ScoringSections'
 import { ContactsSection } from './ContactsSection'
 import { CoverLetterSection } from './CoverLetterSection'
 import { WritingSection } from './WritingSection'
+import { ResearchSection } from './ResearchSection'
 import { OutreachSection } from './OutreachSection'
 import { SourcesSection } from './SourcesSection'
 
@@ -104,6 +105,7 @@ export default function SettingsPage() {
                 <EmailSection key={JSON.stringify(settings.data.values.smtp)} settings={settings.data} />
                 <OutreachSection key={JSON.stringify(settings.data.values.outreach)} settings={settings.data} />
                 <WritingSection key={`we-${JSON.stringify(settings.data.values.writing)}`} settings={settings.data} />
+                <ResearchSection key={`r-${JSON.stringify(settings.data.values.research)}`} settings={settings.data} />
               </div>
             ) : section === 'data' ? (
               <DataSection settings={settings.data} />

@@ -45,6 +45,11 @@ class DraftOut(BaseModel):
     # "I have also applied through your careers page on …": available once Mark applied is in.
     application_mention: str | None = None
     mention_included: bool = False
+    format: str = "reply"  # intro (prompt v4+: a personal introduction) | reply (older drafts)
+    # The company signals the hook cites: {id, kind, fact, quote}; the source URL comes with it.
+    signals: list[dict[str, Any]] = []
+    needs_signal: bool = False
+    research_note: str | None = None
 
 
 class DraftProgress(BaseModel):

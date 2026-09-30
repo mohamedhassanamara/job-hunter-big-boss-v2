@@ -403,6 +403,10 @@ export interface Draft {
   auth: string | null // the CLI's apiKeySource ("none" = subscription)
   application_mention: string | null // "I have also applied through your careers page on …"
   mention_included: boolean
+  format: 'intro' | 'reply'
+  signals: { id: number; kind: string; fact: string; quote: string; source_url: string; page_date: string | null }[]
+  needs_signal: boolean
+  research_note: string | null
 }
 
 export interface DraftReviewItem {
@@ -1158,4 +1162,53 @@ export interface StudioList {
   items: StudioDocument[]
   total: number
   counts: Record<StudioKind, number>
+}
+
+// ---- Email draft step and company research (mirror app/api/outreach.py, app/api/research.py)
+
+export interface DraftProgress {
+  status: 'idle' | 'running' | 'done' | 'failed'
+  phase: string // starting | fetching | extracting | drafting | done
+  done: number
+  total: number
+  draft_id: number | null
+  error: string | null
+}
+
+export interface CompanySignal {
+  id: number
+  kind: string
+  fact: string
+  quote: string
+  source_url: string
+  page_date: string | null
+  fetched_at: string
+  origin: 'research' | 'manual'
+  selected: boolean
+}
+
+export interface ResearchRun {
+  id: number
+  trigger: 'draft' | 'manual'
+  status: 'running' | 'done' | 'failed' | 'cached'
+  started_at: string
+  finished_at: string | null
+  pages: number
+  signals_kept: number
+  signals_dropped: number
+  calls: { model: string; prompt_version?: string; outcome: string; duration_ms?: number | null; prompt_tokens?: number | null; output_tokens?: number | null; error?: string }[]
+  warnings: string[]
+  error: string | null
+}
+
+export interface CompanyResearch {
+  company_id: number
+  company_name: string
+  site: string | null
+  fresh: boolean
+  refreshed_at: string | null
+  refresh_days: number
+  signals: CompanySignal[]
+  last_run: ResearchRun | null
+  progress: { status: string; phase: string; done: number; total: number; error: string | null } | null
 }

@@ -51,6 +51,7 @@ import { isApplied } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Stage } from '@/lib/types'
 import { ApplicationSection, CompanyReasonField, TracksSummary } from './ApplicationSection'
 import { CopilotSheet } from './CopilotSheet'
+import { SignalsPanel } from '@/components/app/research/SignalsPanel'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
 import { QuestionsSection } from './QuestionsSection'
@@ -397,6 +398,13 @@ export default function JobPage() {
           <div id="outreach" className="scroll-mt-4">
             <OutreachSection job={job} />
           </div>
+          {app.stage !== 'new' && app.stage !== 'closed' && (
+            <Section title={`Signals about ${job.company.name}`}>
+              <div className="p-4">
+                <SignalsPanel companyId={job.company.id} />
+              </div>
+            </Section>
+          )}
           <TrackingSection job={job} />
           <div data-tour="job-fit">
             <FitCard job={job} />

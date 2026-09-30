@@ -1,5 +1,5 @@
 import { ArrowRight, CircleCheck, Clock, Copy, FileText, Search, Send, Sparkles, UserPlus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { ContactTierBadge } from '@/components/app/badges'
@@ -15,7 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { clockTime, relativeTime } from '@/lib/format'
 import { useQueueLookup } from '@/lib/queries/jobs'
 import { useCompany, useSetJobContact } from '@/lib/queries/library'
-import { useDraftAction, useGenerateDraft, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
+import { useDraftAction, useDraftRun, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
+import { DraftProgressLine } from '@/components/app/outreach/DraftProgressLine'
 import { todayIso } from '@/lib/tracking'
 import type { JobDetail, OutreachStepName, WhoToContact } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -204,7 +205,8 @@ function FindContact({ job, who }: { job: JobDetail; who: WhoToContact | null })
 export function OutreachSection({ job }: { job: JobDetail }) {
   const app = job.application
   const { data, isPending } = useOutreachStep(app.id)
-  const generate = useGenerateDraft()
+  const run = useDraftRun(app.id, ({ error }) => (error ? toast.error(error) : toast.success('Email drafted: review it below')))
+  const autoStarted = useRef(false)
   const action = useDraftAction()
   const [sentMyself, setSentMyself] = useState(false)
   const ready = !isPending && !!data
@@ -214,6 +216,17 @@ export function OutreachSection({ job }: { job: JobDetail }) {
       document.getElementById('outreach')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [ready])
+
+  // From the Pipeline (drop on Ready) or CV Studio: ?draft=1 starts the draft step once.
+  useEffect(() => {
+    if (!ready || autoStarted.current || data?.step !== 'draft' || !data.has_email) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('draft') !== '1') return
+    autoStarted.current = true
+    params.delete('draft')
+    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}${window.location.hash}`)
+    run.start(undefined, { onError: (e) => toast.error(e.message) })
+  }, [ready, data?.step, data?.has_email, run])
 
   if (app.stage === 'new' || (app.stage === 'closed' && ['no_contact', 'contact'].includes(app.tracks.outreach))) return null
   if (isPending || !data) return <Skeleton className="h-40" />
@@ -255,17 +268,17 @@ export function OutreachSection({ job }: { job: JobDetail }) {
           <div className="flex items-center gap-3 p-4 text-sm">
             <Sparkles className="size-4 text-fg-subtle" />
             <span className="flex-1 text-fg-muted">
-              Contact and CV v{data.cv_version} ready. Claude drafts a short email from your CV; you review everything before it goes anywhere.
+              Contact and CV v{data.cv_version} ready. The company is researched first (reused when fresh), then Claude writes a short introduction from its signals and your CV; you review everything before it goes anywhere.
               {!data.has_email && ' The contact has no email address yet.'}
             </span>
-            <Button
-              size="sm"
-              disabled={generate.isPending || !data.has_email}
-              onClick={() => generate.mutate(app.id, { onSuccess: () => toast.success('Email drafted: review it below'), onError: (e) => toast.error(e.message) })}
-            >
-              <Sparkles className={generate.isPending ? 'animate-pulse' : undefined} />
-              {generate.isPending ? 'Drafting…' : 'Draft email with AI'}
-            </Button>
+            {run.running ? (
+              <DraftProgressLine state={run.state} />
+            ) : (
+              <Button size="sm" disabled={!data.has_email} onClick={() => run.start(undefined, { onError: (e) => toast.error(e.message) })}>
+                <Sparkles />
+                Draft email with AI
+              </Button>
+            )}
           </div>
         )}
         {draft && ['review', 'queue'].includes(data.step) && (

@@ -24,6 +24,7 @@ export type TourId =
   | 'letter'
   | 'questions'
   | 'copilot'
+  | 'signals'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -195,6 +196,20 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'copilot-threads', title: 'Your conversations', body: 'Global chats about your search, with your profile and experience pool as context. Each job also has its own Copilot on its page (the Copilot button, or C).', placement: 'right' },
       { target: 'copilot-messages', title: 'Answers from your data', body: 'The local model (gemma4:12b via Ollama) answers. Numbers or tools that are neither in your experience nor the listing are flagged under the answer; copy any answer with one click.', placement: 'left' },
       { target: 'copilot-input', title: 'It only answers', body: 'Interview prep, CV gaps, a LinkedIn message, a translation… It has no tools: it never changes anything in the app.', placement: 'top' },
+    ],
+  },
+  signals: {
+    id: 'signals',
+    title: 'Company signals',
+    description: 'Verified facts your cold emails open with',
+    resolveRoute: async () => {
+      const cards = await api.get<PipelineCard[]>('/applications')
+      const card = cards.find((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'new' && c.stage !== 'closed')
+      return card ? `/jobs/${card.job_id}` : '/pipeline'
+    },
+    steps: [
+      { target: 'signals-panel', title: 'Researched only when you draft', body: "When you click Draft email with AI (or Research now), the app reads the company's own site and recent news, and a model extracts facts. Each keeps its exact quote, checked in code against the page; a fact without a verified quote is dropped. Fresh signals (30 days) are reused with no new fetch.", placement: 'top' },
+      { target: 'signals-panel', title: 'Pick what the email uses', body: 'Ticked signals feed the email hook; the email cites them. Add a fact you know yourself. With no signal, a draft is marked Needs a signal and cannot be approved.', placement: 'top' },
     ],
   },
   studio: {
