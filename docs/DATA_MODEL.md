@@ -298,6 +298,26 @@ Answers to an application form's questions (`services/answers.py`).
 | violations | JSON | Grounding, length, banned phrases, years |
 | generator_model / prompt_version | str / str? | |
 
+### company_page / company_signal / research_run (company research, migration 0014)
+- `company_page`: company_id, research_run_id, url, kind (page | news), title, text, page_date, fetched_at: what
+  the last research read.
+- `company_signal`: company_id, research_run_id, kind (product | technical | customer_result | launch | funding |
+  expansion | other), fact, quote (exact, verified in the page), source_url, page_date, fetched_at, origin
+  (research | manual), verified, selected (used by emails), dismissed. A refresh replaces research signals and
+  keeps yours.
+- `research_run`: company_id, trigger (draft | manual), status (running | done | failed | cached), started/finished,
+  pages, signals_kept/dropped, `calls` (one entry per model call: model, prompt version, outcome, duration,
+  tokens), warnings (skipped pages, dropped signals with the reason), error.
+- `company.research_refreshed_at`: set only when a run kept signals (fresh = within `research.refresh_days`).
+
+### email_example (the email regression set)
+kind (reference_good | reference_bad | approved | rejected), language, subject, body, draft_id, company, inputs
+(the `EmailRequest` snapshot, or the application to rebuild it from), note.
+
+Outreach drafts written as introductions store in `plan`: `format: "intro"`, the plan (hook with signal ids,
+intro focus, problem, proofs, ask), `intro_line`, `language`, `signal_ids`, the signals snapshot,
+`research_run_id`, the request, attempts, `via`, `auth`.
+
 ### copilot_thread / copilot_message
 The Copilot's conversations (`services/copilot.py`). `copilot_thread`: `application_id?` (null = global), `title`,
 `archived` ("New conversation" on a job archives the old thread). `copilot_message`: `thread_id`, `role`

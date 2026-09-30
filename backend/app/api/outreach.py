@@ -51,6 +51,18 @@ from app.services.views import fit_brief, latest_fits
 router = APIRouter(tags=["outreach"])
 
 
+def _plan_sentences(d: OutreachDraft) -> list[dict[str, Any]]:
+    """The generated sentences with their citations (for "where each sentence comes from"):
+    an introduction's hook (from signals) and its proofs (from your pool)."""
+    plan = (d.plan or {}).get("plan") or {}
+    if (d.plan or {}).get("format") != "intro":
+        return plan.get("sentences", [])
+    hook = plan.get("hook") or {}
+    out = [{"text": hook.get("text", ""), "citations": [], "about_job": True}] \
+        if hook.get("text") else []
+    return out + [{**p, "about_job": False} for p in plan.get("proofs") or []]
+
+
 def _cited_signals(session: Session, d: OutreachDraft) -> list[dict[str, Any]]:
     """The signals the hook cites, with their source links (as they were when drafted)."""
     from app.models import CompanySignal
@@ -103,8 +115,7 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
         cvs[cv.application_id] = cv.version
     fits = latest_fits(session, jobs.keys())
     ranking = contacts_svc.ranking_settings(session)
-    cited = {c for d in drafts for s in ((d.plan or {}).get("plan") or {}).get("sentences", [])
-             for c in s.get("citations", [])}
+    cited = {c for d in drafts for s in _plan_sentences(d) for c in s.get("citations", [])}
     items = {i.id: i for i in session.exec(select(ExperienceItem).where(
         col(ExperienceItem.id).in_(cited))).all()} if cited else {}
     out = []
@@ -133,7 +144,7 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 created_at=d.created_at,
                 updated_at=d.updated_at,
                 cv_version_id=d.cv_version_id,
-                sentences=((d.plan or {}).get("plan") or {}).get("sentences", []),
+                sentences=_plan_sentences(d),
                 citations={str(k): f"{v.title}{f' · {v.org}' if v.org else ''}"
                            for k, v in items.items()},
                 violations=d.violations or [],

@@ -35,6 +35,7 @@ from app.models import (
     SendQueueItem,
     SourceRun,
 )
+from app.models.base import utcnow
 from app.models.enums import (
     ApplyMethod,
     CVStatus,
@@ -444,6 +445,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             marea.web_method = ApplyMethod.company_site
             s.add(marea)
         _seed_letters(s, apps)
+        _seed_signals(s, apps)
         _seed_lookups(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
@@ -474,6 +476,39 @@ def _seed_lookups(s: Session, apps: dict[str, Application], jobs: dict[str, Job]
 
 def fx_score(key: str) -> int:
     return next((j.score for j in fx.JOBS if j.key == key), 0)
+
+
+def _seed_signals(s: Session, apps: dict[str, Application]) -> None:
+    """Verified sample signals for one company with a contact (the Signals tour and a
+    signal-based email in the sandbox). Sample text only; the sandbox never fetches the web."""
+    from app.models import CompanySignal, ResearchRun
+
+    s.flush()
+    app = next((a for a in apps.values() if a.contact_id and a.stage != Stage.closed), None)
+    if app is None:
+        return
+    job = s.get(Job, app.job_id)
+    company = s.get(Company, job.company_id)
+    run = ResearchRun(company_id=company.id, trigger="draft", status="done", pages=4,
+                      signals_kept=3, finished_at=utcnow(),
+                      calls=[{"model": "mock-research", "prompt_version": "research/mock",
+                              "outcome": "ok", "duration_ms": 0}])
+    s.add(run)
+    s.flush()
+    site = f"https://{company.normalized_name.replace(' ', '')}.example"
+    for kind, fact, path, selected in [
+        ("customer_result", f"A regional carrier cut its planning time by 30% with "
+         f"{company.name}.", "/clients", True),
+        ("technical", f"{company.name} runs its routing engine on its own models, trained "
+         "in-house.", "/platform", True),
+        ("launch", f"{company.name} launched a real-time routing engine in 2026.", "/blog/launch",
+         False),
+    ]:
+        s.add(CompanySignal(company_id=company.id, research_run_id=run.id, kind=kind, fact=fact,
+                            quote=fact, source_url=site + path, verified=True,
+                            selected=selected))
+    company.research_refreshed_at = utcnow()
+    s.add(company)
 
 
 def _seed_letters(s: Session, apps: dict[str, Application]) -> None:
