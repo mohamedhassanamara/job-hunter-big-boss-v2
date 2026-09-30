@@ -6,6 +6,13 @@
       "cases": 3,
       "errors": 0,
       "note": "Adopted after make eval-emails: the 3 reference cases (Zaion), old vs new side by side."
+    },
+    "6": {
+      "report": "data/eval/emails/20260930-152949_outreach_v6.md",
+      "date": "2026-09-30",
+      "cases": 3,
+      "errors": 2,
+      "note": "Adopted: all 3 cases now lead with the signal that connects to a proof (sovereign models ↔ local Mistral). The 2 errors are first-attempt length checks (160 words; a 40-word proof); the eval makes one attempt, the draft step retries once with the problems."
     }
   }
 }

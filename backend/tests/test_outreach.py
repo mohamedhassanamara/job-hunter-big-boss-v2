@@ -64,7 +64,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v5"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v6"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]
@@ -387,3 +387,14 @@ def test_queue_survives_restarts_because_it_lives_in_the_db(job_ready: dict,
         q = s.exec(select(SendQueue)).one()
         assert q.status == QueueStatus.running
         assert s.exec(select(SendQueueItem)).one().status == QueueItemStatus.pending
+
+
+
+def test_the_signature_hides_the_phone_and_shows_linkedin() -> None:
+    cfg = {"sign_off": "Best regards,",
+           "signature": {"name": "Alex", "title": "", "email": "a@x.test", "phone": "+1 555",
+                         "linkedin": "https://www.linkedin.com/in/alex/", "show_phone": False}}
+    block = outreach.signature_block(cfg)
+    assert "+1 555" not in block and "linkedin.com/in/alex" in block and "a@x.test" in block
+    cfg["signature"]["show_phone"] = True
+    assert "+1 555" in outreach.signature_block(cfg)

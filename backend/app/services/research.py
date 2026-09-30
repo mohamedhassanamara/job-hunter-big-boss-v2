@@ -27,6 +27,7 @@ from sqlmodel import Session, col, select
 
 from app.models import AppSetting, Company, CompanyPage, CompanySignal, Contact, ResearchRun
 from app.models.base import utcnow
+from app.services.cv_pool import Pool
 from app.services.fit import _norm
 from app.services.text import html_to_text
 
@@ -57,6 +58,24 @@ PAGE_KINDS: dict[str, list[str]] = {
 KIND_PRIORITY = ["customer_result", "technical", "launch", "product", "funding", "expansion",
                  "other"]
 Progress = Callable[[str, int, int], None]  # (phase, done, total)
+# Concepts that link a company fact to your experience (EN/FR stems, folded). A signal that
+# shares one with your pool ("sovereign models" ↔ "a local Mistral model") is preferred: the
+# email's proof can then answer it.
+CONCEPTS: dict[str, list[str]] = {
+    "private or local models": ["souverain", "sovereign", "on premise", "on-premise", "self host",
+                                "en local", "locale", "local", "privacy", "confidentialit",
+                                "donnees en interne", "in house", "in-house", "rgpd", "gdpr",
+                                "proprietaire", "proprietary", "heberge"],
+    "voice": ["voice", "vocal", "voix", "speech", "whisper", "asr", "callbot", "voicebot", "tts",
+              "transcription"],
+    "language models": ["llm", "slm", "nlu", "nlp", "generati", "mistral", "modele de langage",
+                        "language model", "rag"],
+    "data pipelines": ["pipeline", "etl", "elt", "lakehouse", "dbt", "airflow", "entrepot",
+                       "warehouse"],
+    "mobile apps": ["mobile", "flutter", "ios", "android"],
+    "backend and apis": ["api", "backend", "spring boot", "microservice", "integration"],
+    "cost control": ["cout", "cost", "cheaper", "affordable", "economi"],
+}
 _one_at_a_time = threading.Lock()
 
 
@@ -445,13 +464,27 @@ def last_run(s: Session, company_id: int, *, real: bool = False) -> ResearchRun 
     return s.exec(stmt.order_by(col(ResearchRun.id).desc())).first()
 
 
-def _auto_select(rows: list[CompanySignal], limit: int) -> None:
-    """Up to `limit` signals, one per kind first (customer results, technical choices,
-    launches…), so the email has a mix to choose from."""
+def _concepts(text: str) -> set[str]:
+    folded = f" {_norm(text)} "
+    return {name for name, stems in CONCEPTS.items()
+            if any(f" {_norm(stem)}" in folded for stem in stems)}
+
+
+def connection(fact: str, pool: Pool | None) -> list[str]:
+    """The concepts a company fact shares with your experience (empty = a generic signal)."""
+    if pool is None:
+        return []
+    return sorted(_concepts(fact) & _concepts(pool.all_text()))
+
+
+def _auto_select(rows: list[CompanySignal], limit: int, pool: Pool | None = None) -> None:
+    """Up to `limit` signals: those connected to your experience first (your proofs can answer
+    them), then one per kind (customer results, technical choices, launches…) for a mix."""
     if any(r.selected for r in rows):
         return
     rank = {k: i for i, k in enumerate(KIND_PRIORITY)}
-    ranked = sorted(rows, key=lambda r: (rank.get(r.kind, len(rank)), r.id or 0))
+    ranked = sorted(rows, key=lambda r: (-len(connection(r.fact, pool)),
+                                         rank.get(r.kind, len(rank)), r.id or 0))
     picked: list[CompanySignal] = []
     for r in ranked:  # the first of each kind
         if len(picked) < limit and r.kind not in {p.kind for p in picked}:
@@ -556,7 +589,9 @@ def _run(engine: Engine, company_id: int, trigger: str, researcher: Researcher,
             s.add_all(rows)
             s.flush()
             manual = [x for x in signals(s, company_id) if x.origin == "manual"]
-            _auto_select([*rows, *manual], int(cfg.get("max_selected") or 3))
+            from app.services.cv_pool import load_pool
+
+            _auto_select([*rows, *manual], int(cfg.get("max_selected") or 3), load_pool(s))
             run = s.get(ResearchRun, run_id)
             run.status, run.finished_at = "done", utcnow()
             run.pages, run.signals_kept, run.signals_dropped = len(sources), len(rows), \

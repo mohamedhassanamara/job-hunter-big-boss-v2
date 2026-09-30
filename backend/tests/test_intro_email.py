@@ -39,8 +39,8 @@ def test_the_intro_line_is_built_from_your_profile() -> None:
     fr = ic.intro_line("Alex", "systèmes backend, mobiles et IA", "fr",
                        "3 years of software engineering experience",
                        "3 ans d'expérience en ingénierie logicielle")
-    assert fr == ("Je suis Alex, ingénieur logiciel avec 3 ans d'expérience en ingénierie "
-                  "logicielle, sur des systèmes backend, mobiles et IA.")
+    assert fr == ("Je suis Alex, ingénieur logiciel avec 3 ans d'expérience, sur des systèmes "
+                  "backend, mobiles et IA.")  # the field isn't said twice
 
 
 def draft(job_ready: dict, site: Site | None = None):  # noqa: F811, ANN201
@@ -176,3 +176,17 @@ def test_based_on_is_not_a_location_and_long_tool_lists_are_caught(job_ready: di
     long = plan(job_ready)
     long.proofs[0].text += " " + "It kept working as the team grew and more customers joined." * 2
     assert "proofs" in kinds(ic.check_plan(long, ctx_for(job_ready)))
+
+
+
+def test_roi_is_banned_and_connected_signals_come_first(job_ready: dict) -> None:  # noqa: F811
+    p = plan(job_ready)
+    p.problem = ("Proving the ROI of every automated call is hard when volumes change every "
+                 "month for insurers and their customers.")
+    from app.services.outreach_check import DEFAULT_BANNED
+
+    assert "banned" in kinds(ic.check_plan(p, ctx_for(job_ready, banned=DEFAULT_BANNED)))
+    with Session(engine) as s:
+        pool = load_pool(s)
+    assert research.connection("They run sovereign, proprietary models", pool) == \
+        ["private or local models"] or "local" not in pool.all_text().lower()
