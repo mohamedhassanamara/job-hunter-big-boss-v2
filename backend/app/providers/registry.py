@@ -94,6 +94,14 @@ def copilot(*, mock: bool | None = None, model: str = "gemma4:12b"):  # noqa: AN
     return MockCopilot() if use_mock else OllamaCopilot(model)
 
 
+def rewriter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
+    """Claude, for Copilot answers you'll send to people. Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.claude_rewrite import ClaudeRewriter, MockRewriter
+
+    return MockRewriter() if use_mock else ClaudeRewriter(model)
+
+
 _mock_mailer = MockMailer()
 
 

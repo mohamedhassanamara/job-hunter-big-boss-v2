@@ -325,6 +325,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         if fit and brief
         else None,
         notes=app.notes,
+        company_reason=app.company_reason or "",
         tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
         contact=contact_out(contact, _ranking(session)) if contact else None,
         lookup_status=_lookup_status(session, company.id),

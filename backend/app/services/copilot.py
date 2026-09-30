@@ -54,10 +54,17 @@ class CopilotError(ValueError):
     """Shown to the user."""
 
 
-def prompt_version() -> tuple[str, str]:
+def prompt_sections() -> tuple[str, dict[str, str]]:
     text = PROMPT_FILE.read_text()
     version = re.search(r"^version:\s*(\S+)", text, re.M)
-    return f"copilot/v{version.group(1) if version else '0'}", text.split("## system", 1)[1].strip()
+    sections = dict(re.findall(r"^## (\w+)\n(.*?)(?=^## \w+\n|\Z)", text, re.M | re.S))
+    return (f"copilot/v{version.group(1) if version else '0'}",
+            {k: v.strip() for k, v in sections.items()})
+
+
+def prompt_version() -> tuple[str, str]:
+    version, sections = prompt_sections()
+    return version, sections["system"]
 
 
 # ------------------------------------------------------------------------------------ threads
@@ -265,3 +272,49 @@ def ask(engine: Engine, thread_id: int, question: str, model: Copilot) -> Iterat
 
     return run()
 
+
+
+# ------------------------------------------------------------------------------------ rewrite
+
+
+class Rewriter(Protocol):
+    model: str
+
+    def rewrite(self, system: str, message: str) -> str: ...
+
+
+def rewrite(engine: Engine, message_id: int, rewriter: Rewriter) -> CopilotMessage:
+    """A text you'll send to people, rewritten by Claude (the same rules, your facts only), saved
+    as a new answer under the original. The local model stays the default."""
+    version, sections = prompt_sections()
+    with Session(engine) as s:
+        original = s.get(CopilotMessage, message_id)
+        if original is None or original.role != "assistant" or not original.content.strip():
+            raise CopilotError("Pick an answer to rewrite")
+        thread = s.get(CopilotThread, original.thread_id)
+        app = s.get(Application, thread.application_id) if thread.application_id else None
+        question = next((m.content for m in reversed(messages(s, thread.id))
+                         if m.role == "user" and m.id < original.id), "")
+        pool = load_pool(s)
+        text, source = context(s, app, pool)
+        thread_id = thread.id
+    started = time.monotonic()
+    message = f"QUESTION\n{question}\n\nORIGINAL\n{original.content}\n\nCONTEXT\n\n{text}"
+    try:
+        out = rewriter.rewrite(sections["rewrite"], message).strip()
+        error = None
+    except Exception as exc:  # noqa: BLE001 (shown to the user)
+        out, error = "", str(exc)
+    with Session(engine) as s:
+        fresh = load_pool(s)
+        row = CopilotMessage(
+            thread_id=thread_id, role="assistant", content=out,
+            model=f"{rewriter.model} via claude -p, rewrite ({version})", error=error,
+            warnings=warnings(out, fresh, source, statements(s, fresh)) if out else [],
+            duration_ms=int((time.monotonic() - started) * 1000))
+        s.add(row)
+        s.commit()
+        s.refresh(row)
+        if error:
+            raise CopilotError(error)
+        return row

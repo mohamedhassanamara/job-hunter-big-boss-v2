@@ -18,6 +18,7 @@ import { CVWritingSection } from './CVWritingSection'
 import { CandidateSection, ScoringSection } from './ScoringSections'
 import { ContactsSection } from './ContactsSection'
 import { CoverLetterSection } from './CoverLetterSection'
+import { WritingSection } from './WritingSection'
 import { OutreachSection } from './OutreachSection'
 import { SourcesSection } from './SourcesSection'
 
@@ -82,7 +83,10 @@ export default function SettingsPage() {
                 <CVWritingSection key={`w-${JSON.stringify(settings.data.values.cv)}`} settings={settings.data} />
               </div>
             ) : section === 'letter' ? (
-              <CoverLetterSection key={JSON.stringify(settings.data.values.cover_letter)} settings={settings.data} />
+              <div className="space-y-6">
+                <WritingSection key={`w-${JSON.stringify(settings.data.values.writing)}`} settings={settings.data} />
+                <CoverLetterSection key={JSON.stringify(settings.data.values.cover_letter)} settings={settings.data} />
+              </div>
             ) : section === 'templates' ? (
               <TemplatesSection settings={settings.data} />
             ) : section === 'sources' ? (
@@ -99,6 +103,7 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <EmailSection key={JSON.stringify(settings.data.values.smtp)} settings={settings.data} />
                 <OutreachSection key={JSON.stringify(settings.data.values.outreach)} settings={settings.data} />
+                <WritingSection key={`we-${JSON.stringify(settings.data.values.writing)}`} settings={settings.data} />
               </div>
             ) : section === 'data' ? (
               <DataSection settings={settings.data} />

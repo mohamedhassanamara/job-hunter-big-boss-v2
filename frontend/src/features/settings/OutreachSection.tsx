@@ -11,6 +11,8 @@ interface OutreachValue {
   signature: { name: string; title: string; email: string; phone: string; photo_path: string }
   sign_off: string
   opt_out: string
+  sign_off_fr?: string
+  opt_out_fr?: string
   banned_phrases: string[]
   max_words: number
   language: string
@@ -62,6 +64,17 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
       </Field>
       <Field label="Opt-out line" hint="One polite line at the end">
         <Textarea value={value.opt_out} onChange={(e) => setValue({ ...value, opt_out: e.target.value })} className="min-h-14" />
+      </Field>
+      <Field label="French emails" hint="Sign-off and opt-out when the email is in French">
+        <div className="space-y-2">
+          <Input value={value.sign_off_fr ?? 'Bien cordialement,'} onChange={(e) => setValue({ ...value, sign_off_fr: e.target.value })} className="w-60" aria-label="French sign-off" />
+          <Textarea
+            value={value.opt_out_fr ?? "Si ce n'est pas pertinent pour vous, dites-le-moi simplement et je ne vous relancerai pas."}
+            onChange={(e) => setValue({ ...value, opt_out_fr: e.target.value })}
+            className="min-h-14"
+            aria-label="French opt-out line"
+          />
+        </div>
       </Field>
       <Field label="Word limit" hint="Greeting + body + ask">
         <Input type="number" min={50} max={400} value={value.max_words} onChange={(e) => setValue({ ...value, max_words: Number(e.target.value) })} className="w-24" />

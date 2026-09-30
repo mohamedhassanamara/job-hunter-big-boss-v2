@@ -193,6 +193,7 @@ export interface JobDetail extends JobListItem {
   description: string
   fit_detail: FitDetail | null
   notes: string
+  company_reason: string // your one-line reason for this company
   contact: Contact | null
   company_contacts: number
   other_jobs_at_company: RelatedJob[]
@@ -226,6 +227,7 @@ export interface PipelineCard {
 }
 
 export interface ApplicationPatch {
+  company_reason?: string
   stage?: Stage
   close_reason?: CloseReason
   route?: Route

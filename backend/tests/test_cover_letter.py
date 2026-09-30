@@ -72,7 +72,7 @@ def test_letter_drafter_uses_the_isolated_subscription_call() -> None:
     d = ClaudeLetterDrafter(runner=fake_run({"is_error": False, "structured_output": LETTER},
                                             calls=calls))
     out = d.draft_letter(LetterRequest(job={}, candidate={}, pool={}), feedback="- too short")
-    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v4"
+    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v5"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     system = cmd[cmd.index("--system-prompt") + 1]
@@ -396,13 +396,13 @@ def good_plan(info: dict, fr: bool = True, form: bool = False) -> CoverLetterPla
         opening = (f"Chez {company}, les pipelines de données avec Spark me donnent envie de "
                    "postuler.")
         why = "C'est exactement le travail que je veux faire."
-        ex = [f"Chez {i.org}, j'ai construit ce type de système, proche de votre besoin."
-              for i in (first, second)]
+        ex = [f"Chez {i.org}, j'ai construit ce type de système avec {i.tags[0]}, proche de "
+              "votre besoin." for i in (first, second)]
     else:
         opening = f"{company} works on data pipelines, which is why I want to join."
         why = "That is exactly the work I want to do."
-        ex = [f"At {i.org}, I built this kind of system, close to what you need."
-              for i in (first, second)]
+        ex = [f"At {i.org}, I built this kind of system with {i.tags[0]}, close to what you "
+              "need." for i in (first, second)]
     return CoverLetterPlan(paragraphs=[
         {"sentences": [EmailSentence(text=opening, about_job=True),
                        EmailSentence(text=why, citations=[first.id])]},

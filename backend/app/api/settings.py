@@ -27,7 +27,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking", "contacts", "outreach", "cover_letter",
+    "cv", "tracking", "contacts", "outreach", "cover_letter", "writing",
 }
 
 
@@ -59,6 +59,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services.cover_letter import letter_settings
 
     values["cover_letter"] = letter_settings(session)
+    from app.services.cover_letter import writing_settings
+
+    values["writing"] = writing_settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -157,6 +160,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_outreach(body.value)
     if key == "cover_letter":
         _check_cover_letter(body.value)
+    if key == "writing" and body.value.get("work_authorization") not in ("never", "if_asked"):
+        raise HTTPException(422, "work_authorization must be never or if_asked")
     if key == "lookup":
         cap = body.value.get("daily_cap")
         if not isinstance(cap, int) or not 1 <= cap <= 100:

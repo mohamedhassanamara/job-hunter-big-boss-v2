@@ -49,7 +49,7 @@ import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/f
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
 import { isApplied } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Stage } from '@/lib/types'
-import { ApplicationSection, TracksSummary } from './ApplicationSection'
+import { ApplicationSection, CompanyReasonField, TracksSummary } from './ApplicationSection'
 import { CopilotSheet } from './CopilotSheet'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
@@ -390,6 +390,7 @@ export default function JobPage() {
         <div className="space-y-4">
           <JobFlags job={job} />
           {app.stage !== 'new' && <TracksSummary job={job} />}
+          {app.stage !== 'new' && app.stage !== 'closed' && <CompanyReasonField key={job.id} job={job} />}
           <div id="application" className="scroll-mt-4">
             <ApplicationSection job={job} onApplied={() => setApplying(true)} />
           </div>

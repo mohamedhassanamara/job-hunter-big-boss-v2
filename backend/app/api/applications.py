@@ -31,6 +31,11 @@ def patch_application(app_id: int, body: ApplicationPatch, session: SessionDep) 
         )
     if body.notes is not None and body.notes != app.notes:
         app.notes = body.notes
+    if body.company_reason is not None:
+        reason = body.company_reason.strip()
+        if len(reason) > 300:
+            raise HTTPException(422, "Keep your reason to one line (at most 300 characters)")
+        app.company_reason = reason
     if body.stage is not None:
         try:
             stage = Stage(body.stage)
