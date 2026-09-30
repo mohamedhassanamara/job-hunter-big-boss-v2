@@ -27,7 +27,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking", "contacts", "outreach", "cover_letter", "writing",
+    "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research",
 }
 
 
@@ -62,6 +62,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services.cover_letter import writing_settings
 
     values["writing"] = writing_settings(session)
+    from app.services.research import research_settings
+
+    values["research"] = research_settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -160,6 +163,10 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_outreach(body.value)
     if key == "cover_letter":
         _check_cover_letter(body.value)
+    if key == "research":
+        days = body.value.get("refresh_days", 30)
+        if not isinstance(days, int) or not 1 <= days <= 365:
+            raise HTTPException(422, "refresh_days must be between 1 and 365")
     if key == "writing" and body.value.get("work_authorization") not in ("never", "if_asked"):
         raise HTTPException(422, "work_authorization must be never or if_asked")
     if key == "lookup":

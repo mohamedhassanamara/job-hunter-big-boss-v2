@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
@@ -8,6 +9,7 @@ import type {
   CVVersion,
   DiscoveryStatus,
   Draft,
+  DraftProgress,
   FullListingResult,
   NavCounts,
   OutreachStep,
@@ -194,12 +196,32 @@ export function useDraftAction() {
   })
 }
 
-export function useGenerateDraft() {
+/** The email draft step: research the company (fresh signals are reused), then write the
+ * draft, in the background. `state` is polled every second while it runs; views refresh at the
+ * end and `onDone` gets the new draft id (or the error). */
+export function useDraftRun(appId: number | undefined, onDone?: (result: { draftId?: number | null; error?: string | null }) => void) {
   const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (appId: number) => api.post<Draft>(`/applications/${appId}/draft/generate`),
-    onSettled: () => invalidateWork(qc),
+  const key = ['draft-progress', appId]
+  const progress = useQuery({
+    queryKey: key,
+    queryFn: () => api.get<DraftProgress>(`/applications/${appId}/draft/progress`),
+    enabled: appId != null && Number.isFinite(appId),
+    refetchInterval: (q) => (q.state.data?.status === 'running' ? 1000 : false),
   })
+  const last = useRef<string | undefined>(undefined)
+  const status = progress.data?.status
+  useEffect(() => {
+    if (last.current === 'running' && status && status !== 'running') {
+      invalidateWork(qc)
+      onDone?.({ draftId: progress.data?.draft_id, error: progress.data?.error })
+    }
+    last.current = status
+  }, [status, qc, onDone, progress.data?.draft_id, progress.data?.error])
+  const start = useMutation({
+    mutationFn: () => api.post<DraftProgress>(`/applications/${appId}/draft/generate`),
+    onSuccess: (state) => qc.setQueryData(key, state),
+  })
+  return { start: start.mutate, starting: start.isPending, state: progress.data, running: status === 'running' || start.isPending, startError: start.error }
 }
 
 export function useOutreachStep(appId: number | undefined) {

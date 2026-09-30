@@ -10,7 +10,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useDraftAction, useGenerateDraft, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
+import { useDraftAction, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -78,7 +78,7 @@ export function DraftEditor({
   onReject: () => void
 }) {
   const save = useSaveDraft()
-  const regenerate = useGenerateDraft()
+  const regenerate = useDraftRun(draft.application_id, ({ error }) => (error ? toast.error(error) : toast.success('New draft written')))
   const action = useDraftAction()
   const testSend = useTestSend()
   const queueDraft = useQueueDraft()
@@ -160,6 +160,24 @@ export function DraftEditor({
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {draft.status === 'draft' && <Checks violations={draft.violations} />}
+        {draft.format === 'intro' && (
+          <div className="space-y-1.5 rounded-md border border-border bg-surface px-3 py-2 text-sm" data-tour="outreach-signals">
+            <p className="text-xs font-medium text-fg-subtle">
+              {draft.needs_signal ? 'Needs a signal: pick or add one about the company on its page, then Regenerate' : 'Company facts in the hook (verified signals)'}
+            </p>
+            {draft.research_note && <p className="text-xs text-warning-fg">Research: {draft.research_note}</p>}
+            {draft.signals.map((s) => (
+              <p key={s.id} className="flex items-start gap-2">
+                <span className="flex-1">{s.fact}</span>
+                {s.source_url && (
+                  <a href={s.source_url} target="_blank" rel="noreferrer" className="shrink-0 text-xs text-primary hover:underline">
+                    source
+                  </a>
+                )}
+              </p>
+            ))}
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="subject">Subject</Label>
           <Input
@@ -235,16 +253,11 @@ export function DraftEditor({
                 <Kbd>R</Kbd>
               </Button>
               <Button
-                onClick={() =>
-                  regenerate.mutate(draft.application_id, {
-                    onSuccess: () => toast.success('New draft generated'),
-                    onError: (e) => toast.error(e.message),
-                  })
-                }
-                disabled={regenerate.isPending}
+                onClick={() => regenerate.start(undefined, { onError: (e) => toast.error(e.message) })}
+                disabled={regenerate.running}
               >
-                <RefreshCw className={regenerate.isPending ? 'animate-spin' : undefined} />
-                {regenerate.isPending ? 'Drafting…' : 'Regenerate'}
+                <RefreshCw className={regenerate.running ? 'animate-spin' : undefined} />
+                {regenerate.running ? 'Drafting…' : 'Regenerate'}
               </Button>
               <Button
                 data-tour="outreach-test-send"

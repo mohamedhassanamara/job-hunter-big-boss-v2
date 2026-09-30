@@ -79,6 +79,12 @@ export default function PipelinePage() {
       setApplying(tracked)
       return
     }
+    if (to === 'ready' && card.tracks.outreach === 'contact') {
+      // The email draft step: research the company (reused when fresh), then draft.
+      toast('Drafting the email: research first, then the draft', { description: card.title })
+      navigate(`/jobs/${card.job_id}?draft=1#outreach`)
+      return
+    }
     if (to === 'ready' || to === 'done') {
       toast(`${COLUMN_LABELS[to]}: continue in the job's Outreach card`)
       navigate(`/jobs/${card.job_id}#outreach`)

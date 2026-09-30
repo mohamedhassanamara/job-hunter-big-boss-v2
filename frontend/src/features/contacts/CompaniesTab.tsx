@@ -26,6 +26,7 @@ import {
 } from '@/lib/queries/library'
 import type { CompanyDetail, CompanyFilter, Contact } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { SignalsPanel } from '@/components/app/research/SignalsPanel'
 import { NewContactDialog } from '@/components/app/NewContactDialog'
 
 const SOURCE: Record<Contact['source'], { label: string; tone: 'green' | 'blue' | 'gray' }> = {
@@ -267,6 +268,10 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
             ))}
           </div>
         )}
+      </div>
+      <div>
+        <p className="mb-2 text-xs font-medium text-fg-subtle">Signals (used by cold emails)</p>
+        <SignalsPanel companyId={data.id} compact />
       </div>
       <NewContactDialog
         key={`add-${adding}`}
