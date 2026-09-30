@@ -18,6 +18,7 @@ class Company(TableBase, table=True):
     linkedin_url: str | None = None
     notes: str | None = None
     contacted_at: datetime | None = dt_field()
+    research_refreshed_at: datetime | None = dt_field()  # last company research (cold emails)
     # Headcount: an exact number, or an upper bound (e.g. 200 for "under 200" from an Apollo list).
     employees: int | None = None
     employees_max: int | None = None

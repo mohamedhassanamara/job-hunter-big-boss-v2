@@ -240,3 +240,54 @@ def _short_error(exc: Exception) -> str:
         where = ".".join(str(p) for p in first.get("loc", ()))
         return f"{where}: {first.get('msg')}" if where else str(first.get("msg"))
     return str(exc)[:200]
+
+
+def structured(model: str, system: str, user: str, schema: type, *, base_url: str = DEFAULT_URL,
+               timeout: float = 180.0, num_ctx: int = 16384,
+               transport: httpx.BaseTransport | None = None) -> tuple[Any, dict[str, Any]]:
+    """One Ollama chat returning a validated pydantic object, with the scorer's conventions:
+    cloud models get the schema in the prompt, local ones native `format` and `think: false`;
+    errors are typed like scoring's (ConcurrencyLimited, QuotaExceeded, TransientError,
+    ScoringFailed). One retry when the answer doesn't match the schema. Returns (object, meta)."""
+    json_schema = inline_schema(schema)
+    sys_prompt = system + (f"\n\n{schema_instruction(json_schema)}" if is_cloud(model) else "")
+    messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user}]
+    meta: dict[str, Any] = {"model": model, "calls": 0}
+    started = time.monotonic()
+    for attempt in range(2):
+        body: dict[str, Any] = {"model": model, "messages": messages, "stream": False,
+                                "options": {"temperature": 0, "seed": 42, "num_ctx": num_ctx}}
+        if not is_cloud(model):
+            body["format"], body["think"] = json_schema, False
+        try:
+            with httpx.Client(timeout=timeout, transport=transport) as client:
+                res = client.post(f"{base_url.rstrip('/')}/api/chat", json=body)
+        except httpx.TimeoutException as exc:
+            raise TransientError(f"Timed out after {timeout:g}s") from exc
+        except httpx.TransportError as exc:
+            raise TransientError(f"Ollama isn't reachable at {base_url}") from exc
+        meta["calls"] += 1
+        kind = classify_error(res.status_code, res.text)
+        if kind == "concurrency":
+            raise ConcurrencyLimited(f"Ollama {res.status_code}: {_error_text(res)}")
+        if kind == "quota":
+            raise QuotaExceeded(f"Cloud usage limit: {_error_text(res)}")
+        if kind == "transient":
+            raise TransientError(f"Ollama error {res.status_code}: {_error_text(res)}")
+        if res.status_code >= 400:
+            raise ScoringFailed(f"Ollama error {res.status_code}: {res.text[:200]}")
+        data = res.json()
+        meta["prompt_tokens"] = meta.get("prompt_tokens", 0) + (data.get("prompt_eval_count") or 0)
+        meta["output_tokens"] = meta.get("output_tokens", 0) + (data.get("eval_count") or 0)
+        content = strip_fence((data.get("message") or {}).get("content") or "")
+        try:
+            out = schema.model_validate_json(content)
+            meta["duration_ms"] = int((time.monotonic() - started) * 1000)
+            return out, meta
+        except ValidationError as exc:
+            if attempt:
+                raise ScoringFailed(f"Invalid answer: {str(exc)[:200]}") from exc
+            messages += [{"role": "assistant", "content": content},
+                         {"role": "user", "content": f"That didn't match the schema: "
+                                                     f"{str(exc)[:500]}. Answer again, JSON only."}]
+    raise ScoringFailed("unreachable")
