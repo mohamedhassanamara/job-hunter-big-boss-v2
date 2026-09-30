@@ -187,8 +187,8 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | Column | Type | Notes |
 |---|---|---|
 | job_id | FK job unique | |
-| stage | enum `new \| shortlisted \| cv_ready \| drafted \| ready \| done \| interview \| closed` | `drafted` ("Email drafted") is only used on the email route |
-| route | enum `undecided \| cold_email \| web_apply` | Derived from contact resolution. Can be overridden. `pipeline.effective_route`: the route if set, else cold email with a contact, else web apply (every DTO carries `effective_route`) |
+| stage | enum `new \| shortlisted \| cv_ready \| ready \| done \| interview \| closed` | The overall position; `done` = the first route finished ("Applied", "Emailed", "Applied + emailed"). `drafted` was retired in 0012 (moved to `cv_ready`) |
+| route | enum `undecided \| cold_email \| web_apply` | Legacy default focus only: both routes are open on every job. DTOs carry `tracks` (`services/tracks.py`): `application` not_ready/ready/applied and `outreach` no_contact/contact/drafted/approved/queued/sent, derived from `web_applied_at`, the approved CV, `contact_id` and the drafts |
 | contact_id | FK contact? | |
 | contact_tier | enum `apollo_dump \| lookup_queued \| lookup_found \| none` | 3-tier resolution result (`services/contacts.resolve`); `lookup_queued` mirrors the company's `company_lookup` row |
 | close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer_accepted \| offer_declined \| offer` | Only when `closed`. After applying only rejected / no_response / withdrawn / offer_accepted / offer_declined (`services/tracking.close`); `offer` is legacy (shown as "Offer") |
@@ -198,6 +198,7 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | applied_cv_version_id | FK cv_version? | The CV version sent (locked). `use_alter` FK: cv_version also points at application |
 | applied_cover_letter_id | FK cover_letter? | The cover letter sent (locked); null = none. `use_alter` FK, like the CV's |
 | letter_language | str | `auto` (the listing's language) \| `fr` \| `en`: this job's cover letter language |
+| web_applied_at / web_method | datetime? / enum? | The web application (Mark applied), apart from the email (0012; backfilled) |
 | applied_notes | text | Notes from "Mark applied" |
 | stage_changed_at | datetime | Last stage change, which drives "days in stage" on cards |
 
@@ -207,9 +208,8 @@ UI labels for `ready` / `done` depend on route: *Ready to send / Sent* (cold_ema
 ```
 new → shortlisted | closed
 shortlisted → cv_ready | new | closed
-cv_ready → drafted | ready | shortlisted | closed
-drafted → ready | cv_ready | closed
-ready → done | drafted | cv_ready | closed
+cv_ready → ready | shortlisted | closed
+ready → done | cv_ready | closed
 done → interview | closed
 interview → closed | done
 closed → new (reopen, clears close_reason)
@@ -220,13 +220,16 @@ Tracked moves (`services/tracking.py`, always through `pipeline.transition`):
 - **Mark applied** (`POST /applications/{id}/applied`): only from `cv_ready`/`ready` (steps through `ready`), needs an
   approved CV of this job (default: the latest), locks it, sets `applied_*`, → `done`. `PATCH stage=done` is refused
   for web apply, and `PATCH stage=interview` always (use Mark applied / Log interview).
-- Approving a CV with no contact moves `cv_ready → ready` (Ready to apply) at once.
-- **Email route** (`api/outreach.py`, `services/send_queue.py`): creating a draft → `drafted`; approving it →
-  `ready` (Ready to send; approving no longer queues); **Add to send queue** (`POST /outreach/drafts/{id}/queue`) is a
-  separate step; rejecting the last draft → back to `cv_ready` (restore → `drafted`); the queue sending it, or
-  "I sent it myself" (`POST /applications/{id}/sent-manually`, needs an approved draft), → `done` with the CV locked.
-  `PATCH stage=drafted` is refused, and `PATCH stage=done` on the email route too.
-- **Mark applied** also takes `cover_letter_id` (an approved letter of this job): it is locked like the CV.
+- Approving a CV leaves the job at `cv_ready`: both routes can start.
+- **Email** (`api/outreach.py`, `services/send_queue.py`): a draft doesn't move the stage; approving it moves
+  `cv_ready → ready`; **Add to send queue** (`POST /outreach/drafts/{id}/queue`) is a separate step; reject/restore
+  only change the draft. The queue sending it, or "I sent it myself" (`POST /applications/{id}/sent-manually`),
+  moves `ready → done` unless the job is already done (a web application went first); the CV is locked either way.
+- **Mark applied** works from `cv_ready`/`ready` (→ `done`) and from `done`/`interview` when the email went first (no
+  stage change); it sets `web_applied_at`/`web_method`, keeps `applied_at` as the first time you reached out, and
+  takes `cover_letter_id` (PDF) and `form_letter_id` (form text), both locked like the CV. `PATCH stage=done` is
+  always refused (Mark applied or send the email).
+- Automatic contact matching skips closed jobs and jobs with an email draft; applied jobs still get a contact.
 - **Log interview**: the first one moves `done → interview`. **Log reply** never moves the stage.
 - **Ghosting** is only suggested (a reminder); `POST /reminders/{id}/ghost/confirm` closes as `no_response`.
 
@@ -267,6 +270,8 @@ A cover letter version for a web application (`services/cover_letter.py`), writt
 | version | int | 1, 2, 3… per application |
 | status | enum `draft \| approved \| superseded` | Regenerating supersedes the draft under review; approving supersedes the other unlocked approved one; editing an approved one sends it back to draft |
 | language | str | `fr \| en` |
+| format | str | `pdf` (letter to upload) \| `form` (text for a form's box; no PDF). Versions are numbered per format |
+| question / char_limit | text? / int? | Form text: the form's question and the box's limit (a hard check) |
 | content | JSON | `{salutation, ask, paragraphs: [{sentences: [{text, citations, about_job}]} \| {text}]}`; an edited paragraph becomes `{text}` (checked at text level) |
 | text | text | Plain text (Copy as text): salutation, paragraphs, closing, name |
 | tex / pdf_path / page_count | text? / str? / int? | Under `data/letters/<application>/v<n>/`; must be 1 page |
@@ -292,6 +297,12 @@ Answers to an application form's questions (`services/answers.py`).
 | plan | JSON | `{sentences: [{text, citations, about_job}], attempts}` |
 | violations | JSON | Grounding, length, banned phrases, years |
 | generator_model / prompt_version | str / str? | |
+
+### copilot_thread / copilot_message
+The Copilot's conversations (`services/copilot.py`). `copilot_thread`: `application_id?` (null = global), `title`,
+`archived` ("New conversation" on a job archives the old thread). `copilot_message`: `thread_id`, `role`
+(user/assistant), `content`, `model` (with the prompt version), `warnings` JSON (facts that aren't yours, clichés,
+years wording), `duration_ms`, `error`.
 
 ### application_response
 | Column | Type | Notes |

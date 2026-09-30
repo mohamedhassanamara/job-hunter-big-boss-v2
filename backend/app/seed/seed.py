@@ -437,6 +437,12 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                         )
                     )
         _seed_tracking(s, apps, now)
+        # Both routes: the email to Marea went out, and you applied on their site too.
+        marea = apps["marea-stream"]
+        if marea.applied_at is not None:
+            marea.web_applied_at = marea.applied_at + timedelta(days=1)
+            marea.web_method = ApplyMethod.company_site
+            s.add(marea)
         _seed_letters(s, apps)
         _seed_lookups(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
@@ -504,6 +510,31 @@ def _seed_letters(s: Session, apps: dict[str, Application]) -> None:
     s.add(ApplicationEvent(application_id=app.id, kind=EventKind.letter_generated,
                            message=f"Cover letter v1 ({language}) written",
                            at=app.stage_changed_at + timedelta(minutes=30)))
+    question = "Why do you want to join us?"
+    form_plan = drafter.draft_form(cl.build_request(s, app, cv, pool, language, "form", question,
+                                                    800))
+    form = CoverLetter(application_id=app.id, version=1, language=language, format="form",
+                       question=question, char_limit=800,
+                       content=cl.content_from_plan(form_plan, ""), cv_version_id=cv.id,
+                       generator_model="claude-sonnet-5 (mock)",
+                       prompt_version=drafter.prompt_version)
+    s.add(form)
+    s.flush()
+    form.text = cl.plain_text(s, form)
+    form.violations = cl.check(s, form, pool)
+    s.add(form)
+    # A Copilot conversation on the same job (sample answer; the tour never calls a model).
+    from app.models import CopilotMessage, CopilotThread
+
+    thread = CopilotThread(application_id=app.id, title=job.title)
+    s.add(thread)
+    s.flush()
+    s.add(CopilotMessage(thread_id=thread.id, role="user",
+                         content="What should I highlight in the interview?"))
+    s.add(CopilotMessage(thread_id=thread.id, role="assistant", model="mock-copilot",
+                         content=(f"For {job.title}: lead with the project closest to the "
+                                  "listing, explain what it changed, and be ready to discuss "
+                                  "the gaps the fit score lists.")))
     questions = [{"id": 1, "question": "Why do you want to join us?", "char_limit": 400},
                  {"id": 2, "question": "Describe a data pipeline you built.", "char_limit": None}]
     ctx = cl.context(s, app, language, pool)
