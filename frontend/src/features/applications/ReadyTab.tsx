@@ -1,4 +1,4 @@
-import { ArrowUpRight, CircleCheck, Globe } from 'lucide-react'
+import { ArrowUpRight, CircleCheck, FileText, Globe } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
@@ -15,6 +15,7 @@ import type { ReadyItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const pdfUrl = (r: ReadyItem) => apiUrl(`/cv/${r.cv_version_id}/pdf`, { download: true })
+const letterUrl = (r: ReadyItem) => (r.letter_status === 'approved' && r.letter_id ? apiUrl(`/letters/${r.letter_id}/pdf`, { download: true }) : null)
 
 export function ReadyTab() {
   const { data, isPending, error, refetch } = useReadyToApply()
@@ -30,7 +31,7 @@ export function ReadyTab() {
     actions: {
       o: (id) => {
         const r = byId(id)
-        if (r) openListingAndCv(r.url, pdfUrl(r))
+        if (r) openListingAndCv(r.url, pdfUrl(r), letterUrl(r))
       },
       a: (id) => setApplying(byId(id) ?? null),
     },
@@ -59,7 +60,7 @@ export function ReadyTab() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto" data-tour="applications-ready">
       <p className="border-b border-border bg-bg-subtle px-6 py-2 text-xs text-fg-subtle">
-        <Kbd>O</Kbd> open listing + download CV · <Kbd>A</Kbd> mark applied · <Kbd>J</Kbd> <Kbd>K</Kbd> move
+        <Kbd>O</Kbd> open listing + download CV (and cover letter) · <Kbd>A</Kbd> mark applied · <Kbd>J</Kbd> <Kbd>K</Kbd> move
       </p>
       <div role="listbox" aria-label="Ready to apply">
         {items.map((r) => (
@@ -81,13 +82,22 @@ export function ReadyTab() {
               </Link>
               <p className="truncate text-xs text-fg-muted">
                 {r.company} · {r.track ?? 'No track'} · {r.country ? countryName(r.country) : 'Remote'} · approved CV v{r.cv_version}
+                {r.letter_status === 'approved' && ` · cover letter v${r.letter_version}`}
               </p>
             </div>
+            {r.letter_status !== 'approved' && (
+              <Button size="sm" variant="ghost" asChild data-tour="applications-letter">
+                <Link to={`/jobs/${r.job_id}/letter`}>
+                  <FileText />
+                  {r.letter_status === 'draft' ? `Review cover letter v${r.letter_version}` : 'Write cover letter'}
+                </Link>
+              </Button>
+            )}
             <Button
               size="sm"
               variant={(selected ?? items[0].application_id) === r.application_id ? 'default' : 'secondary'}
-              data-tour="applications-open" onClick={() => openListingAndCv(r.url, pdfUrl(r))}>
-              Open listing + CV
+              data-tour="applications-open" onClick={() => openListingAndCv(r.url, pdfUrl(r), letterUrl(r))}>
+              {r.letter_status === 'approved' ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
               <ArrowUpRight />
             </Button>
             <Button size="sm" data-tour="applications-mark" onClick={() => setApplying(r)}>

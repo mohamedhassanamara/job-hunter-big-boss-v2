@@ -123,8 +123,24 @@ def _years_message(claim: str, ctx: Context) -> str:
                                                      if wording else "")
 
 
+_GROUPED = re.compile(r"(?<![\d.,])(\d{1,3})(?:[ \u00a0\u202f,](\d{3}))+(?![\d])")
+
+
+def _ungroup(text: str) -> str:
+    """"2 000" (French) and "2,000" → "2000", so a number compares with the pool's "~2,000"."""
+    return _GROUPED.sub(lambda m: re.sub(r"[ \u00a0\u202f,]", "", m.group(0)), text)
+
+
+def _states_years(text: str, ctx: Context) -> bool:
+    folded = text.replace("’", "'").lower()
+    return any(s and s.lower() in folded for s in (ctx.years_statement, ctx.years_statement_fr)) \
+        or bool(years_problems(text, Context(pool=ctx.pool, allowed_years=set(),
+                                             job_text="", company="")))
+
+
 def _grounding(sentence: EmailSentence, ctx: Context) -> list[str]:
     email = ctx.email_context()
+    sentence = sentence.model_copy(update={"text": _ungroup(sentence.text)})
     if sentence.about_job and not sentence.citations:
         return oc._about_job_problems(_strip_fr(sentence.text, ctx.years_statement_fr), email)
     text = oc._claims_only(_strip_fr(sentence.text, ctx.years_statement_fr), email)
@@ -216,7 +232,7 @@ def check_letter(salutation: str, paragraphs: list[dict[str, Any]], ask: str | N
                                      "from the listing", where, "error"))
         else:
             text = str(p.get("text") or "")
-            clean = _strip_fr(text, ctx.years_statement_fr)
+            clean = _ungroup(_strip_fr(text, ctx.years_statement_fr))
             out += [violation("grounding", problem, where, "error")
                     for problem in oc._source_problems(clean, email)]
             texts.append(text)
@@ -224,7 +240,10 @@ def check_letter(salutation: str, paragraphs: list[dict[str, Any]], ask: str | N
         out += [violation("grounding", f"The ask: {p}", "ask", "error")
                 for p in oc._source_problems(ask, email)]
     if generated and all("sentences" in p for p in paragraphs):
-        builds = len(_built_items(generated, ctx))
+        # Builds are cited after the opening; a sentence stating the years cites roles only to
+        # back that number.
+        body = [EmailSentence.model_validate(x) for p in paragraphs[1:] for x in p["sentences"]]
+        builds = len(_built_items([x for x in body if not _states_years(x.text, ctx)], ctx))
         if builds < 2:
             out.append(violation("builds", f"{builds} concrete build from your CV (show 2-3)",
                                  "letter"))

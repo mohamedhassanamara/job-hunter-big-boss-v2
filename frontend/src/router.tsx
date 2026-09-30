@@ -6,6 +6,7 @@ import CVStudioPage from '@/features/cv-studio/CVStudioPage'
 import DiscoverPage from '@/features/discover/DiscoverPage'
 import ExperiencePage from '@/features/experience/ExperiencePage'
 import JobPage from '@/features/job/JobPage'
+import LetterStudioPage from '@/features/letter-studio/LetterStudioPage'
 import NotFoundPage from '@/features/NotFoundPage'
 import OutreachPage from '@/features/outreach/OutreachPage'
 import PipelinePage from '@/features/pipeline/PipelinePage'
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: 'applications', element: <ApplicationsPage /> },
       { path: 'jobs/:id', element: <JobPage /> },
       { path: 'jobs/:id/cv', element: <CVStudioPage /> },
+      { path: 'jobs/:id/letter', element: <LetterStudioPage /> },
       { path: 'outreach', element: <OutreachPage /> },
       { path: 'contacts', element: <ContactsPage /> },
       { path: 'experience', element: <ExperiencePage /> },

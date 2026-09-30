@@ -47,8 +47,10 @@ import { useTriageActions } from '@/hooks/useTriageActions'
 import { ApiError, apiUrl } from '@/lib/api'
 import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
+import { useLetterStudio } from '@/lib/queries/letters'
 import { isApplied, openListingAndCv } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Route, Stage } from '@/lib/types'
+import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
 import { Timeline } from './Timeline'
 
@@ -173,8 +175,12 @@ function CVSection({ job }: { job: JobDetail }) {
 function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => void }) {
   const stage = job.application.stage
   const approved = job.cv_versions.find((v) => v.status === 'approved')
-  if (job.application.route !== 'web_apply' || !(stage === 'ready' || stage === 'cv_ready') || !approved) return null
+  const show = job.application.effective_route === 'web_apply' && (stage === 'ready' || stage === 'cv_ready') && !!approved
+  const letters = useLetterStudio(show ? job.application.id : NaN)
+  if (!show || !approved) return null
   const pdf = apiUrl(`/cv/${approved.id}/pdf`, { download: true })
+  const letter = letters.data?.letters.find((l) => l.status === 'approved')
+  const letterPdf = letter ? apiUrl(`/letters/${letter.id}/pdf`, { download: true }) : null
   return (
     <div className="rounded-lg border border-tone-blue-border bg-info-bg p-4">
       <div className="flex items-start gap-3">
@@ -183,11 +189,11 @@ function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => 
           <p className="text-sm font-semibold text-info-fg">Apply on the company site</p>
           <p className="text-sm text-fg-muted">
             No contact was found, so this one is a manual application. Open the listing with your approved
-            CV v{approved.version}, apply, then mark it applied: that version gets locked.
+            CV v{approved.version}{letter ? ` and cover letter v${letter.version}` : ''}, apply, then mark it applied: those versions get locked.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
-            <Button size="sm" onClick={() => openListingAndCv(job.url, pdf)}>
-              Open listing + CV
+            <Button size="sm" onClick={() => openListingAndCv(job.url, pdf, letterPdf)}>
+              {letter ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
               <ArrowRight />
             </Button>
             <Button size="sm" variant="ghost" asChild>
@@ -443,6 +449,7 @@ export default function JobPage() {
             <FitCard job={job} />
           </div>
           <CVSection job={job} />
+          <CoverLetterSection job={job} />
           <NotesCard key={job.id} job={job} />
           <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
             <div className="p-4">

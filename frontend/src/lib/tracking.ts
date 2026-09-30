@@ -71,13 +71,19 @@ export function shortDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-/** "Open listing + CV": the listing in a new tab and the approved PDF downloaded, in one click. */
-export function openListingAndCv(listingUrl: string, pdfUrl: string): void {
-  window.open(listingUrl, '_blank', 'noopener,noreferrer')
+function download(url: string): void {
   const a = document.createElement('a')
-  a.href = pdfUrl
+  a.href = url
   a.download = ''
   document.body.appendChild(a)
   a.click()
   a.remove()
+}
+
+/** "Open listing + CV (+ cover letter)": the listing in a new tab and the approved PDFs
+ * downloaded, in one click. Downloads are spaced so the browser doesn't drop the second one. */
+export function openListingAndCv(listingUrl: string, pdfUrl: string, letterUrl?: string | null): void {
+  window.open(listingUrl, '_blank', 'noopener,noreferrer')
+  download(pdfUrl)
+  if (letterUrl) window.setTimeout(() => download(letterUrl), 400)
 }

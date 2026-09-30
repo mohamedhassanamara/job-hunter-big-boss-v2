@@ -1,10 +1,12 @@
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { useLetterStudio } from '@/lib/queries/letters'
 import { useLogInterview, useLogResponse, useMarkApplied } from '@/lib/queries/tracking'
 import { INTERVIEW_TYPE_LABELS, localIso, METHOD_LABELS, RESPONSE_LABELS, todayIso } from '@/lib/tracking'
 import type { ApplyMethod, InterviewType, ResponseKind } from '@/lib/types'
@@ -57,7 +59,8 @@ function Field({ label, htmlFor, children, hint }: { label: string; htmlFor?: st
 const options = <T extends string>(labels: Record<T, string>) =>
   (Object.keys(labels) as T[]).map((value) => ({ value, label: labels[value] }))
 
-/** Records the date, method and the CV version sent. That version is locked from then on. */
+/** Records the date, method, the CV version and the cover letter (if any) sent. Both are locked
+ * from then on. */
 export function MarkAppliedDialog({
   target,
   cvVersion,
@@ -74,14 +77,19 @@ export function MarkAppliedDialog({
   const [date, setDate] = useState(todayIso())
   const [method, setMethod] = useState<ApplyMethod>('company_site')
   const [notes, setNotes] = useState('')
+  const [withLetter, setWithLetter] = useState(true)
   const mark = useMarkApplied()
+  const letters = useLetterStudio(target?.appId ?? NaN)
+  const letter = letters.data?.letters.find((l) => l.status === 'approved')
+  const sendLetter = withLetter && !!letter
   const submit = () => {
     if (!target) return
     mark.mutate(
-      { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, notes },
+      { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, cover_letter_id: sendLetter ? letter.id : null, notes },
       {
         onSuccess: () => {
-          toast.success('Marked applied', { description: `${target.title} · ${cvVersion ? `CV v${cvVersion}` : 'approved CV'} locked` })
+          const sent = `${cvVersion ? `CV v${cvVersion}` : 'approved CV'}${sendLetter ? ` and cover letter v${letter.version}` : ''}`
+          toast.success('Marked applied', { description: `${target.title} · ${sent} locked` })
           onOpenChange(false)
           onDone?.()
         },
@@ -114,11 +122,19 @@ export function MarkAppliedDialog({
           <Select aria-label="Method" value={method} onValueChange={(v) => setMethod(v as ApplyMethod)} options={options(METHOD_LABELS)} className="w-full" />
         </Field>
       </div>
-      <Field label="CV sent" hint="This version is locked: later edits create a new version.">
+      <Field label="Sent" hint="These versions are locked: later edits create a new version.">
         <p className="text-sm">{cvVersion ? `Approved CV v${cvVersion}` : 'Latest approved CV'}</p>
+        {letter ? (
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={withLetter} onCheckedChange={(v) => setWithLetter(v === true)} aria-label="Cover letter sent" />
+            Cover letter v{letter.version} ({letter.language === 'fr' ? 'French' : 'English'})
+          </label>
+        ) : (
+          <p className="text-xs text-fg-subtle">{letters.isPending ? ' ' : 'No approved cover letter (none recorded).'}</p>
+        )}
       </Field>
       <Field label="Notes" htmlFor="applied-notes">
-        <Textarea id="applied-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Referral, portal account, cover letter…" className="min-h-16" />
+        <Textarea id="applied-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Referral, portal account…" className="min-h-16" />
       </Field>
     </Shell>
   )

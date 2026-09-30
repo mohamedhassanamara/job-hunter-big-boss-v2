@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { JobList, PipelineCard, Today } from '@/lib/types'
+import type { JobList, PipelineCard, ReadyItem, Today } from '@/lib/types'
 
 /**
  * Guided tours, one per feature. They run in the sandbox workspace (sample data only).
@@ -21,6 +21,7 @@ export type TourId =
   | 'applications'
   | 'job'
   | 'cv'
+  | 'letter'
   | 'outreach'
   | 'contacts'
   | 'experience'
@@ -136,6 +137,23 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'cv-approve', title: 'Approve', body: 'Approving offers the next step: draft the email when there is a contact, otherwise the job moves to Ready to apply. Download uses your filename pattern.' },
     ],
   },
+  letter: {
+    id: 'letter',
+    title: 'Cover letter',
+    description: 'A grounded lettre de motivation for web applications',
+    resolveRoute: async () => {
+      const ready = await api.get<ReadyItem[]>('/applications/ready')
+      const item = ready.find((r) => r.letter_status !== 'none') ?? ready[0]
+      return item ? `/jobs/${item.job_id}/letter` : '/applications?tab=ready'
+    },
+    steps: [
+      { target: 'letter-language', title: "The listing's language", body: 'French listing, French letter (English otherwise). Pick another language for this job if you prefer; the next letter is written in it.', placement: 'bottom' },
+      { target: 'letter-checks', title: 'Checked before you see it', body: 'Every sentence comes from your approved CV or the listing. The opening names the company and something from the listing; 2-3 concrete builds; one ask at the end; the word range; no banned phrases (French and English lists); your exact years wording. Errors block approval.', placement: 'right' },
+      { target: 'letter-editor', title: 'Edit freely', body: 'Paragraphs autosave, are re-checked and the PDF re-renders, with no new Claude call. Header, date, salutation, closing formula and signature come from your settings.', placement: 'right' },
+      { target: 'letter-preview', title: 'Same look as your CV', body: 'Rendered from the CV template with the same header, on one page.', placement: 'left' },
+      { target: 'letter-approve', title: 'Approve, then apply', body: 'The approved letter joins the CV in Ready to apply: one click opens the listing and downloads both. Copy as text fills a form field instead. Mark applied locks the versions you sent.' },
+    ],
+  },
   outreach: {
     id: 'outreach',
     title: 'Outreach',
@@ -146,7 +164,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'outreach-checks', title: 'Checked before you see it', body: 'Every sentence must come from your approved CV (or the listing), with one ask, the right first name and company, no banned phrases, under the word limit. Problems block approval; near-copies of other emails are flagged.', placement: 'left' },
       { target: 'outreach-editor', title: 'Edit freely', body: 'Edits autosave and are re-checked. Your signature and a polite opt-out line are added when it is sent, and the approved CV is attached.', placement: 'left' },
       { target: 'outreach-test-send', title: 'Test on yourself first', body: 'Sends this exact email, CV attached, to your own address with a [TEST] subject. The queue cannot start before one test went through.', placement: 'top' },
-      { target: 'outreach-approve', title: 'Approve & queue', body: 'Approved emails join the send queue. Nothing is sent before that.', placement: 'top' },
+      { target: 'outreach-approve', title: 'Approve, then add to the queue', body: 'Approve marks the email Ready to send; Add to send queue is a separate step that shows its place and send time. Nothing is sent before that.', placement: 'top' },
       { target: 'outreach-queue', title: 'Send queue', body: 'One email every 15 minutes, at most 20 per queue, pause anytime. It survives restarts; an email caught mid-send is never resent blindly. A sent email moves the job to Sent and starts the follow-up reminders.', route: '/outreach?tab=queue' },
     ],
   },

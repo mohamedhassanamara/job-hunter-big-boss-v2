@@ -27,7 +27,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking", "contacts", "outreach",
+    "cv", "tracking", "contacts", "outreach", "cover_letter",
 }
 
 
@@ -56,6 +56,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
 
     cv = cv_settings(session)  # defaults for keys added by newer versions (guide, structure…)
     values["cv"] = {**cv, "structure": structure(cv)}
+    from app.services.cover_letter import letter_settings
+
+    values["cover_letter"] = letter_settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -152,6 +155,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_contacts(body.value)
     if key == "outreach":
         _check_outreach(body.value)
+    if key == "cover_letter":
+        _check_cover_letter(body.value)
     if key == "lookup":
         cap = body.value.get("daily_cap")
         if not isinstance(cap, int) or not 1 <= cap <= 100:
@@ -194,6 +199,32 @@ def _check_outreach(value: dict) -> None:
     lang = value.get("language", "auto")
     if lang != "auto" and not (isinstance(lang, str) and len(lang) == 2):
         raise HTTPException(422, "language must be auto or a 2-letter code (en, fr…)")
+
+
+def _check_cover_letter(value: dict) -> None:
+    import string
+
+    lo, hi = value.get("min_words", 250), value.get("max_words", 350)
+    if not (isinstance(lo, int) and isinstance(hi, int) and 100 <= lo <= hi <= 600):
+        raise HTTPException(422, "The word range must be between 100 and 600 (min ≤ max)")
+    if value.get("language", "auto") not in ("auto", "fr", "en"):
+        raise HTTPException(422, "language must be auto, fr or en")
+    guide = value.get("guide", "")
+    if not isinstance(guide, str) or len(guide) > 4000:
+        raise HTTPException(422, "The writing guide must be text (at most 4000 characters)")
+    for key in ("banned_phrases", "salutation", "closing"):
+        per_language = value.get(key) or {}
+        if not isinstance(per_language, dict) or set(per_language) - {"fr", "en"}:
+            raise HTTPException(422, f"{key} must have fr and en entries")
+        for v in per_language.values():
+            ok = (isinstance(v, list) and all(isinstance(x, str) for x in v)) if \
+                key == "banned_phrases" else isinstance(v, str)
+            if not ok:
+                raise HTTPException(422, f"{key}: wrong value type")
+    pattern = str(value.get("filename_pattern") or "")
+    fields = {f for _, f, _, _ in string.Formatter().parse(pattern) if f}
+    if unknown := fields - {"full_name", "company", "job_title", "version"}:
+        raise HTTPException(422, f"Unknown filename fields: {', '.join(sorted(unknown))}")
 
 
 def _check_contacts(value: dict) -> None:

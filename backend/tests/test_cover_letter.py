@@ -64,7 +64,7 @@ def test_letter_drafter_uses_the_isolated_subscription_call() -> None:
     d = ClaudeLetterDrafter(runner=fake_run({"is_error": False, "structured_output": LETTER},
                                             calls=calls))
     out = d.draft_letter(LetterRequest(job={}, candidate={}, pool={}), feedback="- too short")
-    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v1"
+    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v2"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     system = cmd[cmd.index("--system-prompt") + 1]
@@ -186,6 +186,24 @@ def test_french_letters_use_french_banned_phrases_and_the_french_years_wording(
                                                 ctx))
     cliché = paragraphs(ctx, "Je me permets de postuler chez Acme.")
     assert "banned" in kinds(lc.check_letter("Madame, Monsieur,", cliché, ASK, ctx))
+
+
+def test_french_thousands_and_the_years_sentence_dont_confuse_the_checks(ctx: lc.Context) -> None:
+    r = role(ctx)
+    item = ctx.pool.get(r.id)
+    fact = next((b for b in item.bullets if re.search(r"\d,\d{3}", b)), None)
+    p = paragraphs(ctx)
+    if fact:  # "2,000" in the pool, "2 000" in a French letter
+        french = re.sub(r"(\d),(\d{3})", "\\1\u00a0\\2", fact)
+        p[1]["sentences"].append({"text": french, "citations": [r.id]})
+    assert lc._ungroup("environ 2 000 et 2,000 puis 1 234 567") == \
+        "environ 2000 et 2000 puis 1234567"
+    # The close backs the years with roles: that isn't a fourth build.
+    others = [i.id for i in ctx.pool.items.values() if i.kind == "job" and i.id != r.id][:2]
+    p.append({"sentences": [{"text": "I bring 3 years of experience.", "citations": others}]})
+    found = lc.check_letter("Dear Hiring Manager,", p, ASK, ctx)
+    assert not [v for v in found if v["type"] == "builds" and "focus" in v["message"]]
+    assert "grounding" not in kinds(found)
 
 
 def test_edited_paragraphs_are_checked_against_experience_and_listing(ctx: lc.Context) -> None:
@@ -413,3 +431,66 @@ def test_the_letter_template_compiles_to_one_page(tmp_path: Path) -> None:
     result = compile_tex(render_letter_tex(doc, profile, load_template("default")), tmp_path,
                          "cover_letter")
     assert result.ok and result.pages == 1, result.error
+
+
+# ------------------------------------------------------------------------------------- API
+
+
+def test_letter_api_studio_generate_edit_approve_pdf_and_apply(web_job: dict, client) -> None:  # noqa: ANN001
+    app_id = web_job["app"]
+    studio = client.get(f"/api/applications/{app_id}/letter").json()
+    assert (studio["language"], studio["detected_language"], studio["template_ok"]) == (
+        "fr", "fr", True)
+    assert studio["approved_cv_id"] == web_job["cv"] and studio["letters"] == []
+    studio = client.put(f"/api/applications/{app_id}/letter/language",
+                        json={"language": "en"}).json()
+    assert studio["language"] == "en" and studio["language_setting"] == "en"
+    assert client.put(f"/api/applications/{app_id}/letter/language",
+                      json={"language": "de"}).status_code == 422
+
+    letter = client.post(f"/api/applications/{app_id}/letter/generate", json={}).json()
+    assert letter["language"] == "en" and letter["version"] == 1 and letter["has_pdf"]
+    assert letter["download_name"].endswith(".pdf") and letter["word_count"] > 0
+    assert all(p["edited"] is False for p in letter["paragraphs"])
+    assert set(map(int, letter["sources"])) == {c for p in letter["paragraphs"]
+                                                for x in p["sentences"] for c in x["citations"]}
+
+    # Replace the mock's text with a clean scripted letter, then edit through the API.
+    clean = cl.generate(engine, app_id, Script(good_plan(web_job, fr=False)))
+    texts = [p["text"] for p in client.get(f"/api/applications/{app_id}/letter")
+             .json()["letters"][0]["paragraphs"]]
+    edited = client.patch(f"/api/letters/{clean.id}",
+                          json={"paragraphs": [*texts[:2], texts[2] + " I love it!"]}).json()
+    assert edited["paragraphs"][2]["edited"] and any(
+        v["type"] == "tone" for v in edited["violations"])
+    client.patch(f"/api/letters/{clean.id}", json={"paragraphs": texts})
+    approved = client.post(f"/api/letters/{clean.id}/approve")
+    assert approved.status_code == 200 and approved.json()["status"] == "approved"
+
+    pdf = client.get(f"/api/letters/{clean.id}/pdf?download=true")
+    assert pdf.status_code == 200 and "no-store" in pdf.headers["cache-control"]
+    assert "attachment" in pdf.headers["content-disposition"]
+    text = client.get(f"/api/letters/{clean.id}/text").json()["text"]
+    assert text.startswith("Dear Hiring Manager,") and "Kind regards,\n" in text
+
+    ready = next(r for r in client.get("/api/applications/ready").json()
+                 if r["application_id"] == app_id)
+    assert (ready["letter_id"], ready["letter_status"]) == (clean.id, "approved")
+    r = client.post(f"/api/applications/{app_id}/applied",
+                    json={"method": "company_site", "cover_letter_id": clean.id})
+    assert r.status_code == 200, r.text
+    assert client.post(f"/api/letters/{letter['id']}/approve").status_code == 409  # superseded
+
+
+def test_cover_letter_settings_are_validated(client) -> None:  # noqa: ANN001
+    values = client.get("/api/settings").json()["values"]["cover_letter"]
+    assert values["filename_pattern"] == "{full_name}_Cover_Letter_{company}.pdf"
+    assert "je me permets de" in values["banned_phrases"]["fr"]
+    ok = client.put("/api/settings/cover_letter", json={"value": {**values, "min_words": 200}})
+    assert ok.status_code == 200
+    assert ok.json()["values"]["cover_letter"]["min_words"] == 200
+    for bad in ({"min_words": 400, "max_words": 300}, {"filename_pattern": "{nope}.pdf"},
+                {"closing": {"de": "Grüße"}}, {"language": "es"}):
+        assert client.put("/api/settings/cover_letter",
+                          json={"value": {**values, **bad}}).status_code == 422
+    client.put("/api/settings/cover_letter", json={"value": values})

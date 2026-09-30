@@ -11,6 +11,7 @@ from app.models import (
     Company,
     CompanyLookup,
     Contact,
+    CoverLetter,
     CVVersion,
     FitScore,
     Job,
@@ -366,6 +367,8 @@ def job_detail(session: Session, job: Job) -> JobDetail:
 def tracked_item(session: Session, r: tracking.TrackedRow) -> TrackedItem:
     a = r.application
     cv = session.get(CVVersion, a.applied_cv_version_id) if a.applied_cv_version_id else None
+    letter = session.get(CoverLetter, a.applied_cover_letter_id) \
+        if a.applied_cover_letter_id else None
     days = r.days_to_first_answer
     return TrackedItem(
         application_id=a.id, job_id=r.job.id, title=r.job.title,
@@ -374,7 +377,10 @@ def tracked_item(session: Session, r: tracking.TrackedRow) -> TrackedItem:
         stage_label=stage_label(a.stage, a.route), close_reason=a.close_reason,
         applied_at=a.applied_at, applied_method=a.applied_method,
         applied_cv_version_id=a.applied_cv_version_id,
-        applied_cv_version=cv.version if cv else None, applied_notes=a.applied_notes,
+        applied_cv_version=cv.version if cv else None,
+        applied_cover_letter_id=a.applied_cover_letter_id,
+        applied_cover_letter_version=letter.version if letter else None,
+        applied_notes=a.applied_notes,
         responses=[ResponseOut.model_validate(x, from_attributes=True) for x in r.responses],
         interviews=[InterviewOut.model_validate(x, from_attributes=True) for x in r.interviews],
         days_to_first_response=round(days, 1) if days is not None else None,

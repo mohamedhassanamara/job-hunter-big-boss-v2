@@ -48,6 +48,7 @@ export interface AppliedInput {
   applied_on: string
   method: ApplyMethod
   cv_version_id?: number
+  cover_letter_id?: number | null
   notes: string
 }
 
