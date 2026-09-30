@@ -247,6 +247,26 @@ class WebFetcher:
         return [Source(i.url, "press", i.title, i.text, i.published) for i in items], warnings
 
 
+class SampleFetcher:
+    """The tour sandbox: made-up pages for its made-up companies. Never touches the web."""
+
+    def site(self, home: str, max_pages: int, progress: Progress) -> tuple[list[Source],
+                                                                           list[str]]:
+        host = urlsplit(home).netloc or home
+        name = host.split(".")[0].replace("-", " ").title()
+        return [
+            Source(home, "home", name, f"{name} builds a data platform for logistics teams."),
+            Source(f"{home}/clients", "customers", "Clients",
+                   f"A regional carrier cut its planning time by 30% with {name}."),
+            Source(f"{home}/blog/launch", "news", "Launch",
+                   f"In 2026 {name} launched a real-time routing engine."),
+        ], []
+
+    def news(self, name: str, domain: str | None, language: str,
+             settings: dict[str, Any]) -> tuple[list[Source], list[str]]:
+        return [], []
+
+
 def _title(html: str) -> str:
     m = re.search(r"<title[^>]*>(.*?)</title>", html or "", re.I | re.S)
     return re.sub(r"\s+", " ", m.group(1)).strip()[:200] if m else ""

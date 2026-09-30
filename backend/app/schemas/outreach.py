@@ -47,6 +47,15 @@ class DraftOut(BaseModel):
     mention_included: bool = False
 
 
+class DraftProgress(BaseModel):
+    status: str  # idle | running | done | failed
+    phase: str  # starting | fetching | extracting | drafting | done
+    done: int = 0
+    total: int = 0
+    draft_id: int | None = None
+    error: str | None = None
+
+
 class MentionIn(BaseModel):
     include: bool
 
