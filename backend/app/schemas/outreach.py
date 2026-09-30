@@ -50,6 +50,10 @@ class DraftOut(BaseModel):
     signals: list[dict[str, Any]] = []
     needs_signal: bool = False
     research_note: str | None = None
+    # The hook's claims checked against its signals: {status, model, claims, error, …}.
+    hook_check: dict[str, Any] | None = None
+    # When the greeting spells the name as the company's pages do: {first_name, url, title, excerpt}
+    name_source: dict[str, Any] | None = None
 
 
 class DraftProgress(BaseModel):

@@ -41,6 +41,7 @@ from app.services import intro_check as ic
 from app.services import outreach_check as oc
 from app.services import pipeline
 from app.services.contacts import ranking_settings
+from app.services.cv_check import violation
 from app.services.cv_claims import exact_statement
 from app.services.cv_pool import Pool, load_pool, prompt_pool, years_facts
 
@@ -261,13 +262,14 @@ def full_body(s: Session, draft: OutreachDraft) -> str:
 
 
 def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
-             fetcher: Any = None, progress: Any = None) -> OutreachDraft:
+             fetcher: Any = None, progress: Any = None,
+             hook_checker: Any = None) -> OutreachDraft:
     """Draft the email for one job (never in bulk: one generation at a time). Drafters that
     write introductions (prompt v4+: Claude, the mock) research the company first; the older
     reply-style path remains for the send-queue tests."""
     if hasattr(drafter, "draft_intro"):
         return generate_intro(engine, app_id, drafter, researcher=researcher, fetcher=fetcher,
-                              progress=progress)
+                              progress=progress, hook_checker=hook_checker)
     if not _one_at_a_time.acquire(blocking=False):
         raise OutreachError("Another email is being drafted; one at a time")
     try:
@@ -340,10 +342,12 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
 
 
 def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
-                   fetcher: Any = None, progress: Any = None) -> OutreachDraft:
+                   fetcher: Any = None, progress: Any = None,
+                   hook_checker: Any = None) -> OutreachDraft:
     """The email draft step: research the company (fresh signals are reused: no fetch, no model
-    call), then write the introduction from the selected signals and your pool."""
-    from app.services import research
+    call), then write the introduction from the selected signals and your pool. Each attempt's
+    hook is checked against the signals it cites (hook_check: one model call)."""
+    from app.services import hook_check, research
 
     progress = progress or (lambda *_: None)
     if not _one_at_a_time.acquire(blocking=False):
@@ -385,24 +389,29 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             english, french = request.candidate["years_statement"], \
                 request.candidate["years_statement_fr"]
 
-            def checked(plan: Any) -> tuple[str, list[dict[str, str]]]:
+            def checked(plan: Any) -> tuple[str, list[dict[str, str]], dict[str, Any]]:
+                plan.greeting = ic.greeting_line(request.contact["first_name"], language)
                 intro = ic.intro_line(first, plan.intro_focus, language, english, french)
                 ctx = intro_context(s, app, job, company, contact, pool, language=language,
                                     intro=intro)
-                return intro, ic.check_plan(plan, ctx)
+                review = hook_check.check(hook_checker, plan.hook.text,
+                                          cited_signals(s, company.id, plan.hook.signal_ids))
+                return intro, ic.check_plan(plan, ctx) + hook_check.violations(review), review
 
             started = time.monotonic()
             try:
                 plan = drafter.draft_intro(request)
-                intro, found = checked(plan)
+                intro, found, review = checked(plan)
                 attempts = 1
                 fixable = [v for v in oc.errors(found) if v["type"] != "needs_signal"]
                 if fixable:  # one retry with the problems as feedback
                     retry = drafter.draft_intro(request, oc.feedback(fixable))
-                    retry_intro, retry_found = checked(retry)
+                    retry_intro, retry_found, retry_review = checked(retry)
                     attempts = 2
+                    review["superseded"] = True
                     if len(oc.errors(retry_found)) <= len(oc.errors(found)):
-                        plan, intro, found = retry, retry_intro, retry_found
+                        plan, intro, found, review = retry, retry_intro, retry_found, \
+                            retry_review
             except DraftFailed as exc:
                 raise OutreachError(str(exc)) from exc
             for old in s.exec(select(OutreachDraft).where(
@@ -418,6 +427,7 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
                       "intro_line": intro, "language": language,
                       "signal_ids": plan.hook.signal_ids, "signals": signals,
                       "research_run_id": run_id, "research_note": research_note,
+                      "hook_check": review, "name_source": request.contact.get("name_source"),
                       "request": request.model_dump(),
                       "via": getattr(drafter, "via", "mock"),
                       "auth": getattr(drafter, "auth_source", None)},
@@ -449,10 +459,21 @@ def recheck(s: Session, draft: OutreachDraft) -> list[dict[str, str]]:
     if contact is None:
         return []
     if (draft.plan or {}).get("format") == "intro":
+        from app.services import hook_check
+
+        intro = draft.plan.get("intro_line") or ""
         ctx = intro_context(s, app, job, company, contact, load_pool(s),
-                            language=draft.plan.get("language") or "en",
-                            intro=draft.plan.get("intro_line") or "", exclude_draft=draft.id)
-        return ic.check_text(draft.subject, draft.body, ctx)
+                            language=draft.plan.get("language") or "en", intro=intro,
+                            exclude_draft=draft.id)
+        stored = draft.plan.get("hook_check")
+        if stored and stored.get("hash") == hook_check.fingerprint(ic.hook_paragraph(
+                draft.body, intro)):
+            hook = hook_check.violations(stored)  # the hook is as it was checked
+        else:
+            hook = [violation("hook_edited", ("The hook changed since it was checked"
+                              if stored else "The hook hasn't been checked against the signals "
+                              "yet") + ": it's checked when you approve", "hook")]
+        return ic.check_text(draft.subject, draft.body, ctx) + hook
     ctx = _context(s, app, job, company, contact, load_pool(s), exclude_draft=draft.id)
     return oc.check_text(draft.subject, draft.body, ctx)
 
@@ -482,6 +503,47 @@ def reference_examples(s: Session) -> list[tuple[str, str]]:
             ["reference_good", "reference_bad"]))).all()]
 
 
+def email_first_name(s: Session, company_id: int, contact: Contact) -> tuple[str,
+                                                                          dict | None]:
+    """The contact's first name for the greeting: as the company's researched pages spell it
+    when they name them with accents (Stéphane vs Stephane), otherwise the contact record's."""
+    from app.services import research
+
+    name = _first_name(contact)
+    found = research.name_on_pages(s, company_id, name, contact.full_name)
+    return (found["first_name"], found) if found else (name, None)
+
+
+def cited_signals(s: Session, company_id: int, ids: list[int]) -> dict[int, str]:
+    """The hook's cited signals as the hook check reads them: fact and source quote."""
+    from app.services import research
+
+    return {x.id: f"{x.fact} (source: “{x.quote}”)" for x in research.signals(
+        s, company_id, selected_only=True) if x.id in set(ids)}
+
+
+def ensure_hook_checked(s: Session, draft: OutreachDraft, checker: Any) -> None:
+    """Before approval: check the hook again when you edited it since the last check (or it was
+    never checked), and store the result and the violations on the draft."""
+    from app.services import hook_check
+
+    plan = dict(draft.plan or {})
+    if plan.get("format") != "intro":
+        return
+    hook = ic.hook_paragraph(draft.body, plan.get("intro_line") or "")
+    stored = plan.get("hook_check")
+    if stored and stored.get("hash") == hook_check.fingerprint(hook) \
+            and stored.get("status") == "ok":
+        return
+    app = s.get(Application, draft.application_id)
+    job = s.get(Job, app.job_id)
+    # After your edits the citations may no longer hold: every selected signal is a source.
+    signals = cited_signals(s, job.company_id, list(selected_signals(s, job.company_id)))
+    plan["hook_check"] = hook_check.check(checker, hook, signals)
+    draft.plan = plan
+    draft.violations = recheck(s, draft)
+
+
 def selected_signals(s: Session, company_id: int) -> dict[int, str]:
     from app.services import research
 
@@ -499,7 +561,8 @@ def intro_context(s: Session, app: Application, job: Job, company: Company, cont
     return ic.Context(
         pool=pool, allowed_years=base.allowed_years, job_title=job.title,
         job_text=f"{job.title}\n{job.description or ''}", company=company.name,
-        first_name=_first_name(contact), signals=selected_signals(s, company.id),
+        first_name=email_first_name(s, company.id, contact)[0],
+        signals=selected_signals(s, company.id),
         intro_line=intro, language=language, years_statement=english,
         years_statement_fr=french, banned=base.banned + list(
             letter_settings(s)["banned_phrases"].get(language) or []),
@@ -514,6 +577,10 @@ def intro_request(s: Session, app: Application, job: Job, company: Company, cont
     from app.services.cv_service import _tracks
 
     request = build_request(s, app, job, company, contact, cv, pool)
+    first_name, source = email_first_name(s, company.id, contact)
+    request.contact["first_name"] = first_name
+    if source:
+        request.contact["name_source"] = source
     _facts, english, french = _statements(s, pool)
     tracks = [t.get("name") for t in _tracks(s) if t.get("name")]
     skill_groups = [i.title for i in pool.of("skill")]

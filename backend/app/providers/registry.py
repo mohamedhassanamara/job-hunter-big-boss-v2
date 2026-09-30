@@ -111,6 +111,16 @@ def researcher(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
     return MockResearcher() if use_mock else OllamaResearcher(model, fallback)
 
 
+def hook_checker(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
+                 fallback: str | None = "gemma4:12b"):  # noqa: ANN201
+    """Checks an email's hook against the signals it cites (the research models). Tests and the
+    sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.services.hook_check import MockHookChecker, OllamaHookChecker
+
+    return MockHookChecker() if use_mock else OllamaHookChecker(model, fallback)
+
+
 _mock_mailer = MockMailer()
 
 

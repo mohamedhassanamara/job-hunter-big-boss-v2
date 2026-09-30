@@ -16,6 +16,19 @@ import type { Draft, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 
+/** The hook's claims against its signals: the model, cost and anything it flagged. */
+function HookCheckLine({ check }: { check: Draft['hook_check'] }) {
+  if (!check || check.status === 'skipped') return null
+  if (check.status === 'unchecked') return <p className="text-xs text-warning-fg">Hook not checked against the signals: {check.error}</p>
+  const flagged = check.claims.filter((c) => c.verdict !== 'stated').length
+  const cost = `${check.model} · ${check.calls} call${check.calls === 1 ? '' : 's'}${check.duration_ms ? ` · ${Math.round(check.duration_ms / 1000)}s` : ''}`
+  return (
+    <p className={cn('text-xs', flagged ? 'text-danger-fg' : 'text-fg-subtle')}>
+      {flagged ? `Hook check: ${flagged} claim${flagged === 1 ? '' : 's'} the signals don't state` : `Hook check: every claim is stated by a signal`} ({cost})
+    </p>
+  )
+}
+
 function Checks({ violations }: { violations: Violation[] }) {
   if (violations.length === 0)
     return (
@@ -176,6 +189,17 @@ export function DraftEditor({
                 )}
               </p>
             ))}
+            <HookCheckLine check={draft.hook_check} />
+            {draft.name_source && (
+              <Tooltip content={`“${draft.name_source.excerpt}”`}>
+                <p className="text-xs text-fg-subtle">
+                  Greeting spells it “{draft.name_source.first_name}”, as on{' '}
+                  <a href={draft.name_source.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                    {draft.name_source.title || draft.name_source.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}
+                  </a>
+                </p>
+              </Tooltip>
+            )}
           </div>
         )}
         <div className="space-y-1.5">

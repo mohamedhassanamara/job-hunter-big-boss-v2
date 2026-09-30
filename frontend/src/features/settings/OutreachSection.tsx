@@ -2,13 +2,14 @@ import { toast } from 'sonner'
 import { TagInput } from '@/components/app/TagInput'
 import { Input, Textarea } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { useSaveSetting } from '@/lib/queries/library'
 import type { SettingsView } from '@/lib/types'
 import { useState } from 'react'
 import { Card, Field, SaveBar } from './sections'
 
 interface OutreachValue {
-  signature: { name: string; title: string; email: string; phone: string; photo_path: string }
+  signature: { name: string; title: string; email: string; phone: string; photo_path: string; linkedin?: string; show_phone?: boolean }
   sign_off: string
   opt_out: string
   sign_off_fr?: string
@@ -25,7 +26,8 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
   const [value, setValue] = useState<OutreachValue>(initial)
   const save = useSaveSetting()
   const dirty = JSON.stringify(value) !== JSON.stringify(initial)
-  const sig = (k: keyof OutreachValue['signature'], v: string) => setValue({ ...value, signature: { ...value.signature, [k]: v } })
+  const sig = (k: keyof OutreachValue['signature'], v: string | boolean) => setValue({ ...value, signature: { ...value.signature, [k]: v } })
+  const showPhone = value.signature.show_phone === true
   return (
     <Card
       title="Cold emails"
@@ -49,7 +51,14 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
           <Input placeholder={profile.full_name || 'Name'} value={value.signature.name} onChange={(e) => sig('name', e.target.value)} aria-label="Signature name" />
           <Input placeholder={profile.headline || 'Title (e.g. Data Engineer)'} value={value.signature.title} onChange={(e) => sig('title', e.target.value)} aria-label="Signature title" />
           <Input placeholder={profile.email || 'Email'} value={value.signature.email} onChange={(e) => sig('email', e.target.value)} aria-label="Signature email" />
-          <Input placeholder={profile.phone || 'Phone'} value={value.signature.phone} onChange={(e) => sig('phone', e.target.value)} aria-label="Signature phone" />
+          <Input placeholder={profile.phone || 'Phone'} value={value.signature.phone} onChange={(e) => sig('phone', e.target.value)} disabled={!showPhone} aria-label="Signature phone" />
+          <Input
+            placeholder="LinkedIn (default: your profile link)"
+            value={value.signature.linkedin ?? ''}
+            onChange={(e) => sig('linkedin', e.target.value)}
+            className="col-span-2"
+            aria-label="Signature LinkedIn"
+          />
           <Input
             placeholder="Photo (optional): path to an image file"
             value={value.signature.photo_path}
@@ -58,6 +67,12 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
             aria-label="Signature photo path"
           />
         </div>
+      </Field>
+      <Field label="Phone in the signature" hint="Off by default: the country code tells where you are. The CV keeps it either way.">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={showPhone} onCheckedChange={(v) => sig('show_phone', v)} aria-label="Show the phone number in the email signature" />
+          {showPhone ? 'Shown under your name' : 'Hidden (email and LinkedIn only)'}
+        </label>
       </Field>
       <Field label="Sign-off">
         <Input value={value.sign_off} onChange={(e) => setValue({ ...value, sign_off: e.target.value })} className="w-60" />

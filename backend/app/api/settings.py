@@ -203,8 +203,9 @@ def _check_outreach(value: dict) -> None:
     if not isinstance(banned, list) or not all(isinstance(b, str) for b in banned):
         raise HTTPException(422, "banned_phrases must be a list of phrases")
     sig = value.get("signature") or {}
-    if not isinstance(sig, dict) or not all(isinstance(v, str) for v in sig.values()):
-        raise HTTPException(422, "signature fields must be text")
+    if not isinstance(sig, dict) or not all(isinstance(v, bool) if k == "show_phone"
+                                            else isinstance(v, str) for k, v in sig.items()):
+        raise HTTPException(422, "signature fields must be text (show_phone: true or false)")
     photo = (sig.get("photo_path") or "").strip()
     if photo and not Path(photo).expanduser().is_file():
         raise HTTPException(422, f"Signature photo not found: {photo}")

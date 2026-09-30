@@ -29,7 +29,7 @@ from app.models.enums import (
     Stage,
 )
 from app.providers.base import SendFailed
-from app.providers.registry import email_drafter, mailer
+from app.providers.registry import email_drafter, hook_checker, mailer
 from app.providers.registry import researcher as research_provider
 from app.schemas.outreach import (
     DraftContact,
@@ -77,6 +77,16 @@ def _cited_signals(session: Session, d: OutreachDraft) -> list[dict[str, Any]]:
                         "page_date": row.page_date.isoformat() if row and row.page_date
                         else None})
     return out
+
+
+def _hook_check_out(check: dict[str, Any] | None) -> dict[str, Any] | None:
+    """What the editor shows: status, model and cost of the last hook check (not its log)."""
+    if not check:
+        return None
+    calls = check.get("calls") or []
+    return {"status": check.get("status"), "model": check.get("model"),
+            "claims": check.get("claims") or [], "error": check.get("error"),
+            "duration_ms": sum(c.get("duration_ms") or 0 for c in calls), "calls": len(calls)}
 
 
 def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]:
@@ -164,6 +174,8 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 signals=_cited_signals(session, d),
                 needs_signal=any(v.get("type") == "needs_signal" for v in d.violations or []),
                 research_note=(d.plan or {}).get("research_note"),
+                hook_check=_hook_check_out((d.plan or {}).get("hook_check")),
+                name_source=(d.plan or {}).get("name_source"),
             )
         )
     return out
@@ -216,12 +228,18 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
 
 
 @router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
-def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
+def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -> DraftOut:
     """Approve the email (job → Ready to send). Queuing it is the next, separate step. A draft
-    with unresolved errors (grounding, names, banned phrases, length) can't be approved."""
+    with unresolved errors (grounding, names, banned phrases, length) can't be approved. A hook
+    you edited is checked against the signals first (one model call)."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
         raise HTTPException(409, "Only drafts under review can be approved")
+    model, fallback = _research_models(session)
+    outreach.ensure_hook_checked(session, d, hook_checker(
+        mock=True if workspace == "demo" else None, model=model, fallback=fallback))
+    session.add(d)
+    session.commit()
     blocking = [v for v in d.violations or [] if v.get("severity") == "error"]
     if blocking:
         raise HTTPException(409, f"Fix {len(blocking)} problem(s) first: {blocking[0]['message']}")
@@ -375,6 +393,7 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
     drafter = email_drafter(mock=True if demo else None, model=_email_model(session))
     model, fallback = _research_models(session)
     researcher = research_provider(mock=True if demo else None, model=model, fallback=fallback)
+    checker = hook_checker(mock=True if demo else None, model=model, fallback=fallback)
 
     def progress(phase: str, done: int, total: int) -> None:
         with _draft_runs_lock:
@@ -384,7 +403,7 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
         try:
             draft = outreach.generate(engine, app_id, drafter, researcher=researcher,
                                       fetcher=_demo_fetcher() if demo else None,
-                                      progress=progress)
+                                      progress=progress, hook_checker=checker)
             with _draft_runs_lock:
                 _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
         except Exception as exc:  # noqa: BLE001 (shown to the user)

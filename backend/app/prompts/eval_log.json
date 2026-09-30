@@ -13,6 +13,13 @@
       "cases": 3,
       "errors": 2,
       "note": "Adopted: all 3 cases now lead with the signal that connects to a proof (sovereign models ↔ local Mistral). The 2 errors are first-attempt length checks (160 words; a 40-word proof); the eval makes one attempt, the draft step retries once with the problems."
+    },
+    "9": {
+      "report": "data/eval/emails/20260930-155935_outreach_v9.md",
+      "date": "2026-09-30",
+      "cases": 3,
+      "errors": 3,
+      "note": "Adopted. Value paragraphs now say what you like working on (never a general truth); every hook keeps the two signals as separate facts (the gemma4:31b-cloud hook check ran on each case and flagged case 3 for turning 'mutuelle' into 'insurer'). The greeting is built by code (v7/v8 opened English emails with 'Bonjour Stéphane'). The other errors are first-attempt length checks (36-word proof, 153 words); the draft step retries once. v7 (20260930-155313) and v8 (20260930-155539) were not adopted."
     }
   }
 }

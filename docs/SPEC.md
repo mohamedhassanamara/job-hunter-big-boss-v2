@@ -215,14 +215,18 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
 
 ### 3.6 Outreach (`/outreach`)
 *Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
-- **The email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v5). The listing
+- **The email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v9). The listing
   is private intel: it decides what to talk about and is never mentioned. Four parts, assembled by code:
+  0. **greeting**: built by code in the email's language ("Hi …," / "Bonjour …,"). The first name is spelled
+     as the company's researched pages write the contact's full name (Stéphane vs Apollo's Stephane), otherwise
+     as the contact record has it; the editor says which page it came from;
   1. **hook**: how you came across the company (its field, never a job board) + 1-2 facts from its selected,
-     verified signals (cited by id);
+     verified signals (cited by id), each kept as its own fact: never linked by cause or merged;
   2. **intro**: built by code from Settings → Candidate ("I'm <first name>, a software engineer with 3 years of
-     experience in …" / "Je suis …, ingénieur logiciel avec 3 ans d'expérience en ingénierie logicielle, sur …");
+     experience in …" / "Je suis …, ingénieur logiciel avec 3 ans d'expérience, sur …");
      the model only picks the areas;
-  3. **value**: their problem in one sentence (your words), then 1-2 short proofs from your pool (cited);
+  3. **value**: their problem in one sentence, framed as the kind of problem you like working on (first person,
+     varied wording; never a general truth like "… reste un vrai défi"), then 1-2 short proofs from your pool;
   4. **ask**: a direct question about an opening.
   100-150 words, language of the listing.
 - **The draft step** (`outreach.generate_intro`, background, polled): research the company first
@@ -251,13 +255,22 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   100-150 words; banned phrases, CV jargon and years wording; not too close to the reference examples (≥ 25%
   shared or 8+ words in a row, the code-built intro excluded) or to drafts to other people. One retry, then the
   draft is kept with its problems listed. Errors block approval. Edits are re-checked (text-level).
+- **Hook check** (`services/hook_check.py`, prompt `hook_check.md`): gemma4:31b-cloud (12b fallback, same error
+  policy as research) splits the hook into claims and judges each against the cited signals: stated, causal,
+  combined or not stated. Anything but "stated" is an error ("sovereign models enabled the 37%"). It runs on
+  each draft attempt, and on Approve when you edited the hook since the last check (then against every selected
+  signal). The editor shows the result and its cost; if the model can't be reached it's a warning.
+- **Value framing and greeting checks**: a problem sentence without first person, or any "is hard / remains a
+  challenge / reste un vrai défi / est difficile" phrase, is an error; so is a greeting not in the email's
+  language. The example-similarity check ignores wording both texts take from the same signal.
 - **Regression set** (`app/eval/emails.py`): your reference examples (`data/eval/email_examples.json`, imported
   with `make eval-emails ARGS=--import`) and every email you approve or reject (with its inputs). `make
   eval-emails` writes each case again with the current prompt: old vs new side by side in `data/eval/emails/`. A
   prompt change is adopted only once its report is recorded in `app/prompts/eval_log.json` (a test checks it).
 - Older reply-style drafts (prompt ≤ v3) keep their shape and checks (`services/outreach_check.py`).
 - **Review tab:** list (To review | Approved | Rejected | All); editor with the checks panel, subject, your text,
-  "Added when sent" (signature + opt-out from Settings → Email), "Where each sentence comes from" (hover for the
+  "Added when sent" (signature + opt-out from Settings → Email; the phone number is off by default, toggle
+  "Phone in the signature", and the signature shows your email and LinkedIn), "Where each sentence comes from" (hover for the
   cited CV items), **Approve** (primary; the job becomes Ready to send), then **Add to send queue** on approved
   drafts (a separate step), Send test to me, Regenerate, Reject. Keys: j/k, a, r. The same editor is on the Job page.
 - **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage
