@@ -1,4 +1,8 @@
-import { ArrowRight, CircleCheck, FileText, Globe, Mail } from 'lucide-react'
+import { ArrowRight, CircleCheck, FileText, Globe, Lightbulb, Mail } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
+import { usePatchApplication } from '@/lib/queries/jobs'
 import { Link } from 'react-router'
 import { TrackBadge } from '@/components/app/badges'
 import { Section } from '@/components/app/PageHeader'
@@ -120,5 +124,47 @@ export function ApplicationSection({ job, onApplied }: { job: JobDetail; onAppli
         )}
       </div>
     </Section>
+  )
+}
+
+/** Your one-line reason for this company: letters, form texts and emails open with it
+ * (rephrased, never copied). Autosaves. */
+export function CompanyReasonField({ job }: { job: JobDetail }) {
+  const patch = usePatchApplication()
+  const [value, setValue] = useState(job.company_reason)
+  const [state, setState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const timer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+  const onChange = (next: string) => {
+    setValue(next)
+    setState('saving')
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(
+      () =>
+        patch.mutate(
+          { id: job.application.id, patch: { company_reason: next } },
+          { onSuccess: () => setState('saved'), onError: (e) => (setState('idle'), toast.error(e.message)) },
+        ),
+      700,
+    )
+  }
+  return (
+    <div data-tour="job-reason" className="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2 shadow-sm">
+      <Lightbulb className="size-4 shrink-0 text-fg-subtle" />
+      <label htmlFor="company-reason" className="shrink-0 text-sm font-medium">
+        My reason for this company
+      </label>
+      <Input
+        id="company-reason"
+        value={value}
+        maxLength={300}
+        placeholder="Optional, one line: letters and emails open with it (rephrased)"
+        className="h-8 flex-1 border-transparent bg-transparent hover:border-border focus-visible:border-primary"
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <span className="w-24 shrink-0 text-right text-xs text-fg-subtle" aria-live="polite">
+        {state === 'saving' ? 'Saving…' : state === 'saved' ? 'Saved' : ''}
+      </span>
+    </div>
   )
 }

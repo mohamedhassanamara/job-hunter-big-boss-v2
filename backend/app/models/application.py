@@ -44,6 +44,9 @@ class Application(TableBase, table=True):
     # `applied_at` stays "the first time you reached out" (follow-ups and stats use it).
     web_applied_at: datetime | None = dt_field()
     web_method: ApplyMethod | None = enum_field(None)
+    # Your own one-line reason for this company: letters, form texts and emails open with it
+    # (rephrased, never copied).
+    company_reason: str = Field(default="", sa_type=Text)
     stage_changed_at: datetime = dt_field(default_factory=utcnow)
 
 

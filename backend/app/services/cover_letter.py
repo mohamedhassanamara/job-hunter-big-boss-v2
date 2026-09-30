@@ -175,13 +175,30 @@ _AUTHORIZATION = {
 }
 
 
-def _facts_text(pool: Pool) -> str:
-    """What a fit sentence may state (Settings → Candidate)."""
+DEFAULT_WRITING = {"work_authorization": "never"}  # never | if_asked
+
+
+def writing_settings(s: Session) -> dict[str, Any]:
+    """Settings → Letters and emails (shared by cover letters, form texts and emails)."""
+    row = s.exec(select(AppSetting).where(AppSetting.key == "writing")).first()
+    return {**DEFAULT_WRITING, **(dict(row.value) if row else {})}
+
+
+def mention_authorization(s: Session, job_text: str) -> bool:
+    """Work authorization / visa sponsorship may be mentioned only when the setting allows it
+    and the listing asks about it."""
+    return (writing_settings(s).get("work_authorization") == "if_asked"
+            and lc.listing_asks_authorization(job_text))
+
+
+def _facts_text(pool: Pool, authorization: bool = False, reason: str = "") -> str:
+    """What a sentence stated from your profile may say (Settings → Candidate), plus your own
+    reason for this company."""
     p = pool.profile
     langs = ", ".join(f"{x.get('language')} ({x.get('level')})" for x in p.get("languages") or [])
-    return " ".join(x for x in (p.get("based_in") or "", p.get("nationality") or "",
-                                _AUTHORIZATION.get(p.get("work_authorization") or "", ""),
-                                langs) if x)
+    auth = _AUTHORIZATION.get(p.get("work_authorization") or "", "") if authorization else ""
+    return " ".join(x for x in (p.get("based_in") or "", p.get("nationality") or "", auth,
+                                langs, reason.strip()) if x)
 
 
 def context(s: Session, app: Application, language: str, pool: Pool | None = None,
@@ -212,7 +229,9 @@ def context(s: Session, app: Application, language: str, pool: Pool | None = Non
                       or (lc.FORM_MAX_WORDS if form else lc.DEFAULT_MAX_WORDS)),
         format=fmt, char_limit=char_limit, jargon=list(cfg.get("jargon") or lc.DEFAULT_JARGON),
         current_role_id=role.id if role else None, current_role_org=role.org or "" if role else "",
-        facts_text=_facts_text(pool),
+        facts_text=_facts_text(pool, allowed := mention_authorization(s, job_text),
+                               app.company_reason or ""),
+        mention_authorization=allowed, company_reason=(app.company_reason or "").strip(),
         years_statement=english, years_statement_fr=french,
         other_companies=sorted(others - {company.name}),
         contact_name=contact.full_name if contact and language == "en" else "")
@@ -234,7 +253,9 @@ def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, langu
         job={"title": job.title, "company": company.name, "location": job.location,
              "description": (job.description or "")[:8000]},
         candidate={"based_in": profile.get("based_in", ""),
-                   "work_authorization": profile.get("work_authorization", ""),
+                   "work_authorization": profile.get("work_authorization", "")
+                   if ctx_words.mention_authorization else None,
+                   "company_reason": ctx_words.company_reason or None,
                    "years": facts, "years_statement": english,
                    "years_statement_fr": french,
                    "current_role": {"id": role.id, "title": role.title, "org": role.org}
@@ -244,7 +265,8 @@ def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, langu
                "max_words": ctx_words.max_words, "question": question,
                "char_limit": char_limit,
                "banned_phrases": list(cfg["banned_phrases"].get(language) or []),
-               "jargon": ctx_words.jargon, "guide": cfg.get("guide") or ""},
+               "jargon": ctx_words.jargon, "guide": cfg.get("guide") or "",
+               "mention_work_authorization": ctx_words.mention_authorization},
     )
 
 

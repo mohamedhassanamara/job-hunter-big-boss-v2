@@ -61,7 +61,7 @@ def test_asking_streams_saves_and_sends_the_history(web_job: dict, client, recor
     assert [m["role"] for m in second[1:]] == ["user", "assistant", "user"]
     saved = client.get(f"/api/copilot/threads/{thread['id']}").json()["messages"]
     assert [m["role"] for m in saved] == ["user", "assistant", "user", "assistant"]
-    assert saved[1]["model"].startswith("recorder (copilot/v1)") and saved[1]["duration_ms"] >= 0
+    assert saved[1]["model"].startswith("recorder (copilot/v2)") and saved[1]["duration_ms"] >= 0
     assert client.get(f"/api/applications/{web_job['app']}/copilot").json()["id"] == thread["id"]
 
 
@@ -144,3 +144,32 @@ def test_messages_get_style_claim_and_years_warnings(web_job: dict) -> None:  # 
                         "3 ans d'expérience en ingénierie logicielle"))}
     assert "MVC" in found["unsupported"] and "je me permets" in found["style"]
     assert "3 ans d'expérience en ingénierie logicielle" in found["years"]
+
+
+def test_rewrite_with_claude_adds_a_new_answer(web_job: dict, client, recorder) -> None:  # noqa: F811, ANN001
+    thread = client.get(f"/api/applications/{web_job['app']}/copilot").json()
+    client.post(f"/api/copilot/threads/{thread['id']}/messages",
+                json={"question": "Write a LinkedIn message"})
+    answer = client.get(f"/api/copilot/threads/{thread['id']}").json()["messages"][-1]
+    out = client.post(f"/api/copilot/messages/{answer['id']}/rewrite").json()
+    assert out["content"].startswith("(rewritten) Highlight the backend work.")
+    assert "via claude -p, rewrite (copilot/v2)" in out["model"]
+    after = client.get(f"/api/copilot/threads/{thread['id']}").json()["messages"]
+    assert after[-1]["id"] == out["id"] and after[-2]["id"] == answer["id"]
+    user = next(m for m in after if m["role"] == "user")
+    assert client.post(f"/api/copilot/messages/{user['id']}/rewrite").status_code == 422
+
+
+def test_the_rewriter_uses_the_isolated_subscription_call() -> None:
+    from app.providers.claude_rewrite import ClaudeRewriter
+    from tests.test_cv import fake_run
+
+    calls: list = []
+    r = ClaudeRewriter(runner=fake_run({"is_error": False, "structured_output": {"text": "Hi"}},
+                                       calls=calls))
+    assert r.rewrite("rules", "ORIGINAL\nhello\n\nCONTEXT\n\nx") == "Hi"
+    cmd = calls[0][0]
+    assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
+    with pytest.raises(RuntimeError, match="API key"):
+        ClaudeRewriter(runner=fake_run({"is_error": False, "structured_output": {"text": "x"}},
+                                       auth="ANTHROPIC_API_KEY")).rewrite("r", "m")

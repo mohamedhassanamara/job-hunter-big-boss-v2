@@ -1,4 +1,4 @@
-import { Bot, Copy, LoaderCircle, SendHorizontal, TriangleAlert } from 'lucide-react'
+import { Bot, Copy, LoaderCircle, SendHorizontal, Sparkles, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Prose } from '@/components/app/Prose'
@@ -6,11 +6,13 @@ import { ErrorState } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/input'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useAskCopilot, useCopilotStatus } from '@/lib/queries/copilot'
+import { useAskCopilot, useCopilotStatus, useRewriteAnswer } from '@/lib/queries/copilot'
 import type { CopilotMessage, CopilotThreadDetail } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 function Answer({ text, message }: { text: string; message?: CopilotMessage }) {
+  const rewrite = useRewriteAnswer()
+  const rewritten = message?.model?.includes('rewrite')
   const copy = () =>
     navigator.clipboard.writeText(text).then(
       () => toast.success('Copied'),
@@ -40,10 +42,30 @@ function Answer({ text, message }: { text: string; message?: CopilotMessage }) {
         </ul>
       )}
       {message?.model && (
-        <p className="ml-6 text-2xs text-fg-subtle">
-          {message.model}
-          {message.duration_ms ? ` · ${Math.round(message.duration_ms / 1000)}s` : ''}
-        </p>
+        <div className="ml-6 flex items-center gap-2">
+          <p className="flex-1 text-2xs text-fg-subtle">
+            {message.model}
+            {message.duration_ms ? ` · ${Math.round(message.duration_ms / 1000)}s` : ''}
+          </p>
+          {text && !rewritten && !message.error && (
+            <Tooltip content="For text you'll send to people: Claude rewrites it with your facts only (your subscription)">
+              <Button
+                size="xs"
+                variant="ghost"
+                disabled={rewrite.isPending}
+                onClick={() =>
+                  rewrite.mutate(message.id, {
+                    onSuccess: () => toast.success('Rewritten with Claude', { description: 'The new version is below the original.' }),
+                    onError: (e) => toast.error(e.message),
+                  })
+                }
+              >
+                {rewrite.isPending ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
+                {rewrite.isPending ? 'Rewriting…' : 'Rewrite with Claude'}
+              </Button>
+            </Tooltip>
+          )}
+        </div>
       )}
     </div>
   )

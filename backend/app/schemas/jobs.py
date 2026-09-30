@@ -144,6 +144,7 @@ class JobDetail(JobListItem):
     description: str
     fit_detail: FitDetail | None
     notes: str
+    company_reason: str = ""
     contact: ContactOut | None
     company_contacts: int
     other_jobs_at_company: list[RelatedJob]
@@ -181,3 +182,4 @@ class ApplicationPatch(BaseModel):
     close_reason: str | None = None
     route: str | None = None
     notes: str | None = None
+    company_reason: str | None = None  # your one-line reason for this company

@@ -4,7 +4,7 @@ from sqlmodel import Session, col, func, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.models import Application, AppSetting, CopilotMessage, CopilotThread
-from app.providers.registry import copilot
+from app.providers.registry import copilot, rewriter
 from app.schemas.copilot import (
     CopilotAsk,
     CopilotMessageOut,
@@ -110,3 +110,18 @@ def ask(thread_id: int, body: CopilotAsk, session: SessionDep, engine: EngineDep
         raise HTTPException(422, str(exc)) from exc
     return StreamingResponse(chunks, media_type="text/plain; charset=utf-8",
                              headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
+
+
+@router.post("/copilot/messages/{message_id}/rewrite", response_model=CopilotMessageOut)
+def rewrite_answer(message_id: int, session: SessionDep, engine: EngineDep,
+                   workspace: WorkspaceDep) -> CopilotMessageOut:
+    """Rewrite an answer with Claude (claude -p, your subscription), saved as a new answer."""
+    get_or_404(session, CopilotMessage, message_id, "Answer")
+    row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    model = ((row.value if row else {}).get("cv") or {}).get("model") or "claude-sonnet-5"
+    try:
+        out = svc.rewrite(engine, message_id,
+                          rewriter(mock=True if workspace == "demo" else None, model=model))
+    except svc.CopilotError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return CopilotMessageOut.model_validate(out, from_attributes=True)

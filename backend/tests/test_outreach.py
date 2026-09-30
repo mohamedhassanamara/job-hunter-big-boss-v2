@@ -64,7 +64,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v2"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v3"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]
@@ -97,10 +97,10 @@ def kinds(violations: list[dict]) -> set[str]:
 
 def test_a_clean_draft_passes(ctx: oc.Context) -> None:
     role = next(i for i in ctx.pool.items.values() if i.kind == "job" and i.bullets)
-    fact = role.bullets[0]
     p = plan(sentences=[
         {"text": "I saw that Acme is hiring a Data Engineer for 2M users.", "about_job": True},
-        {"text": f"At {role.org}, I {fact[0].lower()}{fact[1:]}", "citations": [role.id]}])
+        {"text": f"At {role.org}, I built work with {role.tags[0]} that is close to yours.",
+         "citations": [role.id]}])
     assert kinds(oc.check_plan(p, ctx)) == set()
 
 
@@ -188,7 +188,8 @@ def job_ready(seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  #
         s.add(cv)
         s.commit()
         return {"app": app.id, "cv": cv.id, "company": company.name, "role": role.id,
-                "fact": role.bullets[0], "org": role.org, "email": contact.email, "pdf": pdf}
+                "fact": role.bullets[0], "org": role.org, "email": contact.email, "pdf": pdf,
+                "tag": role.tags[0] if role.tags else ""}
 
 
 class Script:
@@ -206,12 +207,11 @@ class Script:
 
 
 def good_plan(info: dict) -> EmailDraftPlan:
-    fact = info["fact"]
     return plan(subject=f"Data Engineer at {info['company']}", sentences=[
         EmailSentence(text=f"I saw that {info['company']} is hiring a Data Engineer.",
                       about_job=True),
-        EmailSentence(text=f"At {info['org']}, I {fact[0].lower()}{fact[1:]}",
-                      citations=[info["role"]])])
+        EmailSentence(text=f"At {info['org']}, I built data work with {info['tag']} that is "
+                           "close to what your team does.", citations=[info["role"]])])
 
 
 def test_generate_retries_once_with_the_problems_then_stores_the_draft(job_ready: dict) -> None:

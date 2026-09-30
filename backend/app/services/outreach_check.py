@@ -63,6 +63,23 @@ class Context:
     years_statement: str | None = None  # the only years wording allowed, when fixed
     fixed_sentences: list[str] = field(default_factory=list)  # added by code (not claims)
     extra_words: int = 0  # words code adds to the body (counted in the limit)
+    # The letters' writing rules apply to emails too (letter_check.writing_rules).
+    facts_text: str = ""  # your profile facts (+ your reason) a sentence may state
+    mention_authorization: bool = False
+    company_reason: str = ""
+    current_role_id: int | None = None
+    current_role_org: str = ""
+
+    def letter_context(self):  # noqa: ANN201
+        from app.services import letter_check as lc
+
+        return lc.Context(pool=self.pool, allowed_years=self.allowed_years,
+                          job_text=self.job_text, company=self.company,
+                          years_statement=self.years_statement, facts_text=self.facts_text,
+                          mention_authorization=self.mention_authorization,
+                          company_reason=self.company_reason,
+                          current_role_id=self.current_role_id,
+                          current_role_org=self.current_role_org)
 
 
 # "a 15-minute call", "20 minutes", "30 min", "2 hours": a request's duration, not a claim.
@@ -152,7 +169,11 @@ def check_plan(plan: EmailDraftPlan, ctx: Context) -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
     for i, s in enumerate(plan.sentences, 1):
         where = f"sentence {i}"
-        if s.about_job and not s.citations:
+        if s.about_candidate and not s.citations:
+            from app.services.letter_check import _candidate_fact_problems
+
+            problems = _candidate_fact_problems(_claims_only(s.text, ctx), ctx.letter_context())
+        elif s.about_job and not s.citations:
             problems = _about_job_problems(s.text, ctx)
         else:
             problems = sentence_problems(
@@ -162,9 +183,22 @@ def check_plan(plan: EmailDraftPlan, ctx: Context) -> list[dict[str, str]]:
     out += [violation("grounding", f"The ask: {p}", "ask", "error")
             for p in _source_problems(plan.ask, ctx)]
     out += lint(plan.subject, plan.greeting, [s.text for s in plan.sentences], plan.ask, ctx)
+    out += _writing(plan.sentences, ctx)
     # A years claim is reported by both grounding and lint: keep the lint message only.
     return [v for v in out if not (v["type"] == "grounding" and "years claim" in v["message"]
                                    and ctx.years_statement)]
+
+
+def _writing(sentences: list, ctx: Context) -> list[dict[str, str]]:  # noqa: ANN001
+    """The letters' rules on the email's sentences: the first is the opening, the rest carry
+    the examples. A missing example is fine in an email (it's short)."""
+    from app.services.letter_check import writing_rules
+
+    parts = [[s for s in sentences[:1]], [s for s in sentences[1:]]]
+    paragraphs = [{"sentences": [s.model_dump() for s in p]} for p in parts if p]
+    found = writing_rules(paragraphs, ctx.letter_context())
+    return [{**v, "where": "body"} for v in found if v["message"] != "No concrete example "
+            "from your experience"]
 
 
 def _source_problems(text: str, ctx: Context) -> list[str]:
@@ -185,6 +219,10 @@ def check_text(subject: str, body: str, ctx: Context) -> list[dict[str, str]]:
     first = next((i for i, ln in enumerate(lines) if ln.strip()), 0)
     greeting, rest = lines[first] if lines else "", "\n".join(lines[first + 1:])
     out = [violation("grounding", p, "body", "error") for p in _source_problems(rest, ctx)]
+    from app.services.letter_check import writing_rules
+
+    out += [{**v, "where": "body"} for v in writing_rules([{"text": rest}], ctx.letter_context())
+            if v["type"] not in ("builds",)]
     return out + lint(subject, greeting, [rest], None, ctx)
 
 

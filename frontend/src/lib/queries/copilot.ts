@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '@/lib/api'
-import type { CopilotStatus, CopilotThread, CopilotThreadDetail } from '@/lib/types'
+import type { CopilotMessage, CopilotStatus, CopilotThread, CopilotThreadDetail } from '@/lib/types'
 import { keys } from './keys'
 
 export function useCopilotStatus() {
@@ -73,4 +73,13 @@ export function useAskCopilot() {
     }
   }
   return { ask, streaming, error, pending: streaming !== null }
+}
+
+/** Rewrite an answer you'll send to people with Claude (claude -p); it's saved as a new answer. */
+export function useRewriteAnswer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (messageId: number) => api.post<CopilotMessage>(`/copilot/messages/${messageId}/rewrite`),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['copilot'] }),
+  })
 }

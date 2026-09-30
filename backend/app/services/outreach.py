@@ -46,9 +46,13 @@ DEFAULT_OUTREACH: dict[str, Any] = {
     "signature": {"name": "", "title": "", "email": "", "phone": "", "photo_path": ""},
     "sign_off": "Best regards,",
     "opt_out": "If this isn't relevant for you, just let me know and I won't follow up.",
+    # French emails (the language follows the listing).
+    "sign_off_fr": "Bien cordialement,",
+    "opt_out_fr": "Si ce n'est pas pertinent pour vous, dites-le-moi simplement et je ne vous "
+                  "relancerai pas.",
     "banned_phrases": oc.DEFAULT_BANNED,
     "max_words": oc.DEFAULT_MAX_WORDS,
-    "language": "en",  # the CV and signature are in English; "auto" = the listing's language
+    "language": "auto",  # "auto" = the listing's language (French listing → French email)
     # Added by code (never the model) when you already applied on the website; {date} = that day.
     "application_mention": {
         "en": "I have also applied through your careers page on {date}.",
@@ -162,8 +166,17 @@ def _context(s: Session, app: Application, job: Job, company: Company, contact: 
             others.append((d.id, f"{person.full_name} ({c.name})", d.body))
         if c.id != company.id:
             other_companies.add(c.name)
+    from app.services import cover_letter as cl
+
+    job_text = f"{job.title}\n{job.description}"
+    allowed_auth = cl.mention_authorization(s, job_text)
+    role = cl.current_role(pool, job_text)
+    reason = (app.company_reason or "").strip()
     return oc.Context(
-        pool=pool, allowed_years=allowed, job_text=f"{job.title}\n{job.description}",
+        facts_text=cl._facts_text(pool, allowed_auth, reason), mention_authorization=allowed_auth,
+        company_reason=reason, current_role_id=role.id if role else None,
+        current_role_org=(role.org or "") if role else "",
+        pool=pool, allowed_years=allowed, job_text=job_text,
         company=company.name, first_name=_first_name(contact),
         banned=list(cfg.get("banned_phrases") or []), max_words=int(cfg.get("max_words") or 150),
         other_companies=sorted(other_companies), others=others,
@@ -173,24 +186,40 @@ def _context(s: Session, app: Application, job: Job, company: Company, contact: 
 
 def build_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
                   cv: CVVersion, pool: Pool) -> EmailRequest:
+    from app.services import cover_letter as cl
     from app.services.cv_service import _tracks
 
     cfg = outreach_settings(s)
     profile = _setting(s, "profile")
     ranking = ranking_settings(s)
+    job_text = f"{job.title}\n{job.description or ''}"
+    allowed_auth = cl.mention_authorization(s, job_text)
+    role = cl.current_role(pool, job_text)
     return EmailRequest(
         job={"title": job.title, "company": company.name, "location": job.location,
              "description": (job.description or "")[:6000]},
         contact={"first_name": _first_name(contact), "full_name": contact.full_name,
                  "title": contact.title, "role_group": ranking.label(contact.role_rank)},
         candidate={"name": profile.get("full_name", ""), "based_in": profile.get("based_in", ""),
-                   "work_authorization": profile.get("work_authorization", ""),
+                   "work_authorization": profile.get("work_authorization", "")
+                   if allowed_auth else None,
+                   "company_reason": (app.company_reason or "").strip() or None,
+                   "current_role": {"id": role.id, "title": role.title, "org": role.org}
+                   if role else None,
                    "years": years_facts(pool, _tracks(s))},
         pool=cv_pool_subset(pool, cv),
         rules={"max_words": int(cfg.get("max_words") or 150),
                "banned_phrases": list(cfg.get("banned_phrases") or []),
-               "language": cfg.get("language") or "auto"},
+               "language": email_language(s, job),
+               "mention_work_authorization": allowed_auth,
+               "jargon": list(_letter_jargon(s))},
     )
+
+
+def _letter_jargon(s: Session) -> list[str]:
+    from app.services.cover_letter import letter_settings
+
+    return letter_settings(s).get("jargon") or []
 
 
 def body_text(plan: EmailDraftPlan) -> str:
@@ -198,9 +227,11 @@ def body_text(plan: EmailDraftPlan) -> str:
     return f"{plan.greeting}\n\n{' '.join(s.text for s in plan.sentences)}\n\n{plan.ask}"
 
 
-def signature_block(cfg: dict[str, Any]) -> str:
+def signature_block(cfg: dict[str, Any], language: str = "en") -> str:
     sig = cfg["signature"]
-    lines = [cfg.get("sign_off") or "Best regards,", sig.get("name") or ""]
+    sign_off = (cfg.get("sign_off_fr") if language == "fr" else None) or cfg.get("sign_off") \
+        or "Best regards,"
+    lines = [sign_off, sig.get("name") or ""]
     if sig.get("title"):
         lines.append(sig["title"])
     reach = " · ".join(x for x in (sig.get("email"), sig.get("phone")) if x)
@@ -212,9 +243,11 @@ def signature_block(cfg: dict[str, Any]) -> str:
 def full_body(s: Session, draft: OutreachDraft) -> str:
     """The email as it is sent: your text, the signature and the opt-out line."""
     cfg = outreach_settings(s)
-    parts = [draft.body.strip(), signature_block(cfg)]
-    if cfg.get("opt_out"):
-        parts.append(cfg["opt_out"])
+    language = (draft.plan or {}).get("language") or "en"
+    parts = [draft.body.strip(), signature_block(cfg, language)]
+    opt_out = (cfg.get("opt_out_fr") if language == "fr" else None) or cfg.get("opt_out")
+    if opt_out:
+        parts.append(opt_out)
     return "\n\n".join(parts)
 
 
@@ -271,6 +304,7 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter) -> OutreachDraf
                 body=body, model=drafter.model, cv_version_id=cv.id,
                 plan={"plan": plan.model_dump(), "attempts": attempts,
                       "application_mention": mention,
+                      "language": request.rules.get("language"),
                       "via": getattr(drafter, "via", "mock"),
                       "auth": getattr(drafter, "auth_source", None)}, violations=found,
                 prompt_version=drafter.prompt_version,
