@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { ToneBadge } from '@/components/app/badges'
 import { Section } from '@/components/app/PageHeader'
 import { EmptyState } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { relativeTime } from '@/lib/format'
@@ -47,14 +48,17 @@ export function CoverLetterSection({ job }: { job: JobDetail }) {
                 : 'Approve the CV first: the letter is written from it.'
             }
             action={
-              hasApprovedCv && (
-                <Button size="sm" asChild>
-                  <Link to={`/jobs/${job.id}/letter`}>
-                    <Sparkles />
-                    Write cover letter
-                  </Link>
-                </Button>
-              )
+              <div className="flex gap-2">
+                {hasApprovedCv && (
+                  <Button size="sm" asChild>
+                    <Link to={`/jobs/${job.id}/letter`}>
+                      <Sparkles />
+                      Write cover letter
+                    </Link>
+                  </Button>
+                )}
+                <TourButton tour="letter" />
+              </div>
             }
           />
         ) : (

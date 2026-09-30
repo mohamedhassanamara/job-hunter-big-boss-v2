@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Section } from '@/components/app/PageHeader'
 import { EmptyState } from '@/components/app/states'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -206,10 +207,13 @@ export function QuestionsSection({ job }: { job: JobDetail }) {
             title="No questions yet"
             description="Paste the form's questions (with their character limits): answers come from your approved CV, in the listing's language, and are saved here."
             action={
-              <Button size="sm" onClick={() => setAdding(true)}>
-                <Plus />
-                Add questions
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setAdding(true)}>
+                  <Plus />
+                  Add questions
+                </Button>
+                <TourButton tour="questions" />
+              </div>
             }
           />
         ) : (

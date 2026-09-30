@@ -6,6 +6,7 @@ import { ContactTierBadge } from '@/components/app/badges'
 import { NewContactDialog } from '@/components/app/NewContactDialog'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { Section } from '@/components/app/PageHeader'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -198,7 +199,15 @@ export function OutreachSection({ job }: { job: JobDetail }) {
     )
 
   return (
-    <Section title="Cold email" action={<span className="text-xs text-fg-subtle">{job.contact ? `To ${job.contact.full_name}` : 'No contact yet'}</span>}>
+    <Section
+      title="Cold email"
+      action={
+        <span className="flex items-center gap-2 text-xs text-fg-subtle">
+          {job.contact ? `To ${job.contact.full_name}` : 'No contact yet'}
+          {data.step === 'contact' && <TourButton tour="email-route" label="How it works" />}
+        </span>
+      }
+    >
       <div data-tour="job-outreach">
         <Stepper step={data.step} />
         {data.step === 'contact' && <FindContact job={job} />}

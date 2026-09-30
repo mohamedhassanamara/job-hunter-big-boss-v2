@@ -175,6 +175,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   Ghosting is only suggested; closing needs the user's click. Stats/CSV come from `tracking.tracked()` rows.
 - Frontend: `components/app/tracking/*` (dialogs, AppliedFacts, TrackingActions), `features/applications/*`.
 
+## Cover letters, questions, email route (Phase 6)
+
+- Stages: the email route goes `cv_ready → drafted → ready → done`; `pipeline.effective_route(app)` (route, else cold
+  email with a contact, else web apply) is on every DTO. Approve and "Add to send queue" are separate steps.
+- Cover letters: `services/cover_letter.py` + `providers/claude_letter.py` (same headless setup and subscription check
+  as the CV), prompt `app/prompts/cover_letter.md` (sections `system`, `retry`, `answers`, `answers_retry`; bump the
+  version on any edit). The model returns cited paragraphs + one ask; code adds header, date, salutation, closing.
+- Checks in `services/letter_check.py` (grounding reuses `cv_check`/`outreach_check`; French years wording; grouped
+  numbers like "2 000"). Template `templates/<name>/cover_letter.tex.j2` must keep the CV header identical.
+- Language: `services/text.detect_language` (fr/en), overridable per job (`application.letter_language`).
+- Application answers: `services/answers.py` (one call per batch, character limit = hard error, never truncate).
+- Real generations run from a standalone script, not through the dev server (reloads kill the subprocess).
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.
