@@ -1,5 +1,6 @@
+import threading
 from datetime import date, timedelta
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, col, select
@@ -29,10 +30,12 @@ from app.models.enums import (
 )
 from app.providers.base import SendFailed
 from app.providers.registry import email_drafter, mailer
+from app.providers.registry import researcher as research_provider
 from app.schemas.outreach import (
     DraftContact,
     DraftOut,
     DraftPatch,
+    DraftProgress,
     MentionIn,
     OutreachStep,
     QueueCounts,
@@ -292,24 +295,81 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
     return _drafts_out(session, [d])[0]
 
 
-@router.post("/applications/{app_id}/draft/generate", response_model=DraftOut)
-def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
-                   workspace: WorkspaceDep) -> DraftOut:
-    """One job at a time: Claude (your subscription) in the real workspace, the mock in the
-    sandbox and tests. Checked, retried once, then shown with anything still wrong."""
-    get_or_404(session, Application, app_id, "Application")
+def _email_model(session: Session) -> str:
     models = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
     model = (((models.value if models else {}).get("email") or {}).get("model")
              or "claude-sonnet-5")
-    if model.startswith("claude-haiku"):  # the default was a haiku placeholder; drafts need care
-        model = "claude-sonnet-5"
-    drafter = email_drafter(mock=True if workspace == "demo" else None, model=model)
-    try:
-        draft = outreach.generate(engine, app_id, drafter)
-    except outreach.OutreachError as exc:
-        raise HTTPException(422, str(exc)) from exc
-    session.expire_all()
-    return _drafts_out(session, [get_or_404(session, OutreachDraft, draft.id)])[0]
+    return "claude-sonnet-5" if model.startswith("claude-haiku") else model
+
+
+def _research_models(session: Session) -> tuple[str, str | None]:
+    models = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    cfg = (models.value if models else {}).get("research") or {}
+    return cfg.get("model") or "gemma4:31b-cloud", cfg.get("fallback", "gemma4:12b")
+
+
+# The draft step runs in the background (research can take a minute): one per job, polled.
+_draft_runs: dict[tuple[str, int], dict[str, Any]] = {}
+_draft_runs_lock = threading.Lock()
+
+
+def draft_progress_state(workspace: str, app_id: int) -> dict[str, Any] | None:
+    with _draft_runs_lock:
+        state = _draft_runs.get((workspace, app_id))
+        return dict(state) if state else None
+
+
+@router.post("/applications/{app_id}/draft/generate", status_code=202,
+             response_model=DraftProgress)
+def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
+                   workspace: WorkspaceDep) -> DraftProgress:
+    """The email draft step: research the company (fresh signals are reused), then Claude (your
+    subscription) writes the introduction; the mock in the sandbox and tests. Poll
+    /draft/progress for the phases."""
+    get_or_404(session, Application, app_id, "Application")
+    key = (workspace, app_id)
+    with _draft_runs_lock:
+        if (_draft_runs.get(key) or {}).get("status") == "running":
+            raise HTTPException(409, "This email is already being drafted")
+        _draft_runs[key] = {"status": "running", "phase": "starting", "done": 0, "total": 0,
+                            "draft_id": None, "error": None}
+    demo = workspace == "demo"
+    drafter = email_drafter(mock=True if demo else None, model=_email_model(session))
+    model, fallback = _research_models(session)
+    researcher = research_provider(mock=True if demo else None, model=model, fallback=fallback)
+
+    def progress(phase: str, done: int, total: int) -> None:
+        with _draft_runs_lock:
+            _draft_runs[key].update(phase=phase, done=done, total=total)
+
+    def work() -> None:
+        try:
+            draft = outreach.generate(engine, app_id, drafter, researcher=researcher,
+                                      fetcher=_demo_fetcher() if demo else None,
+                                      progress=progress)
+            with _draft_runs_lock:
+                _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
+        except Exception as exc:  # noqa: BLE001 (shown to the user)
+            with _draft_runs_lock:
+                _draft_runs[key].update(status="failed", error=str(exc)[:400])
+
+    threading.Thread(target=work, name=f"draft-{app_id}", daemon=True).start()
+    return DraftProgress(**draft_progress_state(workspace, app_id))
+
+
+def _demo_fetcher():  # noqa: ANN202
+    """The sandbox never fetches the web: sample pages for its sample companies."""
+    from app.services.research import SampleFetcher
+
+    return SampleFetcher()
+
+
+@router.get("/applications/{app_id}/draft/progress", response_model=DraftProgress)
+def draft_progress(app_id: int, workspace: WorkspaceDep) -> DraftProgress:
+    state = draft_progress_state(workspace, app_id)
+    if state is None:
+        return DraftProgress(status="idle", phase="", done=0, total=0)
+    return DraftProgress(**state)
 
 
 @router.get("/applications/{app_id}/outreach", response_model=OutreachStep)

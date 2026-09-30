@@ -17,6 +17,8 @@ from app.providers.base import (
     EmailRequest,
     EmailSentence,
     FitAssessment,
+    HookSentence,
+    IntroEmailPlan,
     JobSnapshot,
     LetterParagraph,
     LetterRequest,
@@ -186,6 +188,46 @@ class MockEmailDrafter:
             sentences=sentences,
             ask="Would you be open to a 15-minute call next week?",
         )
+
+    def draft_intro(self, request: EmailRequest, feedback: str = "") -> IntroEmailPlan:
+        """A grounded introduction from the request's signals and pool (no model)."""
+        fr = request.rules.get("language") == "fr"
+        company = request.job.get("company")
+        signals = request.rules.get("signals") or []
+        hook = HookSentence(text="", signal_ids=[])
+        if signals:
+            fact = signals[0]["fact"].rstrip(".")
+            hook = HookSentence(
+                text=(f"J'ai découvert {company} en m'intéressant aux entreprises de son "
+                      f"domaine, et une chose m'a marqué : {fact[0].lower()}{fact[1:]}." if fr
+                      else f"I came across {company} while looking at companies in its field, "
+                           f"and one thing stood out to me: {fact[0].lower()}{fact[1:]}."),
+                signal_ids=[signals[0]["id"]])
+        role = next((r for r in request.pool.get("roles", []) if r.get("tags")), None)
+        proofs = []
+        if role:
+            tag = role["tags"][0]
+            proofs.append(EmailSentence(
+                text=(f"Chez {role.get('org')}, j'ai construit ce type de système avec {tag}, "
+                      "de la conception jusqu'à la mise en production, avec une équipe réduite, "
+                      "et il tourne toujours pour ses utilisateurs aujourd'hui."
+                      if fr else f"At {role.get('org')}, I built this kind of system with "
+                                 f"{tag}, from the first design to production, with a small "
+                                 "team around me, and it is still running for its users today."),
+                citations=[role["id"]]))
+        return IntroEmailPlan(
+            subject="Des systèmes fiables qui grandissent avec vous" if fr
+            else "Systems that stay reliable as you grow",
+            greeting=f"Bonjour {request.contact.get('first_name')}," if fr
+            else f"Hi {request.contact.get('first_name')},",
+            hook=hook, intro_focus="systèmes backend et IA" if fr else "backend and AI systems",
+            problem=("Faire évoluer un produit sans perdre en fiabilité ni en rapidité, c'est "
+                     "exactement le type de problème sur lequel j'aime travailler au quotidien."
+                     if fr else "Growing a product without losing reliability or speed is "
+                                "exactly the kind of problem I like working on every day."),
+            proofs=proofs,
+            ask="Auriez-vous actuellement une ouverture où cela pourrait être utile ?" if fr
+            else "Do you currently have an opening where this would be useful?")
 
     @staticmethod
     def sample(title: str, company: str, first_name: str) -> tuple[str, str]:

@@ -102,6 +102,15 @@ def rewriter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # no
     return MockRewriter() if use_mock else ClaudeRewriter(model)
 
 
+def researcher(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
+               fallback: str | None = "gemma4:12b"):  # noqa: ANN201
+    """Company research signals (cold emails only). Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.services.research import MockResearcher, OllamaResearcher
+
+    return MockResearcher() if use_mock else OllamaResearcher(model, fallback)
+
+
 _mock_mailer = MockMailer()
 
 

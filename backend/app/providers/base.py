@@ -266,6 +266,33 @@ class EmailDraftPlan(BaseModel):
     ask: str = Field(description="The one clear ask, one sentence (e.g. a 15-minute call)")
 
 
+class HookSentence(BaseModel):
+    text: str = Field(description=(
+        "How the candidate came across the company (described by its field, never a job board "
+        "or listing) and 1-2 facts from SIGNALS, stated plainly"))
+    signal_ids: list[int] = Field(default_factory=list, description=(
+        "The SIGNALS ids every company fact in the hook comes from"))
+
+
+class IntroEmailPlan(BaseModel):
+    """A personal introduction (not a reply to a listing). Code builds the intro line from the
+    profile and assembles: greeting, hook, intro, value (problem + proofs), ask."""
+
+    subject: str = Field(description="About the value, at most 8 words; never the role/position")
+    greeting: str = Field(description="'Hi <first name>,' / 'Bonjour <prénom>,'")
+    hook: HookSentence
+    intro_focus: str = Field(description=(
+        "The 2-3 areas of the candidate's experience relevant to this company, as a short "
+        "phrase in the email's language (e.g. 'backend, mobile and AI systems')"))
+    problem: str = Field(description=(
+        "One sentence: the problem their team is dealing with, phrased as their problem, "
+        "inferred from the job listing and the signals, never mentioning the listing"))
+    proofs: list[EmailSentence] = Field(description=(
+        "1-2 sentences from the EXPERIENCE POOL showing the candidate solved something similar, "
+        "each citing pool ids, in plain language"))
+    ask: str = Field(description="A direct question: do they have an opening where this helps")
+
+
 class EmailRequest(BaseModel):
     job: dict[str, Any]
     contact: dict[str, Any]
@@ -360,6 +387,8 @@ class EmailDrafter(Protocol):
     prompt_version: str
 
     def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan: ...
+
+    def draft_intro(self, request: EmailRequest, feedback: str = "") -> IntroEmailPlan: ...
 
 
 class LetterDrafter(Protocol):
