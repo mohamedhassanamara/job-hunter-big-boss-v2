@@ -32,3 +32,8 @@ icons:
 min_fill: 0.92
 max_bullets_per_role: 5
 max_stack_items: 6       # tech shown next to a project name
+
+# Cover letter: templates/<name>/cover_letter.tex.j2 (same header as the CV). Without it this
+# template can only render CVs.
+cover_letter:
+  enabled: true

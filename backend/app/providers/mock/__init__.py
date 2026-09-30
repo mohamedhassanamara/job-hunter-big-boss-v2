@@ -6,6 +6,10 @@ from datetime import UTC, datetime, timedelta
 
 from app.models.enums import RemoteType, Source
 from app.providers.base import (
+    AnswerDraft,
+    AnswersPlan,
+    AnswersRequest,
+    CoverLetterPlan,
     CVPlan,
     CVPlanDraft,
     CVRequest,
@@ -14,6 +18,8 @@ from app.providers.base import (
     EmailSentence,
     FitAssessment,
     JobSnapshot,
+    LetterParagraph,
+    LetterRequest,
     OutgoingEmail,
     ProfileSpec,
     RawJob,
@@ -187,6 +193,60 @@ class MockEmailDrafter:
             f"Hi {first_name},\n\nI saw that {company} is hiring for the {title} role. At my "
             "last company I built batch and streaming data pipelines on Spark and Airflow.\n\n"
             "Would you be open to a 15-minute call next week?"))
+
+
+class MockLetterDrafter:
+    """A grounded cover letter and answers built from the request's pool (sandbox and tests; no
+    model call): pool facts quoted with their citations, the listing only for the opening."""
+
+    model = "mock-letter"
+    prompt_version = "cover_letter/mock"
+
+    @staticmethod
+    def _facts(pool: dict, limit: int = 3) -> list[tuple[int, str, str]]:
+        items = [i for k in ("roles", "projects") for i in pool.get(k, []) if i.get("facts")]
+        return [(i["id"], i.get("org") or i.get("title") or "", f.rstrip("."))
+                for i in items[:limit] for f in i["facts"].values()]
+
+    def draft_letter(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
+        job, fr = request.job, request.rules.get("language") == "fr"
+        company, title = job.get("company"), job.get("title")
+        opening = (f"{company} recrute pour le poste de {title}." if fr
+                   else f"{company} is hiring for the {title} role.")
+        min_words = int(request.rules.get("min_words") or 250)
+        facts = self._facts(request.pool)
+        middle: list[list[EmailSentence]] = [[], []]
+        words = len(opening.split())
+        for n, (item_id, org, fact) in enumerate(facts):
+            lead = f"Chez {org}, voici ce que j'ai fait : " if fr else f"At {org}, "
+            text = f"{lead}{fact[0].lower()}{fact[1:]}." if not fr else f"{lead}{fact}."
+            middle[n % 2].append(EmailSentence(text=text, citations=[item_id]))
+            words += len(text.split())
+            if words >= min_words:
+                break
+        first = facts[0][0] if facts else 0
+        close = EmailSentence(text=("Mon CV joint détaille ces expériences." if fr
+                                    else "My CV has the details of this work."),
+                              citations=[first])
+        paragraphs = [LetterParagraph(sentences=[EmailSentence(text=opening, about_job=True)])]
+        paragraphs += [LetterParagraph(sentences=p) for p in middle if p]
+        paragraphs.append(LetterParagraph(sentences=[close]))
+        ask = (f"Seriez-vous disponible pour un entretien au sujet du poste de {title} ?" if fr
+               else f"Would you be open to an interview about the {title} role?")
+        return CoverLetterPlan(paragraphs=paragraphs, ask=ask)
+
+    def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan:
+        facts = self._facts(request.pool, limit=1)
+        out = []
+        for q in request.questions:
+            item_id, org, fact = facts[0] if facts else (0, "", "")
+            text = f"At {org}, {fact[0].lower()}{fact[1:]}." if fact else "I will confirm this."
+            limit = q.get("char_limit")
+            if limit and len(text) > limit:
+                text = f"At {org}, I built this."[:limit] if org else text[:limit]
+            out.append(AnswerDraft(question_id=int(q["id"]),
+                                   sentences=[EmailSentence(text=text, citations=[item_id])]))
+        return AnswersPlan(answers=out)
 
 
 class MockMailer:

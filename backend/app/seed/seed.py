@@ -75,9 +75,10 @@ FORWARD = [Stage.new, Stage.shortlisted, Stage.cv_ready, Stage.ready, Stage.done
 
 
 def _clear(session: Session) -> None:
-    # application.applied_cv_version_id ↔ cv_version.application_id is a cycle: break it first,
-    # then children go before parents.
-    session.exec(update(Application).values(applied_cv_version_id=None))  # type: ignore[call-overload]
+    # application.applied_cv_version_id / applied_cover_letter_id ↔ their application_id is a
+    # cycle: break it first, then children go before parents.
+    session.exec(update(Application).values(applied_cv_version_id=None,  # type: ignore[call-overload]
+                                            applied_cover_letter_id=None))  # type: ignore[call-overload]
     session.flush()
     for table in reversed(SQLModel.metadata.sorted_tables):
         session.exec(delete(table))  # type: ignore[call-overload]

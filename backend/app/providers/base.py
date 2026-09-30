@@ -271,6 +271,45 @@ class EmailRequest(BaseModel):
     rules: dict[str, Any] = Field(default_factory=dict)  # max words, banned phrases
 
 
+class LetterParagraph(BaseModel):
+    sentences: list[EmailSentence] = Field(description=(
+        "The paragraph's sentences, each cited (or about_job for the company/role)"))
+
+
+class CoverLetterPlan(BaseModel):
+    """What the model returns for a cover letter; code adds the header, date, recipient,
+    salutation, closing formula and signature."""
+
+    paragraphs: list[LetterParagraph] = Field(description=(
+        "3-4 paragraphs: why this company and role (from the listing), 2-3 concrete things "
+        "you built that match it, then fit and availability"))
+    ask: str = Field(description="The one clear ask that ends the letter, one sentence")
+
+
+class LetterRequest(BaseModel):
+    job: dict[str, Any]
+    candidate: dict[str, Any]
+    pool: dict[str, Any]  # the experience items on the approved CV, with ids
+    rules: dict[str, Any] = Field(default_factory=dict)  # language, words, banned, guide
+
+
+class AnswerDraft(BaseModel):
+    question_id: int = Field(description="The id of the question answered")
+    sentences: list[EmailSentence] = Field(description="The answer, each sentence cited")
+
+
+class AnswersPlan(BaseModel):
+    answers: list[AnswerDraft]
+
+
+class AnswersRequest(BaseModel):
+    job: dict[str, Any]
+    candidate: dict[str, Any]
+    pool: dict[str, Any]
+    questions: list[dict[str, Any]]  # {id, question, char_limit}
+    rules: dict[str, Any] = Field(default_factory=dict)
+
+
 class ContactSnapshot(BaseModel):
     full_name: str
     title: str | None = None
@@ -316,6 +355,15 @@ class EmailDrafter(Protocol):
     prompt_version: str
 
     def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan: ...
+
+
+class LetterDrafter(Protocol):
+    model: str
+    prompt_version: str
+
+    def draft_letter(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan: ...
+
+    def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan: ...
 
 
 class SendFailed(RuntimeError):

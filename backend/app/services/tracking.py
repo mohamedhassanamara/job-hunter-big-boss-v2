@@ -95,7 +95,7 @@ def lock_cv(v: CVVersion) -> None:
 
 def mark_applied(s: Session, app: Application, *, applied_on: date | None,
                  method: ApplyMethod, cv_version_id: int | None = None,
-                 notes: str = "") -> Application:
+                 cover_letter_id: int | None = None, notes: str = "") -> Application:
     if Stage(app.stage) not in (Stage.cv_ready, Stage.ready):
         raise TrackingError("Only jobs with an approved CV (CV ready / Ready to apply) can be "
                             "marked applied")
@@ -104,6 +104,18 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
         raise TrackingError("Pick an approved CV version of this job")
     if cv.status != CVStatus.approved:
         raise TrackingError("Only an approved CV version can be sent")
+    letter = None
+    if cover_letter_id is not None:
+        from app.models import CoverLetter
+        from app.services.cover_letter import lock as lock_letter
+
+        letter = s.get(CoverLetter, cover_letter_id)
+        if letter is None or letter.application_id != app.id:
+            raise TrackingError("Pick a cover letter of this job")
+        if letter.status != CVStatus.approved:
+            raise TrackingError("Only an approved cover letter can be sent")
+        lock_letter(letter)
+        s.add(letter)
     if Stage(app.stage) == Stage.cv_ready:
         pipeline.transition(s, app, Stage.ready)
     lock_cv(cv)
@@ -112,11 +124,14 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
     app.applied_at = _at(applied_on)  # the date you applied, not the click time
     app.applied_method = method
     app.applied_cv_version_id = cv.id
+    app.applied_cover_letter_id = letter.id if letter else None
     app.applied_notes = notes.strip()
     s.add(app)
     pipeline.log_event(s, app, EventKind.applied,
-                       f"Applied via {method.replace('_', ' ')} with CV v{cv.version}",
+                       f"Applied via {method.replace('_', ' ')} with CV v{cv.version}"
+                       + (f" and cover letter v{letter.version}" if letter else ""),
                        method=method, cv_version_id=cv.id, cv_version=cv.version,
+                       cover_letter_id=letter.id if letter else None,
                        applied_on=app.applied_at.date().isoformat(), notes=notes.strip())
     return app
 
