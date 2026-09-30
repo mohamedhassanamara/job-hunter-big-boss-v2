@@ -5,7 +5,7 @@ export type Route = 'undecided' | 'cold_email' | 'web_apply'
 
 /** Both routes of a job (services/tracks.py): the web application and the cold email. */
 export type ApplicationTrack = 'not_ready' | 'ready' | 'applied'
-export type OutreachTrack = 'no_contact' | 'contact' | 'drafted' | 'approved' | 'queued' | 'sent'
+export type OutreachTrack = 'no_contact' | 'verify' | 'contact' | 'drafted' | 'approved' | 'queued' | 'sent'
 export interface Tracks {
   application: ApplicationTrack
   outreach: OutreachTrack
@@ -15,7 +15,11 @@ export interface Tracks {
   draft_id: number | null
   sent_at: string | null
 }
-export type ContactTier = 'apollo_dump' | 'lookup_queued' | 'lookup_found' | 'none'
+export type ContactTier = 'imported' | 'found' | 'to_get' | 'none'
+/** The company's Get contact state: nobody found with the extension, or never looked up. */
+export type ContactSearch = 'none' | 'not_found' | 'never'
+/** This job's Get contact state (services/get_contact.py). */
+export type ContactState = 'get' | 'verify' | 'ready' | 'never'
 export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt'
 
 export interface CompanyBoard {
@@ -143,7 +147,7 @@ export interface Contact {
   title: string | null
   email: string | null
   linkedin_url: string | null
-  source: 'apollo_dump' | 'apollo_lookup' | 'manual'
+  source: 'apollo_dump' | 'found' | 'manual' | 'hunter'
   role_rank: number // position in Settings → Contacts ranking (999 = unranked)
   role_label: string | null
 }
@@ -203,7 +207,8 @@ export interface JobDetail extends JobListItem {
   events: TimelineEvent[]
   allowed_stages: Stage[]
   tracking: TrackedApplication | null // set once applied
-  lookup_status: LookupStatus | null // the company's Apollo lookup
+  contact_search: ContactSearch // the company's Get contact state
+  contact_state: ContactState // this job's
   contact_alerts: ContactAlert[] // active signs the contact left (they block the email's approval)
   next_contact: Contact | null // the next contact by the ranking rule, when there are alerts
 }
@@ -453,7 +458,7 @@ export interface DraftReviewItem {
   created_at: string
 }
 
-export type OutreachStepName = 'contact' | 'cv' | 'draft' | 'review' | 'queue' | 'queued' | 'sent'
+export type OutreachStepName = 'get_contact' | 'verify_contact' | 'cv' | 'draft' | 'review' | 'queue' | 'queued' | 'sent'
 
 export interface WhoToContact {
   company_size: string
@@ -469,7 +474,7 @@ export interface OutreachStep {
   step: OutreachStepName
   route: Route
   contact_tier: ContactTier
-  lookup_status: LookupStatus | null
+  contact_search: ContactSearch
   has_contact: boolean
   has_email: boolean
   cv_version: number | null
@@ -554,8 +559,7 @@ export interface ExperienceItem extends ExperienceInput {
 }
 
 // Contacts
-export type LookupStatus = 'queued' | 'found' | 'not_found' | 'skipped' | 'never'
-export type CompanyFilter = 'with_jobs' | 'has_contacts' | 'needs_lookup' | 'no_contact' | 'all'
+export type CompanyFilter = 'with_jobs' | 'has_contacts' | 'to_get' | 'no_contact' | 'all'
 
 export interface CompanyListItem {
   id: number
@@ -564,7 +568,7 @@ export interface CompanyListItem {
   contact_count: number
   open_jobs: number
   contacted_at: string | null
-  lookup_status: LookupStatus | null
+  contact_search: ContactSearch
   best_contact: string | null
   employees: number | null
   employees_max: number | null // "under N"
@@ -623,30 +627,6 @@ export interface ImportRun {
   backup_path: string | null
 }
 
-export interface LookupItem {
-  company_id: number
-  company_name: string
-  domain: string | null
-  status: LookupStatus
-  priority: number
-  open_jobs: number
-  best_job_id: number | null
-  best_job_title: string | null
-  best_fit: number | null
-  queued_at: string
-  shortlisted: number
-  newest_at: string | null
-  reason: string // why it's at this position
-  aggregator: string[] // "looks like a job board" signals (you confirm)
-}
-
-export interface LookupQueue {
-  daily_cap: number
-  used_today: number
-  total: number
-  items: LookupItem[]
-}
-
 export interface NewContact {
   full_name: string
   title?: string | null
@@ -659,15 +639,15 @@ export interface MatchGroup {
   group: string
   jobs: number
   with_contact: number
-  queued: number
+  to_get: number
   no_contact: number
 }
 
 export interface MatchReport {
-  totals: { jobs: number; with_contact: number; queued: number; no_contact: number }
+  totals: { jobs: number; with_contact: number; to_get: number; no_contact: number }
   by_track: MatchGroup[]
   by_country: MatchGroup[]
-  lookup_queue: number
+  contacts_to_get: number
   contacts: number
   companies_with_contacts: number
   changed: number | null
@@ -838,6 +818,7 @@ export interface Today {
   emails_to_queue: DraftReviewItem[] // approved, not yet in the send queue
   ready_to_apply: PipelineCard[]
   also_email: PipelineCard[] // applied on the website, nobody emailed yet
+  contacts_to_get: ToGetQueue | null // the Get contact step (top 5)
   reminders: Reminder[]
   upcoming_interviews: UpcomingInterview[] // next 14 days, pending
   stats_summary: StatsSummary
@@ -858,6 +839,97 @@ export interface NavCounts {
   outreach_review: number
   queue_pending: number
   ready_to_apply: number
+  contacts_to_get: number
+}
+
+// ---- Get contact (Phase 9) ---------------------------------------------------------------
+
+export interface ToGetItem {
+  application_id: number
+  job_id: number
+  job_title: string
+  company_id: number
+  company_name: string
+  stage: Stage
+  stage_label: string
+  fit: FitBrief | null
+  state: 'get' | 'verify'
+  nobody_found: boolean
+  contact_name: string | null
+  stale: boolean // verified, but longer ago than verify_days
+}
+
+export interface ToGetQueue {
+  items: ToGetItem[]
+  total: number
+  found_today: number
+  daily_limit: number // the Apollo extension's daily limit (Settings → Contacts)
+}
+
+export interface GetContactView {
+  application_id: number
+  job_id: number
+  job_title: string
+  state: ContactState
+  company: { id: number; name: string; domain: string | null; contact_search: ContactSearch; contact_search_notes: string; aggregator: string[] }
+  contact: Contact | null
+  provenance: { kind: string; label: string; at: string | null } | null
+  verified_at: string | null
+  verified_how: 'entered' | 'still_there' | 'hunter' | null
+  verify_days: number
+  stale: boolean
+  who: WhoToContact & { steps: string[] }
+  links: { company_linkedin: string | null; people_search: string | null; website: string | null; profile: string | null }
+  alerts: ContactAlert[]
+  next_contact: Contact | null
+  others: Contact[] // other contacts at the company, best ranked first
+  found_today: number
+  daily_limit: number
+}
+
+export interface ContactFields {
+  full_name: string
+  title: string
+  email: string
+  linkedin_url: string
+}
+
+export interface PasteParsed {
+  full_name: string | null
+  title: string | null
+  email: string | null
+  linkedin_url: string | null
+  company: string | null
+  notes: string[]
+}
+
+export interface HunterCredits {
+  configured: boolean
+  error: string | null
+  plan: string | null
+  searches_left: number | null
+  searches_available: number | null
+  verifications_left: number | null
+  verifications_available: number | null
+  reset_date: string | null
+}
+
+export interface HunterFound {
+  email: string | null
+  score: number | null
+  full_name: string | null
+  position: string | null
+  linkedin_url: string | null
+  status: string | null
+  credits: HunterCredits
+}
+
+export interface HunterVerified {
+  email: string
+  result: 'deliverable' | 'risky' | 'undeliverable' | 'unknown'
+  status: string
+  score: number | null
+  credits: HunterCredits
 }
 
 export interface SearchHit {

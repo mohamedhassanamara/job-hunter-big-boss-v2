@@ -57,9 +57,10 @@ class RemoteType(StrEnum):
 
 
 class ContactSource(StrEnum):
-    apollo_dump = "apollo_dump"
-    apollo_lookup = "apollo_lookup"
-    manual = "manual"
+    apollo_dump = "apollo_dump"  # from an imported Apollo CSV
+    found = "found"  # you found them (Apollo extension) in the Get contact step
+    manual = "manual"  # added by hand from Change contact
+    hunter = "hunter"  # Try Hunter found the email (you confirmed it)
 
 
 class ExperienceKind(StrEnum):
@@ -94,19 +95,19 @@ class ImportStatus(StrEnum):
     failed = "failed"
 
 
-class LookupStatus(StrEnum):
-    queued = "queued"
-    found = "found"
-    not_found = "not_found"
-    skipped = "skipped"
+class ContactSearch(StrEnum):
+    """The company's Get contact state (replaces the old per-company lookup queue)."""
+
+    none = "none"  # nothing special: its jobs join Contacts to get once past New
+    not_found = "not_found"  # you looked with the Apollo extension and found nobody
     never = "never"  # a job board / aggregator: never looked up, its jobs go to web apply
 
 
 class ContactTier(StrEnum):
-    apollo_dump = "apollo_dump"
-    lookup_queued = "lookup_queued"
-    lookup_found = "lookup_found"
-    none = "none"
+    imported = "imported"  # an imported (CSV) contact, best ranked
+    found = "found"  # a contact you found or added (extension, Hunter, by hand)
+    to_get = "to_get"  # nobody yet: in Contacts to get once the job is past New
+    none = "none"  # nobody to write to (nobody found, or never looked up)
 
 
 class CloseReason(StrEnum):

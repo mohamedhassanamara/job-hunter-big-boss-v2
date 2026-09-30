@@ -21,12 +21,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { relativeTime } from '@/lib/format'
-import { useQueueLookup } from '@/lib/queries/jobs'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { JobDetail, JobListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ContactAlertBanner } from './ContactAlertBanner'
-import { ContactTierBadge } from './badges'
+import { ContactTierBadge, ToneBadge } from './badges'
 import { NewContactDialog } from './NewContactDialog'
 
 /** Who this job's email goes to. Change it, add someone, or go back to automatic matching. */
@@ -94,10 +93,18 @@ function ChangeContact({ job }: { job: JobDetail }) {
   )
 }
 
+const STATE_BADGE = {
+  get: { tone: 'blue', label: 'Get contact' },
+  verify: { tone: 'amber', label: 'Verify first' },
+  ready: { tone: 'green', label: 'Verified' },
+  never: { tone: 'gray', label: 'Never looked up' },
+} as const
+
 export function ContactCard({ job, className }: { job: JobDetail; className?: string }) {
-  const lookup = useQueueLookup()
-  const tier = job.application.contact_tier
   const contact = job.contact
+  const open = job.application.stage !== 'new' && job.application.stage !== 'closed'
+  const state = STATE_BADGE[job.contact_state]
+  const getContact = `/outreach?tab=contacts&app=${job.application.id}`
 
   const copy = (text: string) => {
     void navigator.clipboard.writeText(text)
@@ -108,7 +115,13 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
     <div className={cn('rounded-lg border border-border bg-surface p-4', className)}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-fg-subtle">Contact</p>
-        <ContactTierBadge tier={tier} />
+        {open ? (
+          <ToneBadge tone={state.tone} dot={false}>
+            {state.label}
+          </ToneBadge>
+        ) : (
+          <ContactTierBadge tier={job.application.contact_tier} />
+        )}
       </div>
       {contact ? (
         <div className="space-y-2">
@@ -116,7 +129,7 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
             <p className="text-sm font-medium">{contact.full_name}</p>
             <p className="text-sm text-fg-muted">
               {contact.title}
-              {contact.role_label && <span className="text-fg-subtle"> · {contact.role_label}</span>}
+              {contact.role_label && contact.role_label !== contact.title && <span className="text-fg-subtle"> · {contact.role_label}</span>}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1">
@@ -136,6 +149,14 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
               </Button>
             )}
           </div>
+          {open && job.contact_state === 'verify' && (
+            <p className="text-xs text-warning-fg">
+              Not verified yet: the email waits until you check they're still there.{' '}
+              <Link to={getContact} className="text-primary hover:underline">
+                Verify now
+              </Link>
+            </p>
+          )}
           <ContactAlertBanner
             alerts={job.contact_alerts}
             nextContact={job.next_contact}
@@ -153,45 +174,36 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
             </Link>
           </p>
         </div>
-      ) : tier === 'lookup_queued' ? (
-        <div className="space-y-2">
-          <div className="flex gap-2.5 text-sm">
-            <Search className="mt-0.5 size-4 shrink-0 text-warning-dot" />
-            <div>
-              <p>{job.company.name} is in the Apollo lookup queue.</p>
-              <p className="text-fg-muted">
-                Lookups are capped daily.{' '}
-                <Link to="/contacts?tab=lookups" className="text-primary hover:underline">
-                  Open the queue
-                </Link>
-              </p>
-            </div>
-          </div>
-          <ChangeContact job={job} />
-        </div>
       ) : (
         <div className="space-y-3">
           <div className="flex gap-2.5 text-sm">
             <UserRoundX className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
             <div>
-              <p>{job.lookup_status === 'not_found' ? 'The Apollo lookup found nobody.' : 'No contact at this company.'}</p>
-              <p className="text-fg-muted">This job goes to web apply unless you add someone.</p>
+              <p>
+                {job.contact_search === 'never'
+                  ? `${job.company.name} is never looked up (a job board).`
+                  : job.contact_search === 'not_found'
+                    ? 'You found nobody there with the Apollo extension.'
+                    : `Nobody at ${job.company.name} yet.`}
+              </p>
+              <p className="text-fg-muted">
+                {job.contact_search === 'never'
+                  ? 'This job goes to web apply.'
+                  : open
+                    ? 'Find someone with the Apollo extension in the Get contact step.'
+                    : 'Shortlist the job to find someone in the Get contact step.'}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              onClick={() =>
-                lookup.mutate(job.application.id, {
-                  onSuccess: () => toast.success('Queued for an Apollo lookup'),
-                  onError: (e) => toast.error(e.message),
-                })
-              }
-              disabled={lookup.isPending}
-            >
-              <Search />
-              {job.lookup_status === 'not_found' ? 'Look up again' : 'Queue Apollo lookup'}
-            </Button>
+            {open && job.contact_search !== 'never' && (
+              <Button size="sm" asChild>
+                <Link to={getContact}>
+                  <Search />
+                  Get contact
+                </Link>
+              </Button>
+            )}
             <ChangeContact job={job} />
           </div>
         </div>

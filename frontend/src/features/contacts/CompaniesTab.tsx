@@ -20,25 +20,26 @@ import {
   useClearJobContact,
   useCompanies,
   useCompany,
-  useLookupAction,
   useSetCompanySize,
   useSetJobContact,
 } from '@/lib/queries/library'
 import type { CompanyDetail, CompanyFilter, Contact } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { SignalsPanel } from '@/components/app/research/SignalsPanel'
+import { useContactSearch } from '@/lib/queries/getContact'
 import { NewContactDialog } from '@/components/app/NewContactDialog'
 
 const SOURCE: Record<Contact['source'], { label: string; tone: 'green' | 'blue' | 'gray' }> = {
   apollo_dump: { label: 'Apollo import', tone: 'green' },
-  apollo_lookup: { label: 'Apollo lookup', tone: 'blue' },
+  found: { label: 'Found by you', tone: 'blue' },
+  hunter: { label: 'Hunter', tone: 'blue' },
   manual: { label: 'Manual', tone: 'gray' },
 }
 
 const FILTERS: { value: CompanyFilter; label: string }[] = [
   { value: 'with_jobs', label: 'With jobs' },
   { value: 'has_contacts', label: 'Has contacts' },
-  { value: 'needs_lookup', label: 'Needs lookup' },
+  { value: 'to_get', label: 'Contact to get' },
   { value: 'no_contact', label: 'No contact' },
 ]
 
@@ -154,7 +155,7 @@ function SizeEditor({ data }: { data: CompanyDetail }) {
 function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => void }) {
   const { data, isPending, error, refetch } = useCompany(id)
   const add = useAddCompanyContact()
-  const lookupAct = useLookupAction()
+  const search = useContactSearch()
   const [adding, setAdding] = useState(false)
   const missing = error instanceof ApiError && error.status === 404
   // A stale ?company= (another workspace, a removed company): fall back to the list's first.
@@ -194,17 +195,16 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
               <ToneBadge tone="gray">Not contacted</ToneBadge>
             )}
             <SizeEditor key={`${data.employees}-${data.employees_max}`} data={data} />
-            {data.lookup_status === 'not_found' && <ToneBadge tone="gray">Lookup found nobody</ToneBadge>}
-            {data.lookup_status === 'never' && <ToneBadge tone="gray">Never looked up (job board)</ToneBadge>}
-            {data.lookup_status === 'queued' && <ToneBadge tone="amber">In the lookup queue</ToneBadge>}
-            {(data.lookup_status === 'never' || data.lookup_status === 'not_found') && (
+            {data.contact_search === 'not_found' && <ToneBadge tone="gray">Nobody found</ToneBadge>}
+            {data.contact_search === 'never' && <ToneBadge tone="gray">Never looked up (job board)</ToneBadge>}
+            {data.contact_search !== 'none' && (
               <Button
                 size="xs"
                 variant="ghost"
                 onClick={() =>
-                  lookupAct.mutate(
-                    { companyId: data.id, action: 'again' },
-                    { onSuccess: () => toast.success('Back in the lookup queue'), onError: (e) => toast.error(e.message) },
+                  search.mutate(
+                    { companyId: data.id, status: 'none' },
+                    { onSuccess: () => toast.success('Its jobs are back in Get contact'), onError: (e) => toast.error(e.message) },
                   )
                 }
               >
@@ -227,7 +227,7 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
         </p>
         {data.contacts.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border-strong p-6 text-center text-sm text-fg-muted">
-            No contacts at this company. Its jobs wait in the lookup queue; if the lookup finds nobody they go to web apply.
+            No contacts at this company. Once you shortlist one of its jobs, it joins Outreach → Contacts to get; if you find nobody there, its jobs go to web apply.
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -383,7 +383,7 @@ export function CompaniesTab({ onImport }: { onImport: () => void }) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{c.name}</p>
                     <p className="truncate text-xs text-fg-muted">
-                      {c.best_contact ?? (c.lookup_status === 'not_found' ? 'No contact found' : 'No contact yet')}
+                      {c.best_contact ?? (c.contact_search === 'not_found' ? 'Nobody found' : c.contact_search === 'never' ? 'Never looked up' : 'No contact yet')}
                       {c.open_jobs > 0 && ` · ${pluralize(c.open_jobs, 'open job')}`}
                     </p>
                   </div>

@@ -1,4 +1,4 @@
-"""Apollo import (dedupe, batches, resume), role ranking, three-tier resolution, lookups."""
+"""Apollo import (dedupe, batches, resume), role ranking, resolution, the Get contact queue."""
 
 from datetime import UTC, datetime, timedelta
 from itertools import count
@@ -11,15 +11,14 @@ from app.models import (
     Application,
     ApplicationEvent,
     Company,
-    CompanyLookup,
     Contact,
     ContactImport,
     FitScore,
     Job,
     OutreachDraft,
 )
-from app.models.enums import ContactSource, ContactTier, EventKind, LookupStatus, Stage
-from app.services import contacts, contacts_import
+from app.models.enums import ContactSearch, ContactSource, ContactTier, EventKind, Stage
+from app.services import contacts, contacts_import, get_contact
 from app.services.contacts import DEFAULT_ROLE_RANKING, UNRANKED, rank
 from app.services.contacts_import import detect_mapping, map_row, parse_csv
 
@@ -258,36 +257,34 @@ def test_small_order_puts_founders_before_heads_of_engineering() -> None:
     assert not contacts.is_small(Co(name="x", normalized_name="x"), 50)  # unknown = large
 
 
-def test_a_later_import_takes_the_company_out_of_the_lookup_queue(seeded: None) -> None:
+def test_a_later_import_turns_to_get_into_a_contact(seeded: None) -> None:
     with Session(engine) as s:
         company = make_company(s)
         app = make_job(s, company, score=90)
         contacts.resolve(s, app)
-        assert app.contact_tier == ContactTier.lookup_queued
+        assert app.contact_tier == ContactTier.to_get
         s.add(Contact(company_id=company.id, full_name="Late Import", title="CTO",
                       normalized_name="late import", role_rank=0))
         s.flush()
         contacts.resolve(s, app)
-        assert app.contact_tier == ContactTier.apollo_dump
-        assert s.exec(select(CompanyLookup).where(
-            CompanyLookup.company_id == company.id)).first() is None
-        assert company.id not in [r.company.id for r in contacts.lookup_queue(s).rows]
+        assert app.contact_tier == ContactTier.imported
         s.rollback()
 
 
-def test_found_resolves_every_job_and_not_found_is_tier_3(seeded: None) -> None:
+def test_found_serves_every_job_there_and_nobody_found_means_no_contact(seeded: None) -> None:
     with Session(engine) as s:
         found_co, empty_co = make_company(s), make_company(s)
-        jobs = [make_job(s, found_co), make_job(s, found_co)]
+        jobs = [make_job(s, found_co, stage=Stage.shortlisted), make_job(s, found_co)]
         other = make_job(s, empty_co)
         contacts.resolve_many(s, [(a, s.get(Job, a.job_id)) for a in [*jobs, other]])
-        contacts.lookup_found(s, found_co.id, full_name="Nina Head", title="Head of Data",
-                              email="nina@found.io", linkedin_url=None)
-        assert {a.contact_tier for a in jobs} == {ContactTier.lookup_found}
+        get_contact.found(s, jobs[0], full_name="Nina Head", title="Head of Data",
+                          email="nina@found.io", linkedin_url=None)
+        assert {a.contact_tier for a in jobs} == {ContactTier.found}
         assert len({a.contact_id for a in jobs}) == 1
-        contacts.lookup_not_found(s, empty_co.id)
+        assert s.get(Contact, jobs[0].contact_id).verified_at is not None  # entered = verified
+        contacts.set_contact_search(s, empty_co.id, ContactSearch.not_found)
         assert other.contact_tier == ContactTier.none and other.contact_id is None
-        assert contacts.used_today(s) >= 2
+        assert contacts.found_today(s) >= 1
         s.rollback()
 
 
@@ -324,18 +321,18 @@ def test_resolution_writes_events(seeded: None) -> None:
         s.rollback()
 
 
-def test_skip_hides_until_tomorrow_and_the_counter_resets_at_midnight(seeded: None) -> None:
+def test_the_found_counter_resets_at_local_midnight(seeded: None) -> None:
     with Session(engine) as s:
         company = make_company(s)
-        contacts.resolve(s, make_job(s, company, score=99))
-        contacts.lookup_skip(s, company.id)
-        ids = [r.company.id for r in contacts.lookup_queue(s).rows]
-        assert company.id not in ids
+        contacts.add_contact(s, company.id, full_name="Ann Found", title="CTO",
+                             email=f"ann{next(_n)}@co.io", linkedin_url=None,
+                             source=ContactSource.found)
+        contacts.add_contact(s, company.id, full_name="Imp Orted", title="CTO",
+                             email=f"imp{next(_n)}@co.io", linkedin_url=None,
+                             source=ContactSource.apollo_dump)  # imports don't count
         later = datetime.now(UTC) + timedelta(days=1, hours=1)
-        assert company.id in [r.company.id for r in contacts.lookup_queue(s, later).rows]
-        contacts.lookup_not_found(s, company.id)
-        assert contacts.used_today(s) >= 1
-        assert contacts.used_today(s, later) == 0  # a new day starts at local midnight
+        assert contacts.found_today(s) >= 1
+        assert contacts.found_today(s, later) == 0
         s.rollback()
 
 
@@ -346,7 +343,7 @@ def test_report_counts_by_track_and_country(seeded: None) -> None:
         make_job(s, make_company(s))
         out = contacts.match_all(s)
         track = next(g for g in out["by_track"] if g["group"] == "T-contacts")
-        assert track["with_contact"] >= 1 and track["queued"] >= 1
+        assert track["with_contact"] >= 1 and track["to_get"] >= 1
         assert out["totals"]["jobs"] == sum(g["jobs"] for g in out["by_country"])
         s.rollback()
 
@@ -360,7 +357,7 @@ def test_discovery_hook_resolves_new_jobs(seeded: None) -> None:
 
     after_discovery(engine, [job_id], queue=None)
     with Session(engine) as s:
-        assert s.get(Application, app_id).contact_tier == ContactTier.apollo_dump
+        assert s.get(Application, app_id).contact_tier == ContactTier.imported
 
 
 def test_add_contact_rejects_a_known_email(seeded: None) -> None:
@@ -374,8 +371,8 @@ def test_add_contact_rejects_a_known_email(seeded: None) -> None:
         s.rollback()
 
 
-def test_lookup_status_values() -> None:
-    assert {s.value for s in LookupStatus} == {"queued", "found", "not_found", "skipped", "never"}
+def test_contact_search_values() -> None:
+    assert {s.value for s in ContactSearch} == {"none", "not_found", "never"}
 
 
 # ------------------------------------------------------------------------------------ API
@@ -409,23 +406,26 @@ def test_import_through_the_api_with_preview_polling_and_hash_guard(client) -> N
     assert bad.status_code == 422
 
 
-def test_lookup_and_per_job_contact_endpoints(client) -> None:  # noqa: ANN001
+def test_get_contact_and_per_job_contact_endpoints(client) -> None:  # noqa: ANN001
     with Session(engine) as s:
         company = make_company(s)
-        app = make_job(s, company, score=97)
+        app = make_job(s, company, stage=Stage.shortlisted, score=97)
         contacts.resolve(s, app)
         s.commit()
-        company_id, app_id, job_id = company.id, app.id, app.job_id
-    queue = client.get("/api/contacts/lookups").json()
-    assert company_id in [i["company_id"] for i in queue["items"]]
-    after = client.post(f"/api/contacts/lookups/{company_id}/found",
+        app_id, job_id = app.id, app.job_id
+    queue = client.get("/api/contacts/to-get").json()
+    assert app_id in [i["application_id"] for i in queue["items"]]
+    after = client.post(f"/api/applications/{app_id}/contact/found",
                         json={"full_name": "Lia Found", "title": "CTO", "email": "lia@f.io"})
-    assert after.status_code == 200 and after.json()["used_today"] >= 1
+    assert after.status_code == 200 and after.json()["found_today"] >= 1
+    assert after.json()["state"] == "ready"
     detail = client.get(f"/api/jobs/{job_id}").json()
     assert detail["contact"]["full_name"] == "Lia Found"
     assert detail["contact"]["role_label"] == "CTO"
-    assert detail["application"]["contact_tier"] == "lookup_found"
-    assert detail["lookup_status"] == "found"
+    assert detail["application"]["contact_tier"] == "found"
+    assert (detail["contact_search"], detail["contact_state"]) == ("none", "ready")
+    assert app_id not in [i["application_id"]
+                          for i in client.get("/api/contacts/to-get").json()["items"]]
     mine = client.post(f"/api/applications/{app_id}/contact",
                        json={"full_name": "Max Manual", "title": "Tech Lead"})
     assert mine.json()["contact"]["full_name"] == "Max Manual"
@@ -447,7 +447,7 @@ def test_contacts_settings_are_validated_and_rerank(client) -> None:  # noqa: AN
 
 
 def test_companies_list_filters(client) -> None:  # noqa: ANN001
-    body = client.get("/api/companies", params={"filter": "needs_lookup"}).json()
+    body = client.get("/api/companies", params={"filter": "to_get"}).json()
     assert body["total"] == len(body["items"]) or body["total"] > 100
     assert all(i["contact_count"] == 0 for i in body["items"])
     has = client.get("/api/companies", params={"filter": "has_contacts"}).json()
@@ -457,39 +457,35 @@ def test_companies_list_filters(client) -> None:  # noqa: ANN001
 # ------------------------------------------------------------------ queue order, never, boards
 
 
-def test_queue_orders_shortlisted_then_fit_then_newest_with_reasons(seeded: None) -> None:
+def test_the_queue_has_jobs_past_new_best_fit_first_and_nobody_found_last(seeded: None) -> None:
     with Session(engine) as s:
-        now = datetime.now(UTC)
-        shortlisted, high, tie_old, tie_new = (make_company(s) for _ in range(4))
-        make_job(s, shortlisted, stage=Stage.shortlisted, score=60)
-        make_job(s, high, score=99)
-        old = make_job(s, tie_old, score=95)
-        new = make_job(s, tie_new, score=95)
-        s.get(Job, old.job_id).discovered_at = now - timedelta(days=9)
-        s.get(Job, new.job_id).discovered_at = now - timedelta(days=1)
-        s.flush()
-        contacts.resolve_many(s, contacts._open_apps(s, company_ids={
-            shortlisted.id, high.id, tie_old.id, tie_new.id}))
-        rows = [r for r in contacts.lookup_queue(s, limit=5000).rows
-                if r.company.id in {shortlisted.id, high.id, tie_old.id, tie_new.id}]
-        assert [r.company.id for r in rows] == [shortlisted.id, high.id, tie_new.id, tie_old.id]
-        assert rows[0].reason == "1 shortlisted job"
-        assert rows[1].reason == "Best fit 99"
-        assert rows[2].reason.startswith("Best fit 95") or "newest" in rows[2].reason
-        assert "newest job 9 days ago" in rows[3].reason
+        low, high, untriaged, nobody, board = (make_company(s) for _ in range(5))
+        a_low = make_job(s, low, stage=Stage.shortlisted, score=60)
+        a_high = make_job(s, high, stage=Stage.cv_ready, score=99)
+        make_job(s, untriaged, score=100)  # still New: not in the queue yet
+        a_nobody = make_job(s, nobody, stage=Stage.shortlisted, score=98)
+        make_job(s, board, stage=Stage.shortlisted, score=97)
+        ids = {c.id for c in (low, high, untriaged, nobody, board)}
+        contacts.resolve_many(s, contacts._open_apps(s, company_ids=ids))
+        contacts.set_contact_search(s, nobody.id, ContactSearch.not_found)
+        contacts.set_contact_search(s, board.id, ContactSearch.never)
+        rows = [r for r in get_contact.queue(s) if r.company.id in ids]
+        assert [r.app.id for r in rows] == [a_high.id, a_low.id, a_nobody.id]
+        assert rows[-1].nobody_found and {r.state for r in rows} == {"get"}
         s.rollback()
 
 
 def test_never_look_up_sends_jobs_to_web_apply_even_with_contacts(seeded: None) -> None:
     with Session(engine) as s:
         board = make_company(s, ("Tina Talent", "Recruiter", "apollo_dump"))
-        app = make_job(s, board)
+        app = make_job(s, board, stage=Stage.shortlisted)
         contacts.resolve(s, app)
         assert app.contact_id is not None
-        contacts.lookup_never(s, board.id)
+        contacts.set_contact_search(s, board.id, ContactSearch.never)
         assert (app.contact_tier, app.contact_id) == (ContactTier.none, None)
-        assert board.id not in [r.company.id for r in contacts.lookup_queue(s, limit=5000).rows]
-        contacts.lookup_again(s, board.id)
+        assert get_contact.state(s, app) == "never"
+        assert app.id not in [r.app.id for r in get_contact.queue(s)]
+        contacts.set_contact_search(s, board.id, ContactSearch.none)
         assert app.contact_id is not None
         s.rollback()
 

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { JobDetail, JobList, PipelineCard, ReadyItem, Today } from '@/lib/types'
+import type { JobDetail, JobList, PipelineCard, ReadyItem, Today, ToGetQueue } from '@/lib/types'
 
 /**
  * Guided tours, one per feature. They run in the sandbox workspace (sample data only).
@@ -26,6 +26,7 @@ export type TourId =
   | 'copilot'
   | 'signals'
   | 'contact-check'
+  | 'get-contact'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -122,7 +123,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'job-stage', title: 'Stage', body: 'Move the job between stages. The web application and the cold email each have their own track below.' },
       { target: 'job-next', title: 'Always the next step', body: 'The primary button changes with the stage: shortlist, generate CV, draft email, mark applied…' },
       { target: 'job-fit', title: 'Sub-scores and evidence', body: 'Each sub-score has a reason and a quote from the listing; quotes the app cannot find in the text are marked unverified. Low confidence? Fetch or paste the full listing and rescore.', placement: 'right' },
-      { target: 'job-contact', title: 'Contact resolution', body: 'Tier 1: your Apollo import. Tier 2: a queued manual Apollo lookup. Tier 3: no contact → web apply.', placement: 'left' },
+      { target: 'job-contact', title: 'Contact resolution', body: 'Who the email goes to: your best-ranked contact at the company (imported or found by you). Before any email, you verify they are still there; nobody yet means Get contact (Outreach → Contacts to get).', placement: 'left' },
       { target: 'job-timeline', title: 'Timeline', body: 'Every stage change, CV version and email, newest first.', placement: 'left' },
     ],
   },
@@ -185,7 +186,7 @@ export const TOURS: Record<TourId, Tour> = {
     },
     steps: [
       { target: 'job-tracks', title: 'Both routes', body: 'Every job can have a web application and a cold email to someone there. Each track shows its own status and next step; the stage reaches Applied / Emailed with the first one.', placement: 'bottom' },
-      { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'No contact yet? The card says who to look for (by company size) with LinkedIn and Apollo search hints to copy. Then add the person you found, draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
+      { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'First, Get contact: who to look for (by company size) with LinkedIn links, or verify the contact you already have. Then draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
     ],
   },
   copilot: {
@@ -211,6 +212,22 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'signals-panel', title: 'Researched only when you draft', body: "When you click Draft email with AI (or Research now), the app reads the company's own site and recent news, and a model extracts facts. Each keeps its exact quote, checked in code against the page; a fact without a verified quote is dropped. Fresh signals (30 days) are reused with no new fetch.", placement: 'top' },
       { target: 'signals-panel', title: 'Pick what the email uses', body: 'Ticked signals feed the email hook; the email cites them. Add a fact you know yourself. With no signal, a draft is marked Needs a signal and cannot be approved.', placement: 'top' },
+    ],
+  },
+  'get-contact': {
+    id: 'get-contact',
+    title: 'Get contact',
+    description: 'Find or verify who to write to, one job at a time',
+    resolveRoute: async () => {
+      const q = await api.get<ToGetQueue>('/contacts/to-get')
+      const item = q.items.find((i) => i.state === 'get') ?? q.items[0]
+      return item ? `/outreach?tab=contacts&app=${item.application_id}` : '/outreach?tab=contacts'
+    },
+    steps: [
+      { target: 'contacts-to-get', title: 'Contacts to get', body: 'Every job you moved past New that needs a contact, or a check of the one it has, best fit first. No email is drafted (and no company researched) before its contact is verified.', placement: 'right' },
+      { target: 'found-counter', title: 'Your extension limit', body: 'Contacts you found today against the Apollo extension\'s daily limit (Settings → Contacts). It warns near the limit; it never blocks.', placement: 'bottom' },
+      { target: 'get-contact', title: 'Who to look for, or verify first', body: 'No contact: the roles to look for at this company (by its size), LinkedIn links and the steps. A contact from a CSV: where it came from, the "may have left" check, then Still there (V), Left or wrong person (L) or Edit (E). A verification lasts 30 days (a setting).', placement: 'left' },
+      { target: 'contact-form', title: 'Paste, check, save', body: 'Copy the Apollo extension\'s panel or a LinkedIn header and paste it (P): the fields fill in. Check them, then ⌘↵ saves and moves to the next job. Try Hunter is there when the extension finds nothing, and shows its credits first.', placement: 'left' },
     ],
   },
   'contact-check': {
@@ -260,12 +277,10 @@ export const TOURS: Record<TourId, Tour> = {
     description: 'Who each job is written to',
     resolveRoute: async () => '/contacts',
     steps: [
-      { target: 'contacts-companies', title: 'Companies and who to write to', body: 'Every company with jobs, and the person its emails go to. Filter to those that still need a lookup or where nobody was found.', placement: 'right' },
+      { target: 'contacts-companies', title: 'Companies and who to write to', body: 'Every company with jobs, and the person its emails go to. Filter to those with a contact to get or where you found nobody.', placement: 'right' },
       { target: 'contacts-detail', title: 'Ranked by role', body: 'Contacts are ordered by the ranking in Settings → Contacts (CTO, head of engineering or data, engineering manager, tech lead, then HR). Pick another person for a single job; matching never overrides your choice.', placement: 'left' },
-      { target: 'contacts-lookups', title: 'Manual Apollo lookups', body: 'Companies with jobs but no imported contact, best fit first. Look one up with the Apollo extension, then enter who you found (E) or mark nobody (N): that job then goes to web apply.', route: '/contacts?tab=lookups', placement: 'top' },
-      { target: 'contacts-lookup-counter', title: 'Daily cap', body: 'The extension has a free daily quota; the counter resets at midnight. The cap is a setting.', route: '/contacts?tab=lookups' },
       { target: 'contacts-import', title: 'Import your Apollo exports', body: 'Drop several CSVs at once. Contacts are deduplicated by email and by company + name, imported in batches with a progress bar, and the database is backed up first.', route: '/contacts?tab=import' },
-      { target: 'contacts-match', title: 'Match report', body: 'How many open jobs have a contact, wait on a lookup, or have nobody, by track and country. Matching also runs after every discovery run and import.', route: '/contacts?tab=match' },
+      { target: 'contacts-match', title: 'Match report', body: 'How many open jobs have a contact, a contact to get, or nobody, by track and country. Matching also runs after every discovery run and import.', route: '/contacts?tab=match' },
     ],
   },
   experience: {

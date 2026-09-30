@@ -103,7 +103,10 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 
 ### company (size, aliases, merges)
 `company` also has `employees` (exact), `employees_max` ("under N"), `size_source` (`manual | apollo_list`) and
-`aggregator_reviewed` (you said "it's an employer" to the job-board suggestion). `company_alias`
+`aggregator_reviewed` (you said "it's an employer" to the job-board suggestion), and the Get contact state
+`contact_search` (`none | not_found | never`: nobody found with the extension / never look up, a job board) with
+`contact_search_at` and `contact_search_notes`. Migration 0016 moved these from the removed `company_lookup` table
+(never → never, not_found → not_found, queued/skipped/found → none) and renamed tiers and sources. `company_alias`
 (`normalized_name` unique → `company_id`) maps merged-away spellings; `company_merge_decision` (`pair_key` unique,
 `decision merged | rejected`) remembers your answer to each suggestion.
 
@@ -115,7 +118,9 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | normalized_name | str | Accent/case-folded name; dedupe key with company_id (index) |
 | email / email_normalized | str? | Lowercased copy is unique when present (partial index) |
 | linkedin_url | str? | |
-| source | enum `apollo_dump \| apollo_lookup \| manual` | Import / lookup result / added by hand (manual picks are never replaced) |
+| source | enum `apollo_dump \| found \| manual \| hunter` | Import / found with the Apollo extension (Get contact) / added by hand (never replaced) / found with Try Hunter |
+| verified_at / verified_how | datetime? / str? | Get contact: `entered` (you entered them), `still_there`, `hunter`; stale after `contacts.verify_days` |
+| left_at / left_reason | datetime? / str? | `left \| wrong_person`: never picked again by matching or ranking |
 | imported_batch | str? | `contact_import.id` |
 | role_rank | int | Position in `app_setting.contacts.role_ranking` (999 = unranked); re-derived when the ranking changes |
 | notes | text | |
@@ -130,16 +135,6 @@ One Apollo CSV import run (background, batches of 500).
 | skipped_reasons | JSON | `{duplicate_in_file, already_known, no_company, no_name_or_email}` counts |
 | mapping | JSON | Our field → CSV column |
 | error / started_at / finished_at | | |
-
-### company_lookup
-Tier 2 of contact resolution, **one row per company**: a manual Apollo-extension lookup.
-| Column | Type | Notes |
-|---|---|---|
-| company_id | FK company unique | |
-| status | enum `queued \| found \| not_found \| skipped \| never` | not_found / never (job board) → the company's jobs become tier 3 ("No contact") |
-| priority | int | Best fit among its open jobs (display order is computed: shortlisted, fit, newest) |
-| queued_at / resolved_at / snoozed_until | datetime | Resolved today (local midnight) = the daily counter; skip snoozes until tomorrow |
-| notes | text | |
 
 ### experience_item
 The master experience that CVs are generated from.
@@ -190,7 +185,7 @@ The pipeline record. It is created when a job is discovered and passes filters, 
 | stage | enum `new \| shortlisted \| cv_ready \| ready \| done \| interview \| closed` | The overall position; `done` = the first route finished ("Applied", "Emailed", "Applied + emailed"). `drafted` was retired in 0012 (moved to `cv_ready`) |
 | route | enum `undecided \| cold_email \| web_apply` | Legacy default focus only: both routes are open on every job. DTOs carry `tracks` (`services/tracks.py`): `application` not_ready/ready/applied and `outreach` no_contact/contact/drafted/approved/queued/sent, derived from `web_applied_at`, the approved CV, `contact_id` and the drafts |
 | contact_id | FK contact? | |
-| contact_tier | enum `apollo_dump \| lookup_queued \| lookup_found \| none` | 3-tier resolution result (`services/contacts.resolve`); `lookup_queued` mirrors the company's `company_lookup` row |
+| contact_tier | enum `imported \| found \| to_get \| none` | Resolution result (`services/contacts.resolve`): an imported contact, one you found or added, nobody yet (Contacts to get), nobody (not found / never looked up) |
 | close_reason | enum? `dismissed \| rejected \| withdrawn \| no_response \| offer_accepted \| offer_declined \| offer` | Only when `closed`. After applying only rejected / no_response / withdrawn / offer_accepted / offer_declined (`services/tracking.close`); `offer` is legacy (shown as "Offer") |
 | notes | text | |
 | applied_at | datetime? | The date you applied (user-chosen in "Mark applied", noon UTC); for cold email, when it hit `done` |
@@ -402,5 +397,5 @@ A single row in v2 (the global queue).
 ### app_setting
 | Column | Type | Notes |
 |---|---|---|
-| key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`), `contacts` (`{role_ranking: [{label, keywords[]}]}`), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
+| key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`: the Apollo extension daily limit), `contacts` (`{role_ranking: [{label, keywords[]}], small_order, large_order, small_company_threshold, verify_days}`), `hunter_log` (Try Hunter uses), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |

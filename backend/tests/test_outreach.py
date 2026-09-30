@@ -22,6 +22,7 @@ from app.models import (
     SendQueue,
     SendQueueItem,
 )
+from app.models.base import utcnow
 from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, QueueStatus, Stage
 from app.providers.base import (
     CVPlan,
@@ -173,7 +174,7 @@ def job_ready(seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  #
         s.flush()
         contact = Contact(company_id=company.id, full_name=f"Ana Test{n}", first_name="Ana",
                           title="CTO", email=f"ana{n}@outco.test", normalized_name=f"ana test{n}",
-                          role_rank=0)
+                          role_rank=0, verified_at=utcnow(), verified_how="still_there")
         job = Job(source="adzuna", external_id=f"out-{n}", url="https://example.test",
                   title="Data Engineer", company_id=company.id, dedupe_key=f"out-{n}",
                   description="We build data pipelines.")

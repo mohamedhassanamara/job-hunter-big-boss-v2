@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { NewContact } from '@/lib/types'
 
-/** Name, title, email, LinkedIn: used for a lookup result and for adding a contact by hand. */
+/** Name, title, email, LinkedIn: used for adding a contact by hand. */
 export function NewContactDialog({
   open,
   title,

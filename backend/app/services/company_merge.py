@@ -9,16 +9,16 @@ and records the other spelling as an alias so future jobs and imports land on th
 from collections import defaultdict
 from dataclasses import dataclass
 
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, func, select
 
 from app.models import (
     Company,
     CompanyAlias,
-    CompanyLookup,
     CompanyMergeDecision,
     Contact,
     Job,
 )
+from app.models.enums import ContactSearch
 from app.services import contacts as contacts_svc
 
 # Trailing words that don't make a different employer.
@@ -114,14 +114,9 @@ def merge(s: Session, keep_id: int, merge_id: int) -> Company:
     for person in s.exec(select(Contact).where(Contact.company_id == gone.id)).all():
         person.company_id = keep.id
         s.add(person)
-    lookups = {lk.company_id: lk for lk in s.exec(select(CompanyLookup).where(
-        col(CompanyLookup.company_id).in_([keep.id, gone.id]))).all()}
-    if gone.id in lookups:
-        if keep.id in lookups:
-            s.delete(lookups[gone.id])
-        else:
-            lookups[gone.id].company_id = keep.id
-            s.add(lookups[gone.id])
+    if keep.contact_search == ContactSearch.none and gone.contact_search != ContactSearch.none:
+        keep.contact_search, keep.contact_search_at = gone.contact_search, gone.contact_search_at
+        keep.contact_search_notes = gone.contact_search_notes
     for alias in s.exec(select(CompanyAlias).where(CompanyAlias.company_id == gone.id)).all():
         alias.company_id = keep.id
         s.add(alias)

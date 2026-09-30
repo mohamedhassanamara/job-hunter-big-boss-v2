@@ -1,16 +1,18 @@
-"""Contact resolution: who to write to for each job, in three tiers.
+"""Contact resolution: who to write to for each job.
 
-1. An imported contact at the job's company, the most relevant role first (Settings → Contacts).
-2. None imported: the company joins the manual Apollo-extension lookup queue (one row per company).
-3. The lookup found nobody: "No contact", and the job stays on the web-apply route.
+1. A contact at the job's company, the most relevant role first (Settings → Contacts), never one
+   marked left or wrong person.
+2. Nobody yet: tier "to get" (the job joins Contacts to get once it's past New; services/
+   get_contact.py guides the Apollo-extension search).
+3. You found nobody, or the company is never looked up (a job board): "No contact".
 
 Never overrides a contact you picked by hand, and never touches jobs already applied to or closed.
 No network, no model calls.
 """
 
 from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from sqlmodel import Session, col, select
@@ -20,15 +22,13 @@ from app.models import (
     ApplicationEvent,
     AppSetting,
     Company,
-    CompanyLookup,
     Contact,
     Job,
 )
 from app.models.base import utcnow
-from app.models.enums import ContactSource, ContactTier, EventKind, LookupStatus, Stage
+from app.models.enums import ContactSearch, ContactSource, ContactTier, EventKind, Stage
 from app.services import pipeline
 from app.services.dedupe import _ascii_words
-from app.services.views import latest_fits
 
 # Ordered: the first group is the most relevant person to write to. Editable in Settings.
 DEFAULT_ROLE_RANKING: list[dict[str, Any]] = [
@@ -240,28 +240,13 @@ def _apply(s: Session, app: Application, contact: Contact | None, tier: ContactT
     return True
 
 
-def _drop_pending_lookup(s: Session, company_id: int) -> None:
-    """The company has contacts now (e.g. a later import): it no longer needs a lookup."""
-    row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
-    if row is not None and row.status in (LookupStatus.queued, LookupStatus.skipped):
-        s.delete(row)
-        s.flush()
-
-
-def _lookup_for(s: Session, company_id: int, priority: int) -> CompanyLookup:
-    row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
-    if row is None:
-        row = CompanyLookup(company_id=company_id, priority=priority)
-        s.add(row)
-        s.flush()
-    elif row.status == LookupStatus.queued and priority > row.priority:
-        row.priority = priority
-        s.add(row)
-    return row
+def tier_for(contact: Contact) -> ContactTier:
+    return ContactTier.imported if contact.source == ContactSource.apollo_dump \
+        else ContactTier.found
 
 
 def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = None,
-            priority: int = 0, ranking: Ranking | None = None) -> Resolution:
+            ranking: Ranking | None = None) -> Resolution:
     """Resolve one application. `contacts` (the company's) and `ranking` can be passed in by
     batch callers."""
     if Stage(app.stage) in FROZEN_STAGES or _manual(s, app) or _email_started(s, app):
@@ -269,33 +254,26 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
     job = s.get(Job, app.job_id)
     if job is None:
         return Resolution(False, app.contact_tier, app.contact_id)
+    company = s.get(Company, job.company_id)
     if contacts is None:
         contacts = list(s.exec(select(Contact).where(Contact.company_id == job.company_id)).all())
-    never = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == job.company_id,
-                                               CompanyLookup.status == LookupStatus.never)).first()
-    if never is not None:  # a job board: nobody there to write to about this job
+    if company.contact_search == ContactSearch.never:  # a job board: nobody to write to
         changed = _apply(s, app, None, ContactTier.none,
                          "No contact: never looked up (job board or aggregator)")
         return Resolution(changed, ContactTier.none, None)
     ranking = ranking or ranking_settings(s)
-    best = best_contact(contacts, ranking.order_for(s.get(Company, job.company_id)))
+    best = best_contact([c for c in contacts if c.left_at is None], ranking.order_for(company))
     if best is not None:
-        _drop_pending_lookup(s, job.company_id)
-        tier = (ContactTier.lookup_found if best.source == ContactSource.apollo_lookup
-                else ContactTier.apollo_dump)
+        tier = tier_for(best)
         role = f" ({best.title})" if best.title else ""
         changed = _apply(s, app, best, tier, f"Contact found: {best.full_name}{role}")
         return Resolution(changed, tier, best.id)
-    lookup = _lookup_for(s, job.company_id, priority)
-    if lookup.status == LookupStatus.not_found:
+    if company.contact_search == ContactSearch.not_found:
         changed = _apply(s, app, None, ContactTier.none,
-                         "No contact: the Apollo lookup found nobody")
+                         "No contact: nobody found with the Apollo extension")
         return Resolution(changed, ContactTier.none, None)
-    if lookup.status == LookupStatus.found:  # found earlier but the contact is gone: ask again
-        lookup.status, lookup.resolved_at = LookupStatus.queued, None
-        s.add(lookup)
-    changed = _apply(s, app, None, ContactTier.lookup_queued, "Queued for an Apollo lookup")
-    return Resolution(changed, ContactTier.lookup_queued, None)
+    changed = _apply(s, app, None, ContactTier.to_get, "Get contact: nobody at this company yet")
+    return Resolution(changed, ContactTier.to_get, None)
 
 
 def _open_apps(s: Session, company_ids: set[int] | None = None,
@@ -314,20 +292,15 @@ def _fit_score(fit: Any) -> int:
 
 
 def resolve_many(s: Session, pairs: list[tuple[Application, Job]]) -> int:
-    """Batch resolution: contacts loaded once per company, lookup priority = best fit there."""
+    """Batch resolution: contacts loaded once per company."""
     company_ids = {j.company_id for _, j in pairs}
     by_company: dict[int, list[Contact]] = defaultdict(list)
     for c in s.exec(select(Contact).where(col(Contact.company_id).in_(company_ids))).all():
         by_company[c.company_id].append(c)
-    fits = latest_fits(s, [j.id for _, j in pairs])
-    priority: dict[int, int] = defaultdict(int)
-    for _, j in pairs:
-        priority[j.company_id] = max(priority[j.company_id], _fit_score(fits.get(j.id)))
     ranking = ranking_settings(s)
     changed = 0
     for app, job in pairs:
-        r = resolve(s, app, contacts=by_company.get(job.company_id, []),
-                    priority=priority[job.company_id], ranking=ranking)
+        r = resolve(s, app, contacts=by_company.get(job.company_id, []), ranking=ranking)
         changed += r.changed
     return changed
 
@@ -352,14 +325,16 @@ def resolve_company(s: Session, company_id: int) -> int:
 
 
 def report(s: Session) -> dict[str, Any]:
-    """Jobs with a contact / queued for lookup / no contact, overall and by track and country."""
+    """Jobs with a contact / a contact to get / no contact, overall and by track and country."""
+    from app.services import get_contact
+
     rows = _open_apps(s)
-    empty = {"jobs": 0, "with_contact": 0, "queued": 0, "no_contact": 0}
+    empty = {"jobs": 0, "with_contact": 0, "to_get": 0, "no_contact": 0}
 
     def bucket(app: Application) -> str:
         if app.contact_id is not None:
             return "with_contact"
-        return "queued" if app.contact_tier == ContactTier.lookup_queued else "no_contact"
+        return "to_get" if app.contact_tier == ContactTier.to_get else "no_contact"
 
     totals = dict(empty)
     by_track: dict[str, dict[str, int]] = defaultdict(lambda: dict(empty))
@@ -374,13 +349,11 @@ def report(s: Session) -> dict[str, Any]:
     def table(d: dict[str, dict[str, int]]) -> list[dict[str, Any]]:
         return sorted(({"group": k, **v} for k, v in d.items()), key=lambda x: -x["jobs"])
 
-    queued = s.exec(select(CompanyLookup).where(
-        CompanyLookup.status == LookupStatus.queued)).all()
     return {
         "totals": totals,
         "by_track": table(by_track),
         "by_country": table(by_country),
-        "lookup_queue": len(queued),
+        "contacts_to_get": len(get_contact.queue(s)),
         "contacts": len(s.exec(select(Contact.id)).all()),
         "companies_with_contacts": len(set(s.exec(select(Contact.company_id)).all())),
         "at": utcnow().isoformat(),
@@ -400,7 +373,7 @@ def match_all(s: Session) -> dict[str, Any]:
     return out
 
 
-# --------------------------------------------------------------------------------- lookups
+# -------------------------------------------------------------------- Get contact helpers
 
 
 def local_midnight(now: datetime | None = None) -> datetime:
@@ -408,106 +381,24 @@ def local_midnight(now: datetime | None = None) -> datetime:
     return local.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def used_today(s: Session, now: datetime | None = None) -> int:
+def found_today(s: Session, now: datetime | None = None) -> int:
+    """Contacts you found with the Apollo extension today (its daily limit is a setting)."""
     since = local_midnight(now)
-    return len(s.exec(select(CompanyLookup.id).where(
-        col(CompanyLookup.status).in_([LookupStatus.found, LookupStatus.not_found]),
-        col(CompanyLookup.resolved_at) >= since)).all())
+    return len(s.exec(select(Contact.id).where(Contact.source == ContactSource.found,
+                                               col(Contact.created_at) >= since)).all())
 
 
 ACTIVE_STAGES = (Stage.shortlisted, Stage.cv_ready, Stage.ready)
-
-
-@dataclass
-class QueueRow:
-    lookup: CompanyLookup
-    company: Company
-    open_jobs: int
-    shortlisted: int  # open jobs you shortlisted (or later)
-    best_job_id: int | None
-    best_job_title: str | None
-    best_fit: int | None
-    newest_at: datetime | None
-    reason: str  # why this company sits at this position
-    aggregator: list[str]  # signals it looks like a job board (a suggestion; you confirm)
-
-
-@dataclass
-class LookupQueueView:
-    daily_cap: int
-    used_today: int
-    total: int
-    rows: list[QueueRow] = field(default_factory=list)
-
-
-def _age(at: datetime | None, now: datetime) -> str:
-    if at is None:
-        return "no date"
-    days = (now - at).days
-    return "today" if days <= 0 else "1 day ago" if days == 1 else f"{days} days ago"
-
-
-def lookup_queue(s: Session, now: datetime | None = None, limit: int = 100) -> LookupQueueView:
-    """Shortlisted jobs first, then the highest fit, then the newest job; each row says why."""
-    from app.services.aggregators import signals
-
-    now = now or utcnow()
-    lookups = [lk for lk in s.exec(select(CompanyLookup).where(col(CompanyLookup.status).in_(
-        [LookupStatus.queued, LookupStatus.skipped]))).all()
-        if lk.status == LookupStatus.queued or not lk.snoozed_until or lk.snoozed_until <= now]
-    pairs = _open_apps(s, company_ids={lk.company_id for lk in lookups})
-    fits = latest_fits(s, [j.id for _, j in pairs])
-    by_company: dict[int, list[tuple[Application, Job]]] = defaultdict(list)
-    for a, j in pairs:
-        by_company[j.company_id].append((a, j))
-
-    def facts(lk: CompanyLookup) -> tuple[int, int, datetime | None, Job | None]:
-        rows = by_company.get(lk.company_id, [])
-        shortlisted = sum(1 for a, _ in rows if Stage(a.stage) in ACTIVE_STAGES)
-        best = max((j for _, j in rows), key=lambda j: _fit_score(fits.get(j.id)), default=None)
-        newest = max((j.discovered_at for _, j in rows if j.discovered_at), default=None)
-        return shortlisted, _fit_score(fits.get(best.id)) if best else 0, newest, best
-
-    scored = [(lk, *facts(lk)) for lk in lookups]
-    scored.sort(key=lambda x: (-(x[1] > 0), -x[2], -(x[3].timestamp() if x[3] else 0),
-                               x[0].queued_at))
-    rows = []
-    companies = {c.id: c for c in s.exec(select(Company).where(col(Company.id).in_(
-        [x[0].company_id for x in scored[:limit]]))).all()}
-    for i, (lk, shortlisted, fit, newest, best) in enumerate(scored[:limit]):
-        company = companies.get(lk.company_id)
-        if company is None:
-            continue
-        prev = scored[i - 1] if i else None
-        if shortlisted:
-            reason = f"{shortlisted} shortlisted job{'s' if shortlisted > 1 else ''}"
-        elif prev is None or prev[1] > 0 or prev[2] != fit:
-            reason = f"Best fit {fit}" if fit else "Not scored yet"
-        else:  # same fit as the row above: the newer job wins the tie
-            reason = f"Fit {fit}, newest job {_age(newest, now)}"
-        jobs = [j for _, j in by_company.get(lk.company_id, [])]
-        rows.append(QueueRow(lk, company, len(jobs), shortlisted, best.id if best else None,
-                             best.title if best else None, fit or None, newest, reason,
-                             [] if company.aggregator_reviewed else signals(company, jobs)))
-    return LookupQueueView(daily_cap(s), used_today(s, now), len(lookups), rows)
 
 
 class ContactError(ValueError):
     pass
 
 
-def lookup_for_company(s: Session, company_id: int) -> CompanyLookup:
-    row = s.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
-    if row is None:
-        row = CompanyLookup(company_id=company_id)
-        s.add(row)
-        s.flush()
-    return row
-
-
 def add_contact(s: Session, company_id: int, *, full_name: str, title: str | None,
                 email: str | None, linkedin_url: str | None, source: ContactSource,
                 notes: str = "") -> Contact:
+    """A new contact. Anyone you enter (found, by hand, Hunter) counts as verified now."""
     name = " ".join(full_name.split())
     if not name:
         raise ContactError("A name is required")
@@ -517,60 +408,34 @@ def add_contact(s: Session, company_id: int, *, full_name: str, title: str | Non
         if existing is not None:
             raise ContactError(f"{email_n} is already a contact ({existing.full_name})")
     parts = name.split(" ", 1)
+    entered = source != ContactSource.apollo_dump
     contact = Contact(company_id=company_id, full_name=name, first_name=parts[0],
                       last_name=parts[1] if len(parts) > 1 else None,
                       normalized_name=normalize_person(name), title=(title or "").strip() or None,
                       email=(email or "").strip() or None, email_normalized=email_n,
                       linkedin_url=(linkedin_url or "").strip() or None, source=source,
-                      role_rank=rank(title, role_ranking(s))[0], notes=notes)
+                      role_rank=rank(title, role_ranking(s))[0], notes=notes,
+                      verified_at=utcnow() if entered else None,
+                      verified_how=("hunter" if source == ContactSource.hunter else "entered")
+                      if entered else None)
     s.add(contact)
     s.flush()
     return contact
 
 
-def lookup_found(s: Session, company_id: int, **contact: Any) -> Contact:
-    c = add_contact(s, company_id, source=ContactSource.apollo_lookup, **contact)
-    row = lookup_for_company(s, company_id)
-    row.status, row.resolved_at, row.snoozed_until = LookupStatus.found, utcnow(), None
-    s.add(row)
+def set_contact_search(s: Session, company_id: int, status: ContactSearch,
+                       notes: str = "") -> Company:
+    """Nobody found / never look up (a job board) / back to normal; re-resolves its jobs."""
+    company = s.get(Company, company_id)
+    if company is None:
+        raise ContactError("Company not found")
+    company.contact_search = status
+    company.contact_search_at = utcnow() if status != ContactSearch.none else None
+    company.contact_search_notes = notes.strip()
+    s.add(company)
+    s.flush()
     resolve_company(s, company_id)
-    return c
-
-
-def lookup_not_found(s: Session, company_id: int, notes: str = "") -> CompanyLookup:
-    row = lookup_for_company(s, company_id)
-    row.status, row.resolved_at, row.snoozed_until = LookupStatus.not_found, utcnow(), None
-    row.notes = notes.strip()
-    s.add(row)
-    resolve_company(s, company_id)
-    return row
-
-
-def lookup_never(s: Session, company_id: int) -> CompanyLookup:
-    """A job board or aggregator: never looked up; its jobs go to web apply."""
-    row = lookup_for_company(s, company_id)
-    row.status, row.resolved_at, row.snoozed_until = LookupStatus.never, None, None
-    s.add(row)
-    resolve_company(s, company_id)
-    return row
-
-
-def lookup_again(s: Session, company_id: int) -> CompanyLookup:
-    """Undo "never" / "nobody found": back in the queue."""
-    row = lookup_for_company(s, company_id)
-    row.status, row.resolved_at, row.snoozed_until = LookupStatus.queued, None, None
-    s.add(row)
-    resolve_company(s, company_id)
-    return row
-
-
-def lookup_skip(s: Session, company_id: int, now: datetime | None = None) -> CompanyLookup:
-    """Not today: hidden until tomorrow (local midnight)."""
-    row = lookup_for_company(s, company_id)
-    row.status = LookupStatus.skipped
-    row.snoozed_until = local_midnight(now) + timedelta(days=1)
-    s.add(row)
-    return row
+    return company
 
 
 # ------------------------------------------------------------------------------- per job
@@ -578,8 +443,7 @@ def lookup_skip(s: Session, company_id: int, now: datetime | None = None) -> Com
 
 def set_contact(s: Session, app: Application, contact: Contact) -> Application:
     """Your choice for this job; matching never replaces it."""
-    tier = (ContactTier.lookup_found if contact.source == ContactSource.apollo_lookup
-            else ContactTier.apollo_dump)
+    tier = tier_for(contact)
     app.contact_id, app.contact_tier = contact.id, tier
     s.add(app)
     pipeline.log_event(s, app, EventKind.contact_resolved, f"Contact set: {contact.full_name}",

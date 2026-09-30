@@ -37,9 +37,9 @@ from app.providers.base import (
     OutgoingEmail,
     SendFailed,
 )
+from app.services import get_contact, pipeline
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
-from app.services import pipeline
 from app.services.contacts import ranking_settings
 from app.services.cv_check import violation
 from app.services.cv_claims import exact_statement
@@ -277,8 +277,10 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
             app = s.get(Application, app_id)
             if app is None:
                 raise OutreachError("Application not found")
-            if app.contact_id is None:
-                raise OutreachError("No contact for this job yet (see Contacts)")
+            try:  # the Get contact step: a verified contact first (so no research before it)
+                get_contact.require_ready(s, app)
+            except get_contact.GetContactError as exc:
+                raise OutreachError(str(exc)) from exc
             job, contact = s.get(Job, app.job_id), s.get(Contact, app.contact_id)
             company = s.get(Company, job.company_id)
             if not contact.email:
@@ -357,8 +359,10 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             app = s.get(Application, app_id)
             if app is None:
                 raise OutreachError("Application not found")
-            if app.contact_id is None:
-                raise OutreachError("No contact for this job yet (see Who to contact)")
+            try:  # the Get contact step: a verified contact first (so no research before it)
+                get_contact.require_ready(s, app)
+            except get_contact.GetContactError as exc:
+                raise OutreachError(str(exc)) from exc
             job, contact = s.get(Job, app.job_id), s.get(Contact, app.contact_id)
             company = s.get(Company, job.company_id)
             if not contact.email:

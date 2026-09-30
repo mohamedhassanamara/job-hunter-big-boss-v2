@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = True
     # Gmail app password for sending (never stored in the database).
     smtp_app_password: str = ""
+    # Hunter.io (optional "Try Hunter" in the Get contact step; never called automatically).
+    hunter_api_key: str = ""
     # The send queue worker (real workspace only; tests turn it off).
     send_worker_enabled: bool = True
 

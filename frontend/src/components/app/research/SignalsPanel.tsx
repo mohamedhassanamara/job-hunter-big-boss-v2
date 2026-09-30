@@ -53,7 +53,7 @@ function RunLine({ data }: { data: CompanyResearch }) {
 }
 
 /** A company's verified signals: pick the ones its emails may use, add your own, refresh. */
-export function SignalsPanel({ companyId, compact = false }: { companyId: number; compact?: boolean }) {
+export function SignalsPanel({ companyId, compact = false, researchBlocked }: { companyId: number; compact?: boolean; researchBlocked?: string }) {
   const { data, isPending, error, refetch } = useCompanyResearch(companyId)
   const now = useResearchNow()
   const patch = usePatchSignal(companyId)
@@ -88,12 +88,16 @@ export function SignalsPanel({ companyId, compact = false }: { companyId: number
           </span>
         )}
         <span className="flex-1" />
-        <Tooltip content="Fetches the company's site and recent news, then extracts signals with the model (it costs model calls)">
-          <Button size="sm" onClick={research} disabled={running || !data.site}>
-            {data.last_run ? <RefreshCw className={running ? 'animate-spin' : undefined} /> : <Search />}
-            {running ? 'Researching…' : data.last_run ? 'Refresh signals' : 'Research now'}
-          </Button>
-        </Tooltip>
+        {researchBlocked ? (
+          <span className="text-xs text-fg-subtle">{researchBlocked}</span>
+        ) : (
+          <Tooltip content="Fetches the company's site and recent news, then extracts signals with the model (it costs model calls)">
+            <Button size="sm" onClick={research} disabled={running || !data.site}>
+              {data.last_run ? <RefreshCw className={running ? 'animate-spin' : undefined} /> : <Search />}
+              {running ? 'Researching…' : data.last_run ? 'Refresh signals' : 'Research now'}
+            </Button>
+          </Tooltip>
+        )}
         <Button size="sm" variant="ghost" onClick={() => setAdding(!adding)}>
           <Plus />
           Add my own

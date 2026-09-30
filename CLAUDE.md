@@ -151,9 +151,14 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Contacts (services/contacts.py, contacts_import.py)
 
-- Three tiers per job: best-ranked imported contact at the company (ranking in `app_setting.contacts`, cached on
-  `contact.role_rank`) → company in the lookup queue (`company_lookup`, one per company) → "No contact" after a
-  not-found lookup. `resolve` never replaces a manual pick, never touches done/interview/closed, never changes routes.
+- Per job: best-ranked contact at the company, never one marked left/wrong person (ranking in `app_setting.contacts`,
+  cached on `contact.role_rank`) → tier `to_get` (nobody yet) → "No contact" when `company.contact_search` is
+  not_found / never. `resolve` never replaces a manual pick, never touches closed jobs, never changes routes.
+- Get contact step (`services/get_contact.py`, `api/get_contact.py`): states get / verify / ready / never;
+  `require_ready` gates drafting (before research) and approval. Anyone you enter is verified; a verification lasts
+  `contacts.verify_days`. Contacts to get = jobs past New, best fit first. Paste parsing is `services/contact_paste.py`.
+  Hunter (`providers/hunter.py`, `HUNTER_API_KEY`) is called only from the Try Hunter endpoints (tested); paid calls
+  are never retried.
 - Matching runs after discovery (`discovery.after_discovery`), after each import, and via `POST /contacts/match`.
 - Import dedupe: email (case-folded) → company (`normalize_company`) + folded name → create. Fill-only updates.
   The DB is backed up before imports (`contacts_import.backup_db`, sqlite online backup; never `cp` a WAL DB).

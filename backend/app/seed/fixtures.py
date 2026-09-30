@@ -61,8 +61,8 @@ CONTACTS: dict[str, list[tuple[str, str, str]]] = {
         ("Elena Prats", "Recruiter", "apollo_dump"),
     ],
     "lumiere": [
-        ("Camille Roux", "MLOps Lead", "apollo_lookup"),
-        ("Hugo Lambert", "Head of Data & AI", "apollo_lookup"),
+        ("Camille Roux", "MLOps Lead", "found"),
+        ("Hugo Lambert", "Head of Data & AI", "found"),
     ],
     "pixelfarm": [
         ("Jonas Weber", "Head of AI", "apollo_dump"),
@@ -84,7 +84,7 @@ CONTACTS: dict[str, list[tuple[str, str, str]]] = {
         ("Óscar Pujol", "CTO", "apollo_dump"),
     ],
     "tessera": [
-        ("Nadia Petrova", "Director of Applied AI", "apollo_lookup"),
+        ("Nadia Petrova", "Director of Applied AI", "found"),
         ("Tom Becker", "Platform Lead", "apollo_dump"),
         ("Yara Haddad", "Recruiting Manager", "apollo_dump"),
     ],
@@ -146,7 +146,7 @@ JOBS: list[JobFx] = [
         summary="Very strong match: core stack and seniority line up.",
         mission="builds the analytics layer that 400+ retailers use to price and stock products",
         stack=["Spark", "dbt", "Airflow", "Snowflake", "Kafka", "AWS"],
-        tier="apollo_dump", contact=0,
+        tier="imported", contact=0,
     ),
     JobFx(
         key="brume-llm", source="wttj", title="AI Engineer, LLM Platform",
@@ -169,7 +169,7 @@ JOBS: list[JobFx] = [
         summary="Good match; BI tooling differs.",
         mission="processes card payments for 30k small merchants across Iberia",
         stack=["dbt", "BigQuery", "Looker", "Fivetran", "Python"],
-        tier="apollo_dump", contact=0,
+        tier="imported", contact=0,
     ),
     JobFx(
         key="veloce-mle", source="adzuna", title="Machine Learning Engineer",
@@ -191,7 +191,7 @@ JOBS: list[JobFx] = [
         summary="Strong platform match, fully remote.",
         mission="turns satellite telemetry into insights for climate researchers",
         stack=["Terraform", "AWS", "Kafka", "Iceberg", "Trino", "Python"],
-        stage="shortlisted", tier="lookup_queued", days_in_stage=1.0,
+        stage="shortlisted", tier="to_get", days_in_stage=1.0,
     ),
     JobFx(
         key="nimbus-sde-dup", source="arbeitnow", title="Senior Data Engineer (m/f/d)",
@@ -201,7 +201,7 @@ JOBS: list[JobFx] = [
         summary="Duplicate of the Adzuna listing.",
         mission="builds the analytics layer that 400+ retailers use to price and stock products",
         stack=["Spark", "dbt", "Airflow", "Snowflake"],
-        duplicate_of="nimbus-sde", tier="apollo_dump", contact=0,
+        duplicate_of="nimbus-sde", tier="imported", contact=0,
     ),
     JobFx(
         key="orbis-bi", source="wttj", title="Junior BI Developer",
@@ -224,7 +224,7 @@ JOBS: list[JobFx] = [
         summary="Strong match on applied LLM engineering.",
         mission="builds document-understanding APIs for European banks",
         stack=["Python", "vLLM", "Ray", "Postgres", "AWS"],
-        stage="shortlisted", route="cold_email", tier="apollo_dump", contact=1,
+        stage="shortlisted", route="cold_email", tier="imported", contact=1,
         days_in_stage=0.8,
     ),
     JobFx(
@@ -236,7 +236,7 @@ JOBS: list[JobFx] = [
         summary="Good match; certification is a nice-to-have.",
         mission="forecasts grid demand for renewable energy producers",
         stack=["BigQuery", "Dataflow", "Composer", "Terraform", "Python"],
-        stage="cv_ready", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=0.6,
+        stage="cv_ready", route="cold_email", tier="imported", contact=0, days_in_stage=0.6,
     ),
     JobFx(
         key="lumiere-mlops", source="wttj", title="MLOps Engineer",
@@ -247,7 +247,7 @@ JOBS: list[JobFx] = [
         summary="Good: infra match, some tooling gaps.",
         mission="predicts energy consumption for 3M households",
         stack=["MLflow", "Kubernetes", "Argo", "Python", "Azure"],
-        stage="cv_ready", route="cold_email", tier="lookup_found", contact=0, days_in_stage=1.5,
+        stage="cv_ready", route="cold_email", tier="found", contact=0, days_in_stage=1.5,
     ),
     JobFx(
         key="alameda-sae", source="arbeitnow", title="Senior Analytics Engineer",
@@ -269,7 +269,7 @@ JOBS: list[JobFx] = [
         summary="Good: AI product focus with data depth.",
         mission="uses generative AI to build living NPCs in mobile games",
         stack=["Python", "OpenAI API", "Redis", "ClickHouse", "GCP"],
-        stage="ready", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=0.4,
+        stage="ready", route="cold_email", tier="imported", contact=0, days_in_stage=0.4,
     ),
     JobFx(
         key="cantiere-de", source="adzuna", title="Data Engineer",
@@ -293,7 +293,7 @@ JOBS: list[JobFx] = [
         summary="Strong match; a step up in scope.",
         mission="builds the carbon accounting platform used by 900 companies",
         stack=["Databricks", "Delta Lake", "dbt", "Terraform", "AWS"],
-        stage="ready", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=0.3,
+        stage="ready", route="cold_email", tier="imported", contact=0, days_in_stage=0.3,
     ),
     JobFx(
         key="marea-stream", source="adzuna", title="Data Engineer, Streaming",
@@ -304,7 +304,7 @@ JOBS: list[JobFx] = [
         summary="Good: streaming match.",
         mission="prices 5M hotel nights a day in real time",
         stack=["Flink", "Kafka", "Scala", "AWS"],
-        stage="done", route="cold_email", tier="apollo_dump", contact=0, days_in_stage=9.0,
+        stage="done", route="cold_email", tier="imported", contact=0, days_in_stage=9.0,
     ),
     JobFx(
         key="tessera-applied", source="wttj", title="Applied AI Engineer",
@@ -316,7 +316,7 @@ JOBS: list[JobFx] = [
         summary="Strong match on applied AI.",
         mission="lets platform teams query their cloud estate in plain language",
         stack=["Python", "Claude API", "Postgres", "Temporal", "AWS"],
-        stage="interview", route="cold_email", tier="lookup_found", contact=0, days_in_stage=2.0,
+        stage="interview", route="cold_email", tier="found", contact=0, days_in_stage=2.0,
         notes="First call with Nadia went well. Technical interview Thursday 10:00.",
     ),
     JobFx(
@@ -328,7 +328,7 @@ JOBS: list[JobFx] = [
         summary="Good match, but you already reached out to Marea Travel.",
         mission="prices 5M hotel nights a day in real time",
         stack=["Spark", "Airflow", "AWS"],
-        tier="apollo_dump", contact=1,
+        tier="imported", contact=1,
     ),
     JobFx(
         key="veloce-bi", source="adzuna", title="BI Engineer",
@@ -546,7 +546,7 @@ SETTINGS: dict[str, dict] = {
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
     "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
                  "large_order": DEFAULT_LARGE_ORDER,
-                 "small_company_threshold": DEFAULT_SMALL_THRESHOLD},
+                 "small_company_threshold": DEFAULT_SMALL_THRESHOLD, "verify_days": 30},
     # The candidate, as the fit scorer sees them (edited in Settings → Candidate).
     "profile": {
         "full_name": "",

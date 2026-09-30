@@ -14,7 +14,7 @@ GET_ENDPOINTS = [
     "/api/queue",
     "/api/experience",
     "/api/companies",
-    "/api/contacts/lookups",
+    "/api/contacts/to-get",
     "/api/settings",
     "/api/search-profile",
     "/api/search?q=engineer",

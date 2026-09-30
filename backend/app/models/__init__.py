@@ -11,7 +11,6 @@ from app.models.application import (
 from app.models.company import (
     Company,
     CompanyAlias,
-    CompanyLookup,
     CompanyMergeDecision,
     Contact,
     ContactImport,
@@ -41,7 +40,6 @@ __all__ = [
     "CVVersion",
     "Company",
     "CompanyAlias",
-    "CompanyLookup",
     "CompanyMergeDecision",
     "CompanyPage",
     "CompanySignal",

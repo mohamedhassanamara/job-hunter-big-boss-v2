@@ -79,6 +79,12 @@ export default function PipelinePage() {
       setApplying(tracked)
       return
     }
+    if (to === 'ready' && (card.tracks.outreach === 'no_contact' || card.tracks.outreach === 'verify')) {
+      // The Get contact step comes first: no research or draft before a verified contact.
+      toast(card.tracks.outreach === 'verify' ? 'Verify the contact first' : 'Get the contact first', { description: card.title })
+      navigate(`/jobs/${card.job_id}#outreach`)
+      return
+    }
     if (to === 'ready' && card.tracks.outreach === 'contact') {
       // The email draft step: research the company (reused when fresh), then draft.
       toast('Drafting the email: research first, then the draft', { description: card.title })

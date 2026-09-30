@@ -45,7 +45,7 @@ function OrderList({ title, order, onChange }: { title: string; order: string[];
   )
 }
 
-/** Who to write to first at a company (by size), and the daily cap of manual Apollo lookups. */
+/** Who to write to first at a company (by size), the Apollo extension daily limit, and how long a verification lasts. */
 export function ContactsSection({ settings }: { settings: SettingsView }) {
   const saved = settings.values.contacts ?? {}
   const initialRanking = ((saved.role_ranking as RoleGroup[] | undefined) ?? []).map((g) => ({ ...g }))
@@ -53,14 +53,16 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
   const initialLarge = normalizeOrder(saved.large_order as string[] | undefined, initialRanking, LARGE_DEFAULT)
   const initialThreshold = Number(saved.small_company_threshold ?? 200)
   const initialCap = Number(settings.values.lookup?.daily_cap ?? 10)
+  const initialVerify = Number(saved.verify_days ?? 30)
   const [ranking, setRanking] = useState<RoleGroup[]>(initialRanking)
   const [small, setSmall] = useState(initialSmall)
   const [large, setLarge] = useState(initialLarge)
   const [threshold, setThreshold] = useState(initialThreshold)
   const [cap, setCap] = useState(initialCap)
+  const [verifyDays, setVerifyDays] = useState(initialVerify)
   const save = useSaveSetting()
   const rankingDirty =
-    JSON.stringify([ranking, small, large, threshold]) !== JSON.stringify([initialRanking, initialSmall, initialLarge, initialThreshold])
+    JSON.stringify([ranking, small, large, threshold, verifyDays]) !== JSON.stringify([initialRanking, initialSmall, initialLarge, initialThreshold, initialVerify])
   const capDirty = cap !== initialCap
   const invalid = ranking.length === 0 || ranking.some((g) => !g.label.trim() || g.keywords.length === 0)
 
@@ -82,7 +84,11 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
       return
     }
     if (!Number.isInteger(cap) || cap < 1 || cap > 100) {
-      toast.error('The daily cap must be between 1 and 100')
+      toast.error('The daily limit must be between 1 and 100')
+      return
+    }
+    if (!Number.isInteger(verifyDays) || verifyDays < 1 || verifyDays > 365) {
+      toast.error('Verification lasts between 1 and 365 days')
       return
     }
     try {
@@ -94,6 +100,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
             small_order: normalizeOrder(small, ranking, SMALL_DEFAULT),
             large_order: normalizeOrder(large, ranking, LARGE_DEFAULT),
             small_company_threshold: threshold,
+            verify_days: verifyDays,
           },
         })
       if (capDirty) await save.mutateAsync({ key: 'lookup', value: { daily_cap: cap } })
@@ -160,8 +167,14 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
         <OrderList title={`Small companies (up to ${threshold})`} order={normalizeOrder(small, ranking, SMALL_DEFAULT)} onChange={setSmall} />
         <OrderList title="Large or unknown size" order={normalizeOrder(large, ranking, LARGE_DEFAULT)} onChange={setLarge} />
       </div>
-      <Field label="Apollo lookups per day" hint="The extension's free quota">
-        <Input type="number" min={1} max={100} value={cap} onChange={(e) => setCap(Number(e.target.value))} className="w-24" />
+      <Field label="Apollo extension daily limit" hint="Contacts you can reveal per day: the Get contact counter warns near it (it never blocks)">
+        <Input type="number" min={1} max={100} value={cap} onChange={(e) => setCap(Number(e.target.value))} className="w-24" aria-label="Apollo extension daily limit" />
+      </Field>
+      <Field label="Verification lasts" hint="After this, a contact is verified again before a new email">
+        <div className="flex items-center gap-2 text-sm">
+          <Input type="number" min={1} max={365} value={verifyDays} onChange={(e) => setVerifyDays(Number(e.target.value))} className="w-24" aria-label="Verification lasts (days)" />
+          days
+        </div>
       </Field>
     </Card>
   )
