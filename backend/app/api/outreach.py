@@ -33,6 +33,7 @@ from app.schemas.outreach import (
     DraftContact,
     DraftOut,
     DraftPatch,
+    MentionIn,
     OutreachStep,
     QueueCounts,
     QueueItemOut,
@@ -123,6 +124,11 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 full_body=outreach.full_body(session, d),
                 test_sent_at=d.test_sent_at,
                 sent_at=d.sent_at,
+                generated_via=(d.plan or {}).get("via") or (
+                    "claude -p" if d.model.startswith("claude") else "mock"),
+                auth=(d.plan or {}).get("auth"),
+                application_mention=(mention := outreach.application_mention(session, app)),
+                mention_included=bool(mention and mention in d.body),
             )
         )
     return out
@@ -237,6 +243,26 @@ def _mailer(session: Session, workspace: str):  # noqa: ANN202
                   from_name=cfg.get("from_name", ""))
 
 
+@router.post("/outreach/drafts/{draft_id}/mention-application", response_model=DraftOut)
+def mention_application(draft_id: int, body: MentionIn, session: SessionDep) -> DraftOut:
+    """Add or remove "I have also applied through your careers page on …" (fixed wording)."""
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status not in (DraftStatus.draft, DraftStatus.approved):
+        raise HTTPException(409, "Only an email that isn't queued or sent can change")
+    app = get_or_404(session, Application, d.application_id)
+    mention = outreach.application_mention(session, app)
+    if mention is None:
+        raise HTTPException(409, "Mark the web application as applied first")
+    d.body = outreach.without_mention(d.body, mention)
+    if body.include:
+        d.body = outreach.with_mention(d.body, mention)
+    d.violations = outreach.recheck(session, d)
+    session.add(d)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
 @router.post("/outreach/drafts/{draft_id}/reject", response_model=DraftOut)
 def reject_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
@@ -289,6 +315,7 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
 @router.get("/applications/{app_id}/outreach", response_model=OutreachStep)
 def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
     app = get_or_404(session, Application, app_id, "Application")
+    job = get_or_404(session, Job, app.job_id)
     contact = session.get(Contact, app.contact_id) if app.contact_id else None
     cv = outreach.approved_cv(session, app)
     draft = session.exec(select(OutreachDraft).where(
@@ -315,7 +342,10 @@ def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
         has_email=bool(contact and contact.email), cv_version=cv.version if cv else None,
         draft=_drafts_out(session, [draft])[0] if draft else None, queue_position=position,
         queue_eta=eta, queue_status=send_queue.queue(session).status,
-        sent_at=draft.sent_at if draft and draft.status == DraftStatus.sent else None)
+        sent_at=draft.sent_at if draft and draft.status == DraftStatus.sent else None,
+        who_to_contact=contacts_svc.who_to_contact(session, job, session.get(Company,
+                                                                             job.company_id))
+        if contact is None else None)
 
 
 def views_lookup_status(session: Session, app: Application) -> str | None:

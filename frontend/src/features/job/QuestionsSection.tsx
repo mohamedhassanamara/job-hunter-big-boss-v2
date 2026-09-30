@@ -95,7 +95,7 @@ function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete:
 export function QuestionsSection({ job }: { job: JobDetail }) {
   const app = job.application
   const hasApprovedCv = job.cv_versions.some((v) => v.status === 'approved')
-  const show = app.effective_route === 'web_apply' && hasApprovedCv
+  const show = app.stage !== 'new' && hasApprovedCv
   const { data, isPending } = useAnswers(show ? app.id : NaN)
   const generate = useAnswerQuestions()
   const remove = useDeleteAnswer()

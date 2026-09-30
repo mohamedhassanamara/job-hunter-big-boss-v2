@@ -58,6 +58,8 @@ class TodayOut(BaseModel):
     drafts_to_approve: list[DraftReviewItem]
     emails_to_queue: list[DraftReviewItem] = []  # approved, not yet in the send queue
     ready_to_apply: list[PipelineCard]
+    # Applied on the website, nobody emailed yet: find someone there too (both routes).
+    also_email: list[PipelineCard] = []
     reminders: list[ReminderOut]
     upcoming_interviews: list[UpcomingInterview]  # next 14 days, pending
     stats_summary: StatsSummary

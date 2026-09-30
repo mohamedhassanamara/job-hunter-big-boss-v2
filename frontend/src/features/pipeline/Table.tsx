@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ContactTierBadge, FitBadge, RouteLabel, StageBadge } from '@/components/app/badges'
+import { ContactTierBadge, FitBadge, StageBadge, TrackBadge } from '@/components/app/badges'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { absoluteDate, relativeTime, STAGE_ORDER } from '@/lib/format'
@@ -14,7 +14,8 @@ const COLUMNS: { key: SortKey | null; label: string; className: string }[] = [
   { key: 'title', label: 'Job', className: 'w-auto' },
   { key: 'company', label: 'Company', className: 'w-44' },
   { key: 'stage', label: 'Stage', className: 'w-40' },
-  { key: null, label: 'Route', className: 'w-32' },
+  { key: null, label: 'Application', className: 'w-36' },
+  { key: null, label: 'Email', className: 'w-36' },
   { key: 'fit', label: 'Fit', className: 'w-16' },
   { key: null, label: 'Contact', className: 'w-40' },
   { key: 'updated', label: 'In stage', className: 'w-28' },
@@ -117,7 +118,10 @@ export function Table({
                   <StageBadge stage={c.stage} label={c.stage_label} />
                 </td>
                 <td className="px-3">
-                  <RouteLabel route={c.effective_route} />
+                  <TrackBadge kind="application" tracks={c.tracks} />
+                </td>
+                <td className="px-3">
+                  <TrackBadge kind="outreach" tracks={c.tracks} />
                 </td>
                 <td className="px-3">
                   <FitBadge fit={c.fit} size="sm" />

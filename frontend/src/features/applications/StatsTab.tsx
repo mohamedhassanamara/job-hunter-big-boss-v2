@@ -121,6 +121,11 @@ export function StatsTab() {
             ))}
           </div>
         </section>
+        <GroupTable
+          title={`By route · ${data.both_routes} job${data.both_routes === 1 ? '' : 's'} with both`}
+          groups={data.by_route}
+          label={(g) => ({ web: 'Website only', email: 'Email only', both: 'Website + email' })[g] ?? g}
+        />
         <GroupTable title="By track" groups={data.by_track} label={(g) => (g === '(none)' ? 'No track' : g)} />
         <GroupTable title="By country" groups={data.by_country} label={(g) => (g === '(none)' ? 'Remote / none' : countryName(g))} />
         <GroupTable title="By source" groups={data.by_source} label={(g) => SOURCE_LABELS[g as Source] ?? g} />

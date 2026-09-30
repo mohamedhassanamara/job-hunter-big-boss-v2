@@ -522,9 +522,22 @@ export default function TodayPage() {
             <EmailsCard data={data} />
           </div>
 
+          {data.also_email.length > 0 && (
+            <Card icon={Mail} title="Also email someone there" tour="today-also-email" count={data.also_email.length} href="/pipeline">
+              {data.also_email.map((c) => (
+                <RowLink key={`ae-${c.application_id}`} to={`/jobs/${c.job_id}#outreach`}>
+                  <TitleBlock
+                    title={c.title}
+                    subtitle={`${c.company_name} · applied on the website · ${c.tracks.outreach === 'contact' ? `write to ${c.tracks.contact_name}` : 'find who to write to'}`}
+                  />
+                  <ArrowRight className="size-4 text-fg-subtle" />
+                </RowLink>
+              ))}
+            </Card>
+          )}
           <Card
             icon={Globe}
-            title="Ready to apply manually"
+            title="Ready to apply on the website"
             tour="today-manual"
             count={data.ready_to_apply.length}
             href="/applications?tab=ready"
@@ -539,7 +552,7 @@ export default function TodayPage() {
                 >
                   <FitBadge fit={c.fit} />
                   <Link to={`/jobs/${c.job_id}`} className="min-w-0 flex-1 hover:underline">
-                    <TitleBlock title={c.title} subtitle={`${c.company_name} · CV approved`} />
+                    <TitleBlock title={c.title} subtitle={`${c.company_name} · CV approved${c.tracks.outreach === 'sent' ? ' · already emailed' : ''}`} />
                   </Link>
                   <Button size="sm" variant="ghost" asChild>
                     <Link to="/applications?tab=ready">

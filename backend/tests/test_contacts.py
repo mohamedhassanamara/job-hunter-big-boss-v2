@@ -16,6 +16,7 @@ from app.models import (
     ContactImport,
     FitScore,
     Job,
+    OutreachDraft,
 )
 from app.models.enums import ContactSource, ContactTier, EventKind, LookupStatus, Stage
 from app.services import contacts, contacts_import
@@ -290,7 +291,7 @@ def test_found_resolves_every_job_and_not_found_is_tier_3(seeded: None) -> None:
         s.rollback()
 
 
-def test_manual_choices_and_applied_jobs_are_never_touched(seeded: None) -> None:
+def test_manual_choices_closed_jobs_and_started_emails_are_never_touched(seeded: None) -> None:
     with Session(engine) as s:
         company = make_company(s, ("Tom Lead", "Tech Lead", "apollo_dump"),
                                ("Carl Cto", "CTO", "apollo_dump"))
@@ -299,8 +300,14 @@ def test_manual_choices_and_applied_jobs_are_never_touched(seeded: None) -> None
                                            Contact.full_name == "Tom Lead")).one()
         contacts.set_contact(s, mine, tom)
         assert not contacts.resolve(s, mine).changed and mine.contact_id == tom.id
-        applied = make_job(s, company, stage=Stage.done)
-        assert not contacts.resolve(s, applied).changed and applied.contact_id is None
+        closed = make_job(s, company, stage=Stage.closed)
+        assert not contacts.resolve(s, closed).changed and closed.contact_id is None
+        applied = make_job(s, company, stage=Stage.done)  # both routes: email someone too
+        assert contacts.resolve(s, applied).changed and applied.contact_id is not None
+        drafting = make_job(s, company, stage=Stage.cv_ready)
+        s.add(OutreachDraft(application_id=drafting.id, subject="s", body="b"))
+        s.flush()
+        assert not contacts.resolve(s, drafting).changed  # the draft's contact stays
         contacts.clear_contact(s, mine)
         assert s.get(Contact, mine.contact_id).full_name == "Carl Cto"
         s.rollback()

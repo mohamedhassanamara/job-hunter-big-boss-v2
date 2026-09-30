@@ -49,6 +49,11 @@ DEFAULT_OUTREACH: dict[str, Any] = {
     "banned_phrases": oc.DEFAULT_BANNED,
     "max_words": oc.DEFAULT_MAX_WORDS,
     "language": "en",  # the CV and signature are in English; "auto" = the listing's language
+    # Added by code (never the model) when you already applied on the website; {date} = that day.
+    "application_mention": {
+        "en": "I have also applied through your careers page on {date}.",
+        "fr": "J'ai également postulé via votre site carrières le {date}.",
+    },
 }
 _one_at_a_time = threading.Lock()
 
@@ -93,6 +98,44 @@ def cv_pool_subset(pool: Pool, cv: CVVersion) -> dict[str, Any]:
             if k != "summary_snippets"}
 
 
+def email_language(s: Session, job: Job) -> str:
+    lang = outreach_settings(s).get("language") or "en"
+    if lang == "auto":
+        from app.services.text import detect_language
+
+        return detect_language(f"{job.title}\n{job.description or ''}")
+    return lang
+
+
+def application_mention(s: Session, app: Application) -> str | None:
+    """"I have also applied through your careers page on 30 September." once Mark applied is
+    recorded (both routes); None before that. The wording is Settings → Email's, per language."""
+    if app.web_applied_at is None:
+        return None
+    from app.services.cover_letter import MONTHS
+
+    job = s.get(Job, app.job_id)
+    lang = email_language(s, job)
+    cfg = outreach_settings(s).get("application_mention") or DEFAULT_OUTREACH["application_mention"]
+    template = cfg.get(lang) or cfg.get("en") or ""
+    day = app.web_applied_at
+    months = MONTHS.get(lang, MONTHS["en"])
+    return template.format(date=f"{day.day} {months[day.month - 1]}") if template else None
+
+
+def with_mention(body: str, mention: str) -> str:
+    """The sentence ends the body's middle paragraph (before the ask)."""
+    parts = body.split("\n\n")
+    if len(parts) >= 3:
+        parts[-2] = f"{parts[-2].rstrip()} {mention}"
+        return "\n\n".join(parts)
+    return f"{body.rstrip()}\n\n{mention}"
+
+
+def without_mention(body: str, mention: str) -> str:
+    return body.replace(f" {mention}", "").replace(f"\n\n{mention}", "").replace(mention, "")
+
+
 def _first_name(contact: Contact) -> str:
     return contact.first_name or contact.full_name.split(" ")[0]
 
@@ -124,7 +167,8 @@ def _context(s: Session, app: Application, job: Job, company: Company, contact: 
         company=company.name, first_name=_first_name(contact),
         banned=list(cfg.get("banned_phrases") or []), max_words=int(cfg.get("max_words") or 150),
         other_companies=sorted(other_companies), others=others,
-        years_statement=exact_statement(facts))
+        years_statement=exact_statement(facts),
+        fixed_sentences=[m] if (m := application_mention(s, app)) else [])
 
 
 def build_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
@@ -196,6 +240,9 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter) -> OutreachDraf
             pool = load_pool(s)
             request = build_request(s, app, job, company, contact, cv, pool)
             ctx = _context(s, app, job, company, contact, pool)
+            mention = application_mention(s, app)
+            if mention:
+                ctx.extra_words = len(oc.words(mention))
         started = time.monotonic()
         try:
             plan = drafter.draft(request)
@@ -216,10 +263,16 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter) -> OutreachDraf
                     OutreachDraft.status == DraftStatus.draft)).all():
                 old.status = DraftStatus.rejected  # regenerate replaces the draft under review
                 s.add(old)
+            body = body_text(plan)
+            if mention:
+                body = with_mention(body, mention)
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
-                body=body_text(plan), model=drafter.model, cv_version_id=cv.id,
-                plan={"plan": plan.model_dump(), "attempts": attempts}, violations=found,
+                body=body, model=drafter.model, cv_version_id=cv.id,
+                plan={"plan": plan.model_dump(), "attempts": attempts,
+                      "application_mention": mention,
+                      "via": getattr(drafter, "via", "mock"),
+                      "auth": getattr(drafter, "auth_source", None)}, violations=found,
                 prompt_version=drafter.prompt_version,
                 duration_ms=int((time.monotonic() - started) * 1000))
             if app.route == Route.undecided:

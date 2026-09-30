@@ -13,14 +13,16 @@ import {
 import { Tooltip } from '@/components/ui/tooltip'
 import { REMOTE_LABELS, SOURCE_LABELS, SOURCE_SHORT, TIER_LABELS } from '@/lib/format'
 import type {
+  ApplicationTrack,
   Confidence,
   ContactTier,
   FitBand,
   FitBrief,
+  OutreachTrack,
   RemoteType,
-  Route,
   Source,
   Stage,
+  Tracks,
   UserLabel,
 } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -71,7 +73,6 @@ const STAGE_CLASSES: Record<Stage, { dot: string; pill: string }> = {
     pill: 'bg-stage-shortlisted-bg text-stage-shortlisted-fg',
   },
   cv_ready: { dot: 'bg-stage-cv-ready-dot', pill: 'bg-stage-cv-ready-bg text-stage-cv-ready-fg' },
-  drafted: { dot: 'bg-stage-drafted-dot', pill: 'bg-stage-drafted-bg text-stage-drafted-fg' },
   ready: { dot: 'bg-stage-ready-dot', pill: 'bg-stage-ready-bg text-stage-ready-fg' },
   done: { dot: 'bg-stage-done-dot', pill: 'bg-stage-done-bg text-stage-done-fg' },
   interview: {
@@ -280,36 +281,42 @@ export function ContactTierBadge({ tier }: { tier: ContactTier }) {
   )
 }
 
-export function RouteIcon({ route, className }: { route: Route; className?: string }) {
-  if (route === 'undecided') return null
-  const Icon = route === 'cold_email' ? Mail : Globe
+const APPLICATION_TRACK: Record<ApplicationTrack, { label: string; tone: Tone }> = {
+  not_ready: { label: 'CV first', tone: 'gray' },
+  ready: { label: 'Ready to apply', tone: 'amber' },
+  applied: { label: 'Applied', tone: 'green' },
+}
+const OUTREACH_TRACK: Record<OutreachTrack, { label: string; tone: Tone }> = {
+  no_contact: { label: 'No contact', tone: 'gray' },
+  contact: { label: 'Contact found', tone: 'slate' },
+  drafted: { label: 'Draft to review', tone: 'amber' },
+  approved: { label: 'Approved', tone: 'blue' },
+  queued: { label: 'Queued', tone: 'violet' },
+  sent: { label: 'Sent', tone: 'green' },
+}
+
+/** One route's status: "Apply · Ready to apply" or "Email · Draft to review". */
+export function TrackBadge({ kind, tracks, className }: { kind: 'application' | 'outreach'; tracks: Tracks; className?: string }) {
+  const item = kind === 'application' ? APPLICATION_TRACK[tracks.application] : OUTREACH_TRACK[tracks.outreach]
+  const Icon = kind === 'application' ? Globe : Mail
   return (
-    <Tooltip content={route === 'cold_email' ? 'Cold email' : 'Web apply'}>
-      <Icon className={cn('size-3.5 shrink-0 text-fg-subtle', className)} />
+    <Tooltip content={kind === 'application' ? 'Web application' : `Cold email${tracks.contact_name ? ` to ${tracks.contact_name}` : ''}`}>
+      <span>
+        <ToneBadge tone={item.tone} dot={false} className={className}>
+          <Icon className="size-3.5" />
+          {item.label}
+        </ToneBadge>
+      </span>
     </Tooltip>
   )
 }
 
-/** "Cold email" (has a contact) or "Web apply" (no contact): the route a job is on. */
-export function RouteBadge({ route, className }: { route: Route; className?: string }) {
-  if (route === 'undecided') return null
-  const email = route === 'cold_email'
-  const Icon = email ? Mail : Globe
+/** Both routes side by side (web application + cold email). */
+export function TrackBadges({ tracks, className }: { tracks: Tracks; className?: string }) {
   return (
-    <ToneBadge tone={email ? 'blue' : 'slate'} dot={false} className={className}>
-      <Icon className="size-3.5" />
-      {email ? 'Cold email' : 'Web apply'}
-    </ToneBadge>
-  )
-}
-
-export function RouteLabel({ route }: { route: Route }) {
-  if (route === 'undecided') return <span className="text-fg-subtle">Undecided</span>
-  const Icon = route === 'cold_email' ? Mail : Globe
-  return (
-    <span className="inline-flex items-center gap-1.5 text-fg-muted">
-      <Icon className="size-3.5 text-fg-subtle" />
-      {route === 'cold_email' ? 'Cold email' : 'Web apply'}
+    <span className={cn('inline-flex items-center gap-1', className)}>
+      <TrackBadge kind="application" tracks={tracks} />
+      <TrackBadge kind="outreach" tracks={tracks} />
     </span>
   )
 }

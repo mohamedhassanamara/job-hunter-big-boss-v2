@@ -12,7 +12,7 @@ import {
 import { Search, UserRoundX } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { FitBadge, RouteBadge, StageDot } from '@/components/app/badges'
+import { FitBadge, StageDot, TrackBadges } from '@/components/app/badges'
 import { Tooltip } from '@/components/ui/tooltip'
 import { COLUMN_LABELS, shortAge, STAGE_ORDER } from '@/lib/format'
 import type { PipelineCard, Stage } from '@/lib/types'
@@ -31,8 +31,8 @@ function CardBody({ card, dragging }: { card: PipelineCard; dragging?: boolean }
         <FitBadge fit={card.fit} size="sm" />
       </div>
       <p className="truncate text-xs text-fg-muted">{card.company_name}</p>
+      {card.stage !== 'new' && card.stage !== 'closed' && <TrackBadges tracks={card.tracks} className="flex-wrap" />}
       <div className="flex items-center gap-2 text-xs text-fg-subtle">
-        {card.stage !== 'new' && card.stage !== 'closed' && <RouteBadge route={card.effective_route} />}
         {card.contact_tier === 'lookup_queued' && (
           <Tooltip content="Apollo lookup queued">
             <Search className="size-3.5 text-warning-dot" />

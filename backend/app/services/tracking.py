@@ -23,6 +23,7 @@ from app.models import (
     CVVersion,
     Interview,
     Job,
+    OutreachDraft,
     ReminderAction,
 )
 from app.models.base import utcnow
@@ -30,6 +31,7 @@ from app.models.enums import (
     ApplyMethod,
     CloseReason,
     CVStatus,
+    DraftStatus,
     EventKind,
     InterviewOutcome,
     InterviewType,
@@ -82,6 +84,14 @@ def ready_to_apply(s: Session) -> list[Application]:
         col(Application.web_applied_at).is_(None),
     ).order_by(col(Application.stage_changed_at).desc())).all()
     return [a for a in apps if approved_cv(s, a) is not None]
+
+
+def also_email(s: Session) -> list[Application]:
+    """Applied on the website and still open, newest first: candidates for a cold email too."""
+    return list(s.exec(select(Application).where(
+        col(Application.web_applied_at).is_not(None),
+        col(Application.stage).in_([Stage.done, Stage.interview]),
+    ).order_by(col(Application.web_applied_at).desc())).all())
 
 
 def lock_cv(v: CVVersion) -> None:
@@ -297,6 +307,16 @@ class TrackedRow:
     company: Company
     responses: list[ApplicationResponse] = field(default_factory=list)
     interviews: list[Interview] = field(default_factory=list)
+    emailed: bool = False  # a cold email to someone there went out
+
+    @property
+    def web(self) -> bool:
+        return self.application.web_applied_at is not None
+
+    @property
+    def routes(self) -> str:
+        """web | email | both: which routes this job went through."""
+        return "both" if self.web and self.emailed else ("email" if self.emailed else "web")
 
     @property
     def first_answer_at(self) -> datetime | None:
@@ -318,6 +338,9 @@ def _row(s: Session, app: Application, job: Job) -> TrackedRow:
             .order_by(col(ApplicationResponse.received_at))).all()),
         list(s.exec(select(Interview).where(Interview.application_id == app.id)
                     .order_by(col(Interview.round))).all()),
+        s.exec(select(OutreachDraft.id).where(OutreachDraft.application_id == app.id,
+                                              OutreachDraft.status == DraftStatus.sent))
+        .first() is not None,
     )
 
 
@@ -382,6 +405,12 @@ def stats(rows: list[TrackedRow]) -> dict[str, Any]:
         "by_track": by(lambda r: r.job.matched_track),
         "by_country": by(lambda r: r.job.country),
         "by_source": by(lambda r: r.job.source),
+        # Both routes: web only / email only / both, with their response and interview rates.
+        "both_routes": sum(1 for r in rows if r.routes == "both"),
+        "by_route": [next((g for g in by(lambda r: r.routes) if g["group"] == key),
+                          {"group": key, "applied": 0, "response": _rate([], responded),
+                           "interview": _rate([], interviewed)})
+                     for key in ("web", "email", "both")],
     }
 
 
