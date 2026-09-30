@@ -71,6 +71,7 @@ const STAGE_CLASSES: Record<Stage, { dot: string; pill: string }> = {
     pill: 'bg-stage-shortlisted-bg text-stage-shortlisted-fg',
   },
   cv_ready: { dot: 'bg-stage-cv-ready-dot', pill: 'bg-stage-cv-ready-bg text-stage-cv-ready-fg' },
+  drafted: { dot: 'bg-stage-drafted-dot', pill: 'bg-stage-drafted-bg text-stage-drafted-fg' },
   ready: { dot: 'bg-stage-ready-dot', pill: 'bg-stage-ready-bg text-stage-ready-fg' },
   done: { dot: 'bg-stage-done-dot', pill: 'bg-stage-done-bg text-stage-done-fg' },
   interview: {
@@ -286,6 +287,19 @@ export function RouteIcon({ route, className }: { route: Route; className?: stri
     <Tooltip content={route === 'cold_email' ? 'Cold email' : 'Web apply'}>
       <Icon className={cn('size-3.5 shrink-0 text-fg-subtle', className)} />
     </Tooltip>
+  )
+}
+
+/** "Cold email" (has a contact) or "Web apply" (no contact): the route a job is on. */
+export function RouteBadge({ route, className }: { route: Route; className?: string }) {
+  if (route === 'undecided') return null
+  const email = route === 'cold_email'
+  const Icon = email ? Mail : Globe
+  return (
+    <ToneBadge tone={email ? 'blue' : 'slate'} dot={false} className={className}>
+      <Icon className="size-3.5" />
+      {email ? 'Cold email' : 'Web apply'}
+    </ToneBadge>
   )
 }
 

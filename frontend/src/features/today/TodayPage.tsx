@@ -31,7 +31,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
 import { useReminderAction } from '@/lib/queries/tracking'
-import { useQueueControl, useSources, useToday } from '@/lib/queries/workflow'
+import { useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
 import { INTERVIEW_TYPE_LABELS, pct, shortDateTime } from '@/lib/tracking'
 import type { Reminder, Today } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -314,6 +314,50 @@ function Onboarding() {
   )
 }
 
+/** The email route, step by step: drafts to review, approved emails to queue, the queue. */
+function EmailsCard({ data }: { data: Today }) {
+  const queueDraft = useQueueDraft()
+  const q = data.queue
+  const total = data.drafts_to_approve.length + data.emails_to_queue.length
+  return (
+    <Card icon={Mail} title="Cold emails" tour="today-emails" count={total} href="/outreach">
+      {total === 0 ? (
+        <Nothing text="No emails waiting on you" />
+      ) : (
+        <>
+          {data.drafts_to_approve.map((d) => (
+            <RowLink key={`r-${d.draft_id}`} to={`/jobs/${d.job_id}#outreach`}>
+              <TitleBlock title={d.contact_name ? `Review: to ${d.contact_name}` : `Review: ${d.job_title}`} subtitle={`${d.job_title} · ${d.company_name}`} />
+              <ArrowRight className="size-4 text-fg-subtle" />
+            </RowLink>
+          ))}
+          {data.emails_to_queue.map((d) => (
+            <div key={`q-${d.draft_id}`} className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0">
+              <Link to={`/jobs/${d.job_id}#outreach`} className="min-w-0 flex-1 hover:underline">
+                <TitleBlock title={`Ready to send: to ${d.contact_name ?? d.company_name}`} subtitle={`${d.job_title} · ${d.company_name}`} />
+              </Link>
+              <Button
+                size="sm"
+                onClick={() =>
+                  queueDraft.mutate(d.draft_id, { onSuccess: () => toast.success('Added to the send queue'), onError: (e) => toast.error(e.message) })
+                }
+                disabled={queueDraft.isPending}
+              >
+                Add to queue
+              </Button>
+            </div>
+          ))}
+        </>
+      )}
+      <Link to="/outreach?tab=queue" className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-fg-muted hover:text-fg">
+        Queue {q.status === 'running' ? 'running' : q.status}: {q.pending} waiting
+        {q.status === 'running' && q.next_send_at ? ` · next ${clockTime(q.next_send_at)}` : ''}
+        <ArrowRight className="ml-auto size-3.5" />
+      </Link>
+    </Card>
+  )
+}
+
 function FollowUpsCard({ reminders }: { reminders: Reminder[] }) {
   const act = useReminderAction()
   const [replying, setReplying] = useState<TrackTarget | null>(null)
@@ -385,6 +429,7 @@ export default function TodayPage() {
     data.new_high_fit_total +
     data.cvs_to_review.length +
     data.drafts_to_approve.length +
+    data.emails_to_queue.length +
     data.ready_to_apply.length +
     data.reminders.length
   const summary = data.stats_summary
@@ -474,26 +519,7 @@ export default function TodayPage() {
                 ))
               )}
             </Card>
-            <Card
-              icon={Mail}
-              title="Drafts to approve"
-              count={data.drafts_to_approve.length}
-              href="/outreach"
-            >
-              {data.drafts_to_approve.length === 0 ? (
-                <Nothing text="No drafts waiting" />
-              ) : (
-                data.drafts_to_approve.map((d) => (
-                  <RowLink key={d.draft_id} to={`/outreach?draft=${d.draft_id}`}>
-                    <TitleBlock
-                      title={d.contact_name ? `To ${d.contact_name}` : d.job_title}
-                      subtitle={`${d.job_title} · ${d.company_name}`}
-                    />
-                    <ArrowRight className="size-4 text-fg-subtle" />
-                  </RowLink>
-                ))
-              )}
-            </Card>
+            <EmailsCard data={data} />
           </div>
 
           <Card

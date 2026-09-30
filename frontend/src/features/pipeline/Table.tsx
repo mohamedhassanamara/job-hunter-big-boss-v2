@@ -117,7 +117,7 @@ export function Table({
                   <StageBadge stage={c.stage} label={c.stage_label} />
                 </td>
                 <td className="px-3">
-                  <RouteLabel route={c.route} />
+                  <RouteLabel route={c.effective_route} />
                 </td>
                 <td className="px-3">
                   <FitBadge fit={c.fit} size="sm" />

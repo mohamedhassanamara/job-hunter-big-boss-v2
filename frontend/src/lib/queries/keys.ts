@@ -49,6 +49,7 @@ export function invalidateWork(qc: QueryClient) {
     'contact-imports',
     'company-merges',
     'send-log',
+    'outreach-step',
   ]) {
     void qc.invalidateQueries({ queryKey: [key] })
   }
