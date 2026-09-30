@@ -34,10 +34,12 @@ export default function CopilotPage() {
         title="Copilot"
         description="Ask about your search. Answers use the local model with your profile and experience; it never changes anything."
         actions={
-          <Button variant="default" onClick={newChat} disabled={create.isPending}>
-            <Plus />
-            New chat
-          </Button>
+          list.length > 0 && (
+            <Button variant="default" onClick={newChat} disabled={create.isPending}>
+              <Plus />
+              New chat
+            </Button>
+          )
         }
       />
       {threads.isPending ? (

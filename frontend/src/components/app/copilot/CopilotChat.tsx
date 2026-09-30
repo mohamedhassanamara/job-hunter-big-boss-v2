@@ -55,7 +55,9 @@ export function CopilotChat({ thread, placeholder }: { thread: CopilotThreadDeta
   const { ask, streaming, error, pending } = useAskCopilot()
   const [question, setQuestion] = useState('')
   const end = useRef<HTMLDivElement>(null)
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [thread.messages.length, streaming?.answer])
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' })
+  }, [thread.messages.length, streaming?.answer])
 
   const send = (q: string) => {
     const text = q.trim()

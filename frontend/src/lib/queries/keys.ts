@@ -45,6 +45,7 @@ export function invalidateWork(qc: QueryClient) {
     'applications',
     'cv',
     'letter',
+    'studio',
     'drafts',
     'queue',
     'lookups',

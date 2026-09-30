@@ -440,7 +440,8 @@ def generate(engine: Engine, app_id: int, drafter: LetterDrafter,
             kind = "Cover letter" if fmt == "pdf" else "Form text"
             pipeline.log_event(s, app, EventKind.letter_generated,
                                f"{kind} v{letter.version} ({language}) written"
-                               + (f" ({problems} problems to review)" if problems else ""))
+                               + (f" ({problems} problem{'s' if problems > 1 else ''} to review)"
+                                  if problems else ""))
             s.commit()
             s.refresh(letter)
             return letter

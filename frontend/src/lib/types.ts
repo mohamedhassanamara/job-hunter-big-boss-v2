@@ -1132,3 +1132,28 @@ export interface CopilotStatus {
   model: string
   message: string
 }
+
+// ---- Studio (mirror app/api/studio.py) -----------------------------------------------------
+
+export type StudioKind = 'cv' | 'pdf' | 'form'
+
+export interface StudioDocument {
+  kind: StudioKind
+  id: number
+  application_id: number
+  job_id: number
+  job_title: string
+  company_name: string
+  version: number
+  status: 'draft' | 'approved' | 'sent' | 'superseded'
+  language: string | null
+  detail: string
+  problems: number
+  updated_at: string
+}
+
+export interface StudioList {
+  items: StudioDocument[]
+  total: number
+  counts: Record<StudioKind, number>
+}

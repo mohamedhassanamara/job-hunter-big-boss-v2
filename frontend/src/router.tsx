@@ -12,6 +12,7 @@ import NotFoundPage from '@/features/NotFoundPage'
 import OutreachPage from '@/features/outreach/OutreachPage'
 import PipelinePage from '@/features/pipeline/PipelinePage'
 import SettingsPage from '@/features/settings/SettingsPage'
+import StudioPage from '@/features/studio/StudioPage'
 import TodayPage from '@/features/today/TodayPage'
 
 export const router = createBrowserRouter([
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: 'jobs/:id/letter', element: <LetterStudioPage /> },
       { path: 'outreach', element: <OutreachPage /> },
       { path: 'copilot', element: <CopilotPage /> },
+      { path: 'studio', element: <StudioPage /> },
       { path: 'contacts', element: <ContactsPage /> },
       { path: 'experience', element: <ExperiencePage /> },
       { path: 'settings', element: <SettingsPage /> },
