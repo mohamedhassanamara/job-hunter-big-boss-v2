@@ -341,33 +341,32 @@ def user_message(company: str, sources: list[Source]) -> str:
     return "\n\n".join(parts)
 
 
-class OllamaResearcher:
-    """gemma4:31b-cloud, local gemma4:12b as the fallback, with scoring's error handling: a
-    429 concurrency limit backs off and retries (3 attempts), a quota error switches to the
-    fallback for the rest of the run, other errors get one retry."""
+class OllamaStructured:
+    """A structured call on gemma4:31b-cloud, local gemma4:12b as the fallback, with scoring's
+    error handling: a 429 concurrency limit backs off and retries (3 attempts), a quota error
+    switches to the fallback for the rest of the run, other errors get one retry. Every call is
+    logged. Used by research (signal extraction) and the hook check."""
 
     def __init__(self, model: str = "gemma4:31b-cloud", fallback: str | None = "gemma4:12b",
                  sleep: Callable[[float], None] = time.sleep, transport: Any = None):
         self.model, self.fallback, self._sleep, self._transport = model, fallback, sleep, transport
 
-    def extract(self, company: str, sources: list[Source],
-                log: Callable[[dict[str, Any]], None]) -> list[RawSignal]:
+    def ask(self, version: str, system: str, message: str, schema: type,
+            log: Callable[[dict[str, Any]], None], **extra: Any) -> Any:
         from app.providers.base import ConcurrencyLimited, QuotaExceeded, ScoringFailed
         from app.providers.ollama import structured
 
-        version, system = prompt()
-        message = user_message(company, sources)
         failures, limited = 0, 0
         while True:
             started = time.monotonic()
             try:
-                out, meta = structured(self.model, system, message, Extraction,
+                out, meta = structured(self.model, system, message, schema,
                                        transport=self._transport)
                 log({"model": self.model, "prompt_version": version, "outcome": "ok",
                      "duration_ms": meta.get("duration_ms"), "calls": meta.get("calls"),
                      "prompt_tokens": meta.get("prompt_tokens"),
-                     "output_tokens": meta.get("output_tokens"), "sources": len(sources)})
-                return out.signals
+                     "output_tokens": meta.get("output_tokens"), **extra})
+                return out
             except ConcurrencyLimited as exc:
                 limited += 1
                 log(self._failed(version, "concurrency_limited", exc, started))
@@ -383,11 +382,21 @@ class OllamaResearcher:
                 failures += 1
                 log(self._failed(version, "error", exc, started))
                 if failures >= 2:
-                    raise ResearchError(f"Signal extraction failed: {exc}") from exc
+                    raise ResearchError(f"The model call failed: {exc}") from exc
 
     def _failed(self, version: str, outcome: str, exc: Exception, started: float) -> dict:
         return {"model": self.model, "prompt_version": version, "outcome": outcome,
                 "error": str(exc)[:200], "duration_ms": int((time.monotonic() - started) * 1000)}
+
+
+class OllamaResearcher(OllamaStructured):
+    """Signal extraction, one call per page group."""
+
+    def extract(self, company: str, sources: list[Source],
+                log: Callable[[dict[str, Any]], None]) -> list[RawSignal]:
+        version, system = prompt()
+        return self.ask(version, system, user_message(company, sources), Extraction, log,
+                        sources=len(sources)).signals
 
 
 class MockResearcher:
@@ -628,3 +637,43 @@ def add_manual(s: Session, company_id: int, fact: str, source_url: str = "",
     s.commit()
     s.refresh(row)
     return row
+
+
+# ------------------------------------------------------------------------ the contact's name
+
+_WORD = re.compile(r"[^\W\d_]+(?:[-'’][^\W\d_]+)*")
+
+
+def name_on_pages(s: Session, company_id: int, first_name: str,
+                  full_name: str) -> dict[str, str] | None:
+    """How the company's researched pages spell the contact's first name, when they write the
+    full name with accents the contact record lacks (Stéphane Fontana vs Stephane Fontana):
+    {"first_name", "url", "title", "excerpt"}. None when the pages don't name them, or spell it
+    the same way. The full name must match, so another Stéphane doesn't count."""
+    wanted = [_norm(w) for w in _WORD.findall(full_name)]
+    n_first = len(_WORD.findall(first_name)) or 1
+    if len(wanted) < 2:
+        return None
+    found: Counter[str] = Counter()
+    where: dict[str, dict[str, str]] = {}
+    pages = s.exec(select(CompanyPage).where(CompanyPage.company_id == company_id)
+                   .order_by(col(CompanyPage.id))).all()
+    for page in pages:
+        text = f"{page.title}\n{page.text}"
+        words = list(_WORD.finditer(text))
+        folded = [_norm(m.group(0)) for m in words]
+        for i in range(len(words) - len(wanted) + 1):
+            if folded[i:i + len(wanted)] == wanted:
+                spelled = " ".join(m.group(0) for m in words[i:i + n_first])
+                spelled = spelled.title() if spelled.isupper() else spelled  # STÉPHANE FONTANA
+                found[spelled] += 1
+                start, end = words[i].start(), words[i + len(wanted) - 1].end()
+                where.setdefault(spelled, {
+                    "url": page.url, "title": page.title,
+                    "excerpt": text[max(0, start - 80):end + 80].replace("\n", " ").strip()})
+    accented = [(n, c) for n, c in found.most_common()
+                if n != first_name and n.casefold() != first_name.casefold()]
+    if not accented:
+        return None
+    name = accented[0][0]
+    return {"first_name": name, **where[name]}

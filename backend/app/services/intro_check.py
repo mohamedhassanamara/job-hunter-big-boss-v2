@@ -36,6 +36,32 @@ _SUBJECT_BAD = re.compile(r"^\s*(?:re|fwd?|tr)\s*:|\b(?:role|position|applicatio
                           r"job|poste|candidature|offre|recrutement)\b", re.I)
 
 
+# Their problem is never stated as a general truth ("…reste un vrai défi", "is hard"): the value
+# paragraph says it's the kind of problem you like working on, in your words.
+_GENERAL_TRUTH = re.compile(
+    r"\b(?:(?:is|remains|stays|becomes|can be)\s+(?:still\s+)?(?:a|an)\s+(?:real\s+|big\s+|"
+    r"major\s+|constant\s+|genuine\s+|ongoing\s+|serious\s+)?(?:challenge|headache|struggle)|"
+    r"(?:is|remains|stays|gets)\s+(?:really\s+|genuinely\s+|still\s+)?(?:hard|difficult|"
+    r"tricky)\b|(?:reste|demeure|est|constitue|représente|devient)\s+(?:toujours\s+|encore\s+)?"
+    r"(?:un|une)\s+(?:vrai\s+|véritable\s+|réel\s+|gros\s+|grand\s+|sacré\s+)?(?:défi|"
+    r"challenge|casse-tête|difficulté)|(?:reste|demeure|est)\s+(?:toujours\s+|encore\s+|très\s+)?"
+    r"(?:difficile|compliqué|complexe))", re.I)
+_FIRST_PERSON = re.compile(r"(?:^|[\s(«“])(?:I|I'm|I’m|I've|I’d|I'd|me|my|j['’]|je|me|m['’]|"
+                           r"moi)(?=[\s,.;:!?)»”]|(?<=['’]))", re.I)
+
+
+_GREETING_WORD = {"en": re.compile(r"\s*(?:hi|hello|dear|good (?:morning|afternoon))\b", re.I),
+                  "fr": re.compile(r"\s*(?:bonjour|chère?|madame|monsieur)\b", re.I)}
+
+
+def hook_paragraph(text: str, intro: str) -> str:
+    """The hook in the email as it is now: what sits between the greeting and the intro line."""
+    parts = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if intro and intro.strip() in parts:
+        return "\n\n".join(parts[1:parts.index(intro.strip())])
+    return parts[1] if len(parts) > 1 else ""
+
+
 @dataclass
 class Context:
     pool: Pool
@@ -79,6 +105,12 @@ def intro_line(first_name: str, focus: str, language: str, statement: str | None
     years = short[0] if short else (f"{fallback_years} of experience" if fallback_years else "")
     line = f"I'm {first_name}, a software engineer" + (f" with {years}" if years else "")
     return f"{line} in {focus}." if focus else f"{line}."
+
+
+def greeting_line(first_name: str, language: str) -> str:
+    """The greeting, built by code in the email's language (a French-looking name once made
+    the model open an English email with "Bonjour")."""
+    return f"Bonjour {first_name}," if language == "fr" else f"Hi {first_name},"
 
 
 def body(plan: IntroEmailPlan, intro: str) -> str:
@@ -142,9 +174,20 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
     if n < ctx.min_words or n > ctx.max_words:
         out.append(violation("length", f"{n} words (aim for {ctx.min_words}-{ctx.max_words})",
                              "body", "error"))
-    if ctx.first_name and oc.fold(ctx.first_name) not in oc.fold(text.split("\n", 1)[0]):
+    greeting = text.split("\n", 1)[0]
+    if ctx.first_name and oc.fold(ctx.first_name) not in oc.fold(greeting):
         out.append(violation("name", f"The greeting doesn't use {ctx.first_name}'s first name",
                              "greeting", "error"))
+    elif _GREETING_WORD.get(ctx.language) and not _GREETING_WORD[ctx.language].match(greeting):
+        out.append(violation("greeting", f"The greeting isn't in the email's language "
+                             f"({ctx.language}): “{greeting.strip()}”", "greeting", "error"))
+    elif ctx.first_name and ctx.first_name not in greeting:
+        out.append(violation("name", f"Spell it “{ctx.first_name}”, as the company's pages do",
+                             "greeting"))
+    if m := _GENERAL_TRUTH.search(text):
+        out.append(violation("problem_frame", f"“{m.group(0)}” states their problem as a general "
+                             "truth: say it's the kind of problem you like working on",
+                             "value", "error"))
     if ctx.intro_line and ctx.intro_line not in text:
         out.append(violation("intro", f"The intro line changed: keep “{ctx.intro_line}”",
                              "body", "error"))
@@ -170,9 +213,10 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
     for claim in bad_years(_without_statement(text.replace(ctx.intro_line, " "), ctx),
                            ctx.allowed_years, ctx.years_statement):
         out.append(violation("years", f"Years claim “{claim}” isn't allowed", "body", "error"))
-    mine = _own_words(text, ctx.intro_line)
+    signal_text = " ".join(ctx.signals.values())
+    mine = _without_source(_own_words(text, ctx.intro_line), signal_text)
     for label, example in ctx.examples:
-        theirs = _own_words(example, "")
+        theirs = _without_source(_own_words(example, ""), signal_text)
         score, run = oc.similarity(mine, theirs), _longest_run(mine, theirs)
         if score >= EXAMPLE_SIMILARITY or run >= EXAMPLE_RUN:
             out.append(violation("example_copy", f"Too close to the example “{label}” "
@@ -194,6 +238,20 @@ def _own_words(text: str, intro: str) -> str:
             if not (i == 0 and len(p.split()) <= 3) and p.strip() != intro.strip()
             and not re.match(r"^(?:I'm|I am|Je suis)\s", p.strip())]
     return "\n\n".join(kept)
+
+
+def _without_source(text: str, source: str, n: int = 4) -> str:
+    """The text without the runs of n+ words it shares with the signals: two emails quoting the
+    same fact ("proprietary, sovereign models for each channel") aren't copying each other."""
+    from app.services.letter_check import _plain
+
+    words, src = oc.fold(_plain(text)).split(), oc.fold(_plain(source)).split()
+    grams = {tuple(src[i:i + n]) for i in range(len(src) - n + 1)}
+    drop = set()
+    for i in range(len(words) - n + 1):
+        if tuple(words[i:i + n]) in grams:
+            drop.update(range(i, i + n))
+    return " ".join(w for i, w in enumerate(words) if i not in drop)
 
 
 def _signal_problems(text: str, ids: list[int], ctx: Context) -> list[str]:
@@ -240,6 +298,10 @@ def check_plan(plan: IntroEmailPlan, ctx: Context) -> list[dict[str, str]]:
                            job_text=listing_source, company=ctx.company, first_name="")
     out += [violation("problem", f"The problem: {p}", "problem", "error")
             for p in oc._about_job_problems(plan.problem, email_ctx)]
+    if plan.problem.strip() and not _FIRST_PERSON.search(plan.problem):
+        out.append(violation("problem_frame", "The problem sentence doesn't say it's the kind of "
+                             "problem you like working on (it reads as a general truth)",
+                             "problem", "error"))
     if not 1 <= len(plan.proofs) <= 2:
         out.append(violation("proofs", f"{len(plan.proofs)} proofs: one, at most two", "value",
                              "error"))

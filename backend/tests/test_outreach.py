@@ -64,7 +64,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v6"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v9"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]
@@ -398,3 +398,13 @@ def test_the_signature_hides_the_phone_and_shows_linkedin() -> None:
     assert "+1 555" not in block and "linkedin.com/in/alex" in block and "a@x.test" in block
     cfg["signature"]["show_phone"] = True
     assert "+1 555" in outreach.signature_block(cfg)
+
+
+def test_the_phone_toggle_saves_from_settings(client) -> None:  # noqa: ANN001
+    value = client.get("/api/settings").json()["values"]["outreach"]
+    value["signature"] = {**value["signature"], "show_phone": True}
+    assert client.put("/api/settings/outreach", json={"value": value}).status_code == 200
+    value["signature"]["show_phone"] = "yes"
+    assert client.put("/api/settings/outreach", json={"value": value}).status_code == 422
+    value["signature"]["show_phone"] = False
+    assert client.put("/api/settings/outreach", json={"value": value}).status_code == 200

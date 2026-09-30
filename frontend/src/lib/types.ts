@@ -407,6 +407,17 @@ export interface Draft {
   signals: { id: number; kind: string; fact: string; quote: string; source_url: string; page_date: string | null }[]
   needs_signal: boolean
   research_note: string | null
+  // The hook's company claims checked against its signals (gemma4:31b-cloud): each claim's verdict
+  hook_check: {
+    status: 'ok' | 'unchecked' | 'skipped'
+    model: string | null
+    claims: { claim: string; signal_ids: number[]; verdict: 'stated' | 'causal' | 'combined' | 'not_stated'; why: string }[]
+    error: string | null
+    duration_ms: number
+    calls: number
+  } | null
+  // The greeting spells the name as the company's pages do (Stéphane vs Stephane)
+  name_source: { first_name: string; url: string; title: string; excerpt: string } | null
 }
 
 export interface DraftReviewItem {

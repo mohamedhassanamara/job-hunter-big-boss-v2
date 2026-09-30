@@ -316,7 +316,9 @@ kind (reference_good | reference_bad | approved | rejected), language, subject, 
 
 Outreach drafts written as introductions store in `plan`: `format: "intro"`, the plan (hook with signal ids,
 intro focus, problem, proofs, ask), `intro_line`, `language`, `signal_ids`, the signals snapshot,
-`research_run_id`, the request, attempts, `via`, `auth`.
+`research_run_id`, the request, attempts, `via`, `auth`, `hook_check` (`{status: ok|unchecked|skipped, hash
+of the hook text it checked, model, claims: [{claim, signal_ids, verdict, why}], calls}`) and `name_source`
+(`{first_name, url, title, excerpt}` when the greeting uses the pages' spelling).
 
 ### copilot_thread / copilot_message
 The Copilot's conversations (`services/copilot.py`). `copilot_thread`: `application_id?` (null = global), `title`,

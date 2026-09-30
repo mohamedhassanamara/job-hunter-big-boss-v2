@@ -86,9 +86,10 @@ def _request(s: Session, example: EmailExample) -> tuple[EmailRequest | None, st
 
 
 def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
-             case: int | None = None, out_dir: Path = OUT_DIR) -> tuple[Path, list[dict]]:
+             case: int | None = None, out_dir: Path = OUT_DIR,
+             hook_checker: Any = None) -> tuple[Path, list[dict]]:
+    from app.services import hook_check, outreach
     from app.services import intro_check as ic
-    from app.services import outreach
     from app.services.cv_pool import load_pool
 
     results = []
@@ -108,6 +109,7 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
                 continue
             app = s.get(Application, (ex.inputs or {}).get("application_id") or -1)
             plan = drafter.draft_intro(request)
+            plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
             first = request.candidate.get("first_name") or "I"
             intro = ic.intro_line(first, plan.intro_focus, language,
                                   request.candidate.get("years_statement"),
@@ -122,6 +124,9 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
                 ctx.examples = [(label, t) for label, t in ctx.examples
                                 if label != f"{ex.kind} #{ex.id}"]
                 found = ic.check_plan(plan, ctx)
+                review = hook_check.check(hook_checker, plan.hook.text, outreach.cited_signals(
+                    s, job.company_id, plan.hook.signal_ids))
+                found += hook_check.violations(review)
             from app.services import outreach_check as oc
 
             row.update(new={"subject": plan.subject, "body": text},
@@ -171,8 +176,15 @@ def main() -> None:
     if args.do_import:
         print(f"Imported {import_examples(engine)} example(s) from {EXAMPLES_FILE}")
         return
+    from app.api.outreach import _research_models
+    from app.providers.registry import hook_checker
+
     drafter = email_drafter(mock=args.mock or None)
-    path, results = run_eval(engine, drafter, limit=args.limit, case=args.case)
+    with Session(engine) as s:
+        model, fallback = _research_models(s)  # Settings → Models (research)
+    checker = hook_checker(mock=args.mock or None, model=model, fallback=fallback)
+    path, results = run_eval(engine, drafter, limit=args.limit, case=args.case,
+                             hook_checker=checker)
     done = [r for r in results if not r.get("skipped")]
     print(f"{len(done)} case(s) written with {drafter.prompt_version}: {path}")
     for r in done:
