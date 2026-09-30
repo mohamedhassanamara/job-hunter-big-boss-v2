@@ -260,6 +260,16 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   combined or not stated. Anything but "stated" is an error ("sovereign models enabled the 37%"). It runs on
   each draft attempt, and on Approve when you edited the hook since the last check (then against every selected
   signal). The editor shows the result and its cost; if the model can't be reached it's a warning.
+- **Contact still there?** (`services/contact_check.py`, no model call): each research run also searches the
+  news for every contact's name with the company name (Google News RSS, GDELT; skipped for a name with only an
+  initial), stores what it finds as `contact_news` pages, then scans every stored page and news item. A sentence
+  naming the contact with a departure word (révoqué, quitte, ancien PDG, stepped down, former CEO…) or announcing
+  someone new in their role (a new CEO named) raises a red **"<name> may have left <company>"** warning with the
+  excerpt, source and date: on the job page's Contact card (the email editor there shows a one-line pointer) and
+  in the Outreach review editor. While it's active the email can't be approved (API 409 too). It offers the next
+  contact by the ranking rule (best-ranked, with an email, not flagged; one click), "I've verified them"
+  (dismiss, 8s Undo; found again, it stays dismissed) and "Check again" (`POST /contacts/{id}/check`). A cached
+  research reuse only rescans the stored pages. Tour: "Contact still there?".
 - **Value framing and greeting checks**: a problem sentence without first person, or any "is hard / remains a
   challenge / reste un vrai défi / est difficile" phrase, is an error; so is a greeting not in the email's
   language. The example-similarity check ignores wording both texts take from the same signal.

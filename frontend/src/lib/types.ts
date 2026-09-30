@@ -204,6 +204,28 @@ export interface JobDetail extends JobListItem {
   allowed_stages: Stage[]
   tracking: TrackedApplication | null // set once applied
   lookup_status: LookupStatus | null // the company's Apollo lookup
+  contact_alerts: ContactAlert[] // active signs the contact left (they block the email's approval)
+  next_contact: Contact | null // the next contact by the ranking rule, when there are alerts
+}
+
+/** A sign the contact may have left, found in the company's researched pages or news. */
+export interface ContactAlert {
+  id: number
+  contact_id: number
+  kind: 'left' | 'new_holder'
+  reason: string
+  excerpt: string
+  source_url: string
+  source_title: string
+  page_date: string | null
+  detected_at: string
+  dismissed_at: string | null
+}
+
+export interface ContactCheck {
+  alerts: ContactAlert[]
+  pages: number
+  warnings: string[]
 }
 
 export interface PipelineCard {
@@ -418,6 +440,8 @@ export interface Draft {
   } | null
   // The greeting spells the name as the company's pages do (Stéphane vs Stephane)
   name_source: { first_name: string; url: string; title: string; excerpt: string } | null
+  contact_alerts: ContactAlert[]
+  next_contact: Contact | null
 }
 
 export interface DraftReviewItem {

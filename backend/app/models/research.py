@@ -74,3 +74,22 @@ class EmailExample(TableBase, table=True):
     company: str = ""
     inputs: dict[str, Any] = json_field(dict)
     note: str = ""
+
+
+class ContactAlert(TableBase, table=True):
+    """A sign the contact may have left or changed role, found in the company's researched pages
+    or news (services/contact_check.py). Active until you dismiss it (you verified them)."""
+
+    __tablename__ = "contact_alert"
+
+    contact_id: int = Field(foreign_key="contact.id", index=True)
+    company_id: int = Field(foreign_key="company.id", index=True)
+    key: str = Field(unique=True)  # contact + source + kind: found again, it stays one alert
+    kind: str = "left"  # left (named with a departure word) | new_holder (someone else named)
+    reason: str = ""  # e.g. "“révoque” next to their name"
+    excerpt: str = Field(default="", sa_type=Text)
+    source_url: str = ""
+    source_title: str = ""
+    page_date: datetime | None = dt_field()
+    detected_at: datetime = dt_field(default_factory=utcnow)
+    dismissed_at: datetime | None = dt_field()

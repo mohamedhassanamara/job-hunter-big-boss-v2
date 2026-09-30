@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, ToneBadge } from '@/components/app/badges'
+import { ContactAlertBanner } from '@/components/app/ContactAlertBanner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input, Textarea } from '@/components/ui/input'
@@ -29,12 +30,12 @@ function HookCheckLine({ check }: { check: Draft['hook_check'] }) {
   )
 }
 
-function Checks({ violations }: { violations: Violation[] }) {
+function Checks({ violations, contactFlagged = false }: { violations: Violation[]; contactFlagged?: boolean }) {
   if (violations.length === 0)
     return (
       <p data-tour="outreach-checks" className="flex items-center gap-2 rounded-md bg-success-bg px-3 py-2 text-sm text-success-fg">
         <CircleCheck className="size-4" />
-        Every check passed: grounded in your CV, one ask, names right, no banned phrases, under the word limit.
+        {contactFlagged ? 'The text passes every check' : 'Every check passed'}: grounded in your CV, one ask, names right, no banned phrases, under the word limit.
       </p>
     )
   return (
@@ -85,10 +86,13 @@ export function DraftEditor({
   draft,
   onApprove,
   onReject,
+  onJobPage = false,
 }: {
   draft: Draft
   onApprove: () => void
   onReject: () => void
+  /** On the job page the Contact card carries the full "may have left" warning. */
+  onJobPage?: boolean
 }) {
   const save = useSaveDraft()
   const regenerate = useDraftRun(draft.application_id, ({ error }) => (error ? toast.error(error) : toast.success('New draft written')))
@@ -172,7 +176,24 @@ export function DraftEditor({
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
-        {draft.status === 'draft' && <Checks violations={draft.violations} />}
+        {draft.status === 'draft' && draft.contact && onJobPage && draft.contact_alerts.length > 0 && (
+          <p role="alert" className="flex items-center gap-2 rounded-md border border-tone-red-border bg-danger-bg px-3 py-2 text-sm text-danger-fg">
+            <TriangleAlert className="size-4 shrink-0" />
+            {draft.contact.full_name} may have left {draft.company_name}: see Contact before approving.
+          </p>
+        )}
+        {draft.status === 'draft' && draft.contact && !onJobPage && (
+          <ContactAlertBanner
+            alerts={draft.contact_alerts}
+            nextContact={draft.next_contact}
+            appId={draft.application_id}
+            contactId={draft.contact.id}
+            contactName={draft.contact.full_name}
+            companyName={draft.company_name}
+            jobId={draft.job_id}
+          />
+        )}
+        {draft.status === 'draft' && <Checks violations={draft.violations} contactFlagged={draft.contact_alerts.length > 0} />}
         {draft.format === 'intro' && (
           <div className="space-y-1.5 rounded-md border border-border bg-surface px-3 py-2 text-sm" data-tour="outreach-signals">
             <p className="text-xs font-medium text-fg-subtle">
@@ -296,9 +317,17 @@ export function DraftEditor({
                 <Send />
                 {testSend.isPending ? 'Sending…' : 'Send test to me'}
               </Button>
-              <Tooltip content={errors.length ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first` : null}>
+              <Tooltip
+                content={
+                  draft.contact_alerts.length
+                    ? `${draft.contact?.full_name ?? 'The contact'} may have left: write to someone else or verify them first`
+                    : errors.length
+                      ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first`
+                      : null
+                }
+              >
                 <span>
-                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0}>
+                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0 || draft.contact_alerts.length > 0}>
                     <CircleCheck />
                     Approve
                     <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>

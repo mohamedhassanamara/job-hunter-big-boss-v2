@@ -4,6 +4,8 @@ import type {
   CompanyDetail,
   CompanyFilter,
   CompanyList,
+  ContactAlert,
+  ContactCheck,
   Country,
   ExperienceInput,
   ExperienceItem,
@@ -199,6 +201,25 @@ export function useSetJobContact() {
   return useMutation({
     mutationFn: ({ appId, contactId, contact }: { appId: number; contactId?: number; contact?: NewContact }) =>
       api.post<JobDetail>(`/applications/${appId}/contact${contactId ? `?contact_id=${contactId}` : ''}`, contact ? { ...contact } : undefined),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** "I verified them": dismiss a contact alert (dismissed: false undoes it). */
+export function useDismissContactAlert() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, dismissed }: { id: number; dismissed: boolean }) =>
+      api.post<ContactAlert>(`/contact-alerts/${id}/dismiss`, { dismissed }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** Search the news for the contact's name and rescan the company's pages (no model call). */
+export function useCheckContact() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contactId: number) => api.post<ContactCheck>(`/contacts/${contactId}/check`),
     onSettled: () => invalidateWork(qc),
   })
 }

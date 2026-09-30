@@ -210,6 +210,9 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Any edit to `app/prompts/outreach.md` needs a version bump **and** a `make eval-emails` run recorded in
   `app/prompts/eval_log.json` (tested). Examples set structure and tone only: never put their wording in prompts.
 - The sandbox uses `SampleFetcher` + `MockResearcher`: it never fetches the web.
+- Contact check (`services/contact_check.py`): research also searches news for each contact's name and scans
+  pages for departure/new-holder sentences (regex, no model). Active `contact_alert` rows block approval;
+  `next_contact` follows the ranking. The sandbox seeds one sample departure (`seed._seed_contact_alert`).
 
 ## Conventions
 

@@ -25,6 +25,7 @@ import { useQueueLookup } from '@/lib/queries/jobs'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { JobDetail, JobListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { ContactAlertBanner } from './ContactAlertBanner'
 import { ContactTierBadge } from './badges'
 import { NewContactDialog } from './NewContactDialog'
 
@@ -135,6 +136,15 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
               </Button>
             )}
           </div>
+          <ContactAlertBanner
+            alerts={job.contact_alerts}
+            nextContact={job.next_contact}
+            appId={job.application.id}
+            contactId={contact.id}
+            contactName={contact.full_name}
+            companyName={job.company.name}
+            className="text-xs"
+          />
           <ChangeContact job={job} />
           <p className="text-xs text-fg-subtle">
             {job.company_contacts > 1 ? `${job.company_contacts - 1} more at ${job.company.name} · ` : ''}

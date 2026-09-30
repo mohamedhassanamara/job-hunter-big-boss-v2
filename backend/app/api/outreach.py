@@ -46,7 +46,7 @@ from app.schemas.outreach import (
 )
 from app.services import contacts as contacts_svc
 from app.services import outreach, pipeline, send_queue
-from app.services.views import fit_brief, latest_fits
+from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
 
@@ -176,6 +176,7 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 research_note=(d.plan or {}).get("research_note"),
                 hook_check=_hook_check_out((d.plan or {}).get("hook_check")),
                 name_source=(d.plan or {}).get("name_source"),
+                **contact_alert_fields(session, app, c),
             )
         )
     return out
@@ -247,6 +248,12 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     contact = session.get(Contact, d.contact_id) if d.contact_id else None
     if contact is None or not contact.email:
         raise HTTPException(409, "The contact has no email address")
+    from app.services import contact_check
+
+    if alerts := contact_check.active(session, contact.id):
+        raise HTTPException(409, f"{contact.full_name} may have left ({alerts[0].reason}, "
+                            f"{alerts[0].source_title or alerts[0].source_url}): pick another "
+                            "contact, or dismiss the warning once you've verified them")
     d.status = DraftStatus.approved
     session.add(d)
     from app.eval.emails import record

@@ -10,9 +10,10 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
-from app.models import AppSetting, Company, CompanySignal
+from app.models import AppSetting, Company, CompanyPage, CompanySignal, Contact, ContactAlert, Job
 from app.providers.registry import researcher as research_provider
-from app.services import research
+from app.schemas.jobs import ContactAlertOut
+from app.services import contact_check, research
 
 router = APIRouter(tags=["research"])
 
@@ -177,3 +178,48 @@ def set_website(company_id: int, body: WebsiteIn, session: SessionDep,
     session.commit()
     session.refresh(company)
     return _out(session, company, workspace)
+
+
+# ------------------------------------------------------------------ is the contact still there?
+
+
+class AlertPatch(BaseModel):
+    dismissed: bool  # true: you verified the contact yourself (false undoes it)
+
+
+class ContactCheckOut(BaseModel):
+    alerts: list[ContactAlertOut]  # the active ones
+    pages: int  # stored pages and news scanned
+    warnings: list[str]
+
+
+@router.post("/contact-alerts/{alert_id}/dismiss", response_model=ContactAlertOut)
+def dismiss_alert(alert_id: int, body: AlertPatch, session: SessionDep) -> ContactAlertOut:
+    alert = get_or_404(session, ContactAlert, alert_id, "Alert")
+    contact_check.dismiss(session, alert, body.dismissed)
+    session.commit()
+    session.refresh(alert)
+    return ContactAlertOut.model_validate(alert, from_attributes=True)
+
+
+@router.post("/contacts/{contact_id}/check", response_model=ContactCheckOut)
+def check_contact(contact_id: int, session: SessionDep,
+                  workspace: WorkspaceDep) -> ContactCheckOut:
+    """Search the news for the contact's name (with the company), then scan every stored page
+    of the company for signs they left. No model call; the sandbox never fetches."""
+    contact = get_or_404(session, Contact, contact_id, "Contact")
+    company = get_or_404(session, Company, contact.company_id, "Company")
+    fetcher = research.SampleFetcher() if workspace == "demo" else research.WebFetcher()
+    from app.services.text import detect_language
+
+    jobs = session.exec(select(Job).where(Job.company_id == company.id)).all()
+    language = next((detect_language(j.description or "") for j in jobs if j.description), "en")
+    warnings = contact_check.fetch_contact_news(session, company.id, fetcher, language,
+                                                research.research_settings(session)["news"],
+                                                [contact])
+    alerts = contact_check.scan(session, company.id, [contact])
+    session.commit()
+    pages = len(session.exec(select(CompanyPage.id).where(
+        CompanyPage.company_id == company.id)).all())
+    return ContactCheckOut(alerts=[ContactAlertOut.model_validate(a, from_attributes=True)
+                                   for a in alerts], pages=pages, warnings=warnings)

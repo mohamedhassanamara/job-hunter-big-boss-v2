@@ -99,6 +99,21 @@ class ContactOut(BaseModel):
     role_label: str | None = None  # the Settings → Contacts group the title matched
 
 
+class ContactAlertOut(BaseModel):
+    """A sign the contact may have left (services/contact_check.py)."""
+
+    id: int
+    contact_id: int
+    kind: str  # left | new_holder
+    reason: str
+    excerpt: str
+    source_url: str
+    source_title: str
+    page_date: datetime | None
+    detected_at: datetime
+    dismissed_at: datetime | None
+
+
 class EventOut(BaseModel):
     id: int
     kind: str
@@ -155,6 +170,9 @@ class JobDetail(JobListItem):
     allowed_stages: list[str]
     tracking: TrackedItem | None = None  # set once applied: how, CV sent, replies, interviews
     lookup_status: str | None = None  # company Apollo lookup: queued|found|not_found|skipped
+    # Signs the contact left (active ones block the email's approval) and who to write to instead
+    contact_alerts: list[ContactAlertOut] = []
+    next_contact: ContactOut | None = None
 
 
 class PipelineCard(BaseModel):

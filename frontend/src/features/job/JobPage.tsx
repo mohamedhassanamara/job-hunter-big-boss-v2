@@ -391,7 +391,7 @@ export default function JobPage() {
         <div className="space-y-4">
           <JobFlags job={job} />
           {app.stage !== 'new' && <TracksSummary job={job} />}
-          {app.stage !== 'new' && app.stage !== 'closed' && <CompanyReasonField key={job.id} job={job} />}
+          {app.stage !== 'new' && app.stage !== 'closed' && <CompanyReasonField key={`reason-${job.id}`} job={job} />}
           <div id="application" className="scroll-mt-4">
             <ApplicationSection job={job} onApplied={() => setApplying(true)} />
           </div>
@@ -412,7 +412,7 @@ export default function JobPage() {
           <CVSection job={job} />
           <CoverLetterSection job={job} />
           <QuestionsSection job={job} />
-          <NotesCard key={job.id} job={job} />
+          <NotesCard key={`notes-${job.id}`} job={job} />
           <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
             <div className="p-4">
               <Prose text={job.description} />

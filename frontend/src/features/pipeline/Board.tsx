@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core'
 import { Search, UserRoundX } from 'lucide-react'
 import { useState } from 'react'
+import { useIncrementalList } from '@/hooks/useIncrementalList'
 import { useNavigate } from 'react-router'
 import { FitBadge, StageDot, TrackBadges } from '@/components/app/badges'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -85,6 +86,8 @@ function Column({
   const { setNodeRef, isOver } = useDroppable({ id: stage })
   const allowed = activeCard ? activeCard.allowed_stages.includes(stage) : false
   const isSource = activeCard?.stage === stage
+  // "New" can hold thousands of jobs: 30 cards at a time, more as you scroll the column.
+  const { visible, hasMore, remaining, sentinel } = useIncrementalList(cards, { step: 30 })
   return (
     <div
       ref={setNodeRef}
@@ -102,9 +105,14 @@ function Column({
         <span className="text-xs text-fg-subtle tabular-nums">{cards.length}</span>
       </div>
       <div className="flex min-h-24 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
-        {cards.map((c) => (
+        {visible.map((c) => (
           <DraggableCard key={c.application_id} card={c} />
         ))}
+        {hasMore && (
+          <p ref={sentinel} className="py-2 text-center text-xs text-fg-subtle">
+            {remaining} more…
+          </p>
+        )}
         {cards.length === 0 && (
           <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-xs text-fg-subtle">
             {activeCard && allowed ? 'Drop here' : 'Empty'}
