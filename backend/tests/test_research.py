@@ -207,3 +207,41 @@ def test_the_model_policy_retries_busy_and_falls_back_on_quota() -> None:
     r.extract("Voxa", [rs.Source("u", "home", "t", "x")], log.append)
     assert seen[-2:] == ["gemma4:31b-cloud", "gemma4:12b"] and r.model == "gemma4:12b"
     assert [c["outcome"] for c in log] == ["quota", "ok"]
+
+
+def test_a_schema_shaped_answer_is_unwrapped_not_read_as_empty() -> None:
+    seen: list[str] = []
+    wrapped = json.dumps({"message": {"content": json.dumps({"properties": {"signals": [
+        {"kind": "product", "fact": "Voxa builds voice agents", "quote": "Voxa builds voice "
+         "agents for customer service", "source_url": "u"}]}})}})
+    r = rs.OllamaResearcher(transport=ollama([(200, wrapped)], seen))
+    out = r.extract("Voxa", [rs.Source("u", "home", "t", "x")], lambda c: None)
+    assert out and out[0].fact == "Voxa builds voice agents"
+    empty_default = json.dumps({"message": {"content": json.dumps({"other": 1})}})
+    r = rs.OllamaResearcher(transport=ollama([(200, empty_default), (200, empty_default),
+                                              (200, empty_default), (200, empty_default)], seen))
+    with pytest.raises(rs.ResearchError):
+        r.extract("Voxa", [rs.Source("u", "home", "t", "x")], lambda c: None)
+
+
+def test_a_run_without_verified_signals_is_not_fresh(seeded: None) -> None:
+    with Session(engine) as s:
+        company_id = make_company(s).id
+
+    class Nothing:
+        model = "none"
+
+        def extract(self, company, sources, log):  # noqa: ANN001, ANN201
+            return []
+
+    rs.ensure(engine, company_id, trigger="draft", researcher=Nothing(), fetcher=fetcher([]))
+    with Session(engine) as s:
+        assert not rs.is_fresh(s, s.get(Company, company_id))
+
+
+def test_auto_selection_mixes_kinds() -> None:
+    rows = [CompanySignal(id=i, company_id=1, fact=f"f{i}", kind=k, verified=True)
+            for i, k in enumerate(["customer_result", "customer_result", "customer_result",
+                                   "technical", "launch"], 1)]
+    rs._auto_select(rows, 3)
+    assert [r.kind for r in rows if r.selected] == ["customer_result", "technical", "launch"]

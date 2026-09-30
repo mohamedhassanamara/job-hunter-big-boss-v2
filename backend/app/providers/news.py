@@ -83,13 +83,18 @@ def fetch_news(name: str, domain: str | None, *, language: str = "en", gdelt: bo
     query = f'"{name}"'
     try:
         if gdelt:
+            # GDELT asks for at most one request every 5 seconds: its own spaced client.
+            spaced = PoliteClient("GDELT", min_interval=6.0, retries=1, backoff=6.0,
+                                  headers={"Accept": "application/json"})
             try:
-                res = client.request("GET", GDELT_URL, params={
+                res = spaced.request("GET", GDELT_URL, params={
                     "query": query, "mode": "ArtList", "format": "json", "maxrecords": limit,
                     "startdatetime": since.strftime("%Y%m%d%H%M%S"), "sort": "DateDesc"})
                 items += parse_gdelt(res.text or "{}")[:limit]
             except (SourceError, ValueError) as exc:
                 warnings.append(f"GDELT: {exc}")
+            finally:
+                spaced.close()
         if google_news:
             hl = "fr" if language == "fr" else "en"
             gl = "FR" if language == "fr" else "US"

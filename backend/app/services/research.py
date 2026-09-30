@@ -284,7 +284,7 @@ class RawSignal(BaseModel):
 
 
 class Extraction(BaseModel):
-    signals: list[RawSignal] = Field(default_factory=list)
+    signals: list[RawSignal]  # required: a malformed answer is retried, never read as "none"
 
 
 class Researcher(Protocol):
@@ -442,11 +442,20 @@ def last_run(s: Session, company_id: int) -> ResearchRun | None:
 
 
 def _auto_select(rows: list[CompanySignal], limit: int) -> None:
+    """Up to `limit` signals, one per kind first (customer results, technical choices,
+    launches…), so the email has a mix to choose from."""
     if any(r.selected for r in rows):
         return
-    ranked = sorted(rows, key=lambda r: (KIND_PRIORITY.index(r.kind) if r.kind in KIND_PRIORITY
-                                         else len(KIND_PRIORITY), r.id or 0))
-    for r in ranked[:limit]:
+    rank = {k: i for i, k in enumerate(KIND_PRIORITY)}
+    ranked = sorted(rows, key=lambda r: (rank.get(r.kind, len(rank)), r.id or 0))
+    picked: list[CompanySignal] = []
+    for r in ranked:  # the first of each kind
+        if len(picked) < limit and r.kind not in {p.kind for p in picked}:
+            picked.append(r)
+    for r in ranked:  # then fill up
+        if len(picked) < limit and r not in picked:
+            picked.append(r)
+    for r in picked:
         r.selected = True
 
 
@@ -551,7 +560,8 @@ def _run(engine: Engine, company_id: int, trigger: str, researcher: Researcher,
             run.calls, run.warnings = calls, warnings + [
                 f"Dropped “{r.fact[:80]}”: {why}" for r, why in dropped]
             company = s.get(Company, company_id)
-            company.research_refreshed_at = utcnow()
+            if rows:  # nothing verified: the next draft step researches again
+                company.research_refreshed_at = utcnow()
             s.add_all([run, company, *rows])
             s.commit()
             s.refresh(run)

@@ -25,8 +25,10 @@ _LISTING = re.compile(
     r"poste|ce poste|votre poste|fiche de poste|candidature|postuler|recrutez)\b", re.I)
 _PLACE = re.compile(
     r"\b(?:visa|sponsor\w*|parrainage|work authori[sz]ation|work permit|permis de travail|"
-    r"titre de séjour|autorisation de travail|relocat\w*|based in|basé|basée|installé|"
+    r"titre de séjour|autorisation de travail|relocat\w*|based (?:in|out of)|"
+    r"bas[ée]e?s? (?:à|a|en|au|aux)\b|install[ée]e?s? (?:à|a|en|au)\b|"
     r"nationalit\w*|citizen\w*)\b", re.I)
+MAX_PROOF_WORDS = 35
 _OPENING_ASK = re.compile(
     r"\b(?:opening|openings|opportunit\w*|hiring|position|role|team|place|ouverture|"
     r"opportunité|poste|recrut\w*|besoin|place)\b", re.I)
@@ -65,7 +67,10 @@ def intro_line(first_name: str, focus: str, language: str, statement: str | None
     if language == "fr":
         years = statement_fr or (f"{fallback_years} d'expérience" if fallback_years else "")
         line = f"Je suis {first_name}, ingénieur logiciel" + (f" avec {years}" if years else "")
-        return f"{line}, sur des {focus}." if focus else f"{line}."
+        if not focus:
+            return f"{line}."
+        article = re.match(r"(?:des|les|le|la|l'|l’|un|une)\b", focus, re.I)
+        return f"{line}, sur {focus}." if article else f"{line}, sur des {focus}."
     short = short_form(statement) if statement else None
     years = short[0] if short else (f"{fallback_years} of experience" if fallback_years else "")
     line = f"I'm {first_name}, a software engineer" + (f" with {years}" if years else "")
@@ -85,8 +90,15 @@ def _longest_run(a: str, b: str) -> int:
     return _longest_run(oc.fold(_plain(a)).split(), oc.fold(_plain(b)).split())
 
 
-def _tools(text: str) -> list[str]:
-    return new_tools(text, Vocabulary(""))
+def _tools(text: str, pool: Pool | None = None) -> list[str]:
+    """Tool names in the text: tech-looking words, plus your pool's tags (Mistral, Whisper…)."""
+    found = {t.lower(): t for t in new_tools(text, Vocabulary(""))}
+    if pool is not None:
+        folded = f" {oc.fold(text)} "
+        for tag in pool.skill_terms():
+            if len(tag) >= 3 and f" {tag} " in folded:
+                found.setdefault(tag, tag)
+    return list(found.values())
 
 
 def _without_statement(text: str, ctx: Context) -> str:
@@ -137,9 +149,11 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
         out.append(violation("ask", "End with a direct question about an opening", "ask",
                              "error"))
     for sentence in re.split(r"(?<=[.!?])\s+", text):
-        if len(_tools(sentence)) > 3:
-            out.append(violation("tools", f"“{sentence}” lists {len(_tools(sentence))} tools: at "
-                                 "most 3 in a sentence", "body", "error"))
+        tools = _tools(sentence, ctx.pool)
+        if len(tools) > 3:
+            out.append(violation("tools", f"“{sentence}” names {len(tools)} tools "
+                                 f"({', '.join(tools)}): at most 3 in a sentence", "body",
+                                 "error"))
     for phrase in ctx.banned:
         key = oc.fold(phrase.replace("’", "'"))
         if key and re.search(rf"\b{re.escape(key)}\b", oc.fold(everything.replace("’", "'"))):
@@ -152,8 +166,10 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
     for claim in bad_years(_without_statement(text.replace(ctx.intro_line, " "), ctx),
                            ctx.allowed_years, ctx.years_statement):
         out.append(violation("years", f"Years claim “{claim}” isn't allowed", "body", "error"))
+    mine = _own_words(text, ctx.intro_line)
     for label, example in ctx.examples:
-        score, run = oc.similarity(text, example), _longest_run(text, example)
+        theirs = _own_words(example, "")
+        score, run = oc.similarity(mine, theirs), _longest_run(mine, theirs)
         if score >= EXAMPLE_SIMILARITY or run >= EXAMPLE_RUN:
             out.append(violation("example_copy", f"Too close to the example “{label}” "
                                  f"({round(score * 100)}% shared, {run} words in a row): write "
@@ -164,6 +180,16 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
             out.append(violation("duplicate", f"{round(score * 100)}% the same as your draft to "
                                  f"{to} (#{draft_id})", "body"))
     return out
+
+
+def _own_words(text: str, intro: str) -> str:
+    """The email without what code writes the same way every time (greeting, intro line), so
+    only the written wording is compared with the examples."""
+    lines = [p for p in text.split("\n\n") if p.strip()]
+    kept = [p for i, p in enumerate(lines)
+            if not (i == 0 and len(p.split()) <= 3) and p.strip() != intro.strip()
+            and not re.match(r"^(?:I'm|I am|Je suis)\s", p.strip())]
+    return "\n\n".join(kept)
 
 
 def _signal_problems(text: str, ids: list[int], ctx: Context) -> list[str]:
@@ -216,6 +242,10 @@ def check_plan(plan: IntroEmailPlan, ctx: Context) -> list[dict[str, str]]:
     facts = [f for item in ctx.pool.items.values() for f in ctx.pool.facts(item)]
     for i, proof in enumerate(plan.proofs, 1):
         where = f"proof {i}"
+        if len(oc.words(proof.text)) > MAX_PROOF_WORDS:
+            out.append(violation("proofs", f"Proof {i} runs {len(oc.words(proof.text))} words: "
+                                 f"one short sentence (at most {MAX_PROOF_WORDS})", where,
+                                 "error"))
         text = _without_statement(proof.text, ctx)
         out += [violation("grounding", f"“{proof.text}”: {p}", where, "error")
                 for p in sentence_problems(SummarySentence(text=text, citations=proof.citations),

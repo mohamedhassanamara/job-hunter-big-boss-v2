@@ -49,3 +49,15 @@ def test_eval_writes_old_and_new_side_by_side(job_ready: dict, client, tmp_path:
     assert "| Old | New |" in text and f"## Case {case}" in text
     assert results[0]["new"]["body"].startswith("Hi Ana,") and "errors" in results[0]
     assert path.with_suffix(".json").exists()
+
+
+def test_the_current_email_prompt_was_run_against_the_regression_set() -> None:
+    """A change to app/prompts/outreach.md is adopted only after `make eval-emails`: record the
+    report in app/prompts/eval_log.json under the new version."""
+    root = Path(__file__).resolve().parents[1] / "app" / "prompts"
+    versions = json.loads((root / "versions.json").read_text())["outreach"]
+    latest = str(max(map(int, versions)))
+    log = json.loads((root / "eval_log.json").read_text()).get("outreach", {})
+    assert latest in log, (f"outreach v{latest} has no eval: run `make eval-emails` and record "
+                           "the report in app/prompts/eval_log.json")
+    assert log[latest]["errors"] == 0 or log[latest].get("note")
