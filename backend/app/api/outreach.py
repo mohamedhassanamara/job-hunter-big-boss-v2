@@ -146,8 +146,8 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 generated_via=(d.plan or {}).get("via") or (
                     "claude -p" if d.model.startswith("claude") else "mock"),
                 auth=(d.plan or {}).get("auth"),
-                application_mention=(mention := outreach.application_mention(session, app))
-                if (d.plan or {}).get("format") != "intro" else None,
+                application_mention=(mention := None if (d.plan or {}).get("format") == "intro"
+                                     else outreach.application_mention(session, app)),
                 mention_included=bool(mention and mention in d.body),
                 format=(d.plan or {}).get("format") or "reply",
                 signals=_cited_signals(session, d),
@@ -220,6 +220,9 @@ def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
         raise HTTPException(409, "The contact has no email address")
     d.status = DraftStatus.approved
     session.add(d)
+    from app.eval.emails import record
+
+    record(session, d, "approved")  # the email regression set (make eval-emails)
     pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved")
     if app.stage == Stage.cv_ready:
         pipeline.transition(session, app, Stage.ready)  # an email is ready to send
@@ -294,6 +297,9 @@ def reject_draft(draft_id: int, session: SessionDep) -> DraftOut:
         raise HTTPException(409, "Only drafts under review can be rejected")
     d.status = DraftStatus.rejected
     session.add(d)
+    from app.eval.emails import record
+
+    record(session, d, "rejected")
     app = get_or_404(session, Application, d.application_id)
     pipeline.log_event(session, app, EventKind.note, "Email draft rejected")
     session.commit()
