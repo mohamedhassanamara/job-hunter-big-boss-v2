@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  BotMessageSquare,
   ChevronDown,
   CircleCheck,
   FileText,
@@ -41,6 +42,7 @@ import {
 import { Textarea } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useHotkeys } from '@/hooks/useHotkeys'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { ApiError } from '@/lib/api'
 import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
@@ -48,6 +50,7 @@ import { useJob, usePatchApplication } from '@/lib/queries/jobs'
 import { isApplied } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Stage } from '@/lib/types'
 import { ApplicationSection, TracksSummary } from './ApplicationSection'
+import { CopilotSheet } from './CopilotSheet'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
 import { QuestionsSection } from './QuestionsSection'
@@ -218,6 +221,8 @@ export default function JobPage() {
   const [closing, setClosing] = useState(false)
   const [applying, setApplying] = useState(false)
   const [interviewing, setInterviewing] = useState(false)
+  const [copilotOpen, setCopilotOpen] = useState(false)
+  useHotkeys({ c: () => setCopilotOpen(true) }, { enabled: !!job })
 
   if (isPending) return <JobSkeleton />
   if (error) {
@@ -371,6 +376,12 @@ export default function JobPage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Tooltip content="Ask about this job (C)">
+            <Button variant="secondary" onClick={() => setCopilotOpen(true)} data-tour="job-copilot-open">
+              <BotMessageSquare />
+              Copilot
+            </Button>
+          </Tooltip>
           <span data-tour="job-next">{primary}</span>
         </div>
       </header>
@@ -435,6 +446,7 @@ export default function JobPage() {
         </aside>
       </div>
 
+      <CopilotSheet job={job} open={copilotOpen} onOpenChange={setCopilotOpen} />
       <MarkAppliedDialog
         key={`apply-${applying}`}
         target={applying ? { appId: app.id, title: job.title, company: job.company.name } : null}

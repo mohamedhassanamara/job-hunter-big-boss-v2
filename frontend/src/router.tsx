@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import { AppShell } from '@/components/app/AppShell'
 import ApplicationsPage from '@/features/applications/ApplicationsPage'
 import ContactsPage from '@/features/contacts/ContactsPage'
+import CopilotPage from '@/features/copilot/CopilotPage'
 import CVStudioPage from '@/features/cv-studio/CVStudioPage'
 import DiscoverPage from '@/features/discover/DiscoverPage'
 import ExperiencePage from '@/features/experience/ExperiencePage'
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
       { path: 'jobs/:id/cv', element: <CVStudioPage /> },
       { path: 'jobs/:id/letter', element: <LetterStudioPage /> },
       { path: 'outreach', element: <OutreachPage /> },
+      { path: 'copilot', element: <CopilotPage /> },
       { path: 'contacts', element: <ContactsPage /> },
       { path: 'experience', element: <ExperiencePage /> },
       { path: 'settings', element: <SettingsPage /> },

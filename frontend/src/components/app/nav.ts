@@ -1,6 +1,8 @@
 import {
+  BotMessageSquare,
   BriefcaseBusiness,
   Compass,
+  FileStack,
   Inbox,
   Layers,
   type LucideIcon,
@@ -25,9 +27,11 @@ export const NAV_MAIN: NavItem[] = [
   { to: '/pipeline', label: 'Pipeline', icon: SquareKanban, shortcut: 'p', count: 'pipeline_active' },
   { to: '/applications', label: 'Applications', icon: BriefcaseBusiness, shortcut: 'a', count: 'ready_to_apply' },
   { to: '/outreach', label: 'Outreach', icon: Send, shortcut: 'o', count: 'outreach_review' },
+  { to: '/copilot', label: 'Copilot', icon: BotMessageSquare, shortcut: 'i' },
 ]
 
 export const NAV_LIBRARY: NavItem[] = [
+  { to: '/studio', label: 'Studio', icon: FileStack, shortcut: 'l' },
   { to: '/contacts', label: 'Contacts', icon: Users, shortcut: 'c' },
   { to: '/experience', label: 'Experience', icon: Layers, shortcut: 'e' },
 ]

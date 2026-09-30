@@ -54,7 +54,37 @@ async function request<T>(method: string, path: string, body?: Json | FormData):
   return res.json() as Promise<T>
 }
 
+/** POST, then read the response body as text chunks as they arrive (the Copilot's answers). */
+async function stream(path: string, body: Json, onChunk: (text: string) => void): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (workspace === 'demo') headers['X-Workspace'] = 'demo'
+  let res: Response
+  try {
+    res = await fetch(`/api${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+  } catch {
+    throw new ApiError(0, "Can't reach the API. Is the backend running?")
+  }
+  if (!res.ok || !res.body) {
+    let message = `Request failed (${res.status})`
+    try {
+      const data = await res.json()
+      if (typeof data.detail === 'string') message = data.detail
+    } catch {
+      // not JSON
+    }
+    throw new ApiError(res.status, message)
+  }
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    onChunk(decoder.decode(value, { stream: true }))
+  }
+}
+
 export const api = {
+  stream,
   get: <T>(path: string) => request<T>('GET', path),
   post: <T>(path: string, body?: Json | FormData) => request<T>('POST', path, body),
   put: <T>(path: string, body: Json) => request<T>('PUT', path, body),
