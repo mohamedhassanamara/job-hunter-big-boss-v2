@@ -1039,6 +1039,7 @@ export interface CoverLetter {
   format: LetterFormat
   question: string | null
   char_limit: number | null
+  length: number // characters of the text
   salutation: string
   paragraphs: LetterParagraph[]
   ask: string

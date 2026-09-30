@@ -77,6 +77,7 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
   const timer = useRef<number | undefined>(undefined)
   const pending = useRef<LetterPatchInput>({})
   const readOnly = letter.status === 'superseded'
+  const form = letter.format === 'form'
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
@@ -122,14 +123,14 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
     <div className="space-y-4 px-5 py-4" data-tour="letter-editor">
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-fg-muted">
-          {letter.word_count} words · {letter.language === 'fr' ? 'French' : 'English'} · from CV v{letter.cv_version ?? '?'}
+          {letter.word_count} words{form ? ` · ${letter.length}${letter.char_limit != null ? `/${letter.char_limit}` : ''} characters` : ''} · {letter.language === 'fr' ? 'French' : 'English'} · from CV v{letter.cv_version ?? '?'}
         </span>
         <span className="text-fg-subtle" aria-live="polite">
           {note}
         </span>
       </div>
       <Checks violations={letter.violations} />
-      <div className="space-y-1.5">
+      {!form && <div className="space-y-1.5">
         <Label htmlFor="letter-salutation">Salutation</Label>
         <Input
           id="letter-salutation"
@@ -140,7 +141,7 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
             queueSave({ salutation: e.target.value })
           }}
         />
-      </div>
+      </div>}
       {paragraphs.map((text, i) => (
         <div key={i} className="space-y-1.5">
           <Label htmlFor={`letter-p${i}`} className="flex items-center gap-2">
@@ -165,7 +166,7 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
         </div>
       ))}
       <div className="space-y-1.5">
-        <Label htmlFor="letter-ask">Closing ask</Label>
+        <Label htmlFor="letter-ask">{form ? 'Closing line (optional)' : 'The ask (its own last paragraph)'}</Label>
         <Input
           id="letter-ask"
           value={ask}
@@ -175,7 +176,9 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
             queueSave({ ask: e.target.value })
           }}
         />
-        <p className="text-xs text-fg-subtle">Ends the last paragraph. Then, added by code: “{letter.closing}” and your name.</p>
+        <p className="text-xs text-fg-subtle">
+          {form ? 'A form text has no salutation, date, subject line or closing formula.' : `Then, added by code: “${letter.closing}” and your name.`}
+        </p>
       </div>
       <Sources letter={letter} />
     </div>

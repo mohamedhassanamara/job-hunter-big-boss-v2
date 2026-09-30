@@ -9,6 +9,7 @@ class AppliedIn(BaseModel):
     method: str  # company_site | job_board | email | other
     cv_version_id: int | None = None  # default: the latest approved version
     cover_letter_id: int | None = None  # the approved letter sent with it (None = no letter)
+    form_letter_id: int | None = None  # the approved form text pasted into the form, if any
     notes: str = ""
 
 

@@ -205,8 +205,14 @@ def _check_cover_letter(value: dict) -> None:
     import string
 
     lo, hi = value.get("min_words", 250), value.get("max_words", 350)
-    if not (isinstance(lo, int) and isinstance(hi, int) and 100 <= lo <= hi <= 600):
-        raise HTTPException(422, "The word range must be between 100 and 600 (min ≤ max)")
+    if not (isinstance(lo, int) and isinstance(hi, int) and 20 <= lo <= hi <= 600):
+        raise HTTPException(422, "The word range must be between 20 and 600 (min ≤ max)")
+    flo, fhi = value.get("form_min_words", 80), value.get("form_max_words", 220)
+    if not (isinstance(flo, int) and isinstance(fhi, int) and 20 <= flo <= fhi <= 600):
+        raise HTTPException(422, "The form text range must be between 20 and 600 (min ≤ max)")
+    jargon = value.get("jargon", [])
+    if not isinstance(jargon, list) or not all(isinstance(j, str) for j in jargon):
+        raise HTTPException(422, "jargon must be a list of phrases")
     if value.get("language", "auto") not in ("auto", "fr", "en"):
         raise HTTPException(422, "language must be auto, fr or en")
     guide = value.get("guide", "")

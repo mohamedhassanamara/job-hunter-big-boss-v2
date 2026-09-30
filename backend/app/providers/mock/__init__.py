@@ -197,54 +197,60 @@ class MockEmailDrafter:
 
 
 class MockLetterDrafter:
-    """A grounded cover letter and answers built from the request's pool (sandbox and tests; no
-    model call): pool facts quoted with their citations, the listing only for the opening."""
+    """A grounded cover letter, form text and answers built from the request's pool (sandbox and
+    tests; no model call): examples are named with their tools, never pasted CV bullets."""
 
     model = "mock-letter"
     prompt_version = "cover_letter/mock"
 
     @staticmethod
-    def _facts(pool: dict, limit: int = 3) -> list[tuple[int, str, str]]:
+    def _examples(pool: dict, limit: int = 2) -> list[tuple[int, str, list[str]]]:
         items = [i for k in ("roles", "projects") for i in pool.get(k, []) if i.get("facts")]
-        return [(i["id"], i.get("org") or i.get("title") or "", f.rstrip("."))
-                for i in items[:limit] for f in i["facts"].values()]
+        return [(i["id"], i.get("org") or i.get("title") or "", list(i.get("tags") or [])[:2])
+                for i in items[:limit]]
+
+    def _sentences(self, request: LetterRequest) -> list[EmailSentence]:
+        fr = request.rules.get("language") == "fr"
+        out = []
+        for item_id, org, tags in self._examples(request.pool):
+            tools = f" ({', '.join(tags)})" if tags else ""
+            text = (f"Chez {org}, ce travail{tools} ressemble à ce que votre équipe construit."
+                    if fr else f"At {org}, my work{tools} is close to what your team builds.")
+            out.append(EmailSentence(text=text, citations=[item_id]))
+        return out
 
     def draft_letter(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
         job, fr = request.job, request.rules.get("language") == "fr"
         company, title = job.get("company"), job.get("title")
         opening = (f"{company} recrute pour le poste de {title}." if fr
                    else f"{company} is hiring for the {title} role.")
-        min_words = int(request.rules.get("min_words") or 250)
-        facts = self._facts(request.pool)
-        middle: list[list[EmailSentence]] = [[], []]
-        words = len(opening.split())
-        for n, (item_id, org, fact) in enumerate(facts):
-            lead = f"Chez {org}, voici ce que j'ai fait : " if fr else f"At {org}, "
-            text = f"{lead}{fact[0].lower()}{fact[1:]}." if not fr else f"{lead}{fact}."
-            middle[n % 2].append(EmailSentence(text=text, citations=[item_id]))
-            words += len(text.split())
-            if words >= min_words:
-                break
-        first = facts[0][0] if facts else 0
-        close = EmailSentence(text=("Mon CV joint détaille ces expériences." if fr
-                                    else "My CV has the details of this work."),
-                              citations=[first])
-        paragraphs = [LetterParagraph(sentences=[EmailSentence(text=opening, about_job=True)])]
-        paragraphs += [LetterParagraph(sentences=p) for p in middle if p]
-        paragraphs.append(LetterParagraph(sentences=[close]))
+        examples = self._sentences(request)
+        first = examples[0].citations[0] if examples else 0
+        why = EmailSentence(text=("C'est le type de poste que je cherche." if fr
+                                  else "This is the kind of role I am looking for."),
+                            citations=[first])
+        paragraphs = [LetterParagraph(sentences=[EmailSentence(text=opening, about_job=True),
+                                                 why])]
+        if examples:
+            paragraphs.append(LetterParagraph(sentences=examples))
         ask = (f"Seriez-vous disponible pour un entretien au sujet du poste de {title} ?" if fr
                else f"Would you be open to an interview about the {title} role?")
         return CoverLetterPlan(paragraphs=paragraphs, ask=ask)
 
+    def draft_form(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
+        plan = self.draft_letter(request, feedback)
+        return CoverLetterPlan(paragraphs=plan.paragraphs, ask="")
+
     def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan:
-        facts = self._facts(request.pool, limit=1)
+        examples = self._examples(request.pool, limit=1)
         out = []
         for q in request.questions:
-            item_id, org, fact = facts[0] if facts else (0, "", "")
-            text = f"At {org}, {fact[0].lower()}{fact[1:]}." if fact else "I will confirm this."
+            item_id, org, tags = examples[0] if examples else (0, "", [])
+            text = f"At {org}, I worked with {', '.join(tags) or 'this stack'}." if org else \
+                "I will confirm this."
             limit = q.get("char_limit")
             if limit and len(text) > limit:
-                text = f"At {org}, I built this."[:limit] if org else text[:limit]
+                text = text[:limit]
             out.append(AnswerDraft(question_id=int(q["id"]),
                                    sentences=[EmailSentence(text=text, citations=[item_id])]))
         return AnswersPlan(answers=out)

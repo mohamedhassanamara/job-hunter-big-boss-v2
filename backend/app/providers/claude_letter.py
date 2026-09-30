@@ -59,6 +59,11 @@ class ClaudeLetterDrafter(ClaudeCVGenerator):
         system = self.sections["system"] + (f"\n\n{self.sections['retry']}" if feedback else "")
         return self._run(system, letter_message(request, feedback), CoverLetterPlan)
 
+    def draft_form(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
+        """The text for a form's text box (answers RULES.question; no letter furniture)."""
+        system = self.sections["form"] + (f"\n\n{self.sections['form_retry']}" if feedback else "")
+        return self._run(system, letter_message(request, feedback), CoverLetterPlan)
+
     def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan:
         system = self.sections["answers"] + (
             f"\n\n{self.sections['answers_retry']}" if feedback else "")

@@ -1,5 +1,5 @@
 import { ArrowLeft, CircleCheck, Copy, Download, FileText, LoaderCircle, Lock, RefreshCw, Sparkles } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { StageBadge, ToneBadge } from '@/components/app/badges'
@@ -8,12 +8,15 @@ import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { apiUrl } from '@/lib/api'
 import { relativeTime } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
 import { useApproveLetter, useGenerateLetter, useLetterStudio, useSetLetterLanguage } from '@/lib/queries/letters'
-import type { CoverLetter } from '@/lib/types'
+import type { CoverLetter, LetterFormat } from '@/lib/types'
+import { FormPreview, FormQuestion } from './FormText'
 import { LetterEditor } from './LetterEditor'
 
 const STATUS_LABEL = { draft: 'Draft', approved: 'Approved', superseded: 'Superseded' } as const
@@ -40,22 +43,33 @@ export default function LetterStudioPage() {
   const approve = useApproveLetter()
   const setLanguage = useSetLetterLanguage()
   const [selected, setSelected] = useState<number | null>(null)
+  const url = useSearchParamState()
+  const format: LetterFormat = url.get('format') === 'form' ? 'form' : 'pdf'
+  const form = format === 'form'
+  const [ask, setAsk] = useState<{ question?: string; limit?: string }>({})
 
-  const letters = studio.data?.letters ?? []
+  const all = studio.data?.letters ?? []
+  const letters = all.filter((l) => (l.format ?? 'pdf') === format)
   const letter = letters.find((l) => l.id === selected) ?? letters.find((l) => l.status !== 'superseded') ?? letters[0]
   const noCv = studio.data && studio.data.approved_cv_id == null
-  const blocked = !!noCv || studio.data?.template_ok === false
+  const blocked = !!noCv || (!form && studio.data?.template_ok === false)
+  const question = ask.question ?? letter?.question ?? ''
+  const limit = ask.limit ?? (letter?.char_limit != null ? String(letter.char_limit) : '')
 
-  const runGenerate = useCallback(() => {
+  const runGenerate = () => {
     if (!Number.isFinite(appId)) return
-    const t = toast.loading('Writing your cover letter with Claude…', { description: 'Usually under a minute. Every sentence is then checked against your CV and the listing.' })
+    if (form && !question.trim()) {
+      toast.error("Paste the form's question first")
+      return
+    }
+    const t = toast.loading(`Writing your ${form ? 'form text' : 'cover letter'} with Claude…`, { description: 'Usually under a minute. Every sentence is then checked against your CV and the listing.' })
     generate.mutate(
-      { appId },
+      { appId, format, question: form ? question.trim() : undefined, char_limit: form && limit ? Number(limit) : undefined },
       {
         onSuccess: (l) => {
           setSelected(l.id)
           const errors = l.violations.filter((v) => v.severity === 'error').length
-          toast[errors ? 'warning' : 'success'](`Cover letter v${l.version} ready for review`, {
+          toast[errors ? 'warning' : 'success'](`${l.format === 'form' ? 'Form text' : 'Cover letter'} v${l.version} ready for review`, {
             id: t,
             description: `${LANGUAGE_LABEL[l.language]} · ${l.word_count} words${errors ? ` · ${errors} problem${errors > 1 ? 's' : ''} to fix` : ' · every check passed'}`,
           })
@@ -63,13 +77,13 @@ export default function LetterStudioPage() {
         onError: (e) => toast.error(e.message, { id: t }),
       },
     )
-  }, [appId, generate])
+  }
 
   const onApprove = () => {
     if (!letter) return
     approve.mutate(letter.id, {
       onSuccess: (l) =>
-        toast.success(`Cover letter v${l.version} approved`, {
+        toast.success(`${l.format === 'form' ? 'Form text' : 'Cover letter'} v${l.version} approved`, {
           description: 'It goes with your CV when you apply.',
           duration: 10000,
           action: { label: 'Go to Ready to apply', onClick: () => navigate('/applications?tab=ready') },
@@ -127,12 +141,28 @@ export default function LetterStudioPage() {
           <p className="truncate text-sm font-semibold">
             Cover letter{job.data && <span className="font-normal text-fg-muted"> · {job.data.title}</span>}
           </p>
-          <p className="truncate text-xs text-fg-subtle">{job.data ? `${job.data.company.name} · one page, facts from your approved CV only` : ' '}</p>
+          <p className="truncate text-xs text-fg-subtle">{job.data ? `${job.data.company.name} · ${form ? "text for the form's box" : 'one page'}, facts from your approved CV only` : ' '}</p>
         </div>
+        <Tabs value={format} onValueChange={(v) => (setSelected(null), url.set({ format: v === 'form' ? 'form' : null }))}>
+          <TabsList data-tour="letter-format">
+            <TabsTrigger value="pdf" count={all.filter((l) => (l.format ?? 'pdf') === 'pdf').length}>
+              PDF letter
+            </TabsTrigger>
+            <TabsTrigger value="form" count={all.filter((l) => l.format === 'form').length}>
+              Form text
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         {job.data && <StageBadge stage={job.data.application.stage} label={job.data.application.stage_label} />}
         {letter && (
           <>
-            <PageBadge letter={letter} />
+            {form ? (
+              <ToneBadge tone={letter.char_limit != null && letter.length > letter.char_limit ? 'red' : 'green'}>
+                {letter.char_limit != null ? `${letter.length}/${letter.char_limit} chars` : `${letter.length} chars`} · {letter.word_count} words
+              </ToneBadge>
+            ) : (
+              <PageBadge letter={letter} />
+            )}
             <span data-tour="letter-versions">
               <Select
                 aria-label="Version"
@@ -151,13 +181,13 @@ export default function LetterStudioPage() {
                 <Copy />
               </Button>
             </Tooltip>
-            <Tooltip content={letter.download_name}>
+            {!form && <Tooltip content={letter.download_name}>
               <Button variant="ghost" size="icon" asChild disabled={!letter.has_pdf}>
                 <a href={apiUrl(`/letters/${letter.id}/pdf`, { download: true, v: letter.updated_at })} aria-label="Download PDF">
                   <Download />
                 </a>
               </Button>
-            </Tooltip>
+            </Tooltip>}
             <span data-tour="letter-approve">
               {letter.locked_at ? (
                 <ToneBadge tone="gray" dot={false} className="h-8 px-3 text-sm">
@@ -172,7 +202,7 @@ export default function LetterStudioPage() {
               ) : (
                 <Tooltip content={errors.length ? `Fix first: ${errors[0].message}` : null}>
                   <span>
-                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || letter.status !== 'draft' || errors.length > 0 || !letter.has_pdf}>
+                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || letter.status !== 'draft' || errors.length > 0 || (!form && !letter.has_pdf)}>
                       <CircleCheck />
                       Approve
                     </Button>
@@ -199,16 +229,20 @@ export default function LetterStudioPage() {
       ) : !letter ? (
         <EmptyState
           icon={FileText}
-          title={generate.isPending ? 'Writing your cover letter…' : 'No cover letter for this job yet'}
+          title={generate.isPending ? `Writing your ${form ? 'form text' : 'cover letter'}…` : form ? 'No form text yet' : 'No cover letter for this job yet'}
           description={
             noCv
               ? 'The letter is written from your approved CV. Approve the CV for this job first.'
-              : s?.template_ok === false
+              : form
+                ? `For a text box like “Expliquez-nous pourquoi vous souhaitez nous rejoindre”: paste the question (and the box's character limit). Plain text in ${LANGUAGE_LABEL[s?.language ?? 'en']}, answering it directly: no header, date, subject line or closing formula.`
+                : s?.template_ok === false
                 ? "The CV template has no cover letter layout (cover_letter.tex.j2). Pick a template that has one."
                 : `One page in ${LANGUAGE_LABEL[s?.language ?? 'en']}, written from your approved CV v${s?.approved_cv_version ?? ''} and the listing. Every sentence is checked; nothing is invented.`
           }
           action={
-            <div className="flex gap-2">
+            <div className="w-full max-w-xl space-y-3">
+              {form && !noCv && <FormQuestion question={question} limit={limit} onChange={(n) => setAsk({ ...ask, ...n })} />}
+            <div className="flex justify-center gap-2">
               {noCv ? (
                 <Button variant="default" asChild>
                   <Link to={`/jobs/${jobId}/cv`}>Open CV Studio</Link>
@@ -216,11 +250,12 @@ export default function LetterStudioPage() {
               ) : (
                 <Button variant="default" onClick={runGenerate} disabled={generate.isPending || blocked}>
                   <Sparkles />
-                  Write cover letter
+                  {form ? 'Write form text' : 'Write cover letter'}
                 </Button>
               )}
               {languagePicker}
               <TourButton tour="letter" />
+            </div>
             </div>
           }
         />
@@ -228,13 +263,21 @@ export default function LetterStudioPage() {
         <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <div className="min-h-0 overflow-y-auto border-r border-border bg-bg">
             <div className="sticky top-0 z-10 flex h-11 items-center justify-between gap-3 border-b border-border bg-bg px-5 text-xs">
-              <span className="font-medium text-fg-muted">Language of the next letter</span>
+              <span className="font-medium text-fg-muted">Language of the next {form ? 'text' : 'letter'}</span>
               {languagePicker}
             </div>
+            {form && (
+              <div className="border-b border-border px-5 py-4">
+                <FormQuestion question={question} limit={limit} onChange={(n) => setAsk({ ...ask, ...n })} />
+                <p className="mt-2 text-xs text-fg-subtle">Changed the question or the limit? Regenerate to answer it again.</p>
+              </div>
+            )}
             <LetterEditor key={letter.id} letter={letter} onNewVersion={setSelected} />
           </div>
           <div data-tour="letter-preview" className="relative min-h-0 bg-bg-subtle">
-            {letter.error ? (
+            {form ? (
+              <FormPreview letter={letter} />
+            ) : letter.error ? (
               <div className="p-6">
                 <ErrorState error={new Error(letter.error.split('\n')[0])} />
               </div>

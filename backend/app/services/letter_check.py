@@ -41,7 +41,22 @@ DEFAULT_BANNED: dict[str, list[str]] = {
         "dynamic", "rockstar", "ninja", "guru",
     ],
 }
-DEFAULT_MIN_WORDS, DEFAULT_MAX_WORDS = 250, 350
+DEFAULT_MIN_WORDS, DEFAULT_MAX_WORDS = 150, 260  # one listing sentence + 2 short examples
+FORM_MIN_WORDS, FORM_MAX_WORDS = 80, 220
+# CV shorthand that reads badly in a letter (checked in both languages; Settings can extend it).
+DEFAULT_JARGON = [
+    "schema drift", "collision class", "collision classes", "idempotent", "star schema",
+    "entity resolution", "retry-safe", "dependency-chained", "end-to-end local",
+    "dérive de schéma", "classes de collisions", "schéma en étoile", "résolution d'entités",
+    "idempotents", "chaînés par dépendances",
+]
+_TEST_COUNT = re.compile(r"\b\d+\s*/\s*\d+\s+(?:tests?|checks?)\b|\b\d+\s*/\s*\d+\s+tests?\s+"
+                         r"réussis\b|\btests? réussis\b", re.I)
+# Letter furniture that doesn't belong in a form's text box.
+_FORM_FURNITURE = re.compile(
+    r"\b(?:madame,? monsieur|dear\b|objet\s*:|cordialement|salutations|je vous prie|"
+    r"kind regards|best regards|sincerely|to whom)", re.I)
+RESTATE_THRESHOLD = 0.5  # 3-word overlap of a sentence with the listing / a CV bullet
 FR_STATEMENT = "{n} ans d'expérience en ingénierie logicielle"
 
 _FR_NUMBERS = {"un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6,
@@ -70,6 +85,12 @@ class Context:
     years_statement_fr: str | None = None  # its French equivalent
     other_companies: list[str] = field(default_factory=list)  # in your other letters
     contact_name: str = ""
+    format: str = "pdf"  # pdf | form
+    char_limit: int | None = None  # form: the text box's limit
+    jargon: list[str] = field(default_factory=lambda: list(DEFAULT_JARGON))
+    current_role_id: int | None = None  # your current role, when it matches this listing
+    current_role_org: str = ""
+    facts_text: str = ""  # Settings → Candidate: where you're based, authorization, languages
 
     def email_context(self) -> oc.Context:
         return oc.Context(pool=self.pool, allowed_years=self.allowed_years,
@@ -138,9 +159,30 @@ def _states_years(text: str, ctx: Context) -> bool:
                                              job_text="", company="")))
 
 
+_RELOCATION = re.compile(r"\b(?:relocat\w*|move to|moving to|m'install\w*|installer|"
+                         r"déménag\w*|demenag\w*|mobilité géographique)", re.I)
+
+
+def _candidate_fact_problems(text: str, ctx: Context) -> list[str]:
+    """A fit sentence from Settings → Candidate: only what the profile says."""
+    out = []
+    if _RELOCATION.search(text.replace("’", "'")):
+        out.append("relocating isn't in your profile (Settings → Candidate)")
+    facts = oc.fold(ctx.facts_text)
+    words = [w for w in oc.fold(text).split() if len(w) >= 4]
+    if not any(w in facts for w in words):
+        out.append("states nothing from your profile (where you're based, work authorization, "
+                   "languages)")
+    source = Context(pool=ctx.pool, allowed_years=ctx.allowed_years,
+                     job_text=f"{ctx.job_text}\n{ctx.facts_text}", company=ctx.company)
+    return out + oc._source_problems(text, source.email_context())
+
+
 def _grounding(sentence: EmailSentence, ctx: Context) -> list[str]:
     email = ctx.email_context()
     sentence = sentence.model_copy(update={"text": _ungroup(sentence.text)})
+    if sentence.about_candidate and not sentence.citations:
+        return _candidate_fact_problems(sentence.text, ctx)
     if sentence.about_job and not sentence.citations:
         return oc._about_job_problems(_strip_fr(sentence.text, ctx.years_statement_fr), email)
     text = oc._claims_only(_strip_fr(sentence.text, ctx.years_statement_fr), email)
@@ -166,35 +208,70 @@ def _banned(text: str, ctx: Context) -> list[dict[str, str]]:
     return out
 
 
+def _overlap(text: str, source: str) -> float:
+    """Share of the text's 3-word shingles found in the source (after folding)."""
+    mine = oc.shingles(text)
+    return len(mine & oc.shingles(source)) / len(mine) if len(mine) >= 3 else 0.0
+
+
+def _jargon(text: str, ctx: Context) -> list[dict[str, str]]:
+    folded = oc.fold(text.replace("’", "'"))
+    out = [violation("jargon", f"CV jargon “{j}”: say what it means for them in plain words",
+                     "letter", "error")
+           for j in ctx.jargon if (key := oc.fold(j)) and re.search(rf"\b{re.escape(key)}\b",
+                                                                    folded)]
+    out += [violation("jargon", f"“{m.group(0)}” is CV detail: say what it changed instead",
+                      "letter", "error") for m in _TEST_COUNT.finditer(text)]
+    return out
+
+
 def lint(salutation: str, paragraphs: list[str], ask: str | None,
          ctx: Context) -> list[dict[str, str]]:
-    """Checks on the text, whoever wrote it. `ask` is None when it's part of the last paragraph
-    (after you edit)."""
+    """Checks on the text, whoever wrote it. The ask is its own final paragraph (PDF letter);
+    a form text has no salutation or closing formula, and may end without one."""
     out: list[dict[str, str]] = []
+    form = ctx.format == "form"
     body = [p for p in paragraphs if p.strip()]
-    everything = " ".join([salutation, *body, ask or ""])
-    n = len(oc.words(" ".join([*body, ask or ""])))
+    ask = (ask or "").strip()
+    everything = " ".join([salutation, *body, ask])
+    n = len(oc.words(" ".join([*body, ask])))
     if n < ctx.min_words or n > ctx.max_words:
         out.append(violation("length", f"{n} words (aim for {ctx.min_words}-{ctx.max_words})",
                              "letter", "error"))
-    if not 3 <= len(body) <= 4:
-        out.append(violation("structure", f"{len(body)} paragraphs (3-4 expected)", "letter",
-                             "error"))
+    if form:
+        text = "\n\n".join([*body, ask] if ask else body)
+        if ctx.char_limit and len(text) > ctx.char_limit:
+            out.append(violation("length", f"{len(text)}/{ctx.char_limit} characters", "letter",
+                                 "error"))
+        if not 1 <= len(body) <= 3:
+            out.append(violation("structure", f"{len(body)} paragraphs (1-3 for a form)",
+                                 "letter", "error"))
+        if salutation.strip() or (m := _FORM_FURNITURE.search(" ".join([*body, ask]))):
+            found = salutation.strip() or m.group(0)
+            out.append(violation("form", f"“{found}”: a form's text box has no salutation, "
+                                 "subject or closing formula", "letter", "error"))
+    else:
+        if not 2 <= len(body) <= 3:
+            out.append(violation("structure", f"{len(body)} paragraphs before the ask (2-3)",
+                                 "letter", "error"))
+        if not salutation.strip():
+            out.append(violation("salutation", "The salutation is empty", "salutation",
+                                 "error"))
+        elif ctx.contact_name and oc.fold(ctx.contact_name.split(" ")[-1]) not in oc.fold(
+                salutation):
+            out.append(violation("salutation", f"The salutation doesn't name {ctx.contact_name}",
+                                 "salutation"))
+        if not ask or not _ASK.search(ask):
+            out.append(violation("ask", "End with one clear ask (an interview or a call), in "
+                                 "its own short paragraph", "ask", "error"))
+    if ask and (len(oc.words(ask)) > 35 or len(re.findall(r"[.!?](?:\s|$)", ask)) > 2):
+        out.append(violation("ask", "The ask is one or two short sentences (at most 35 words)",
+                             "ask", "error"))
     if body and oc.fold(ctx.company) not in oc.fold(body[0]):
         out.append(violation("opening", f"The first paragraph doesn't name {ctx.company}",
-                             "paragraph 1", "error"))
-    if not salutation.strip():
-        out.append(violation("salutation", "The salutation is empty", "salutation", "error"))
-    elif ctx.contact_name and oc.fold(ctx.contact_name.split(" ")[-1]) not in oc.fold(salutation):
-        out.append(violation("salutation", f"The salutation doesn't name {ctx.contact_name}",
-                             "salutation"))
-    questions = sum(p.count("?") for p in (body if ask is not None else body[:-1]))
-    if questions:
+                             "paragraph 1", "warning" if form else "error"))
+    if sum(p.count("?") for p in body):
         out.append(violation("ask", "Only one ask, at the end: a question appears earlier",
-                             "letter", "error"))
-    closing = ask if ask is not None else (body[-1] if body else "")
-    if not closing.strip() or not _ASK.search(closing):
-        out.append(violation("ask", "End with one clear ask (an interview or a call)",
                              "letter", "error"))
     folded = oc.fold(everything)
     for other in ctx.other_companies:
@@ -203,6 +280,7 @@ def lint(salutation: str, paragraphs: list[str], ask: str | None,
             out.append(violation("company", f"Mentions “{other}”, the company of another "
                                  "letter", "letter", "error"))
     out += _banned(everything, ctx)
+    out += _jargon(" ".join([*body, ask]), ctx)
     if "!" in everything:
         out.append(violation("tone", "Exclamation mark", "letter"))
     out += [violation("years", _years_message(c, ctx), "letter", "error")
@@ -213,11 +291,17 @@ def lint(salutation: str, paragraphs: list[str], ask: str | None,
 def check_letter(salutation: str, paragraphs: list[dict[str, Any]], ask: str | None,
                  ctx: Context) -> list[dict[str, str]]:
     """`paragraphs`: {"sentences": [...]} as generated, or {"text": ...} once edited. Generated
-    paragraphs keep citation-level grounding; edited ones get the text-level source check."""
+    paragraphs keep citation-level grounding; edited ones get the text-level source check.
+
+    The v3 writing rules: one sentence at most about the listing (never restating it), no CV
+    bullet copied or translated, your current role used when it matches, at most 2 examples of
+    1-2 sentences each, the ask in its own short paragraph."""
     out: list[dict[str, str]] = []
+    form = ctx.format == "form"
     generated: list[EmailSentence] = []
     texts = []
     email = ctx.email_context()
+    facts = [f for item in ctx.pool.items.values() for f in ctx.pool.facts(item)]
     for i, p in enumerate(paragraphs, 1):
         where = f"paragraph {i}"
         if "sentences" in p:
@@ -228,27 +312,62 @@ def check_letter(salutation: str, paragraphs: list[dict[str, Any]], ask: str | N
                         for problem in _grounding(s, ctx)]
             texts.append(" ".join(s.text for s in sentences))
             if i == 1 and not any(s.about_job for s in sentences):
-                out.append(violation("opening", "The opening should say something specific "
-                                     "from the listing", where, "error"))
+                out.append(violation("opening", "Open with why this company and role, citing "
+                                     "one specific thing from the listing", where,
+                                     "warning" if form else "error"))
         else:
             text = str(p.get("text") or "")
             clean = _ungroup(_strip_fr(text, ctx.years_statement_fr))
             out += [violation("grounding", problem, where, "error")
                     for problem in oc._source_problems(clean, email)]
             texts.append(text)
-    if ask is not None:
+    units = []  # (paragraph, sentence): the model's own sentences, or your text split up
+    for i, p in enumerate(paragraphs, 1):
+        if "sentences" in p:
+            units += [(i, str(x.get("text") or "")) for x in p["sentences"]]
+        else:
+            units += [(i, x) for x in re.split(r"(?<=[.!?])\s+", str(p.get("text") or ""))]
+    for i, sentence in units:  # restating the listing / pasting CV bullets
+        if _overlap(sentence, ctx.job_text) >= RESTATE_THRESHOLD:
+            out.append(violation("restates", f"“{sentence}” restates the listing: say why it "
+                                 "matters to you instead", f"paragraph {i}", "error"))
+        elif any(_overlap(sentence, f) >= RESTATE_THRESHOLD for f in facts):
+            out.append(violation("cv_copy", f"“{sentence}” reads like a CV bullet: explain what "
+                                 "it means for them in plain words", f"paragraph {i}", "error"))
+    if ask:
         out += [violation("grounding", f"The ask: {p}", "ask", "error")
                 for p in oc._source_problems(ask, email)]
+    if generated:
+        about = [s for s in generated if s.about_job]
+        if len(about) > 1:
+            out.append(violation("listing", f"{len(about)} sentences about the listing: at most "
+                                 "one, in the opening", "letter", "error"))
     if generated and all("sentences" in p for p in paragraphs):
-        # Builds are cited after the opening; a sentence stating the years cites roles only to
-        # back that number.
+        # Examples are the roles/projects cited after the opening; a sentence stating the years
+        # cites roles only to back that number.
         body = [EmailSentence.model_validate(x) for p in paragraphs[1:] for x in p["sentences"]]
-        builds = len(_built_items([x for x in body if not _states_years(x.text, ctx)], ctx))
-        if builds < 2:
-            out.append(violation("builds", f"{builds} concrete build from your CV (show 2-3)",
+        examples = [x for x in body if not _states_years(x.text, ctx)]
+        builds = _built_items(examples, ctx)
+        if len(builds) > 2:
+            out.append(violation("builds", f"{len(builds)} examples: at most 2", "letter",
+                                 "error"))
+        elif not builds:
+            out.append(violation("builds", "No concrete example from your experience",
                                  "letter"))
-        elif builds > 3:
-            out.append(violation("builds", f"{builds} different builds: focus on 2-3", "letter"))
+        for item_id in builds:
+            n = sum(1 for x in examples if item_id in x.citations)
+            if n > 2:
+                name = (ctx.pool.get(item_id).org or ctx.pool.get(item_id).title)
+                out.append(violation("builds", f"The {name} example runs {n} sentences (1-2)",
+                                     "letter", "error"))
+        cited = {c for x in generated for c in x.citations}
+        if ctx.current_role_id and ctx.current_role_id not in cited:
+            out.append(violation("current_role", f"Your current role at {ctx.current_role_org} "
+                                 "matches this job: use it as an example", "letter", "error"))
+    elif ctx.current_role_id and ctx.current_role_org and oc.fold(ctx.current_role_org) not in \
+            oc.fold(" ".join(texts)):
+        out.append(violation("current_role", f"Your current role at {ctx.current_role_org} "
+                             "matches this job: use it as an example", "letter", "error"))
     return out + lint(salutation, texts, ask, ctx)
 
 
