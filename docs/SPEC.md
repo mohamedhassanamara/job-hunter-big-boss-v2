@@ -14,13 +14,15 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 3 | **Dedupe** | The same job from 2 sources is flagged as a duplicate. Companies already contacted or applied to are flagged | Discover flags, Job detail |
 | 4 | **Resolve contact** | Tier (a) is the imported Apollo dump. Tier (b) queues a manual Apollo extension lookup, with a small daily cap. Tier (c) is no contact | Contact block, Contacts |
 | 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
-| 6 | **Route** | With a contact, the route is **cold email** (drafted on the Job page: contact → draft → review → send queue → sent). Without one, it is **web apply**: the CV, an optional cover letter in the listing's language, grounded answers to the form's questions, and the listing link; I apply myself. The route badge is shown everywhere | Job detail, Pipeline, Cover letter studio |
+| 6 | **Both routes** | Every job can have a **web application** (CV, optional cover letter as PDF and/or form text, grounded answers to the form's questions, the listing link; I apply myself) **and** a **cold email** to someone there (contact → draft → review → send queue → sent). Each track shows its own status everywhere; with no contact yet, the app says who to look for and gives search hints | Job detail, Pipeline, Today, Cover letter studio |
 | 7 | **Human review** | I review and edit every CV, email, cover letter and answer | CV Studio, Job page, Outreach → Review, Cover letter studio |
 | 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV (+ approved cover letter) in one click, then Mark applied (date, method, CV and letter versions locked) | Outreach → Queue, Applications |
 | 9 | **Follow up** | Follow-up reminders (7/14 days, configurable), replies and interview rounds logged, closed with an outcome; stats and CSV export. No model calls | Today, Applications |
 
-Pipeline stages: **New → Shortlisted → CV ready → (Email drafted) → Ready to send / Ready to apply → Sent / Applied → Interview → Closed**.
-Email route: CV ready → Email drafted → Ready to send (approved) → Sent. Web route: CV ready → Ready to apply → Applied
+Pipeline stages: **New → Shortlisted → CV ready → Ready → Applied / Emailed → Interview → Closed**. The stage is
+the job's overall position; the two tracks (Application: CV first → Ready to apply → Applied; Outreach: No contact →
+Contact found → Draft to review → Approved → Queued → Sent) carry the details. `done` is reached with the first route
+("Applied", "Emailed", then "Applied + emailed") and never goes back; the other route can still finish later.
 (see DATA_MODEL.md for the allowed transitions).
 
 ## 2. Global UX
@@ -82,19 +84,34 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Board view** (default): 7 columns with a count per column. Cards show the title, company, fit badge, route icon (mail / globe), and days in stage. Cards can be dragged between columns, but only allowed transitions are accepted (the target highlights; a disallowed move snaps back with a toast explanation). Clicking a card opens the Job page.
 - The **Closed** column hides dismissed jobs unless "Show dismissed" is on. Dropping a card on Closed asks for a reason: after applying rejected, no response, withdrew, offer accepted, offer declined; before, not a fit or withdrew.
 - Dropping a web-apply card on **Applied** opens Mark applied; dropping on **Interview** opens Log interview.
-- Email-route drops open the step instead of moving the card: **Email drafted**, **Ready to send** and **Sent** open the Job page's Cold email section (`#outreach`), where the draft is written, reviewed and queued, or recorded with "I sent it myself".
-- Cards and table rows show the **route badge** (cold email / web apply; derived from the contact until set).
+- Dropping on **Applied / emailed** opens Mark applied while the web application is still to do; otherwise (and
+  on **Ready**) it opens the Job page's Outreach card (`#outreach`).
+- Cards show both **track badges** (e.g. "Ready to apply" · "Draft to review"); the table has Application and Email
+  columns.
 - **Table view** (`?view=table`): sortable columns (Job, Company, Stage, Route, Fit, Contact, Updated), j/k selection, s/d shortcuts, and Enter to open.
 - *Empty:* "Nothing in your pipeline yet. Shortlist jobs from Discover", with a "Go to Discover" action. *Loading:* column skeletons. *Error:* retry.
 
 ### 3.4 Job detail (`/jobs/:id`)
 *Purpose:* everything about one opportunity in one place.
-- **Header:** title, company, location/remote, source, and posted date. There is a stage selector (only allowed transitions are offered; "Switch to web apply / cold email" is in its menu), the route badge, and the primary next-step action, which depends on stage:
-  new → Shortlist · shortlisted → Generate CV · cv_ready (email) → Draft email · cv_ready/ready (web) → Mark applied · ready (email) → View send queue · done → Log interview · interview → Record outcome.
-- **Cold email** section (email route): a stepper Contact → Draft → Review → Send queue → Sent with the next action always visible: find a contact (queue an Apollo lookup, pick one of the company's contacts, add one), "Draft email with AI" (needs an approved CV), the draft editor inline (checks, sources, test send, Regenerate, Reject, **Approve**), then **Add to send queue** (shows "#2 in the queue · sends around 14:30"), then the sent date. "I sent it myself" records the approved email as sent (date; CV locked). A web-apply job that gets a contact offers "Switch to cold email".
-- Web apply with an approved CV: a callout with **Open listing + CV** (+ cover letter when one is approved; one click: listing in a new tab, PDFs downloaded), Download CV only, Mark applied.
-- **Cover letter** (web apply): versions with status, language and word count, and the way into the Cover letter studio.
-- **Application questions** (web apply, approved CV): paste the form's questions with optional character limits; "Answer with AI" answers the batch in one Claude call (grounded like the letter, in its language). A limit is a hard check: over it → one retry → still over → kept with "412/300 characters" (never cut). Answers are saved on the job, editable (re-checked), with Copy and an undoable delete.
+- **Header:** title, company, location/remote, source, and posted date. There is a stage selector (only allowed
+  transitions are offered), a **Copilot** button (key `c`), and the primary next-step action: new → Shortlist ·
+  shortlisted → Generate CV · web application still to do → Mark applied · otherwise the email's next step (Find a
+  contact / Draft email / Review email / Add to send queue) · done → Log interview · interview → Record outcome.
+- **Two tiles** at the top, Application and Outreach, each with its status and next step; they scroll to their
+  sections.
+- **Application** section: open the listing + approved CV (+ approved PDF letter) in one click, Download CV only,
+  Mark applied; once applied, the date and method.
+- **Outreach** section: a stepper Contact → Draft → Review → Send queue → Sent with the next action always visible: find a contact (queue an Apollo lookup, pick one of the company's contacts, add one), "Draft email with AI" (needs an approved CV), the draft editor inline (checks, sources, test send, Regenerate, Reject, **Approve**), then **Add to send queue** (shows "#2 in the queue · sends around 14:30"), then the sent date. "I sent it myself" records the approved email as sent (date; CV locked).
+  - **Who to contact** (no contact yet, `contacts.who_to_contact`): the roles to look for by company size (small:
+    Settings → Contacts' small-company order, e.g. CTO or founder; large or unknown: the head of the hiring team or
+    the engineering manager, then talent acquisition), the reason, and copyable search hints (a LinkedIn query and
+    its URL, Apollo filters). "I found someone" adds the contact; the draft comes next. Nothing is searched or opened.
+  - Once the web application is recorded, the draft editor offers **"Mention my web application"** (on by default
+    for new drafts): a fixed sentence from Settings → Email, e.g. "I have also applied through your careers page on
+    30 September.", never model-written, counted in the length check.
+  - The review line says how the draft was made: "Drafted by claude-sonnet-5 via claude -p · subscription".
+- **Cover letter**: versions with status, language and word count, and the way into the Cover letter studio.
+- **Application questions** (approved CV): paste the form's questions with optional character limits; "Answer with AI" answers the batch in one Claude call (grounded like the letter, in its language). A limit is a hard check: over it → one retry → still over → kept with "412/300 characters" (never cut). Answers are saved on the job, editable (re-checked), with Copy and an undoable delete.
 - Once applied, an **Application** section: applied on, method, CV sent (locked version, download), notes, replies, interview rounds (outcome editable), with Log reply / Log interview / Close…. CV versions sent show a "Sent" badge.
 - **Main column:** Listing (description, Open original ↗), Fit breakdown, CV versions (list with status + "Open in CV Studio"), Email draft (preview + "Edit in Outreach"), Notes (autosaving textarea).
 - **Right column:** Contact (tier, person, email, "Queue Apollo lookup" when tier is none), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
@@ -145,7 +162,17 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - *Empty:* "No CV for this job yet" with Generate (or "Open Candidate settings" when the full name is missing).
 
 ### 3.5b Cover letter studio (`/jobs/:id/letter`)
-*Purpose:* a one-page cover letter (lettre de motivation) for a web application, from the approved CV.
+*Purpose:* a cover letter for a web application, from the approved CV, in two formats (tabs, `?format=form`):
+**PDF letter** (one page, to upload) and **Form text** (plain text for a text box such as "Expliquez-nous pourquoi
+vous souhaitez nous rejoindre": paste the question and the box's character limit; it answers directly, with no
+header, date, subject line, salutation or closing formula; live character count, Copy). Each format has its own
+versions; Mark applied can record either (both locked).
+- **Writing guide v4** (checked in code): never restate the listing (at most one listing sentence, in the opening,
+  not copying it); don't copy or translate CV bullets and no CV jargon (Settings list: "schema drift", "N/N tests",
+  "collision classes"…); use the current role when it matches (tags, or a title word that's a theme of the role,
+  e.g. "Backend"); at most 2 examples of 1-2 sentences; the ask is its own short last paragraph; a fit sentence
+  only from Settings → Candidate (where you're based, work authorization, languages; relocation isn't claimed).
+  PDF 150-260 words, form text 80-220 words or its character limit.
 - **Generate / Regenerate:** one Claude call (`providers/claude_letter.py`, prompt `app/prompts/cover_letter.md`,
   same isolation and subscription check as the CV). Input: the listing, the approved CV's items, the years facts
   (exact statement, and its French wording), the language, the writing guide and banned phrases. Output: 3-4
@@ -164,9 +191,27 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   checked at text level (numbers and tools must be in your experience or the listing); the PDF re-renders with no
   Claude call. Editing an approved letter sends it back to review; a sent (locked) letter is never changed: edits
   create a new draft.
-- **Toolbar:** versions, Regenerate, **Copy as text** (salutation, paragraphs, closing, name, for web forms),
+- **Toolbar:** format tabs, versions, Regenerate, **Copy as text** (salutation, paragraphs, closing, name, for web forms),
   Download (`{full_name}_Cover_Letter_{company}.pdf`), **Approve**.
 - *Empty:* "No cover letter for this job yet" with Write cover letter (or Open CV Studio without an approved CV).
+
+### 3.5c Studio (`/studio`)
+*Purpose:* every CV version and cover letter (PDF and form text) across jobs in one list. Tabs by type (with counts),
+a status filter (draft / approved / sent = locked / superseded) and a job or company search, all in the URL. Rows
+show the version, the detail (pages and fill, words, "791/1000 characters"), problems to fix and when it changed.
+j/k and Enter open the CV studio or the letter studio (form tab for form texts). `GET /studio/documents`.
+
+### 3.5d Copilot (`/copilot` and the Job page)
+*Purpose:* ask anything about a job or your search: interview prep, CV gaps, a LinkedIn message, a translation.
+- The local model (Settings → Models `models.copilot.model`, default gemma4:12b via Ollama), streamed. It only
+  answers: no tools, no write path. Prompt `app/prompts/copilot.md` (versioned).
+- **Job Copilot** (a right sheet from the Job page, key `c`): context = the listing, fit score and reasons, the
+  approved CV, the latest cover letter, both tracks, your profile and experience pool; one conversation per job,
+  saved ("New conversation" keeps the old one).
+- **Global Copilot** (`/copilot`, sidebar): conversations with your profile and pool as context.
+- Under each answer: warnings for numbers or tools in neither your experience nor the listing, method claims your
+  experience doesn't mention (MVC, microservices…), clichés the letters ban, and years wording other than yours.
+  Copy per answer. If Ollama isn't running, an error state with retry.
 
 ### 3.6 Outreach (`/outreach`)
 *Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
@@ -250,6 +295,7 @@ Sections in a left sub-nav:
 - **Schedule:** discovery time of day (APScheduler, local time).
 - **Contacts:** the role-ranking groups (label + keywords, reorderable; saving re-ranks every contact and re-matches
   open jobs) and the daily Apollo lookup cap.
+- **Cover letter** also holds the form-text word range and the CV-jargon list.
 - **Tracking:** follow-up days (e.g. 7, 14) and the ghosting suggestion delay (30 days). Applies immediately (reminders are computed).
 - **Candidate** also has "Total years of experience (override)": used instead of the role-date total in CV facts and checks; never makes scores stale.
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.

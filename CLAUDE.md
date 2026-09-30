@@ -177,8 +177,15 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Cover letters, questions, email route (Phase 6)
 
-- Stages: the email route goes `cv_ready → drafted → ready → done`; `pipeline.effective_route(app)` (route, else cold
-  email with a contact, else web apply) is on every DTO. Approve and "Add to send queue" are separate steps.
+- Both routes per job (Phase 7): `services/tracks.py` derives the Application and Outreach tracks (DTO field
+  `tracks`); the stage is the overall position and never goes back when the second route finishes. `route` and
+  `effective_route` are gone from the logic; `drafted` was retired. Approve and "Add to send queue" are separate.
+- Who to contact: `contacts.who_to_contact` (size ranking + track, copyable LinkedIn/Apollo hints; never searches).
+- Letter formats: `cover_letter.format` pdf | form (`draft_form`, prompt sections `form`/`form_retry`); writing
+  rules checked in `letter_check.check_letter` (restates, cv_copy, jargon, current_role, builds, ask, fit sentences
+  `about_candidate` from Settings → Candidate only).
+- Copilot: `services/copilot.py` + `providers/ollama_chat.py` (local model, streamed, no tools), prompt
+  `app/prompts/copilot.md`; answers get `warnings`. Studio: `api/studio.py`.
 - Cover letters: `services/cover_letter.py` + `providers/claude_letter.py` (same headless setup and subscription check
   as the CV), prompt `app/prompts/cover_letter.md` (sections `system`, `retry`, `answers`, `answers_retry`; bump the
   version on any edit). The model returns cited paragraphs + one ask; code adds header, date, salutation, closing.
