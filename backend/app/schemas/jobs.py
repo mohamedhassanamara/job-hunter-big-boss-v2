@@ -42,6 +42,7 @@ class ApplicationBrief(BaseModel):
     stage: str
     stage_label: str
     route: str
+    effective_route: str = "web_apply"  # route, or derived from the contact while undecided
     contact_tier: str
     close_reason: str | None
     stage_changed_at: datetime
@@ -155,6 +156,7 @@ class PipelineCard(BaseModel):
     stage: str
     stage_label: str
     route: str
+    effective_route: str = "web_apply"
     contact_tier: str
     close_reason: str | None
     stage_changed_at: datetime

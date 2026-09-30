@@ -435,6 +435,11 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
                             at=(sent_at or now) + timedelta(minutes=1),
                         )
                     )
+        # Lumière's draft is under review: that job sits at "Email drafted" (email route).
+        lumiere = apps["lumiere-mlops"]
+        if lumiere.stage == Stage.cv_ready:
+            lumiere.stage = Stage.drafted
+            s.add(lumiere)
         _seed_tracking(s, apps, now)
         _seed_lookups(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.

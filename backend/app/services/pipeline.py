@@ -9,8 +9,9 @@ from app.models.enums import CloseReason, EventKind, Route, Stage
 ALLOWED: dict[Stage, set[Stage]] = {
     Stage.new: {Stage.shortlisted, Stage.closed},
     Stage.shortlisted: {Stage.cv_ready, Stage.new, Stage.closed},
-    Stage.cv_ready: {Stage.ready, Stage.shortlisted, Stage.closed},
-    Stage.ready: {Stage.done, Stage.cv_ready, Stage.closed},
+    Stage.cv_ready: {Stage.drafted, Stage.ready, Stage.shortlisted, Stage.closed},
+    Stage.drafted: {Stage.ready, Stage.cv_ready, Stage.closed},
+    Stage.ready: {Stage.done, Stage.drafted, Stage.cv_ready, Stage.closed},
     Stage.done: {Stage.interview, Stage.closed},
     Stage.interview: {Stage.closed, Stage.done},
     Stage.closed: {Stage.new},
@@ -20,6 +21,7 @@ STAGE_LABELS: dict[Stage, str] = {
     Stage.new: "New",
     Stage.shortlisted: "Shortlisted",
     Stage.cv_ready: "CV ready",
+    Stage.drafted: "Email drafted",
     Stage.ready: "Ready",
     Stage.done: "Done",
     Stage.interview: "Interview",
@@ -29,6 +31,14 @@ STAGE_LABELS: dict[Stage, str] = {
 
 class TransitionError(ValueError):
     pass
+
+
+def effective_route(app: Application) -> Route:
+    """The route a job is on: the one set, else derived (a contact → cold email, none → web
+    apply). Approving the CV fixes it (cv.approve)."""
+    if Route(app.route) != Route.undecided:
+        return Route(app.route)
+    return Route.cold_email if app.contact_id else Route.web_apply
 
 
 def stage_label(stage: Stage | str, route: Route | str) -> str:

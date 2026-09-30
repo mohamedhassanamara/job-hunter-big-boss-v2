@@ -73,10 +73,16 @@ def today(session: SessionDep) -> TodayOut:
         .where(OutreachDraft.status == DraftStatus.draft)
         .order_by(col(OutreachDraft.created_at).desc())
     ).all()
+    to_queue = session.exec(
+        select(OutreachDraft)
+        .where(OutreachDraft.status == DraftStatus.approved)
+        .order_by(col(OutreachDraft.updated_at).desc())
+    ).all()
     draft_apps = {
         a.id: a
         for a in session.exec(
-            select(Application).where(col(Application.id).in_([d.application_id for d in drafts]))
+            select(Application).where(col(Application.id).in_(
+                [d.application_id for d in [*drafts, *to_queue]]))
         ).all()
     }
     jobs.update(
@@ -96,7 +102,7 @@ def today(session: SessionDep) -> TodayOut:
     contacts = {
         c.id: c
         for c in session.exec(
-            select(Contact).where(col(Contact.id).in_({d.contact_id for d in drafts}))
+            select(Contact).where(col(Contact.id).in_({d.contact_id for d in [*drafts, *to_queue]}))
         ).all()
     }
 
@@ -142,6 +148,17 @@ def today(session: SessionDep) -> TodayOut:
                 created_at=d.created_at,
             )
             for d in drafts
+        ],
+        emails_to_queue=[
+            DraftReviewItem(
+                draft_id=d.id,
+                job_id=job_of(d.application_id, draft_apps).id,
+                job_title=job_of(d.application_id, draft_apps).title,
+                company_name=companies[job_of(d.application_id, draft_apps).company_id].name,
+                contact_name=contacts[d.contact_id].full_name if d.contact_id in contacts else None,
+                created_at=d.updated_at,
+            )
+            for d in to_queue
         ],
         ready_to_apply=pipeline_cards(session, tracking.ready_to_apply(session)),
         reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],

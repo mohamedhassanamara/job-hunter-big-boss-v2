@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
@@ -33,10 +33,12 @@ from app.schemas.outreach import (
     DraftContact,
     DraftOut,
     DraftPatch,
+    OutreachStep,
     QueueCounts,
     QueueItemOut,
     QueueOut,
     SendLogOut,
+    SentManually,
 )
 from app.services import contacts as contacts_svc
 from app.services import outreach, pipeline, send_queue
@@ -174,7 +176,7 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
 
 @router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
 def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
-    """Approve → append to the send queue (or wait as `approved` if the queue is full). A draft
+    """Approve the email (job → Ready to send). Queuing it is the next, separate step. A draft
     with unresolved errors (grounding, names, banned phrases, length) can't be approved."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
@@ -186,14 +188,28 @@ def approve_draft(draft_id: int, session: SessionDep) -> DraftOut:
     contact = session.get(Contact, d.contact_id) if d.contact_id else None
     if contact is None or not contact.email:
         raise HTTPException(409, "The contact has no email address")
-    if not send_queue.enqueue(session, d):
-        d.status = DraftStatus.approved
-        session.add(d)
-    pipeline.log_event(session, app, EventKind.draft_approved,
-                       "Email draft approved" + (" and queued" if d.status == "queued" else
-                                                 " (queue full: waiting)"))
-    if app.stage == Stage.cv_ready:
+    d.status = DraftStatus.approved
+    session.add(d)
+    pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved")
+    if app.stage in (Stage.cv_ready, Stage.drafted):
         pipeline.transition(session, app, Stage.ready)
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/queue", response_model=DraftOut)
+def queue_draft(draft_id: int, session: SessionDep) -> DraftOut:
+    """Add an approved email to the send queue (it goes out in its turn while the queue runs)."""
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    if d.status != DraftStatus.approved:
+        raise HTTPException(409, "Only an approved email can be added to the queue")
+    if not send_queue.enqueue(session, d):
+        raise HTTPException(409, "The queue is full (20 waiting): add it when some have gone out")
+    app = get_or_404(session, Application, d.application_id)
+    position, _ = send_queue.position_and_eta(session, d.id)
+    pipeline.log_event(session, app, EventKind.draft_approved,
+                       f"Email added to the send queue (#{position})")
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -228,6 +244,13 @@ def reject_draft(draft_id: int, session: SessionDep) -> DraftOut:
         raise HTTPException(409, "Only drafts under review can be rejected")
     d.status = DraftStatus.rejected
     session.add(d)
+    app = get_or_404(session, Application, d.application_id)
+    others = session.exec(select(OutreachDraft).where(
+        OutreachDraft.application_id == app.id, OutreachDraft.id != d.id,
+        col(OutreachDraft.status).in_([DraftStatus.draft, DraftStatus.approved,
+                                       DraftStatus.queued]))).first()
+    if others is None and app.stage == Stage.drafted:
+        pipeline.transition(session, app, Stage.cv_ready, message="Email draft rejected")
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -241,6 +264,9 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
         raise HTTPException(409, "Only rejected drafts can be restored")
     d.status = DraftStatus.draft
     session.add(d)
+    app = get_or_404(session, Application, d.application_id)
+    if app.stage == Stage.cv_ready:
+        pipeline.transition(session, app, Stage.drafted, message="Email draft restored")
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]
@@ -264,6 +290,60 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()
     return _drafts_out(session, [get_or_404(session, OutreachDraft, draft.id)])[0]
+
+
+@router.get("/applications/{app_id}/outreach", response_model=OutreachStep)
+def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
+    app = get_or_404(session, Application, app_id, "Application")
+    contact = session.get(Contact, app.contact_id) if app.contact_id else None
+    cv = outreach.approved_cv(session, app)
+    draft = session.exec(select(OutreachDraft).where(
+        OutreachDraft.application_id == app.id, OutreachDraft.status != DraftStatus.rejected)
+        .order_by(col(OutreachDraft.id).desc())).first()
+    position, eta = send_queue.position_and_eta(session, draft.id) if draft else (None, None)
+    if draft and draft.status == DraftStatus.sent:
+        step = "sent"
+    elif draft and draft.status == DraftStatus.queued:
+        step = "queued"
+    elif draft and draft.status == DraftStatus.approved:
+        step = "queue"
+    elif draft and draft.status == DraftStatus.draft:
+        step = "review"
+    elif contact is None:
+        step = "contact"
+    elif cv is None:
+        step = "cv"
+    else:
+        step = "draft"
+    return OutreachStep(
+        step=step, route=pipeline.effective_route(app), contact_tier=app.contact_tier,
+        lookup_status=views_lookup_status(session, app), has_contact=contact is not None,
+        has_email=bool(contact and contact.email), cv_version=cv.version if cv else None,
+        draft=_drafts_out(session, [draft])[0] if draft else None, queue_position=position,
+        queue_eta=eta, queue_status=send_queue.queue(session).status,
+        sent_at=draft.sent_at if draft and draft.status == DraftStatus.sent else None)
+
+
+def views_lookup_status(session: Session, app: Application) -> str | None:
+    from app.services.views import _lookup_status
+
+    job = session.get(Job, app.job_id)
+    return _lookup_status(session, job.company_id) if job else None
+
+
+@router.post("/applications/{app_id}/sent-manually", response_model=OutreachStep)
+def sent_manually(app_id: int, body: SentManually, session: SessionDep) -> OutreachStep:
+    """You sent the approved email yourself: recorded as sent (CV locked, job Sent)."""
+    from app.services.tracking import _at
+
+    app = get_or_404(session, Application, app_id, "Application")
+    sent_on = date.fromisoformat(body.sent_on) if body.sent_on else None
+    try:
+        send_queue.sent_manually(session, app, _at(sent_on))
+    except send_queue.QueueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    return outreach_step(app_id, session)
 
 
 @router.get("/outreach/send-log", response_model=list[SendLogOut])
@@ -400,18 +480,13 @@ def mark_item_sent(item_id: int, session: SessionDep) -> QueueOut:
 
 @router.delete("/queue/items/{item_id}", response_model=QueueOut)
 def remove_queue_item(item_id: int, session: SessionDep) -> QueueOut:
-    """Take a pending email out of the queue; its draft goes back to review."""
+    """Take a pending email out of the queue; it stays approved (Ready to send)."""
     item = get_or_404(session, SendQueueItem, item_id, "Queue item")
     if item.status != QueueItemStatus.pending:
         raise HTTPException(409, "Only pending items can be removed")
     draft = get_or_404(session, OutreachDraft, item.draft_id)
-    draft.status = DraftStatus.draft
+    draft.status = DraftStatus.approved  # still approved: add it again whenever you like
     session.add(draft)
     session.delete(item)
-    app = get_or_404(session, Application, draft.application_id)
-    if app.stage == Stage.ready:
-        pipeline.transition(
-            session, app, Stage.cv_ready, message="Removed from send queue, back to review"
-        )
     session.commit()
     return _queue_out(session, _queue(session))

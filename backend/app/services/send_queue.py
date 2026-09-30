@@ -84,6 +84,43 @@ def enqueue(s: Session, draft: OutreachDraft) -> bool:
     return True
 
 
+def position_and_eta(s: Session, draft_id: int) -> tuple[int | None, datetime | None]:
+    """Where a draft is in the queue (1 = next) and when it should go out (only while the queue
+    runs: next_send_at, then one interval per email ahead of it)."""
+    q = queue(s)
+    pending = s.exec(select(SendQueueItem).where(
+        SendQueueItem.queue_id == q.id, SendQueueItem.status == QueueItemStatus.pending)
+        .order_by(col(SendQueueItem.position))).all()
+    ids = [i.draft_id for i in pending]
+    if draft_id not in ids:
+        return None, None
+    n = ids.index(draft_id)
+    eta = None
+    if q.status == QueueStatus.running:
+        eta = (q.next_send_at or utcnow()) + timedelta(minutes=q.interval_minutes * n)
+    return n + 1, eta
+
+
+def sent_manually(s: Session, app: Application, sent_at: datetime) -> OutreachDraft:
+    """You sent the approved email yourself (from Gmail): recorded like a queue send — CV
+    locked, job Sent, method email — and taken out of the queue if it was waiting there."""
+    draft = s.exec(select(OutreachDraft).where(
+        OutreachDraft.application_id == app.id,
+        col(OutreachDraft.status).in_([DraftStatus.approved, DraftStatus.queued]))
+        .order_by(col(OutreachDraft.id).desc())).first()
+    if draft is None:
+        raise QueueError("Approve the email first: that's the version recorded as sent")
+    item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft.id)).first()
+    if item is None:
+        item = SendQueueItem(queue_id=queue(s).id, draft_id=draft.id, position=0)
+        s.add(item)
+        s.flush()
+    s.add(SendLog(draft_id=draft.id, kind="real", to="", subject=draft.subject, status="sent",
+                  error="sent by you outside the app"))
+    _mark_sent(s, item, draft, sent_at, None)
+    return draft
+
+
 def resume(s: Session, now: datetime | None = None) -> SendQueue:
     if not outreach.has_successful_test(s):
         raise QueueError("Send one test email to yourself first (Outreach → a draft → "
@@ -130,7 +167,7 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
         s.add(cv)
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if app is not None:
-        if Stage(app.stage) == Stage.cv_ready:
+        if Stage(app.stage) in (Stage.cv_ready, Stage.drafted):
             pipeline.transition(s, app, Stage.ready)
         if Stage(app.stage) == Stage.ready:
             pipeline.transition(s, app, Stage.done, message="Sent")

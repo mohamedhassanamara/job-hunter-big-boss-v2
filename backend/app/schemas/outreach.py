@@ -92,3 +92,24 @@ class SendLogOut(BaseModel):
     message_id: str | None
     attachment: str | None
     at: datetime
+
+
+class OutreachStep(BaseModel):
+    """Where a job is on the email route and the next action (the Job page stepper)."""
+
+    step: str  # contact | cv | draft | review | queue | queued | sent
+    route: str  # effective route
+    contact_tier: str
+    lookup_status: str | None
+    has_contact: bool
+    has_email: bool
+    cv_version: int | None  # the approved CV (None = approve one first)
+    draft: DraftOut | None
+    queue_position: int | None
+    queue_eta: datetime | None
+    queue_status: str
+    sent_at: datetime | None
+
+
+class SentManually(BaseModel):
+    sent_on: str | None = None  # YYYY-MM-DD, default today

@@ -33,7 +33,7 @@ from app.schemas.jobs import (
 )
 from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
 from app.services import tracking
-from app.services.pipeline import ALLOWED, stage_label
+from app.services.pipeline import ALLOWED, effective_route, stage_label
 
 
 def fit_band(score: int | None) -> str:
@@ -106,8 +106,9 @@ def application_brief(app: Application) -> ApplicationBrief:
     return ApplicationBrief(
         id=app.id,
         stage=app.stage,
-        stage_label=stage_label(app.stage, app.route),
+        stage_label=stage_label(app.stage, effective_route(app)),
         route=app.route,
+        effective_route=effective_route(app),
         contact_tier=app.contact_tier,
         close_reason=app.close_reason,
         stage_changed_at=app.stage_changed_at,
@@ -198,8 +199,9 @@ def pipeline_cards(session: Session, apps: Sequence[Application]) -> list[Pipeli
                 remote_type=job.remote_type,
                 fit=fit_brief(fits.get(job.id)),
                 stage=a.stage,
-                stage_label=stage_label(a.stage, a.route),
+                stage_label=stage_label(a.stage, effective_route(a)),
                 route=a.route,
+                effective_route=effective_route(a),
                 contact_tier=a.contact_tier,
                 close_reason=a.close_reason,
                 stage_changed_at=a.stage_changed_at,
