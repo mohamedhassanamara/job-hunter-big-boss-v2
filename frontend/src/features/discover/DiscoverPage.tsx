@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { useHideScores } from '@/hooks/useHideScores'
 import { useHotkeys } from '@/hooks/useHotkeys'
+import { useIncrementalList } from '@/hooks/useIncrementalList'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { useTriageActions } from '@/hooks/useTriageActions'
@@ -73,6 +74,8 @@ export default function DiscoverPage() {
     [data, filters.stage],
   )
   const ids = useMemo(() => items.map((j) => j.id), [items])
+  // 2,000+ jobs: render 100 at a time (more on scroll, or when j/k or ?job= goes further).
+  const { visible, hasMore, remaining, sentinel } = useIncrementalList(items, { mustInclude: selectedId !== null ? ids.indexOf(selectedId) : -1 })
 
   const select = (id: number | null) => url.set({ job: id })
   const setFilters = (patch: Partial<JobFilters>) => {
@@ -231,7 +234,7 @@ export default function DiscoverPage() {
               />
             )
           ) : (
-            items.map((job, index) => (
+            visible.map((job, index) => (
               <Fragment key={job.id}>
                 {index === dividerAt && index > 0 && (
                   <div className="flex items-center gap-3 bg-bg-subtle px-6 py-1.5 text-2xs font-medium text-fg-subtle">
@@ -250,6 +253,11 @@ export default function DiscoverPage() {
                 />
               </Fragment>
             ))
+          )}
+          {hasMore && (
+            <div ref={sentinel} className="px-6 py-3 text-center text-xs text-fg-subtle" aria-live="polite">
+              Loading {pluralize(Math.min(100, remaining), 'more job')}…
+            </div>
           )}
         </div>
         {selectedId !== null && (

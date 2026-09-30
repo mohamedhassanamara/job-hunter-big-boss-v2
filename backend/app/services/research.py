@@ -265,6 +265,17 @@ class WebFetcher:
                                      client=self.client)
         return [Source(i.url, "press", i.title, i.text, i.published) for i in items], warnings
 
+    def person_news(self, full_name: str, company: str, language: str,
+                    settings: dict[str, Any]) -> tuple[list[Source], list[str]]:
+        """News naming this person at this company (the contact check)."""
+        from app.providers.news import fetch_news
+
+        items, warnings = fetch_news(full_name, None, language=language, context=company,
+                                     gdelt=bool(settings.get("gdelt")),
+                                     google_news=bool(settings.get("google_news")),
+                                     client=self.client)
+        return [Source(i.url, "press", i.title, i.text, i.published) for i in items], warnings
+
 
 class SampleFetcher:
     """The tour sandbox: made-up pages for its made-up companies. Never touches the web."""
@@ -284,6 +295,10 @@ class SampleFetcher:
     def news(self, name: str, domain: str | None, language: str,
              settings: dict[str, Any]) -> tuple[list[Source], list[str]]:
         return [], []
+
+    def person_news(self, full_name: str, company: str, language: str,
+                    settings: dict[str, Any]) -> tuple[list[Source], list[str]]:
+        return [], []  # the sandbox's sample departure is seeded (seed._seed_contact_alert)
 
 
 def _title(html: str) -> str:
@@ -527,6 +542,9 @@ def ensure(engine: Engine, company_id: int, *, trigger: str, researcher: Researc
                               finished_at=utcnow(),
                               signals_kept=len(signals(s, company_id)))
             s.add(run)
+            from app.services import contact_check
+
+            contact_check.scan(s, company_id)  # the stored pages only: no fetch
             s.commit()
             s.refresh(run)
             return Outcome(run, True, signals(s, company_id))
@@ -537,6 +555,25 @@ def ensure(engine: Engine, company_id: int, *, trigger: str, researcher: Researc
                     progress)
     finally:
         _one_at_a_time.release()
+
+
+def _check_contacts(s: Session, company_id: int, run_id: int, fetcher: Fetcher, language: str,
+                    news: dict[str, Any]) -> None:
+    """Is each contact still there? News for their name, then a scan of every stored page. A
+    failure here is a warning on the run, never a failed research."""
+    from app.services import contact_check
+
+    try:
+        warnings = contact_check.fetch_contact_news(s, company_id, fetcher, language, news)
+        contact_check.scan(s, company_id)
+    except Exception as exc:  # noqa: BLE001 (reported on the run)
+        s.rollback()
+        warnings = [f"Contact check: {exc}"]
+    run = s.get(ResearchRun, run_id)
+    if warnings:
+        run.warnings = [*(run.warnings or []), *warnings]
+        s.add(run)
+    s.commit()
 
 
 def _run(engine: Engine, company_id: int, trigger: str, researcher: Researcher,
@@ -612,6 +649,7 @@ def _run(engine: Engine, company_id: int, trigger: str, researcher: Researcher,
                 company.research_refreshed_at = utcnow()
             s.add_all([run, company, *rows])
             s.commit()
+            _check_contacts(s, company_id, run_id, fetcher, language, cfg["news"])
             s.refresh(run)
             return Outcome(run, False, signals(s, company_id))
     except Exception as exc:

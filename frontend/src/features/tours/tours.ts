@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { JobList, PipelineCard, ReadyItem, Today } from '@/lib/types'
+import type { JobDetail, JobList, PipelineCard, ReadyItem, Today } from '@/lib/types'
 
 /**
  * Guided tours, one per feature. They run in the sandbox workspace (sample data only).
@@ -25,6 +25,7 @@ export type TourId =
   | 'questions'
   | 'copilot'
   | 'signals'
+  | 'contact-check'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -210,6 +211,23 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'signals-panel', title: 'Researched only when you draft', body: "When you click Draft email with AI (or Research now), the app reads the company's own site and recent news, and a model extracts facts. Each keeps its exact quote, checked in code against the page; a fact without a verified quote is dropped. Fresh signals (30 days) are reused with no new fetch.", placement: 'top' },
       { target: 'signals-panel', title: 'Pick what the email uses', body: 'Ticked signals feed the email hook; the email cites them. Add a fact you know yourself. With no signal, a draft is marked Needs a signal and cannot be approved.', placement: 'top' },
+    ],
+  },
+  'contact-check': {
+    id: 'contact-check',
+    title: 'Contact still there?',
+    description: 'Signs your contact left, before you email them',
+    resolveRoute: async () => {
+      const cards = await api.get<PipelineCard[]>('/applications')
+      for (const c of cards.filter((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'closed')) {
+        const job = await api.get<JobDetail>(`/jobs/${c.job_id}`)
+        if (job.contact_alerts.length) return `/jobs/${c.job_id}`
+      }
+      return '/pipeline'
+    },
+    steps: [
+      { target: 'contact-alert', title: 'Contact may have left', body: "Each time the company is researched, the app searches the news for your contact's name and reads the company's pages. A sentence naming them with a departure (left, dismissed, former CEO) or naming someone new in their role raises this warning, with its source.", placement: 'left' },
+      { target: 'contact-alert', title: 'Write to someone else, or verify', body: "The email can't be approved while it shows. Write to the next contact by your ranking in one click, or, once you've checked they're still there, dismiss it (Undo for 8 seconds). A dismissed warning stays dismissed.", placement: 'left' },
     ],
   },
   studio: {

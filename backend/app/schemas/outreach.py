@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from app.schemas.jobs import FitBrief
+from app.schemas.jobs import ContactAlertOut, ContactOut, FitBrief
 
 
 class DraftContact(BaseModel):
@@ -54,6 +54,9 @@ class DraftOut(BaseModel):
     hook_check: dict[str, Any] | None = None
     # When the greeting spells the name as the company's pages do: {first_name, url, title, excerpt}
     name_source: dict[str, Any] | None = None
+    # Signs the contact left: while any is active, the email can't be approved
+    contact_alerts: list[ContactAlertOut] = []
+    next_contact: ContactOut | None = None
 
 
 class DraftProgress(BaseModel):

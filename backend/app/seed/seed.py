@@ -446,6 +446,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             s.add(marea)
         _seed_letters(s, apps)
         _seed_signals(s, apps)
+        _seed_contact_alert(s, apps)
         _seed_lookups(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
@@ -509,6 +510,32 @@ def _seed_signals(s: Session, apps: dict[str, Application]) -> None:
                             selected=selected))
     company.research_refreshed_at = utcnow()
     s.add(company)
+
+
+def _seed_contact_alert(s: Session, apps: dict[str, Application]) -> None:
+    """A sample news page saying one sample contact left, scanned by the real contact check (the
+    "Contact may have left" warning in the tour). Not the signals company: its email stays
+    approvable."""
+    from app.models import CompanyPage, Contact
+    from app.services import contact_check
+
+    s.flush()
+    with_contact = [a for a in apps.values() if a.contact_id and a.stage != Stage.closed]
+    researched = {s.get(Job, a.job_id).company_id for a in with_contact[:1]}
+    app = next((a for a in with_contact if s.get(Job, a.job_id).company_id not in researched),
+               None)
+    if app is None:
+        return
+    job = s.get(Job, app.job_id)
+    company, contact = s.get(Company, job.company_id), s.get(Contact, app.contact_id)
+    s.add(CompanyPage(company_id=company.id, kind="contact_news",
+                      url="https://news.example/leadership-changes",
+                      title=f"Leadership changes at {company.name}",
+                      text=f"{contact.full_name} has left {company.name} after four years. "
+                           f"{company.name} is hiring a replacement.",
+                      page_date=utcnow()))
+    s.flush()
+    contact_check.scan(s, company.id, [contact])
 
 
 def _seed_letters(s: Session, apps: dict[str, Application]) -> None:

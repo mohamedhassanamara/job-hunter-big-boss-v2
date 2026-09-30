@@ -264,6 +264,19 @@ def related_jobs(session: Session, jobs: Sequence[Job]) -> list[RelatedJob]:
     ]
 
 
+def contact_alert_fields(session: Session, app: Application,
+                         contact: Contact | None) -> dict[str, Any]:
+    """The contact's active alerts and, when there are any, the next contact by the ranking."""
+    from app.schemas.jobs import ContactAlertOut
+    from app.services import contact_check
+
+    alerts = contact_check.active(session, contact.id) if contact else []
+    nxt = contact_check.next_contact(session, app) if alerts else None
+    return {"contact_alerts": [ContactAlertOut.model_validate(a, from_attributes=True)
+                               for a in alerts],
+            "next_contact": contact_out(nxt, _ranking(session)) if nxt else None}
+
+
 def job_detail(session: Session, job: Job) -> JobDetail:
     (j, company, app, fit) = job_rows(session, [job])[0]
     exp_version = current_experience_version(session)
@@ -329,6 +342,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
         contact=contact_out(contact, _ranking(session)) if contact else None,
         lookup_status=_lookup_status(session, company.id),
+        **contact_alert_fields(session, app, contact),
         company_contacts=contact_count,
         other_jobs_at_company=related_jobs(session, others),
         duplicates=related_jobs(session, dups),

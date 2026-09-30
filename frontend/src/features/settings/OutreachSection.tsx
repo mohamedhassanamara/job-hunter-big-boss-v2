@@ -31,7 +31,7 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
   return (
     <Card
       title="Cold emails"
-      description="Claude writes the greeting, 2–4 sentences and one ask; the signature and the opt-out line below are added by code. Drafts breaking these rules are flagged and can't be approved."
+      description="Claude writes the hook, the value paragraph and the ask; code adds the greeting, the intro line, and the signature and opt-out line below. Drafts breaking these rules are flagged and can't be approved."
       footer={
         <SaveBar
           dirty={dirty}

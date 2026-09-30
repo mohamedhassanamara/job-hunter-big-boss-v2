@@ -72,15 +72,16 @@ def parse_google_news(xml_text: str) -> list[NewsItem]:
 
 
 def fetch_news(name: str, domain: str | None, *, language: str = "en", gdelt: bool = True,
-               google_news: bool = True, limit: int = 10,
+               google_news: bool = True, limit: int = 10, context: str = "",
                client: PoliteClient | None = None) -> tuple[list[NewsItem], list[str]]:
-    """(items from the last 12 months, warnings). A failing source is a warning, not an error."""
+    """(items from the last 12 months, warnings). A failing source is a warning, not an error.
+    `context` narrows the search (e.g. the company name next to a person's quoted name)."""
     own = client is None
     client = client or PoliteClient("News", min_interval=1.0, retries=1,
                                     headers={"Accept": "*/*"})
     since = datetime.now(UTC) - timedelta(days=365)
     items, warnings = [], []
-    query = f'"{name}"'
+    query = f'"{name}" {context}'.strip()
     try:
         if gdelt:
             # GDELT asks for at most one request every 5 seconds: its own spaced client.
@@ -107,8 +108,10 @@ def fetch_news(name: str, domain: str | None, *, language: str = "en", gdelt: bo
     finally:
         if own:
             client.close()
-    key = name.lower()
-    fresh = [i for i in items if key in i.text.lower()
+    from app.services.fit import _norm
+
+    key = _norm(name)  # accents folded: "Stephane Fontana" finds "Stéphane Fontana"
+    fresh = [i for i in items if key in _norm(i.text)
              and (i.published is None or i.published >= since)]
     seen, unique = set(), []
     for i in fresh:

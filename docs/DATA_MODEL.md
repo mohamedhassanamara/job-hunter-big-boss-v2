@@ -320,6 +320,13 @@ intro focus, problem, proofs, ask), `intro_line`, `language`, `signal_ids`, the 
 of the hook text it checked, model, claims: [{claim, signal_ids, verdict, why}], calls}`) and `name_source`
 (`{first_name, url, title, excerpt}` when the greeting uses the pages' spelling).
 
+### contact_alert
+A sign the contact may have left (`services/contact_check.py`): `contact_id`, `company_id`, `key` (unique:
+contact + source URL + kind, so a sign found again stays one row with its state), `kind` (left | new_holder),
+`reason`, `excerpt`, `source_url`, `source_title`, `page_date`, `detected_at`, `dismissed_at` (set = you verified
+the contact; an active alert blocks approving the email). `company_page.kind` gains `contact_news` (news found by
+searching the contact's name).
+
 ### copilot_thread / copilot_message
 The Copilot's conversations (`services/copilot.py`). `copilot_thread`: `application_id?` (null = global), `title`,
 `archived` ("New conversation" on a job archives the old thread). `copilot_message`: `thread_id`, `role`
