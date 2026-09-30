@@ -215,17 +215,47 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
 
 ### 3.6 Outreach (`/outreach`)
 *Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
-- **Drafting** (`services/outreach.py`): Claude Code headless with the CV generator's isolation and subscription
-  check (`providers/claude_email.py`, prompt `app/prompts/outreach.md`, versioned). Input: the job listing, the
-  contact (first name, title, role group), the items on the **approved CV** (the only candidate facts it may use),
-  the years facts, and the rules. Output: subject, greeting, 2–4 sentences (each citing CV items, or marked as
-  about the listing) and one ask. Needs an approved CV and a contact with an email.
-- **Checks** (`services/outreach_check.py`): candidate sentences grounded in the cited items (the CV checks:
-  numbers, tools, capabilities, scope, years); listing sentences only state what the listing says; ≤ word limit;
-  exactly one ask; the greeting uses the contact's first name; the company is named; no other draft's company;
-  no banned phrase (editable list); near-duplicates of drafts to other people are warnings. One retry with the
-  problems as feedback, then the draft is kept with its problems listed. Errors block approval. Edits are
-  re-checked (text-level).
+- **The email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v5). The listing
+  is private intel: it decides what to talk about and is never mentioned. Four parts, assembled by code:
+  1. **hook**: how you came across the company (its field, never a job board) + 1-2 facts from its selected,
+     verified signals (cited by id);
+  2. **intro**: built by code from Settings → Candidate ("I'm <first name>, a software engineer with 3 years of
+     experience in …" / "Je suis …, ingénieur logiciel avec 3 ans d'expérience en ingénierie logicielle, sur …");
+     the model only picks the areas;
+  3. **value**: their problem in one sentence (your words), then 1-2 short proofs from your pool (cited);
+  4. **ask**: a direct question about an opening.
+  100-150 words, language of the listing.
+- **The draft step** (`outreach.generate_intro`, background, polled): research the company first
+  (`services/research.py`; fresh signals are reused: no fetch, no model call), then Claude Code headless writes
+  the draft (`providers/claude_email.py`, subscription check). Phases shown in the Outreach card: Fetching pages →
+  Extracting signals → Drafting. Started by "Draft email with AI" / Regenerate, the CV Studio "Draft email" action,
+  or dropping a Pipeline card on Ready. Needs an approved CV and a contact with an email.
+- **Company research** runs ONLY at the draft step or with Research now / Refresh signals (Job page and company
+  panel): never on discovery, scoring, shortlisting, matching, CV generation or in bulk
+  (`tests/test_research_guard.py`). It reads the company's site (domain from the contact's work email, or the
+  website you set; robots.txt respected; sitemap + links: about, product, customers/case studies, news, careers;
+  at most 8 pages) and recent news (GDELT, Google News RSS; free, no key). gemma4:31b-cloud (12b fallback, the
+  scoring 429/quota policy) extracts signals; each keeps its exact quote, verified in code in the fetched page
+  (numbers included), or it's dropped. Signals are cached per company for 30 days (Settings → Email → Company
+  research) and only a run that kept signals counts as fresh. Each run logs its model calls (model, duration,
+  tokens).
+- **Signals panel** (Job page, company panel): the verified signals with their quote, source link, page date and
+  fetch date; tick the ones emails may use (up to 3 are picked automatically, mixing kinds), dismiss, add your
+  own, set the website, Research now / Refresh signals, and the last run's cost. Without a selected signal the
+  draft is marked **Needs a signal** and can't be approved.
+- **Checks** (`services/intro_check.py`, plus the CV grounding rules for facts about you): never the listing,
+  "the role", the position posted or the job title; never your location, country, nationality, visa or work
+  authorization; no "Re:"/reply-style or role subjects; no hook or problem that restates the listing (7+ words in
+  a row, or overlap); 1-2 proofs of at most 35 words; at most 3 tool names in a sentence; the hook cites a
+  selected signal and its numbers and names are in it; the intro line intact; a final question about an opening;
+  100-150 words; banned phrases, CV jargon and years wording; not too close to the reference examples (≥ 25%
+  shared or 8+ words in a row, the code-built intro excluded) or to drafts to other people. One retry, then the
+  draft is kept with its problems listed. Errors block approval. Edits are re-checked (text-level).
+- **Regression set** (`app/eval/emails.py`): your reference examples (`data/eval/email_examples.json`, imported
+  with `make eval-emails ARGS=--import`) and every email you approve or reject (with its inputs). `make
+  eval-emails` writes each case again with the current prompt: old vs new side by side in `data/eval/emails/`. A
+  prompt change is adopted only once its report is recorded in `app/prompts/eval_log.json` (a test checks it).
+- Older reply-style drafts (prompt ≤ v3) keep their shape and checks (`services/outreach_check.py`).
 - **Review tab:** list (To review | Approved | Rejected | All); editor with the checks panel, subject, your text,
   "Added when sent" (signature + opt-out from Settings → Email), "Where each sentence comes from" (hover for the
   cited CV items), **Approve** (primary; the job becomes Ready to send), then **Add to send queue** on approved

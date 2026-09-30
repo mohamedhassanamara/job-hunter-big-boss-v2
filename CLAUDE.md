@@ -195,6 +195,18 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Application answers: `services/answers.py` (one call per batch, character limit = hard error, never truncate).
 - Real generations run from a standalone script, not through the dev server (reloads kill the subprocess).
 
+## Cold email as an introduction + company research (Phase 8)
+
+- The email is a personal introduction (prompt `outreach.md` v5+): hook from verified signals, intro line built by
+  code (`intro_check.intro_line`), their problem + 1-2 proofs, a direct opening question. Checks in
+  `services/intro_check.py`. The listing is never mentioned, nor location/visa.
+- Research (`services/research.py`) may start ONLY from `outreach.generate_intro` (the draft step) or
+  `api/research.py` (Research now). `tests/test_research_guard.py` fails otherwise. Fresh signals are reused.
+  Quotes are verified in code; model output goes through `ollama.structured` (scoring's error classes).
+- Any edit to `app/prompts/outreach.md` needs a version bump **and** a `make eval-emails` run recorded in
+  `app/prompts/eval_log.json` (tested). Examples set structure and tone only: never put their wording in prompts.
+- The sandbox uses `SampleFetcher` + `MockResearcher`: it never fetches the web.
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.
