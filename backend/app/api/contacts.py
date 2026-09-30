@@ -12,7 +12,6 @@ from app.models import (
     Application,
     AppSetting,
     Company,
-    CompanyLookup,
     Contact,
     ContactImport,
     Job,
@@ -26,10 +25,6 @@ from app.schemas.contacts import (
     CompanySize,
     FilePreview,
     ImportRunOut,
-    LookupFound,
-    LookupItem,
-    LookupNotFound,
-    LookupQueue,
     MatchReport,
     MergeIn,
     MergeReject,
@@ -73,8 +68,6 @@ def _company_items(s: Session, companies: list[Company]) -> list[CompanyListItem
         .where(col(Job.company_id).in_(ids), Application.stage != Stage.closed,
                col(Job.duplicate_of_id).is_(None))
         .group_by(Job.company_id)).all())
-    lookups = {lk.company_id: lk.status for lk in s.exec(
-        select(CompanyLookup).where(col(CompanyLookup.company_id).in_(ids))).all()}
     by_company: dict[int, list[Contact]] = defaultdict(list)
     for c in s.exec(select(Contact).where(col(Contact.company_id).in_(ids))).all():
         by_company[c.company_id].append(c)
@@ -85,7 +78,7 @@ def _company_items(s: Session, companies: list[Company]) -> list[CompanyListItem
         out.append(CompanyListItem(
             id=c.id, name=c.name, domain=c.domain, contact_count=counts.get(c.id, 0),
             open_jobs=open_jobs.get(c.id, 0), contacted_at=c.contacted_at,
-            lookup_status=lookups.get(c.id),
+            contact_search=c.contact_search,
             best_contact=f"{best.full_name}{f' · {best.title}' if best.title else ''}"
             if best else None,
             employees=c.employees, employees_max=c.employees_max, size_source=c.size_source,
@@ -96,7 +89,7 @@ def _company_items(s: Session, companies: list[Company]) -> list[CompanyListItem
 @router.get("/companies", response_model=CompanyList)
 def list_companies(
     session: SessionDep, q: str | None = None,
-    filter: Literal["all", "with_jobs", "has_contacts", "needs_lookup", "no_contact"] = "with_jobs",
+    filter: Literal["all", "with_jobs", "has_contacts", "to_get", "no_contact"] = "with_jobs",
     limit: int = 100, offset: int = 0,
 ) -> CompanyList:
     """Companies with open jobs first (the ones that matter), then the imported ones."""
@@ -107,15 +100,14 @@ def list_companies(
         select(Job.company_id).join(Application, col(Application.job_id) == col(Job.id))
         .where(Application.stage != Stage.closed, col(Job.duplicate_of_id).is_(None))).all())
     has_contacts = set(session.exec(select(Contact.company_id)).all())
-    statuses = {lk.company_id: lk.status for lk in session.exec(select(CompanyLookup)).all()}
     companies = list(session.exec(stmt.order_by(col(Company.name))).all())
     keep = {
         "all": lambda c: True,
         "with_jobs": lambda c: c.id in with_jobs,
         "has_contacts": lambda c: c.id in has_contacts,
-        "needs_lookup": lambda c: c.id in with_jobs and c.id not in has_contacts
-        and statuses.get(c.id) in (None, "queued", "skipped"),
-        "no_contact": lambda c: c.id in with_jobs and statuses.get(c.id) == "not_found",
+        "to_get": lambda c: c.id in with_jobs and c.id not in has_contacts
+        and c.contact_search == "none",
+        "no_contact": lambda c: c.id in with_jobs and c.contact_search == "not_found",
     }[filter]
     companies = [c for c in companies if keep(c)]
     return CompanyList(items=_company_items(session, companies[offset:offset + limit]),
@@ -295,78 +287,21 @@ def run_match(session: SessionDep) -> MatchReport:
 @router.get("/contacts/match/report", response_model=MatchReport | None)
 def match_report(session: SessionDep) -> MatchReport | None:
     row = session.exec(select(AppSetting).where(AppSetting.key == "contacts_last_match")).first()
-    return MatchReport(**row.value) if row else None
+    return MatchReport(**_current_report(row.value)) if row else None
 
 
-# --------------------------------------------------------------------------------- lookups
+def _current_report(value: dict) -> dict:
+    """A report saved before the Get contact step: its "queued" / "lookup_queue" keys renamed."""
+    def group(g: dict) -> dict:
+        return {"to_get": g.get("queued", 0), **{k: v for k, v in g.items() if k != "queued"}}
 
-
-@router.get("/contacts/lookups", response_model=LookupQueue)
-def lookup_queue(session: SessionDep, limit: int = 100) -> LookupQueue:
-    view = contacts.lookup_queue(session, limit=limit)
-    return LookupQueue(
-        daily_cap=view.daily_cap, used_today=view.used_today, total=view.total,
-        items=[LookupItem(company_id=r.company.id, company_name=r.company.name,
-                          domain=r.company.domain, status=r.lookup.status,
-                          priority=r.lookup.priority, open_jobs=r.open_jobs,
-                          best_job_id=r.best_job_id, best_job_title=r.best_job_title,
-                          best_fit=r.best_fit, queued_at=r.lookup.queued_at,
-                          shortlisted=r.shortlisted, newest_at=r.newest_at, reason=r.reason,
-                          aggregator=r.aggregator) for r in view.rows])
-
-
-@router.post("/contacts/lookups/{company_id}/found", response_model=LookupQueue)
-def lookup_found(company_id: int, body: LookupFound, session: SessionDep) -> LookupQueue:
-    get_or_404(session, Company, company_id, "Company")
-    try:
-        contacts.lookup_found(session, company_id, full_name=body.full_name, title=body.title,
-                              email=body.email, linkedin_url=body.linkedin_url, notes=body.notes)
-    except contacts.ContactError as exc:
-        raise HTTPException(422, str(exc)) from exc
-    session.commit()
-    return lookup_queue(session)
-
-
-@router.post("/contacts/lookups/{company_id}/not-found", response_model=LookupQueue)
-def lookup_not_found(company_id: int, body: LookupNotFound, session: SessionDep) -> LookupQueue:
-    get_or_404(session, Company, company_id, "Company")
-    contacts.lookup_not_found(session, company_id, body.notes)
-    session.commit()
-    return lookup_queue(session)
-
-
-@router.post("/contacts/lookups/{company_id}/never", response_model=LookupQueue)
-def lookup_never(company_id: int, session: SessionDep) -> LookupQueue:
-    get_or_404(session, Company, company_id, "Company")
-    contacts.lookup_never(session, company_id)
-    session.commit()
-    return lookup_queue(session)
-
-
-@router.post("/contacts/lookups/{company_id}/again", response_model=LookupQueue)
-def lookup_again(company_id: int, session: SessionDep) -> LookupQueue:
-    get_or_404(session, Company, company_id, "Company")
-    contacts.lookup_again(session, company_id)
-    session.commit()
-    return lookup_queue(session)
-
-
-@router.post("/companies/{company_id}/not-aggregator", response_model=LookupQueue)
-def not_aggregator(company_id: int, session: SessionDep) -> LookupQueue:
-    """You checked the "looks like a job board" suggestion: it's a real employer."""
-    company = get_or_404(session, Company, company_id, "Company")
-    company.aggregator_reviewed = True
-    session.add(company)
-    session.commit()
-    return lookup_queue(session)
-
-
-@router.post("/contacts/lookups/{company_id}/skip", response_model=LookupQueue)
-def lookup_skip(company_id: int, session: SessionDep) -> LookupQueue:
-    get_or_404(session, Company, company_id, "Company")
-    contacts.lookup_skip(session, company_id)
-    session.commit()
-    return lookup_queue(session)
+    out = dict(value)
+    out["totals"] = group(out.get("totals") or {})
+    out["by_track"] = [group(g) for g in out.get("by_track") or []]
+    out["by_country"] = [group(g) for g in out.get("by_country") or []]
+    out.setdefault("contacts_to_get", out.pop("lookup_queue", 0))
+    out.pop("lookup_queue", None)
+    return out
 
 
 # --------------------------------------------------------------------------------- per job

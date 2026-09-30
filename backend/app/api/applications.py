@@ -2,11 +2,11 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, select
 
 from app.api.deps import SessionDep, get_or_404
-from app.models import Application, Job
-from app.models.enums import CloseReason, EventKind, LookupStatus, Route, Stage
-from app.schemas.jobs import ApplicationPatch, JobDetail, PipelineCard
-from app.services import contacts, pipeline, tracking
-from app.services.views import job_detail, pipeline_cards
+from app.models import Application
+from app.models.enums import CloseReason, EventKind, Route, Stage
+from app.schemas.jobs import ApplicationPatch, PipelineCard
+from app.services import pipeline, tracking
+from app.services.views import pipeline_cards
 
 router = APIRouter(prefix="/applications", tags=["pipeline"])
 
@@ -58,18 +58,3 @@ def patch_application(app_id: int, body: ApplicationPatch, session: SessionDep) 
     session.commit()
     session.refresh(app)
     return pipeline_cards(session, [app])[0]
-
-
-@router.post("/{app_id}/lookup", response_model=JobDetail)
-def queue_lookup(app_id: int, session: SessionDep) -> JobDetail:
-    """Queue the job's company for a manual Apollo extension lookup (tier 2)."""
-    app = get_or_404(session, Application, app_id, "Application")
-    if app.contact_id is not None:
-        raise HTTPException(409, "This job already has a contact")
-    job = get_or_404(session, Job, app.job_id)
-    lookup = contacts.lookup_for_company(session, job.company_id)
-    lookup.status, lookup.snoozed_until = LookupStatus.queued, None
-    session.add(lookup)
-    contacts.resolve_company(session, job.company_id)
-    session.commit()
-    return job_detail(session, job)

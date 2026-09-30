@@ -21,7 +21,6 @@ from app.models import (
     ApplicationResponse,
     AppSetting,
     Company,
-    CompanyLookup,
     Contact,
     CVVersion,
     ExperienceItem,
@@ -43,7 +42,6 @@ from app.models.enums import (
     EventKind,
     InterviewOutcome,
     InterviewType,
-    LookupStatus,
     QueueItemStatus,
     QueueStatus,
     ResponseKind,
@@ -447,7 +445,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         _seed_letters(s, apps)
         _seed_signals(s, apps)
         _seed_contact_alert(s, apps)
-        _seed_lookups(s, apps, jobs, now)
+        _seed_get_contact(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
                       at=now - timedelta(days=2)))
@@ -456,23 +454,23 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         s.commit()
 
 
-def _seed_lookups(s: Session, apps: dict[str, Application], jobs: dict[str, Job],
-                  now: datetime) -> None:
-    """Tier 2 in the sandbox: queued companies (one row each) and the ones already looked up."""
-    done: set[int] = set()
-    for key, application in apps.items():
-        job = jobs[key]
-        if job.company_id in done:
+def _seed_get_contact(s: Session, apps: dict[str, Application], jobs: dict[str, Job],
+                      now: datetime) -> None:
+    """The Get contact step in the sandbox: contacts you found are verified; imported contacts
+    on jobs past the CV are verified a few days ago (their emails are drafted); shortlisted ones
+    wait to be verified; to_get jobs have nobody yet."""
+    from app.models import Contact
+
+    s.flush()
+    for application in apps.values():
+        if application.contact_id is None:
             continue
-        if application.contact_tier == "lookup_queued":
-            s.add(CompanyLookup(company_id=job.company_id, priority=fx_score(key),
-                                queued_at=now - timedelta(days=1)))
-            done.add(job.company_id)
-        elif application.contact_tier == "lookup_found":
-            s.add(CompanyLookup(company_id=job.company_id, status=LookupStatus.found,
-                                queued_at=now - timedelta(days=4),
-                                resolved_at=now - timedelta(days=3)))
-            done.add(job.company_id)
+        contact = s.get(Contact, application.contact_id)
+        if contact.source != "apollo_dump":
+            contact.verified_at, contact.verified_how = now - timedelta(days=3), "entered"
+        elif application.stage not in (Stage.new, Stage.shortlisted):
+            contact.verified_at, contact.verified_how = now - timedelta(days=5), "still_there"
+        s.add(contact)
 
 
 def fx_score(key: str) -> int:

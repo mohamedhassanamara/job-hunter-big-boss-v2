@@ -1,17 +1,16 @@
 import { PageHeader } from '@/components/app/PageHeader'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
-import { useLookups, useMergeSuggestions } from '@/lib/queries/library'
+import { Navigate } from 'react-router'
+import { useMergeSuggestions } from '@/lib/queries/library'
 import { CompaniesTab } from './CompaniesTab'
 import { ImportTab } from './ImportTab'
-import { LookupTab } from './LookupTab'
 import { MatchTab } from './MatchTab'
 import { MergesTab } from './MergesTab'
 
 export default function ContactsPage() {
   const url = useSearchParamState()
   const tab = url.get('tab') ?? 'companies'
-  const lookups = useLookups()
   const merges = useMergeSuggestions()
   const setTab = (t: string) => url.set({ tab: t === 'companies' ? null : t })
 
@@ -19,15 +18,12 @@ export default function ContactsPage() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Contacts"
-        description="Who to write to for each job: your Apollo contacts by company, the manual lookup queue, and the match report."
+        description="Who to write to for each job: your Apollo contacts by company, imports and the match report. Finding and verifying contacts happens in Outreach → Contacts to get."
         className="pb-0"
       >
         <Tabs value={tab} onValueChange={(t) => url.set({ tab: t === 'companies' ? null : t, company: null, filter: null })}>
           <TabsList data-tour="contacts-tabs">
             <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="lookups" count={lookups.data?.total}>
-              Lookup queue
-            </TabsTrigger>
             <TabsTrigger value="import">Import CSV</TabsTrigger>
             <TabsTrigger value="merges" count={merges.data?.length}>
               Merges
@@ -44,7 +40,7 @@ export default function ContactsPage() {
         ) : tab === 'merges' ? (
           <MergesTab />
         ) : tab === 'lookups' ? (
-          <LookupTab />
+          <Navigate to="/outreach?tab=contacts" replace /> // the old lookup queue moved there
         ) : (
           <CompaniesTab onImport={() => setTab('import')} />
         )}

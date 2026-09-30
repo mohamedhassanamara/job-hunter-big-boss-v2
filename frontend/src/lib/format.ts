@@ -71,9 +71,9 @@ export const REMOTE_LABELS: Record<RemoteType, string> = {
 }
 
 export const TIER_LABELS: Record<ContactTier, string> = {
-  apollo_dump: 'Apollo import',
-  lookup_queued: 'Lookup queued',
-  lookup_found: 'Apollo lookup',
+  imported: 'Imported',
+  found: 'Found by you',
+  to_get: 'Contact to get',
   none: 'No contact',
 }
 

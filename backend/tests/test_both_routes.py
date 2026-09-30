@@ -78,7 +78,7 @@ def test_the_step_suggests_who_to_contact_without_a_contact(job_ready: dict, cli
         s.add(app)
         s.commit()
     step = client.get(f"/api/applications/{job_ready['app']}/outreach").json()
-    assert step["step"] == "contact" and step["who_to_contact"]["roles"]
+    assert step["step"] == "get_contact" and step["who_to_contact"]["roles"]
 
 
 def test_stats_count_both_routes_and_rates_per_route(job_ready: dict, client) -> None:  # noqa: F811, ANN001

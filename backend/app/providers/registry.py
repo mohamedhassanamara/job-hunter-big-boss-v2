@@ -121,6 +121,22 @@ def hook_checker(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
     return MockHookChecker() if use_mock else OllamaHookChecker(model, fallback)
 
 
+_mock_hunter = None
+
+
+def hunter(*, mock: bool | None = None):  # noqa: ANN201
+    """Hunter.io for Try Hunter (a click, never automatic). Tests and the sandbox: the mock.
+    Raises HunterError when HUNTER_API_KEY isn't set."""
+    global _mock_hunter
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.hunter import HunterClient, MockHunter
+
+    if use_mock:
+        _mock_hunter = _mock_hunter or MockHunter()
+        return _mock_hunter
+    return HunterClient(get_settings().hunter_api_key)
+
+
 _mock_mailer = MockMailer()
 
 

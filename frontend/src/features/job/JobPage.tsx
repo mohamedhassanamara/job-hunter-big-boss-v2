@@ -267,7 +267,8 @@ export default function JobPage() {
   }
   const emailPending = tracks.outreach !== 'sent'
   const emailLabel: Record<typeof tracks.outreach, string> = {
-    no_contact: 'Find a contact',
+    no_contact: 'Get contact',
+    verify: 'Verify contact',
     contact: 'Draft email',
     drafted: 'Review email',
     approved: 'Add to send queue',
@@ -401,7 +402,10 @@ export default function JobPage() {
           {app.stage !== 'new' && app.stage !== 'closed' && (
             <Section title={`Signals about ${job.company.name}`}>
               <div className="p-4">
-                <SignalsPanel companyId={job.company.id} />
+                <SignalsPanel
+                  companyId={job.company.id}
+                  researchBlocked={job.contact_state === 'ready' ? undefined : 'Research waits for a verified contact (Get contact)'}
+                />
               </div>
             </Section>
           )}

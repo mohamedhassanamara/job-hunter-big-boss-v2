@@ -15,7 +15,8 @@ import type { JobDetail } from '@/lib/types'
 const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const OUTREACH_NEXT: Record<JobDetail['application']['tracks']['outreach'], string> = {
-  no_contact: 'Find who to write to',
+  no_contact: 'Get the contact',
+  verify: 'Verify the contact',
   contact: 'Draft the email',
   drafted: 'Review the draft',
   approved: 'Add it to the send queue',

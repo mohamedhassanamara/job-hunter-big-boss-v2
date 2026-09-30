@@ -32,7 +32,7 @@ export function MergesTab() {
     <div className="mx-auto max-w-5xl space-y-4 px-6 py-6" data-tour="contacts-merges">
       <p className="text-sm text-fg-muted">
         Possible duplicates: one name is the other plus a country, legal form or group word, or both share a website. Nothing
-        is merged until you confirm. Merging moves jobs, contacts and the lookup to the name you keep, and future jobs under the
+        is merged until you confirm. Merging moves jobs, contacts and the Get contact state to the name you keep, and future jobs under the
         other spelling land there too. The database is backed up before the first merge.
       </p>
       <div className="rounded-lg border border-border bg-surface">

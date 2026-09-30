@@ -5,7 +5,8 @@ myself"; the Job page step endpoint."""
 from sqlmodel import Session
 
 from app.db import engine
-from app.models import Application, CVVersion, OutreachDraft
+from app.models import Application, Contact, CVVersion, OutreachDraft
+from app.models.base import utcnow
 from app.models.enums import DraftStatus, Stage
 from app.services import outreach, pipeline, tracks
 from tests.test_outreach import Script, good_plan, job_ready  # noqa: F401 (fixture)
@@ -130,12 +131,17 @@ def test_steps_before_a_draft_contact_then_cv(job_ready: dict, client) -> None: 
         contact_id, app.contact_id = app.contact_id, None
         s.add(app)
         s.commit()
-    assert step(client, app_id)["step"] == "contact"
-    with Session(engine) as s:
+    assert step(client, app_id)["step"] == "get_contact"
+    with Session(engine) as s:  # a contact that was never verified: verify first
         app = s.get(Application, app_id)
         app.contact_id = contact_id
-        s.get(CVVersion, job_ready["cv"]).status = "draft"
+        s.get(Contact, contact_id).verified_at = None
         s.add(app)
+        s.commit()
+    assert step(client, app_id)["step"] == "verify_contact"
+    with Session(engine) as s:
+        s.get(Contact, contact_id).verified_at = utcnow()
+        s.get(CVVersion, job_ready["cv"]).status = "draft"
         s.commit()
     assert step(client, app_id)["step"] == "cv"
 

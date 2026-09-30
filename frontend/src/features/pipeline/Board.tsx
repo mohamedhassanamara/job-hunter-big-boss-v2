@@ -34,8 +34,8 @@ function CardBody({ card, dragging }: { card: PipelineCard; dragging?: boolean }
       <p className="truncate text-xs text-fg-muted">{card.company_name}</p>
       {card.stage !== 'new' && card.stage !== 'closed' && <TrackBadges tracks={card.tracks} className="flex-wrap" />}
       <div className="flex items-center gap-2 text-xs text-fg-subtle">
-        {card.contact_tier === 'lookup_queued' && (
-          <Tooltip content="Apollo lookup queued">
+        {card.contact_tier === 'to_get' && card.stage !== 'new' && (
+          <Tooltip content="Contact to get (Outreach → Contacts to get)">
             <Search className="size-3.5 text-warning-dot" />
           </Tooltip>
         )}

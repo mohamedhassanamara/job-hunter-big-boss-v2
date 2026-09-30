@@ -9,7 +9,6 @@ from app.models import (
     Application,
     ApplicationEvent,
     Company,
-    CompanyLookup,
     Contact,
     CoverLetter,
     CVVersion,
@@ -278,6 +277,8 @@ def contact_alert_fields(session: Session, app: Application,
 
 
 def job_detail(session: Session, job: Job) -> JobDetail:
+    from app.services import get_contact
+
     (j, company, app, fit) = job_rows(session, [job])[0]
     exp_version = current_experience_version(session)
     base = _job_item(j, company, app, fit, exp_version, track_service.for_app(session, app))
@@ -341,7 +342,8 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         company_reason=app.company_reason or "",
         tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
         contact=contact_out(contact, _ranking(session)) if contact else None,
-        lookup_status=_lookup_status(session, company.id),
+        contact_search=company.contact_search,
+        contact_state=get_contact.state_of(contact, company, get_contact.verify_days(session)),
         **contact_alert_fields(session, app, contact),
         company_contacts=contact_count,
         other_jobs_at_company=related_jobs(session, others),
@@ -420,6 +422,4 @@ def _ranking(session: Session) -> list[dict[str, Any]]:
     return role_ranking(session)
 
 
-def _lookup_status(session: Session, company_id: int) -> str | None:
-    row = session.exec(select(CompanyLookup).where(CompanyLookup.company_id == company_id)).first()
-    return row.status if row else None
+

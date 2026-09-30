@@ -1,28 +1,24 @@
-import { ArrowRight, CircleCheck, Clock, Copy, FileText, Search, Send, Sparkles, UserPlus } from 'lucide-react'
+import { ArrowRight, CircleCheck, Clock, FileText, Send, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
-import { ContactTierBadge } from '@/components/app/badges'
-import { NewContactDialog } from '@/components/app/NewContactDialog'
+import { GetContactPanel } from '@/components/app/contact/GetContactPanel'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { Section } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { clockTime, relativeTime } from '@/lib/format'
-import { useQueueLookup } from '@/lib/queries/jobs'
-import { useCompany, useSetJobContact } from '@/lib/queries/library'
 import { useDraftAction, useDraftRun, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
 import { DraftProgressLine } from '@/components/app/outreach/DraftProgressLine'
 import { todayIso } from '@/lib/tracking'
-import type { JobDetail, OutreachStepName, WhoToContact } from '@/lib/types'
+import type { JobDetail, OutreachStepName } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const STEPS: { key: OutreachStepName[]; label: string }[] = [
-  { key: ['contact'], label: 'Contact' },
+  { key: ['get_contact', 'verify_contact'], label: 'Get contact' },
   { key: ['cv', 'draft'], label: 'Draft' },
   { key: ['review'], label: 'Review' },
   { key: ['queue', 'queued'], label: 'Send queue' },
@@ -85,122 +81,6 @@ function SentMyselfDialog({ appId, open, onOpenChange }: { appId: number; open: 
   )
 }
 
-function CopyLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="w-20 shrink-0 pt-0.5 text-xs text-fg-subtle">{label}</span>
-      <code className="min-w-0 flex-1 rounded-md bg-bg-subtle px-2 py-1 text-xs break-words">{value}</code>
-      <Button
-        size="icon-sm"
-        variant="ghost"
-        aria-label={`Copy ${label}`}
-        onClick={() => navigator.clipboard.writeText(value).then(() => toast.success(`${label} copied`), () => toast.error("Couldn't copy"))}
-      >
-        <Copy />
-      </Button>
-    </div>
-  )
-}
-
-/** Which role to look for (by company size, Settings → Contacts) and search hints to copy. */
-function WhoToContactHints({ who }: { who: WhoToContact }) {
-  const apollo = [
-    `Company: ${who.apollo.company}${who.apollo.domain ? ` (${who.apollo.domain})` : ''}`,
-    `Job titles: ${who.apollo.titles.join(', ')}`,
-    who.apollo.seniority.length ? `Seniority: ${who.apollo.seniority.join(', ')}` : '',
-  ]
-    .filter(Boolean)
-    .join(' · ')
-  return (
-    <div data-tour="job-who-to-contact" className="space-y-2 rounded-md border border-border bg-bg-subtle/40 p-3">
-      <p className="text-sm font-medium">Who to contact</p>
-      <p className="text-sm text-fg-muted">{who.reason}</p>
-      <ol className="space-y-1 text-sm">
-        {who.roles.map((r, i) => (
-          <li key={r.label} className="flex gap-2">
-            <span className="text-fg-subtle tabular-nums">{i + 1}.</span>
-            <span className="font-medium">{r.label}</span>
-            <span className="truncate text-fg-muted">{r.titles.join(' · ')}</span>
-          </li>
-        ))}
-      </ol>
-      <CopyLine label="LinkedIn" value={who.linkedin_query} />
-      <CopyLine label="Search URL" value={who.linkedin_url} />
-      <CopyLine label="Apollo" value={apollo} />
-      <p className="text-xs text-fg-subtle">Found someone? Add them below (name, role, email): the email draft comes next.</p>
-    </div>
-  )
-}
-
-function FindContact({ job, who }: { job: JobDetail; who: WhoToContact | null }) {
-  const company = useCompany(job.company.id)
-  const lookup = useQueueLookup()
-  const set = useSetJobContact()
-  const [adding, setAdding] = useState(false)
-  const people = company.data?.contacts ?? []
-  return (
-    <div className="space-y-3 p-4">
-      {who && <WhoToContactHints who={who} />}
-      <div className="flex items-center gap-2 text-sm">
-        <ContactTierBadge tier={job.application.contact_tier} />
-        <span className="text-fg-muted">
-          {job.lookup_status === 'queued'
-            ? `${job.company.name} is in the Apollo lookup queue.`
-            : job.lookup_status === 'not_found'
-              ? 'The Apollo lookup found nobody.'
-              : `Nobody at ${job.company.name} yet.`}
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {job.lookup_status !== 'queued' && (
-          <Button
-            size="sm"
-            onClick={() => lookup.mutate(job.application.id, { onSuccess: () => toast.success('Queued for an Apollo lookup'), onError: (e) => toast.error(e.message) })}
-            disabled={lookup.isPending}
-          >
-            <Search />
-            Find contact
-          </Button>
-        )}
-        {job.lookup_status === 'queued' && (
-          <Button size="sm" asChild>
-            <Link to="/contacts?tab=lookups">
-              Open the lookup queue
-              <ArrowRight />
-            </Link>
-          </Button>
-        )}
-        {people.length > 0 && (
-          <Select
-            size="sm"
-            aria-label="Pick a contact"
-            placeholder="Pick a contact"
-            value={undefined}
-            onValueChange={(v) => set.mutate({ appId: job.application.id, contactId: Number(v) }, { onSuccess: () => toast.success('Contact set'), onError: (e) => toast.error(e.message) })}
-            options={people.map((c) => ({ value: String(c.id), label: `${c.full_name}${c.title ? ` · ${c.title}` : ''}` }))}
-            className="w-64"
-          />
-        )}
-        <Button size="sm" onClick={() => setAdding(true)}>
-          <UserPlus />
-          I found someone
-        </Button>
-      </div>
-      <NewContactDialog
-        key={`add-${adding}`}
-        open={adding}
-        title={`Add a contact at ${job.company.name}`}
-        submitLabel="Add and use"
-        pending={set.isPending}
-        onOpenChange={setAdding}
-        onSubmit={(contact) =>
-          set.mutate({ appId: job.application.id, contact }, { onSuccess: () => { toast.success(`Writing to ${contact.full_name}`); setAdding(false) }, onError: (e) => toast.error(e.message) })
-        }
-      />
-    </div>
-  )
-}
-
 /** The cold-email route on the Job page: the next action is always visible. */
 export function OutreachSection({ job }: { job: JobDetail }) {
   const app = job.application
@@ -228,7 +108,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
     run.start(undefined, { onError: (e) => toast.error(e.message) })
   }, [ready, data?.step, data?.has_email, run])
 
-  if (app.stage === 'new' || (app.stage === 'closed' && ['no_contact', 'contact'].includes(app.tracks.outreach))) return null
+  if (app.stage === 'new' || (app.stage === 'closed' && ['no_contact', 'verify', 'contact'].includes(app.tracks.outreach))) return null
   if (isPending || !data) return <Skeleton className="h-40" />
 
   const draft = data.draft
@@ -248,13 +128,23 @@ export function OutreachSection({ job }: { job: JobDetail }) {
       action={
         <span className="flex items-center gap-2 text-xs text-fg-subtle">
           {job.contact ? `To ${job.contact.full_name}` : 'No contact yet'}
-          {data.step === 'contact' && <TourButton tour="email-route" label="How it works" />}
+          {(data.step === 'get_contact' || data.step === 'verify_contact') && <TourButton tour="get-contact" label="How it works" />}
         </span>
       }
     >
       <div data-tour="job-outreach">
         <Stepper step={data.step} />
-        {data.step === 'contact' && <FindContact job={job} who={data.who_to_contact} />}
+        {(data.step === 'get_contact' || data.step === 'verify_contact') && (
+          <div className="space-y-2 p-4">
+            <p className="text-xs text-fg-subtle">
+              The email waits for a verified contact (research too).{' '}
+              <Link to={`/outreach?tab=contacts&app=${app.id}`} className="text-primary hover:underline">
+                Work through Contacts to get
+              </Link>
+            </p>
+            <GetContactPanel appId={app.id} />
+          </div>
+        )}
         {data.step === 'cv' && (
           <div className="flex items-center gap-3 p-4 text-sm">
             <FileText className="size-4 text-fg-subtle" />
@@ -268,7 +158,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
           <div className="flex items-center gap-3 p-4 text-sm">
             <Sparkles className="size-4 text-fg-subtle" />
             <span className="flex-1 text-fg-muted">
-              Contact and CV v{data.cv_version} ready. The company is researched first (reused when fresh), then Claude writes a short introduction from its signals and your CV; you review everything before it goes anywhere.
+              {job.contact ? `${job.contact.full_name} (verified)` : 'Contact'} and CV v{data.cv_version} ready. The company is researched first (reused when fresh), then Claude writes a short introduction from its signals and your CV; you review everything before it goes anywhere.
               {!data.has_email && ' The contact has no email address yet.'}
             </span>
             {run.running ? (

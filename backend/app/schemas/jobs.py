@@ -169,7 +169,8 @@ class JobDetail(JobListItem):
     events: list[EventOut]
     allowed_stages: list[str]
     tracking: TrackedItem | None = None  # set once applied: how, CV sent, replies, interviews
-    lookup_status: str | None = None  # company Apollo lookup: queued|found|not_found|skipped
+    contact_search: str = "none"  # the company's Get contact state: none | not_found | never
+    contact_state: str = "get"  # this job's: get | verify | ready | never
     # Signs the contact left (active ones block the email's approval) and who to write to instead
     contact_alerts: list[ContactAlertOut] = []
     next_contact: ContactOut | None = None

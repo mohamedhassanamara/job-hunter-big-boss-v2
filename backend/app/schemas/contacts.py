@@ -13,7 +13,7 @@ class CompanyListItem(BaseModel):
     contact_count: int
     open_jobs: int
     contacted_at: datetime | None
-    lookup_status: str | None  # queued | found | not_found | skipped | never
+    contact_search: str = "none"  # none | not_found (nobody found) | never (a job board)
     best_contact: str | None  # name · role of who its jobs are written to
     employees: int | None = None
     employees_max: int | None = None  # "under N" (e.g. from an Apollo list)
@@ -72,30 +72,6 @@ class ImportRunOut(BaseModel):
     backup_path: str | None = None
 
 
-class LookupItem(BaseModel):
-    company_id: int
-    company_name: str
-    domain: str | None
-    status: str
-    priority: int
-    open_jobs: int
-    best_job_id: int | None
-    best_job_title: str | None
-    best_fit: int | None
-    queued_at: datetime
-    shortlisted: int
-    newest_at: datetime | None
-    reason: str  # why it's at this position
-    aggregator: list[str]  # "looks like a job board" signals (suggestion only)
-
-
-class LookupQueue(BaseModel):
-    daily_cap: int
-    used_today: int
-    total: int
-    items: list[LookupItem]
-
-
 class NewContact(BaseModel):
     full_name: str
     title: str | None = None
@@ -104,19 +80,11 @@ class NewContact(BaseModel):
     notes: str = ""
 
 
-class LookupFound(NewContact):
-    pass
-
-
-class LookupNotFound(BaseModel):
-    notes: str = ""
-
-
 class MatchGroup(BaseModel):
     group: str
     jobs: int
     with_contact: int
-    queued: int
+    to_get: int
     no_contact: int
 
 
@@ -124,7 +92,7 @@ class MatchReport(BaseModel):
     totals: dict[str, int]
     by_track: list[MatchGroup]
     by_country: list[MatchGroup]
-    lookup_queue: int
+    contacts_to_get: int
     contacts: int
     companies_with_contacts: int
     changed: int | None = None

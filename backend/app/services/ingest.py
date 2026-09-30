@@ -94,13 +94,14 @@ def ingest(
 
         contact = session.exec(
             select(Contact).where(
-                Contact.company_id == company.id, Contact.source == ContactSource.apollo_dump
+                Contact.company_id == company.id, Contact.source == ContactSource.apollo_dump,
+                col(Contact.left_at).is_(None),
             )
         ).first()
         application = Application(
             job_id=job.id,
             contact_id=contact.id if contact else None,
-            contact_tier=ContactTier.apollo_dump if contact else ContactTier.none,
+            contact_tier=ContactTier.imported if contact else ContactTier.to_get,
         )
         session.add(application)
         session.flush()

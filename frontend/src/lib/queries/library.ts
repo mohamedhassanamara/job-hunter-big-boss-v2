@@ -13,7 +13,6 @@ import type {
   FilePreview,
   ImportRun,
   JobDetail,
-  LookupQueue,
   MatchReport,
   MergeSuggestion,
   NewContact,
@@ -116,28 +115,6 @@ export function useMergeAction() {
     mutationFn: (body: { keep_id: number; merge_id: number } | { a_id: number; b_id: number }) =>
       'keep_id' in body ? api.post<MergeSuggestion[]>('/company-merges', body) : api.post<MergeSuggestion[]>('/company-merges/reject', body),
     onSuccess: (list) => qc.setQueryData(['company-merges'], list),
-    onSettled: () => invalidateWork(qc),
-  })
-}
-
-export function useLookups() {
-  return useQuery({ queryKey: keys.lookups, queryFn: () => api.get<LookupQueue>('/contacts/lookups') })
-}
-
-export function useLookupAction() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ companyId, action, contact, notes }: {
-      companyId: number
-      action: 'found' | 'not-found' | 'skip' | 'never' | 'again' | 'not-aggregator'
-      contact?: NewContact
-      notes?: string
-    }) =>
-      api.post<LookupQueue>(
-        action === 'not-aggregator' ? `/companies/${companyId}/not-aggregator` : `/contacts/lookups/${companyId}/${action}`,
-        action === 'found' ? { ...contact } : action === 'not-found' ? { notes: notes ?? '' } : undefined,
-      ),
-    onSuccess: (queue) => qc.setQueryData(keys.lookups, queue),
     onSettled: () => invalidateWork(qc),
   })
 }

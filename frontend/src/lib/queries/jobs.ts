@@ -107,14 +107,6 @@ export function usePatchApplication() {
   })
 }
 
-export function useQueueLookup() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (appId: number) => api.post<JobDetail>(`/applications/${appId}/lookup`),
-    onSettled: () => invalidateWork(qc),
-  })
-}
-
 /** Good / Maybe / No — the user's judgment for evaluating the scorer (optimistic). */
 export function useLabelJob() {
   const qc = useQueryClient()

@@ -45,7 +45,7 @@ from app.schemas.outreach import (
     SentManually,
 )
 from app.services import contacts as contacts_svc
-from app.services import outreach, pipeline, send_queue
+from app.services import get_contact, outreach, pipeline, send_queue
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -236,6 +236,10 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
         raise HTTPException(409, "Only drafts under review can be approved")
+    try:  # the contact first: verified recently, still there
+        get_contact.require_ready(session, get_or_404(session, Application, d.application_id))
+    except get_contact.GetContactError as exc:
+        raise HTTPException(409, str(exc)) from exc
     model, fallback = _research_models(session)
     outreach.ensure_hook_checked(session, d, hook_checker(
         mock=True if workspace == "demo" else None, model=model, fallback=fallback))
@@ -454,15 +458,18 @@ def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
         step = "queue"
     elif draft and draft.status == DraftStatus.draft:
         step = "review"
-    elif contact is None:
-        step = "contact"
+    elif (contact_state := get_contact.state(session, app)) in ("get", "never"):
+        step = "get_contact"
+    elif contact_state == "verify":
+        step = "verify_contact"
     elif cv is None:
         step = "cv"
     else:
         step = "draft"
     return OutreachStep(
         step=step, route=app.route, contact_tier=app.contact_tier,
-        lookup_status=views_lookup_status(session, app), has_contact=contact is not None,
+        contact_search=session.get(Company, job.company_id).contact_search,
+        has_contact=contact is not None,
         has_email=bool(contact and contact.email), cv_version=cv.version if cv else None,
         draft=_drafts_out(session, [draft])[0] if draft else None, queue_position=position,
         queue_eta=eta, queue_status=send_queue.queue(session).status,
@@ -470,13 +477,6 @@ def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
         who_to_contact=contacts_svc.who_to_contact(session, job, session.get(Company,
                                                                              job.company_id))
         if contact is None else None)
-
-
-def views_lookup_status(session: Session, app: Application) -> str | None:
-    from app.services.views import _lookup_status
-
-    job = session.get(Job, app.job_id)
-    return _lookup_status(session, job.company_id) if job else None
 
 
 @router.post("/applications/{app_id}/sent-manually", response_model=OutreachStep)

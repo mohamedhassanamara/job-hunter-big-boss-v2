@@ -14,12 +14,14 @@ import {
   Radar,
   Send,
   TriangleAlert,
+  UserRoundSearch,
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
+import { FoundCounter } from '@/components/app/contact/FoundCounter'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
@@ -431,7 +433,8 @@ export default function TodayPage() {
     data.drafts_to_approve.length +
     data.emails_to_queue.length +
     data.ready_to_apply.length +
-    data.reminders.length
+    data.reminders.length +
+    (data.contacts_to_get?.total ?? 0)
   const summary = data.stats_summary
   const date = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -522,13 +525,36 @@ export default function TodayPage() {
             <EmailsCard data={data} />
           </div>
 
+          {data.contacts_to_get && data.contacts_to_get.total > 0 && (
+            <Card
+              icon={UserRoundSearch}
+              title="Contacts to get"
+              tour="today-contacts-to-get"
+              count={data.contacts_to_get.total}
+              href="/outreach?tab=contacts"
+              hrefLabel="Work through them"
+            >
+              <div className="px-4 pt-1 pb-2">
+                <FoundCounter found={data.contacts_to_get.found_today} limit={data.contacts_to_get.daily_limit} />
+              </div>
+              {data.contacts_to_get.items.map((i) => (
+                <RowLink key={`cg-${i.application_id}`} to={`/outreach?tab=contacts&app=${i.application_id}`}>
+                  <TitleBlock
+                    title={i.company_name}
+                    subtitle={`${i.job_title} · ${i.state === 'verify' ? `verify ${i.contact_name ?? 'the contact'}` : i.nobody_found ? 'nobody found yet' : 'find who to write to'}`}
+                  />
+                  <FitBadge fit={i.fit} size="sm" />
+                </RowLink>
+              ))}
+            </Card>
+          )}
           {data.also_email.length > 0 && (
             <Card icon={Mail} title="Also email someone there" tour="today-also-email" count={data.also_email.length} href="/pipeline">
               {data.also_email.map((c) => (
                 <RowLink key={`ae-${c.application_id}`} to={`/jobs/${c.job_id}#outreach`}>
                   <TitleBlock
                     title={c.title}
-                    subtitle={`${c.company_name} · applied on the website · ${c.tracks.outreach === 'contact' ? `write to ${c.tracks.contact_name}` : 'find who to write to'}`}
+                    subtitle={`${c.company_name} · applied on the website · ${c.tracks.outreach === 'contact' ? `write to ${c.tracks.contact_name}` : c.tracks.outreach === 'verify' ? `verify ${c.tracks.contact_name}` : 'find who to write to'}`}
                   />
                   <ArrowRight className="size-4 text-fg-subtle" />
                 </RowLink>

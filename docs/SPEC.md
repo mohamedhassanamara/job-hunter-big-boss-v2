@@ -12,7 +12,7 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 1 | **Discover** | A daily scheduled pull from Adzuna, Remotive, Arbeitnow, and Welcome to the Jungle, filtered by the active search profile. LinkedIn is excluded from automation | Discover, Today, Settings → Sources |
 | 2 | **Score fit** | An LLM (Ollama, local) scores each job 0–100 against the master experience, with strengths and gaps | Fit badge everywhere, fit panel |
 | 3 | **Dedupe** | The same job from 2 sources is flagged as a duplicate. Companies already contacted or applied to are flagged | Discover flags, Job detail |
-| 4 | **Resolve contact** | Tier (a) is the imported Apollo dump. Tier (b) queues a manual Apollo extension lookup, with a small daily cap. Tier (c) is no contact | Contact block, Contacts |
+| 4 | **Get contact** | The best-ranked imported contact is verified first (still there?); with nobody, you find someone with the Apollo extension (guided, one job at a time). Drafting and research wait for a verified contact | Outreach → Contacts to get, job Outreach step |
 | 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
 | 6 | **Both routes** | Every job can have a **web application** (CV, optional cover letter as PDF and/or form text, grounded answers to the form's questions, the listing link; I apply myself) **and** a **cold email** to someone there (contact → draft → review → send queue → sent). Each track shows its own status everywhere; with no contact yet, the app says who to look for and gives search hints | Job detail, Pipeline, Today, Cover letter studio |
 | 7 | **Human review** | I review and edit every CV, email, cover letter and answer | CV Studio, Job page, Outreach → Review, Cover letter studio |
@@ -101,7 +101,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   sections.
 - **Application** section: open the listing + approved CV (+ approved PDF letter) in one click, Download CV only,
   Mark applied; once applied, the date and method.
-- **Outreach** section: a stepper Contact → Draft → Review → Send queue → Sent with the next action always visible: find a contact (queue an Apollo lookup, pick one of the company's contacts, add one), "Draft email with AI" (needs an approved CV), the draft editor inline (checks, sources, test send, Regenerate, Reject, **Approve**), then **Add to send queue** (shows "#2 in the queue · sends around 14:30"), then the sent date. "I sent it myself" records the approved email as sent (date; CV locked).
+- **Outreach** section: a stepper Get contact → Draft → Review → Send queue → Sent with the next action always visible: the Get contact panel (see §3.6), "Draft email with AI" (needs an approved CV), the draft editor inline (checks, sources, test send, Regenerate, Reject, **Approve**), then **Add to send queue** (shows "#2 in the queue · sends around 14:30"), then the sent date. "I sent it myself" records the approved email as sent (date; CV locked).
   - **Who to contact** (no contact yet, `contacts.who_to_contact`): the roles to look for by company size (small:
     Settings → Contacts' small-company order, e.g. CTO or founder; large or unknown: the head of the hiring team or
     the engineering manager, then talent acquisition), the reason, and copyable search hints (a LinkedIn query and
@@ -114,7 +114,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Application questions** (approved CV): paste the form's questions with optional character limits; "Answer with AI" answers the batch in one Claude call (grounded like the letter, in its language). A limit is a hard check: over it → one retry → still over → kept with "412/300 characters" (never cut). Answers are saved on the job, editable (re-checked), with Copy and an undoable delete.
 - Once applied, an **Application** section: applied on, method, CV sent (locked version, download), notes, replies, interview rounds (outcome editable), with Log reply / Log interview / Close…. CV versions sent show a "Sent" badge.
 - **Main column:** Listing (description, Open original ↗), Fit breakdown, CV versions (list with status + "Open in CV Studio"), Email draft (preview + "Edit in Outreach"), Notes (autosaving textarea).
-- **Right column:** Contact (tier, person, email, "Queue Apollo lookup" when tier is none), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
+- **Right column:** Contact (Get contact state: Get contact / Verify first / Verified / Never looked up, person, email, "Get contact" when nobody), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
 - *Not found:* "This job doesn't exist or was removed", with "Back to Discover".
 
 ### 3.4b Applications (`/applications`)
@@ -215,6 +215,32 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
 
 ### 3.6 Outreach (`/outreach`)
 *Purpose:* one cold email per job, reviewed by you, sent through your Gmail. No bulk drafting.
+- **Get contact (Phase 9, `services/get_contact.py`)** is the first step of every job's Outreach track. Contacts are
+  found by hand with the Apollo Chrome extension (no Apollo API on the free plan). Per job:
+  - **get** (nobody yet): *Who to look for*: the roles for this company by the ranking rule (size aware) with the
+    reason; one-click links (LinkedIn people search for those roles, the company's LinkedIn page, its website); the
+    steps (profile → extension → reveal the email → paste); a quick form (name, title, email, LinkedIn) with a paste
+    box that fills the fields from a block copied from the extension or LinkedIn (`services/contact_paste.py`,
+    `POST /contacts/parse`, nothing saved until you do; a company that doesn't match is flagged); contacts already
+    known at the company, one click to use; Nobody found (N) / Never look up (X), each with Undo. A new entry counts
+    as verified.
+  - **verify** (a contact exists, e.g. from a CSV): *Verify first*: the contact, where and when it came from
+    ("wissem-list.csv, imported 28 Sep 2026", from `imported_batch` → `contact_import`), a LinkedIn link (their
+    profile or a name search), the automatic "may have left" result, and **Still there, verified** (V; dismisses the
+    alerts) / **Left or wrong person** (L; never picked again, every job written to them moves to the next contact
+    by the ranking, or back to get) / **Edit details** (E; a new email counts as a new entry).
+  - A verification lasts `verify_days` (30, Settings → Contacts); older than that it must be verified again.
+  - **Drafting, and so research, are refused until the contact is verified** (`get_contact.require_ready`, in
+    `outreach.generate*` before research; `approve_draft` re-checks: 409).
+- **Contacts to get** (Outreach tab `?tab=contacts&app=`; also a card on Today with the top 5): every job past New
+  (shortlisted, cv_ready, ready, done) whose email isn't queued or sent and whose contact is missing or unverified,
+  best fit first, "nobody found" last, never-look-up companies left out. One job at a time: the list (j/k) beside the
+  panel; ⌘↵ saves and moves on; V / L / E / P (paste box) / N / X. A daily counter "4 / 10 found today" (contacts you
+  entered today against Settings → Contacts' Apollo extension daily limit) warns from 80%; it never blocks.
+- **Try Hunter** (`providers/hunter.py`, `HUNTER_API_KEY` in `.env`): a button only, never automatic. It shows the
+  searches left this month (reading them is free) before each use; finding an email costs 1 search and fills the
+  form (you confirm; saved with source hunter), "Verify with Hunter" checks an email that looks wrong (1
+  verification). Paid calls are never retried. Without a key the button says so.
 - **The email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v9). The listing
   is private intel: it decides what to talk about and is never mentioned. Four parts, assembled by code:
   0. **greeting**: built by code in the email's language ("Hi …," / "Bonjour …,"). The first name is spelled
@@ -294,35 +320,30 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
 - *Empty review:* "No drafts waiting. Drafts appear after you approve a CV for a job with a contact." *Empty queue:* "Queue is empty. Approved drafts land here."
 
 ### 3.7 Contacts (`/contacts`)
-*Purpose:* who each job is written to. Tabs in the URL (`?tab=companies|lookups|import|match`).
-- **Resolution (3 tiers, `services/contacts.py`):** (1) the best-ranked imported contact at the job's company
-  (Settings → Contacts ranking: CTO → VP/Head of Engineering → Head of Data/AI → Engineering Manager → Tech Lead →
-  HR/Talent → Founder/CEO; ties: has an email, then most recent); (2) no contact → the **company** joins the lookup
-  queue (one row per company); (3) the lookup found nobody, or the company is marked "never look up" (a job
-  board / aggregator) → "No contact", web apply.
+*Purpose:* who each job is written to. Tabs in the URL (`?tab=companies|import|merges|match`; the old `lookups` tab
+redirects to Outreach → Contacts to get).
+- **Resolution (`services/contacts.py`):** (1) the best-ranked contact at the job's company, never one marked left or
+  wrong person (Settings → Contacts ranking: CTO → VP/Head of Engineering → Head of Data/AI → Engineering Manager →
+  Tech Lead → HR/Talent → Founder/CEO; ties: has an email, then most recent); (2) nobody → tier "to get" (the job
+  joins Contacts to get once past New); (3) you found nobody, or the company is marked "never look up" (a job board /
+  aggregator) → "No contact", web apply.
 - **Ranking by company size:** "small" (exact headcount below the threshold, or an "under N" bound at most the
   threshold; default 200, Settings → Contacts) uses CTO → Founder/CEO → Head of Eng → Head of Data → EM → Tech Lead
   → HR; large or unknown size uses HR/Talent → EM → CTO → Head of Eng → Head of Data → Tech Lead → Founder. Both
   orders are editable. Companies from the Apollo lists are "under 200"; set any company's size in its detail pane.
   Runs after every discovery run and import, and on demand. Never replaces a contact you picked, never touches jobs
   applied to or closed, never changes a route (a web-apply job with a new contact offers "Switch to cold email?").
-- **Companies:** filters With jobs / Has contacts / Needs lookup / No contact, search, j/k. Detail: contacts ranked
+- **Companies:** filters With jobs / Has contacts / Contact to get / No contact, search, j/k. Detail: contacts ranked
   (role group label, "Written to first"), the company's jobs with their tier and a per-job contact picker
   (Automatic or a person), "Add contact".
-- **Lookup queue:** per company: shortlisted jobs first, then the best fit, then the newest job, each row showing
-  why ("1 shortlisted job", "Best fit 92", "Fit 92, newest job 3 days ago"). Companies that look like job boards
-  (name contains remote/jobs/hire/recruit/talent…, most listings "for a client", many jobs across tracks) show a
-  suggestion: Never look up / It's an employer. Never (X) takes the company out, with Undo. Daily counter "3 / 10 today" (resolved lookups since local
-  midnight, cap in Settings). Enter contact (E) → every open job there gets it; Nobody found (N) → tier 3; Skip →
-  hidden until tomorrow. At the cap: "next lookups tomorrow", entering results still works.
 - **Import CSV:** several files at once; per-file mapping (auto-detected), row counts, "already imported"/"same
   content as another file" (SHA-256) flags. Imports run one file after another in the background (batches of 500,
   progress bar), after a DB backup (once per 15 min). Dedupe: same email (case-folded) → fill empty fields only;
   else same company (normalized) + folded name → fill; else create. Unknown companies are created. Then matching runs.
 - **Merges:** suggested duplicates (one name is the other plus a country/legal/group word, or the same website),
   confirmed one by one: Keep A / Keep B / Different companies. Never automatic. Merging moves jobs, contacts and the
-  lookup, records the other spelling as an alias (future jobs and imports map to it) and re-matches.
-- **Match report:** open jobs with a contact / waiting on a lookup / no contact, by track and by country, plus
+  Get contact state, records the other spelling as an alias (future jobs and imports map to it) and re-matches.
+- **Match report:** open jobs with a contact / a contact to get / no contact, by track and by country, plus
   "Run matching now".
 - *Empty:* each tab explains the next step, with "See how it works".
 
@@ -347,7 +368,7 @@ Sections in a left sub-nav:
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
 - **Schedule:** discovery time of day (APScheduler, local time).
 - **Contacts:** the role-ranking groups (label + keywords, reorderable; saving re-ranks every contact and re-matches
-  open jobs) and the daily Apollo lookup cap.
+  open jobs) and the Apollo extension daily limit and how long a verification lasts.
 - **Cover letter** also holds the form-text word range and the CV-jargon list.
 - **Tracking:** follow-up days (e.g. 7, 14) and the ghosting suggestion delay (30 days). Applies immediately (reminders are computed).
 - **Candidate** also has "Total years of experience (override)": used instead of the role-date total in CV facts and checks; never makes scores stale.
@@ -415,6 +436,6 @@ regenerate, and approve, draft edit, approve, and reject, queue pause/resume, an
 
 Mocked: discovery (the "Run discovery" button inserts fixture jobs via the `MockJobSource`), fit scoring,
 CV generation, PDF rendering (preview placeholder), email drafting, sending (nothing leaves the machine),
-Apollo CSV import (mock preview), and Apollo lookup.
+Apollo CSV import (mock preview), and the Get contact step (a job to get, one to verify, one verified).
 
 Not in phase 0: real API clients, Ollama/Claude calls, LaTeX compile, SMTP, and scheduler jobs.

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.get_contact import ToGetQueue
 from app.schemas.jobs import JobListItem, PipelineCard
 from app.schemas.settings import SourceRunOut
 from app.schemas.tracking import ReminderOut
@@ -60,6 +61,8 @@ class TodayOut(BaseModel):
     ready_to_apply: list[PipelineCard]
     # Applied on the website, nobody emailed yet: find someone there too (both routes).
     also_email: list[PipelineCard] = []
+    # The Get contact step: jobs past New that need a contact or a verification (top 5).
+    contacts_to_get: ToGetQueue | None = None
     reminders: list[ReminderOut]
     upcoming_interviews: list[UpcomingInterview]  # next 14 days, pending
     stats_summary: StatsSummary
@@ -74,6 +77,7 @@ class NavCounts(BaseModel):
     outreach_review: int
     queue_pending: int
     ready_to_apply: int
+    contacts_to_get: int = 0
 
 
 class SearchHit(BaseModel):

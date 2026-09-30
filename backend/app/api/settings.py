@@ -267,6 +267,9 @@ def _check_contacts(value: dict) -> None:
         unknown = [x for x in order if x not in labels]
         if unknown:
             raise HTTPException(422, f"{key}: unknown group {', '.join(unknown)}")
+    days = value.get("verify_days")
+    if days is not None and (not isinstance(days, int) or not 1 <= days <= 365):
+        raise HTTPException(422, "verify_days must be between 1 and 365")
     threshold = value.get("small_company_threshold")
     if threshold is not None and (not isinstance(threshold, int) or not 1 <= threshold <= 100_000):
         raise HTTPException(422, "small_company_threshold must be a number of employees")

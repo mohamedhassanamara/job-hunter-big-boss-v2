@@ -127,10 +127,10 @@ class SendLogOut(BaseModel):
 class OutreachStep(BaseModel):
     """Where a job is on the email route and the next action (the Job page stepper)."""
 
-    step: str  # contact | cv | draft | review | queue | queued | sent
+    step: str  # get_contact | verify_contact | cv | draft | review | queue | queued | sent
     route: str  # effective route
     contact_tier: str
-    lookup_status: str | None
+    contact_search: str = "none"  # the company's: none | not_found | never
     has_contact: bool
     has_email: bool
     cv_version: int | None  # the approved CV (None = approve one first)

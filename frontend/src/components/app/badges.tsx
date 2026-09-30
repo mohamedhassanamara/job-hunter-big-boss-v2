@@ -264,15 +264,15 @@ export function LocationText({ location, className }: { location: string; classN
 }
 
 const TIER_TONE: Record<ContactTier, Tone> = {
-  apollo_dump: 'green',
-  lookup_found: 'green',
-  lookup_queued: 'amber',
+  imported: 'slate',
+  found: 'green',
+  to_get: 'amber',
   none: 'gray',
 }
 
 export function ContactTierBadge({ tier }: { tier: ContactTier }) {
   const Icon =
-    tier === 'none' ? UserRoundX : tier === 'lookup_queued' ? SearchIcon : UserRoundCheck
+    tier === 'none' ? UserRoundX : tier === 'to_get' ? SearchIcon : UserRoundCheck
   return (
     <ToneBadge tone={TIER_TONE[tier]} dot={false}>
       <Icon className="size-3.5" />
@@ -287,8 +287,9 @@ const APPLICATION_TRACK: Record<ApplicationTrack, { label: string; tone: Tone }>
   applied: { label: 'Applied', tone: 'green' },
 }
 const OUTREACH_TRACK: Record<OutreachTrack, { label: string; tone: Tone }> = {
-  no_contact: { label: 'No contact', tone: 'gray' },
-  contact: { label: 'Contact found', tone: 'slate' },
+  no_contact: { label: 'Get contact', tone: 'gray' },
+  verify: { label: 'Verify contact', tone: 'amber' },
+  contact: { label: 'Ready to draft', tone: 'slate' },
   drafted: { label: 'Draft to review', tone: 'amber' },
   approved: { label: 'Approved', tone: 'blue' },
   queued: { label: 'Queued', tone: 'violet' },

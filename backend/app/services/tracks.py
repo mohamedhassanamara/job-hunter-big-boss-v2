@@ -1,7 +1,8 @@
 """Two tracks per job, derived (no state of their own besides `application.web_applied_at`):
 
 - Application (the web application): not_ready (no approved CV) → ready → applied.
-- Outreach (the cold email): no_contact → contact → drafted → approved → queued → sent.
+- Outreach (the cold email): no_contact (Get contact) → verify (a contact to confirm) → contact
+  (verified: ready to draft) → drafted → approved → queued → sent.
 
 A job can do both. `application.stage` stays the overall position; `done` means at least one
 track finished, labelled "Applied", "Emailed" or "Applied + emailed".
@@ -26,7 +27,7 @@ _OUTREACH = {DraftStatus.sent: "sent", DraftStatus.queued: "queued",
 @dataclass
 class Tracks:
     application: str  # not_ready | ready | applied
-    outreach: str  # no_contact | contact | drafted | approved | queued | sent
+    outreach: str  # no_contact | verify | contact | drafted | approved | queued | sent
     applied_at: datetime | None = None
     web_method: str | None = None
     contact_name: str | None = None
@@ -48,10 +49,14 @@ def application_status(app: Application, has_approved_cv: bool) -> str:
     return "ready" if has_approved_cv else "not_ready"
 
 
-def outreach_status(app: Application, draft: OutreachDraft | None) -> str:
+def outreach_status(app: Application, draft: OutreachDraft | None,
+                    contact_state: str | None = None) -> str:
+    """`contact_state` is get_contact's state (get | verify | ready | never) for the job."""
     if draft is not None:
         return _OUTREACH[DraftStatus(draft.status)]
-    return "contact" if app.contact_id else "no_contact"
+    if not app.contact_id or contact_state in ("get", "never"):
+        return "no_contact"
+    return "contact" if contact_state in (None, "ready") else "verify"
 
 
 def latest_draft(drafts: Iterable[OutreachDraft]) -> OutreachDraft | None:
@@ -71,16 +76,21 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
     drafts: dict[int, list[OutreachDraft]] = {}
     for d in s.exec(select(OutreachDraft).where(col(OutreachDraft.application_id).in_(ids))).all():
         drafts.setdefault(d.application_id, []).append(d)
+    from app.services.get_contact import state_of, verify_days
+
     contact_ids = {a.contact_id for a in apps if a.contact_id}
-    names = {c.id: c.full_name for c in s.exec(
+    people = {c.id: c for c in s.exec(
         select(Contact).where(col(Contact.id).in_(contact_ids))).all()} if contact_ids else {}
+    days = verify_days(s)
     out = {}
     for a in apps:
         draft = latest_draft(drafts.get(a.id, []))
+        contact = people.get(a.contact_id) if a.contact_id else None
         out[a.id] = Tracks(
             application=application_status(a, a.id in approved),
-            outreach=outreach_status(a, draft), applied_at=a.web_applied_at,
-            web_method=a.web_method, contact_name=names.get(a.contact_id),
+            outreach=outreach_status(a, draft, state_of(contact, None, days)),
+            applied_at=a.web_applied_at,
+            web_method=a.web_method, contact_name=contact.full_name if contact else None,
             draft_id=draft.id if draft else None,
             sent_at=draft.sent_at if draft and DraftStatus(draft.status) == DraftStatus.sent
             else None)

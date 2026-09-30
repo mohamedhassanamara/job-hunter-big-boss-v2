@@ -5,7 +5,7 @@ from sqlalchemy import Index, Text, text
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field, utcnow
-from app.models.enums import ContactSource, ImportStatus, LookupStatus
+from app.models.enums import ContactSearch, ContactSource, ImportStatus
 
 
 class Company(TableBase, table=True):
@@ -25,6 +25,10 @@ class Company(TableBase, table=True):
     size_source: str | None = None  # manual | apollo_list
     # You looked at the "looks like a job board" suggestion and said no.
     aggregator_reviewed: bool = False
+    # Get contact: nobody found with the Apollo extension, or never look up (a job board).
+    contact_search: ContactSearch = enum_field(ContactSearch.none)
+    contact_search_at: datetime | None = dt_field()
+    contact_search_notes: str = Field(default="", sa_type=Text)
 
 
 class CompanyAlias(TableBase, table=True):
@@ -71,6 +75,12 @@ class Contact(TableBase, table=True):
     # the ranking changes.
     role_rank: int = Field(default=999, index=True)
     notes: str = Field(default="", sa_type=Text)
+    # Get contact: you confirmed they're there (or entered them) on this date; stale after
+    # Settings → Contacts verify_days. Left / wrong person: never picked again.
+    verified_at: datetime | None = dt_field()
+    verified_how: str | None = None  # entered | still_there | hunter
+    left_at: datetime | None = dt_field()
+    left_reason: str | None = None  # left | wrong_person
 
 
 class ContactImport(TableBase, table=True):
@@ -92,17 +102,3 @@ class ContactImport(TableBase, table=True):
     error: str | None = Field(default=None, sa_type=Text)
     started_at: datetime = dt_field(default_factory=utcnow)
     finished_at: datetime | None = dt_field()
-
-
-class CompanyLookup(TableBase, table=True):
-    """Tier 2 of contact resolution: a manual Apollo-extension lookup, one per company."""
-
-    __tablename__ = "company_lookup"
-
-    company_id: int = Field(foreign_key="company.id", unique=True, index=True)
-    status: LookupStatus = enum_field(LookupStatus.queued, index=True)
-    priority: int = 0  # best fit among the company's open jobs
-    queued_at: datetime = dt_field(default_factory=utcnow)
-    resolved_at: datetime | None = dt_field()
-    snoozed_until: datetime | None = dt_field()
-    notes: str = Field(default="", sa_type=Text)
