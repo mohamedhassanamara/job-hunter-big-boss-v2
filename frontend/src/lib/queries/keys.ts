@@ -9,6 +9,7 @@ export const keys = {
   applications: ['applications'] as const,
   cv: (appId: number) => ['cv', appId] as const,
   letter: (appId: number) => ['letter', appId] as const,
+  answers: (appId: number) => ['answers', appId] as const,
   cvTemplates: ['cv-templates'] as const,
   drafts: (status: string) => ['drafts', status] as const,
   draftsAll: ['drafts'] as const,

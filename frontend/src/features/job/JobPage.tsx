@@ -52,6 +52,7 @@ import { isApplied, openListingAndCv } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Route, Stage } from '@/lib/types'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
+import { QuestionsSection } from './QuestionsSection'
 import { Timeline } from './Timeline'
 
 function stageMenuLabel(stage: Stage, route: Route) {
@@ -450,6 +451,7 @@ export default function JobPage() {
           </div>
           <CVSection job={job} />
           <CoverLetterSection job={job} />
+          <QuestionsSection job={job} />
           <NotesCard key={job.id} job={job} />
           <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
             <div className="p-4">

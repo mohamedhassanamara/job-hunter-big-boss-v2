@@ -1047,3 +1047,19 @@ export interface LetterPatchInput {
   paragraphs?: string[]
   ask?: string
 }
+
+export interface ApplicationAnswer {
+  id: number
+  application_id: number
+  question: string
+  char_limit: number | null
+  answer: string
+  length: number
+  language: LetterLanguage
+  edited: boolean
+  sentences: LetterSentence[]
+  sources: Record<string, string>
+  violations: Violation[]
+  created_at: string
+  updated_at: string
+}
