@@ -251,6 +251,9 @@ class EmailSentence(BaseModel):
     about_job: bool = Field(default=False, description=(
         "True when the sentence is about the company or the role, stated only from the JOB "
         "listing (no claims about the candidate)"))
+    about_candidate: bool = Field(default=False, description=(
+        "Cover letters only: True for a fit sentence stated only from FACTS (where the "
+        "candidate is based, work authorization/visa sponsorship, languages); it cites nothing"))
 
 
 class EmailDraftPlan(BaseModel):
@@ -281,9 +284,11 @@ class CoverLetterPlan(BaseModel):
     salutation, closing formula and signature."""
 
     paragraphs: list[LetterParagraph] = Field(description=(
-        "3-4 paragraphs: why this company and role (from the listing), 2-3 concrete things "
-        "you built that match it, then fit and availability"))
-    ask: str = Field(description="The one clear ask that ends the letter, one sentence")
+        "2-3 paragraphs: why this company and role (one specific thing from the listing), at "
+        "most 2 examples explained in plain words, then fit and availability"))
+    ask: str = Field(default="", description=(
+        "The ask for an interview, its own short final paragraph (a form text may leave it "
+        "empty)"))
 
 
 class LetterRequest(BaseModel):
@@ -362,6 +367,8 @@ class LetterDrafter(Protocol):
     prompt_version: str
 
     def draft_letter(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan: ...
+
+    def draft_form(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan: ...
 
     def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan: ...
 

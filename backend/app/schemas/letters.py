@@ -22,6 +22,10 @@ class LetterOut(BaseModel):
     version: int
     status: str  # draft | approved | superseded
     language: str  # fr | en
+    format: str = "pdf"  # pdf | form
+    question: str | None = None  # form: the form's question
+    char_limit: int | None = None
+    length: int = 0  # characters of the text (the form's limit counts these)
     salutation: str
     paragraphs: list[LetterParagraphOut]
     ask: str
@@ -61,6 +65,9 @@ class LetterStudio(BaseModel):
 
 class LetterGenerateIn(BaseModel):
     language: str | None = None  # fr | en; default: the job's setting or the listing's
+    format: str = "pdf"  # pdf | form
+    question: str | None = None  # form: the question to answer
+    char_limit: int | None = None
 
 
 class LetterPatch(BaseModel):

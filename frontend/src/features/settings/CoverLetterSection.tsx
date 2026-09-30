@@ -14,6 +14,9 @@ interface CoverLetterValue {
   guide: string
   min_words: number
   max_words: number
+  form_min_words: number
+  form_max_words: number
+  jargon: string[]
   banned_phrases: PerLanguage<string[]>
   salutation: PerLanguage<string>
   closing: PerLanguage<string>
@@ -72,6 +75,17 @@ export function CoverLetterSection({ settings }: { settings: SettingsView }) {
             <Input type="number" min={100} max={600} value={value.max_words} onChange={(e) => set({ max_words: Number(e.target.value) })} className="w-24" aria-label="Maximum words" />
             words
           </div>
+        </Field>
+        <Field label="Form text length" hint="Words, for text boxes (a character limit is set per question)">
+          <div className="flex items-center gap-2 text-sm">
+            <Input type="number" min={20} max={600} value={value.form_min_words} onChange={(e) => set({ form_min_words: Number(e.target.value) })} className="w-24" aria-label="Form minimum words" />
+            to
+            <Input type="number" min={20} max={600} value={value.form_max_words} onChange={(e) => set({ form_max_words: Number(e.target.value) })} className="w-24" aria-label="Form maximum words" />
+            words
+          </div>
+        </Field>
+        <Field label="CV jargon" hint="Phrases that make sense on a CV, not in a letter (both formats, any language)">
+          <TagInput tags={value.jargon} onChange={(jargon) => set({ jargon })} placeholder="add a phrase (Enter)" />
         </Field>
         {(['fr', 'en'] as const).map((lang) => (
           <div key={lang} className="space-y-4 border-t border-border pt-4">

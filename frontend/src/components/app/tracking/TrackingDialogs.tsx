@@ -78,17 +78,20 @@ export function MarkAppliedDialog({
   const [method, setMethod] = useState<ApplyMethod>('company_site')
   const [notes, setNotes] = useState('')
   const [withLetter, setWithLetter] = useState(true)
+  const [withForm, setWithForm] = useState(true)
   const mark = useMarkApplied()
   const letters = useLetterStudio(target?.appId ?? NaN)
-  const letter = letters.data?.letters.find((l) => l.status === 'approved')
+  const letter = letters.data?.letters.find((l) => l.status === 'approved' && l.format !== 'form')
+  const formText = letters.data?.letters.find((l) => l.status === 'approved' && l.format === 'form')
   const sendLetter = withLetter && !!letter
+  const sendForm = withForm && !!formText
   const submit = () => {
     if (!target) return
     mark.mutate(
-      { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, cover_letter_id: sendLetter ? letter.id : null, notes },
+      { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, cover_letter_id: sendLetter ? letter.id : null, form_letter_id: sendForm ? formText.id : null, notes },
       {
         onSuccess: () => {
-          const sent = `${cvVersion ? `CV v${cvVersion}` : 'approved CV'}${sendLetter ? ` and cover letter v${letter.version}` : ''}`
+          const sent = `${cvVersion ? `CV v${cvVersion}` : 'approved CV'}${sendLetter ? ` and cover letter v${letter.version}` : ''}${sendForm ? ` and form text v${formText.version}` : ''}`
           toast.success('Marked applied', { description: `${target.title} · ${sent} locked` })
           onOpenChange(false)
           onDone?.()
@@ -131,6 +134,12 @@ export function MarkAppliedDialog({
           </label>
         ) : (
           <p className="text-xs text-fg-subtle">{letters.isPending ? ' ' : 'No approved cover letter (none recorded).'}</p>
+        )}
+        {formText && (
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={withForm} onCheckedChange={(v) => setWithForm(v === true)} aria-label="Form text sent" />
+            Form text v{formText.version} (pasted into the form)
+          </label>
         )}
       </Field>
       <Field label="Notes" htmlFor="applied-notes">

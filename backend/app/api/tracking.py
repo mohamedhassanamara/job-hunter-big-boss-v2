@@ -59,7 +59,8 @@ def ready(session: SessionDep) -> list[ReadyItem]:
         job = session.get(Job, app.job_id)
         company = session.get(Company, job.company_id)
         cv = tracking.approved_cv(session, app)
-        letters = [v for v in cover_letter.versions(session, app.id) if v.status != "superseded"]
+        letters = [v for v in cover_letter.versions(session, app.id, "pdf")
+                   if v.status != "superseded"]
         letter = next((v for v in letters if v.status == "approved"), None) or next(
             iter(letters), None)
         out.append(ReadyItem(application_id=app.id, job_id=job.id, title=job.title,
@@ -76,7 +77,8 @@ def mark_applied(app_id: int, body: AppliedIn, session: SessionDep) -> PipelineC
     app = get_or_404(session, Application, app_id, "Application")
     _run(session, tracking.mark_applied, app, applied_on=body.applied_on,
          method=_enum(ApplyMethod, body.method), cv_version_id=body.cv_version_id,
-         cover_letter_id=body.cover_letter_id, notes=body.notes)
+         cover_letter_id=body.cover_letter_id, form_letter_id=body.form_letter_id,
+         notes=body.notes)
     return _card(session, app)
 
 

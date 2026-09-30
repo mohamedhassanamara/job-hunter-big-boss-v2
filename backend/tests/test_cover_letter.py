@@ -13,7 +13,15 @@ import pytest
 from sqlmodel import Session, select
 
 from app.db import engine
-from app.models import Application, Company, CoverLetter, CVVersion, ExperienceItem, Job
+from app.models import (
+    Application,
+    AppSetting,
+    Company,
+    CoverLetter,
+    CVVersion,
+    ExperienceItem,
+    Job,
+)
 from app.models.enums import ApplyMethod, CVStatus, Route, Stage
 from app.providers.base import (
     AnswersRequest,
@@ -64,7 +72,7 @@ def test_letter_drafter_uses_the_isolated_subscription_call() -> None:
     d = ClaudeLetterDrafter(runner=fake_run({"is_error": False, "structured_output": LETTER},
                                             calls=calls))
     out = d.draft_letter(LetterRequest(job={}, candidate={}, pool={}), feedback="- too short")
-    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v2"
+    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v4"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     system = cmd[cmd.index("--system-prompt") + 1]
@@ -99,18 +107,24 @@ def role(ctx: lc.Context) -> ExperienceItem:
     return next(i for i in ctx.pool.items.values() if i.kind == "job" and len(i.bullets) >= 2)
 
 
-def paragraphs(ctx: lc.Context, opening: str = "Acme is hiring a Data Engineer to build "
-               "pipelines with Spark and Kafka for 2M users.") -> list[dict]:
+def other_item(ctx: lc.Context, *not_ids: int) -> ExperienceItem:
+    return next(i for i in ctx.pool.items.values()
+                if i.kind in ("job", "project") and i.bullets and i.id not in not_ids)
+
+
+def example(item: ExperienceItem) -> dict:
+    """A v3 example: what the work was, in plain words (not the CV bullet), cited."""
+    tool = f" with {item.tags[0]}" if item.tags else ""
+    return {"text": f"At {item.org or item.title}, I built this kind of system{tool}, which is "
+                    "close to what your team does.", "citations": [item.id]}
+
+
+def paragraphs(ctx: lc.Context, opening: str = "Acme builds pipelines for millions of users, "
+               "which is the work I want to do.") -> list[dict]:
     r = role(ctx)
-    other = next(i for i in ctx.pool.items.values()
-                 if i.kind in ("job", "project") and i.bullets and i.id != r.id)
-    def cite(item: ExperienceItem, n: int) -> dict:
-        fact = item.bullets[n]
-        return {"text": f"At {item.org or item.title}, I {fact[0].lower()}{fact[1:]}",
-                "citations": [item.id]}
-    return [{"sentences": [{"text": opening, "about_job": True}]},
-            {"sentences": [cite(r, 0), cite(r, 1)]},
-            {"sentences": [cite(other, 0)]}]
+    return [{"sentences": [{"text": opening, "about_job": True},
+                           {"text": "My experience matches that closely.", "citations": [r.id]}]},
+            {"sentences": [example(r), example(other_item(ctx, r.id))]}]
 
 
 def kinds(violations: list[dict]) -> set[str]:
@@ -131,6 +145,15 @@ def test_a_clean_letter_passes(ctx: lc.Context) -> None:
     (lambda p: p[0]["sentences"].append({"text": "Acme serves 9M users with Snowflake.",
                                           "about_job": True}), "grounding"),
     (lambda p: p.pop(), "structure"),
+    (lambda p: p[0]["sentences"].__setitem__(0, {
+        "text": "Acme: we build pipelines with Spark and Kafka for 2M users.",
+        "about_job": True}), "restates"),
+    (lambda p: p[1]["sentences"].append({"text": "Idempotent loads handled schema drift.",
+                                          "citations": p[1]["sentences"][0]["citations"]}),
+     "jargon"),
+    (lambda p: p[1]["sentences"].append({"text": "We passed 10/10 tests.",
+                                          "citations": p[1]["sentences"][0]["citations"]}),
+     "jargon"),
     (lambda p: p.__setitem__(0, {"sentences": [{"text": "The role builds pipelines.",
                                                 "about_job": True}]}), "opening"),
     (lambda p: p[0]["sentences"].append({"text": "Is Acme hiring a Data Engineer?",
@@ -162,11 +185,85 @@ def test_opening_must_come_from_the_listing(ctx: lc.Context) -> None:
     assert "opening" in kinds(lc.check_letter("Dear Hiring Manager,", p, ASK, ctx))
 
 
-def test_builds_count_is_a_warning(ctx: lc.Context) -> None:
+def test_at_most_two_examples_of_one_or_two_sentences(ctx: lc.Context) -> None:
+    r = role(ctx)
+    other = other_item(ctx, r.id)
+    third = other_item(ctx, r.id, other.id)
     p = paragraphs(ctx)
-    p[2] = {"sentences": [p[1]["sentences"][0]]}  # only one item cited in total
+    p[1]["sentences"].append(example(third))
+    assert "builds" in kinds(lc.check_letter("Dear Hiring Manager,", p, ASK, ctx))
+    p = paragraphs(ctx)
+    p[1]["sentences"] += [example(r), example(r)]  # r now runs 3 sentences
     found = lc.check_letter("Dear Hiring Manager,", p, ASK, ctx)
-    assert any(v["type"] == "builds" and v["severity"] == "warning" for v in found)
+    assert any("runs 3 sentences" in v["message"] for v in found)
+
+
+def test_cv_bullets_are_not_pasted_or_listing_repeated(ctx: lc.Context) -> None:
+    r = role(ctx)
+    p = paragraphs(ctx)
+    p[1]["sentences"][0] = {"text": r.bullets[0], "citations": [r.id]}
+    assert "cv_copy" in kinds(lc.check_letter("Dear Hiring Manager,", p, ASK, ctx))
+    p = paragraphs(ctx)
+    p[1]["sentences"].insert(0, {"text": "Acme also ships pipelines.", "about_job": True})
+    assert "listing" in kinds(lc.check_letter("Dear Hiring Manager,", p, ASK, ctx))
+
+
+def test_the_current_role_is_used_when_it_matches(ctx: lc.Context) -> None:
+    r = role(ctx)
+    unused = other_item(ctx, r.id, other_item(ctx, r.id).id)
+    ctx.current_role_id, ctx.current_role_org = unused.id, unused.org or unused.title
+    found = lc.check_letter("Dear Hiring Manager,", paragraphs(ctx), ASK, ctx)
+    assert "current_role" in kinds(found)
+    edited = [{"text": "Why Acme."}, {"text": f"At {ctx.current_role_org} I did this work."}]
+    assert "current_role" not in kinds(lc.check_letter("Dear Hiring Manager,", edited, ASK, ctx))
+    ctx.current_role_id = None
+
+
+def test_fit_sentences_state_only_the_profile(ctx: lc.Context) -> None:
+    ctx.facts_text = "Tunis, Tunisia needs visa sponsorship to work"
+    p = paragraphs(ctx)
+    p[1]["sentences"].append({"text": "I am based in Tunis and need visa sponsorship.",
+                              "about_candidate": True})
+    assert "grounding" not in kinds(lc.check_letter("Dear Hiring Manager,", p, ASK, ctx))
+    p[1]["sentences"][-1] = {"text": "I am based in Tunis and ready to relocate to Paris.",
+                             "about_candidate": True}
+    found = lc.check_letter("Dear Hiring Manager,", p, ASK, ctx)
+    assert any("relocating" in v["message"] for v in found if v["type"] == "grounding")
+    ctx.facts_text = ""
+
+
+def test_current_role_is_picked_by_tags_or_a_title_theme() -> None:
+    from datetime import date as d
+
+    from app.services.cv_pool import Pool
+
+    role = ExperienceItem(id=1, kind="job", title="Software Engineer", org="Sportco",
+                          start_date=d(2025, 9, 1), tags=["spring-boot", "java", "flutter"],
+                          bullets=["Built backend endpoints for the app",
+                                   "Integrated backend services with data-driven screens"])
+    pool = Pool(items={1: role}, profile={}, by_kind={"job": [role]})
+    assert cl.current_role(pool, "Développeur Backend\nPython et PostgreSQL") is role
+    assert cl.current_role(pool, "Java Engineer\nJava and Spring Boot") is role
+    assert cl.current_role(pool, "Data Engineer\nSpark and dbt") is None  # "data" too broad
+
+
+def test_the_ask_is_its_own_short_paragraph(ctx: lc.Context) -> None:
+    long = "I would welcome an interview " + "to talk about it " * 10 + "soon."
+    assert "ask" in kinds(lc.check_letter("Dear Hiring Manager,", paragraphs(ctx), long, ctx))
+
+
+def test_form_text_has_no_letter_furniture_and_a_hard_limit(ctx: lc.Context) -> None:
+    ctx.format, ctx.char_limit = "form", 200
+    p = paragraphs(ctx)
+    assert "form" not in kinds(lc.check_letter("", p, "", ctx))
+    assert "form" in kinds(lc.check_letter("Madame, Monsieur,", p, "", ctx))
+    p[1]["sentences"].append({"text": "Kind regards, Alex.", "citations": [role(ctx).id]})
+    assert "form" in kinds(lc.check_letter("", p, "", ctx))
+    long = paragraphs(ctx)
+    long[1]["sentences"][0]["text"] += " It helped." * 30
+    found = lc.check_letter("", long, "", ctx)
+    assert any(v["type"] == "length" and v["message"].endswith("/200 characters") for v in found)
+    ctx.format, ctx.char_limit = "pdf", None
 
 
 def test_french_letters_use_french_banned_phrases_and_the_french_years_wording(
@@ -202,7 +299,7 @@ def test_french_thousands_and_the_years_sentence_dont_confuse_the_checks(ctx: lc
     others = [i.id for i in ctx.pool.items.values() if i.kind == "job" and i.id != r.id][:2]
     p.append({"sentences": [{"text": "I bring 3 years of experience.", "citations": others}]})
     found = lc.check_letter("Dear Hiring Manager,", p, ASK, ctx)
-    assert not [v for v in found if v["type"] == "builds" and "focus" in v["message"]]
+    assert "builds" not in kinds(found)
     assert "grounding" not in kinds(found)
 
 
@@ -239,9 +336,17 @@ def web_job(seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  # n
     cv_pdf.write_bytes(b"%PDF-1.4 cv")
     n = next(_n)
     with Session(engine) as s:
-        items = [SimpleNamespace(id=i.id, kind=i.kind, bullets=list(i.bullets))
+        items = [SimpleNamespace(id=i.id, kind=i.kind, bullets=list(i.bullets),
+                                 org=i.org or i.title, tags=list(i.tags))
                  for i in s.exec(select(ExperienceItem)).all()
                  if i.kind in ("job", "project") and i.bullets]
+        # Short word ranges: a fixture can't hand-write 220 grounded words; the ranges are
+        # checked by their own tests.
+        settings = s.exec(select(AppSetting).where(AppSetting.key == "cover_letter")).first() \
+            or AppSetting(key="cover_letter", value={})
+        settings.value = {**(settings.value or {}), "min_words": 20, "max_words": 320,
+                          "form_min_words": 15, "form_max_words": 220}
+        s.add(settings)
         company = Company(name=f"Webco {n}", normalized_name=f"webco {n}")
         s.add(company)
         s.flush()
@@ -280,23 +385,30 @@ class Script:
         assert request.pool["roles"], "the CV's items are what the letter may cite"
         return self.plans.pop(0)
 
+    draft_form = draft_letter  # same shape; the request's rules say it's a form
 
-def good_plan(info: dict, fr: bool = True, words: int = 260) -> CoverLetterPlan:
+
+def good_plan(info: dict, fr: bool = True, form: bool = False) -> CoverLetterPlan:
+    """A v3 letter: why this company (one listing sentence), two examples in plain words."""
     company = info["company"]
-    opening = (f"{company} recrute un Data Engineer pour construire des pipelines de données "
-               "avec Spark." if fr else f"{company} is hiring a Data Engineer.")
-    facts = [(i, b) for i in info["items"][:3] for b in i.bullets]  # 2-3 builds
-    middle: list[list[EmailSentence]] = [[], []]
-    total, k = len(opening.split()), 0
-    while total < words:  # cycle through the facts to reach the length
-        item, fact = facts[k % len(facts)]
-        middle[k % 2].append(EmailSentence(text=fact, citations=[item.id]))
-        total, k = total + len(fact.split()), k + 1
+    first, second = info["items"][0], info["items"][1]
+    if fr:
+        opening = f"Chez {company}, les pipelines de données avec Spark me donnent envie de postuler."
+        why = "C'est exactement le travail que je veux faire."
+        ex = [f"Chez {i.org}, j'ai construit ce type de système, proche de votre besoin."
+              for i in (first, second)]
+    else:
+        opening = f"{company} works on data pipelines, which is why I want to join."
+        why = "That is exactly the work I want to do."
+        ex = [f"At {i.org}, I built this kind of system, close to what you need."
+              for i in (first, second)]
     return CoverLetterPlan(paragraphs=[
-        {"sentences": [EmailSentence(text=opening, about_job=True)]},
-        {"sentences": middle[0]}, {"sentences": middle[1]}],
-        ask="Seriez-vous disponible pour un entretien ?" if fr
-        else "Could we meet for an interview?")
+        {"sentences": [EmailSentence(text=opening, about_job=True),
+                       EmailSentence(text=why, citations=[first.id])]},
+        {"sentences": [EmailSentence(text=ex[0], citations=[first.id]),
+                       EmailSentence(text=ex[1], citations=[second.id])]}],
+        ask="" if form else ("Seriez-vous disponible pour un entretien ?" if fr
+                             else "Could we meet for an interview?"))
 
 
 def test_generate_follows_the_listing_language_retries_once_then_stores(web_job: dict) -> None:
@@ -391,6 +503,44 @@ def test_mark_applied_without_a_letter_or_with_a_draft(web_job: dict) -> None:
         assert s.get(Application, web_job["app"]).applied_cover_letter_id is None
 
 
+QUESTION = "Expliquez-nous pourquoi vous souhaitez nous rejoindre"
+
+
+def test_form_text_answers_the_question_with_a_hard_limit(web_job: dict) -> None:
+    long = good_plan(web_job, form=True)
+    long.paragraphs[1].sentences[0].text += " Cela a beaucoup compté pour moi." * 12
+    drafter = Script(long, good_plan(web_job, form=True))
+    letter = cl.generate(engine, web_job["app"], drafter, fmt="form", question=QUESTION,
+                         char_limit=400)
+    rules = drafter.requests[0].rules
+    assert (rules["format"], rules["question"], rules["char_limit"]) == ("form", QUESTION, 400)
+    assert "/400 characters" in drafter.feedback[1]
+    assert (letter.format, letter.pdf_path, letter.page_count) == ("form", None, None)
+    assert letter.content["salutation"] == "" and lc.errors(letter.violations) == [], \
+        letter.violations
+    text = letter.text
+    assert len(text) <= 400 and "Madame" not in text and "salutations" not in text
+    assert "Objet" not in text and cl.ensure_pdf(engine, letter) is None
+    # A PDF letter and a form text keep their own versions.
+    pdf = cl.generate(engine, web_job["app"], Script(good_plan(web_job)))
+    assert (pdf.version, letter.version) == (1, 1)
+    with pytest.raises(cl.LetterError, match="question"):
+        cl.generate(engine, web_job["app"], Script(), fmt="form")
+
+
+def test_mark_applied_records_the_form_text_too(web_job: dict) -> None:
+    form = cl.approve(engine, cl.generate(engine, web_job["app"],
+                                          Script(good_plan(web_job, form=True)), fmt="form",
+                                          question=QUESTION).id)
+    with Session(engine) as s:
+        app = s.get(Application, web_job["app"])
+        tracking.mark_applied(s, app, applied_on=None, method=ApplyMethod.company_site,
+                              form_letter_id=form.id)
+        s.commit()
+        assert s.get(CoverLetter, form.id).locked_at is not None
+        assert s.get(Application, web_job["app"]).applied_cover_letter_id is None
+
+
 def test_download_name(web_job: dict) -> None:
     letter = cl.generate(engine, web_job["app"], Script(good_plan(web_job)))
     with Session(engine) as s:
@@ -460,8 +610,8 @@ def test_letter_api_studio_generate_edit_approve_pdf_and_apply(web_job: dict, cl
     texts = [p["text"] for p in client.get(f"/api/applications/{app_id}/letter")
              .json()["letters"][0]["paragraphs"]]
     edited = client.patch(f"/api/letters/{clean.id}",
-                          json={"paragraphs": [*texts[:2], texts[2] + " I love it!"]}).json()
-    assert edited["paragraphs"][2]["edited"] and any(
+                          json={"paragraphs": [texts[0], texts[1] + " I love it!"]}).json()
+    assert edited["paragraphs"][1]["edited"] and any(
         v["type"] == "tone" for v in edited["violations"])
     client.patch(f"/api/letters/{clean.id}", json={"paragraphs": texts})
     approved = client.post(f"/api/letters/{clean.id}/approve")

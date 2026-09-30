@@ -104,7 +104,8 @@ def lock_cv(v: CVVersion) -> None:
 
 def mark_applied(s: Session, app: Application, *, applied_on: date | None,
                  method: ApplyMethod, cv_version_id: int | None = None,
-                 cover_letter_id: int | None = None, notes: str = "") -> Application:
+                 cover_letter_id: int | None = None, form_letter_id: int | None = None,
+                 notes: str = "") -> Application:
     if app.web_applied_at is not None:
         raise TrackingError("This application is already marked applied")
     if Stage(app.stage) not in (Stage.cv_ready, Stage.ready, Stage.done, Stage.interview):
@@ -114,18 +115,23 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
         raise TrackingError("Pick an approved CV version of this job")
     if cv.status != CVStatus.approved:
         raise TrackingError("Only an approved CV version can be sent")
-    letter = None
-    if cover_letter_id is not None:
-        from app.models import CoverLetter
-        from app.services.cover_letter import lock as lock_letter
+    from app.models import CoverLetter
+    from app.services.cover_letter import lock as lock_letter
 
-        letter = s.get(CoverLetter, cover_letter_id)
-        if letter is None or letter.application_id != app.id:
+    sent_letters: dict[str, CoverLetter] = {}
+    for fmt, letter_id in (("pdf", cover_letter_id), ("form", form_letter_id)):
+        if letter_id is None:
+            continue
+        row = s.get(CoverLetter, letter_id)
+        if row is None or row.application_id != app.id or (row.format or "pdf") != fmt:
             raise TrackingError("Pick a cover letter of this job")
-        if letter.status != CVStatus.approved:
+        if row.status != CVStatus.approved:
             raise TrackingError("Only an approved cover letter can be sent")
-        lock_letter(letter)
-        s.add(letter)
+        lock_letter(row)
+        s.add(row)
+        sent_letters[fmt] = row
+    letter = sent_letters.get("pdf")
+    form_text = sent_letters.get("form")
     first = app.applied_at  # an email may already have gone out (both routes)
     if Stage(app.stage) == Stage.cv_ready:
         pipeline.transition(s, app, Stage.ready)
@@ -143,9 +149,11 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
     s.add(app)
     pipeline.log_event(s, app, EventKind.applied,
                        f"Applied via {method.replace('_', ' ')} with CV v{cv.version}"
-                       + (f" and cover letter v{letter.version}" if letter else ""),
+                       + (f" and cover letter v{letter.version}" if letter else "")
+                       + (f" and form text v{form_text.version}" if form_text else ""),
                        method=method, cv_version_id=cv.id, cv_version=cv.version,
                        cover_letter_id=letter.id if letter else None,
+                       form_letter_id=form_text.id if form_text else None,
                        applied_on=app.applied_at.date().isoformat(), notes=notes.strip())
     return app
 
