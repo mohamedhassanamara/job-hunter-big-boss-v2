@@ -81,6 +81,7 @@ export const STAGE_ORDER: Stage[] = [
   'new',
   'shortlisted',
   'cv_ready',
+  'drafted',
   'ready',
   'done',
   'interview',
@@ -91,6 +92,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
   new: 'New',
   shortlisted: 'Shortlisted',
   cv_ready: 'CV ready',
+  drafted: 'Email drafted',
   ready: 'Ready',
   done: 'Sent / Applied',
   interview: 'Interview',
@@ -99,6 +101,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
 
 export const COLUMN_LABELS: Record<Stage, string> = {
   ...STAGE_LABELS,
+  drafted: 'Email drafted',
   ready: 'Ready to send / apply',
 }
 

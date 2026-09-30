@@ -17,11 +17,12 @@ import { toast } from 'sonner'
 import {
   LocationText,
   RemoteBadge,
+  RouteBadge,
   SourceBadge,
   StageBadge,
   StageDot,
   ToneBadge,
-  type Tone,
+
 } from '@/components/app/badges'
 import { CloseDialog } from '@/components/app/CloseDialog'
 import { LogInterviewDialog, MarkAppliedDialog } from '@/components/app/tracking/TrackingDialogs'
@@ -41,33 +42,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SegmentedList, SegmentedTrigger, Tabs } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { ApiError, apiUrl } from '@/lib/api'
 import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
-import { useGenerateDraft } from '@/lib/queries/workflow'
 import { isApplied, openListingAndCv } from '@/lib/tracking'
-import type { CloseReason, DraftStatus, JobDetail, Route, Stage } from '@/lib/types'
+import type { CloseReason, JobDetail, Route, Stage } from '@/lib/types'
+import { OutreachSection } from './OutreachSection'
 import { Timeline } from './Timeline'
-
-const DRAFT_TONE: Record<DraftStatus, Tone> = {
-  draft: 'amber',
-  approved: 'blue',
-  queued: 'blue',
-  sent: 'green',
-  rejected: 'gray',
-  failed: 'red',
-}
-const DRAFT_LABEL: Record<DraftStatus, string> = {
-  draft: 'Needs review',
-  approved: 'Approved',
-  queued: 'Queued',
-  sent: 'Sent',
-  rejected: 'Rejected',
-  failed: 'Failed',
-}
 
 function stageMenuLabel(stage: Stage, route: Route) {
   if (stage === 'ready') return route === 'web_apply' ? 'Ready to apply' : 'Ready to send'
@@ -187,74 +170,6 @@ function CVSection({ job }: { job: JobDetail }) {
   )
 }
 
-function EmailSection({ job }: { job: JobDetail }) {
-  const generate = useGenerateDraft()
-  const navigate = useNavigate()
-  const draft = job.drafts.find((d) => d.status !== 'rejected') ?? job.drafts[0]
-  const hasApprovedCV = job.cv_versions.some((v) => v.status === 'approved')
-
-  if (job.application.route === 'web_apply') return null
-
-  const onGenerate = () =>
-    generate.mutate(job.application.id, {
-      onSuccess: (d) => {
-        toast.success('Email draft created', { description: `To ${d.contact?.full_name}` })
-        navigate(`/outreach?draft=${d.id}`)
-      },
-      onError: (e) => toast.error(e.message),
-    })
-
-  return (
-    <Section
-      title="Cold email"
-      action={
-        draft && (
-          <Button size="xs" variant="ghost" asChild>
-            <Link to={`/outreach?draft=${draft.id}${draft.status === 'draft' ? '' : '&status=all'}`}>
-              Open in Outreach
-              <ArrowRight />
-            </Link>
-          </Button>
-        )
-      }
-    >
-      {!draft ? (
-        <EmptyState
-          compact
-          icon={Mail}
-          title="No email drafted"
-          description={
-            !job.contact
-              ? 'This job needs a contact before an email can be drafted.'
-              : hasApprovedCV
-                ? `Draft a short email to ${job.contact.full_name}.`
-                : 'Approve the CV first; the email references it.'
-          }
-          action={
-            job.contact &&
-            hasApprovedCV && (
-              <Button size="sm" onClick={onGenerate} disabled={generate.isPending}>
-                <Sparkles />
-                Draft email
-              </Button>
-            )
-          }
-        />
-      ) : (
-        <div className="space-y-2 p-4">
-          <div className="flex items-center gap-2">
-            <ToneBadge tone={DRAFT_TONE[draft.status]}>{DRAFT_LABEL[draft.status]}</ToneBadge>
-            {draft.contact_name && <span className="text-xs text-fg-muted">To {draft.contact_name}</span>}
-            <span className="ml-auto text-xs text-fg-subtle">{relativeTime(draft.updated_at)}</span>
-          </div>
-          <p className="text-sm font-medium">{draft.subject}</p>
-          <p className="line-clamp-4 text-sm whitespace-pre-line text-fg-muted">{draft.body}</p>
-        </div>
-      )}
-    </Section>
-  )
-}
-
 function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => void }) {
   const stage = job.application.stage
   const approved = job.cv_versions.find((v) => v.status === 'approved')
@@ -337,7 +252,6 @@ export default function JobPage() {
   const { data: job, isPending, error, refetch } = useJob(jobId)
   const patch = usePatchApplication()
   const triage = useTriageActions()
-  const generateDraft = useGenerateDraft()
   const [closing, setClosing] = useState(false)
   const [applying, setApplying] = useState(false)
   const [interviewing, setInterviewing] = useState(false)
@@ -382,13 +296,15 @@ export default function JobPage() {
   const target = { jobId: job.id, title: job.title, company: job.company.name }
   const latestCV = job.cv_versions[0]
   const approvedCV = job.cv_versions.find((v) => v.status === 'approved')
+  const route = app.effective_route
+  const toOutreach = () => document.getElementById('outreach')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   const pickStage = (s: Stage) => {
     if (s === 'closed') setClosing(true)
-    else if (s === 'done' && app.route === 'web_apply') setApplying(true)
+    else if (s === 'done' && route === 'web_apply') setApplying(true)
     else if (s === 'interview') setInterviewing(true)
+    else if (s === 'drafted' || (route === 'cold_email' && (s === 'ready' || s === 'done'))) toOutreach()
     else setStage(s)
   }
-  const openDraft = job.drafts.find((d) => d.status === 'draft')
 
   // The single primary action for this stage.
   let primary: React.ReactNode = null
@@ -408,43 +324,19 @@ export default function JobPage() {
         </Link>
       </Button>
     )
-  } else if ((app.stage === 'cv_ready' || app.stage === 'ready') && app.route === 'web_apply') {
+  } else if ((app.stage === 'cv_ready' || app.stage === 'ready') && route === 'web_apply') {
     primary = (
       <Button variant="default" onClick={() => setApplying(true)} disabled={!approvedCV}>
         <CircleCheck />
         Mark applied
       </Button>
     )
-  } else if (app.stage === 'cv_ready') {
-    primary = openDraft ? (
-      <Button variant="default" asChild>
-        <Link to={`/outreach?draft=${openDraft.id}`}>
-          <Mail />
-          Review email draft
-        </Link>
-      </Button>
-    ) : (
-      <Button
-        variant="default"
-        disabled={!job.contact || generateDraft.isPending}
-        onClick={() =>
-          generateDraft.mutate(app.id, {
-            onSuccess: (d) => navigate(`/outreach?draft=${d.id}`),
-            onError: (e) => toast.error(e.message),
-          })
-        }
-      >
-        <Sparkles />
-        Draft email
-      </Button>
-    )
-  } else if (app.stage === 'ready') {
+  } else if (app.stage === 'cv_ready' || app.stage === 'drafted' || app.stage === 'ready') {
+    // Email route: the Cold email section below holds the next action.
     primary = (
-      <Button variant="default" asChild>
-        <Link to="/outreach?tab=queue">
-          <Mail />
-          View send queue
-        </Link>
+      <Button variant="default" onClick={toOutreach}>
+        <Mail />
+        {app.stage === 'cv_ready' ? 'Draft email' : app.stage === 'drafted' ? 'Review email' : 'Send queue step'}
       </Button>
     )
   } else if (app.stage === 'done') {
@@ -511,29 +403,30 @@ export default function JobPage() {
                   onSelect={() => pickStage(s)}
                 >
                   <StageDot stage={s} />
-                  {s === 'closed' ? 'Close…' : stageMenuLabel(s, app.route)}
+                  {s === 'closed' ? 'Close…' : stageMenuLabel(s, route)}
                 </DropdownMenuItem>
               ))}
+              {app.stage !== 'new' && app.stage !== 'closed' && app.stage !== 'done' && app.stage !== 'interview' && (
+                <>
+                  <DropdownMenuLabel>Route</DropdownMenuLabel>
+                  {route === 'cold_email' ? (
+                    <DropdownMenuItem onSelect={() => setRoute('web_apply')}>
+                      <Globe />
+                      Switch to web apply
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem disabled={!job.contact} onSelect={() => setRoute('cold_email')}>
+                      <Mail />
+                      {job.contact ? 'Switch to cold email' : 'Cold email (needs a contact)'}
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
-          {app.stage !== 'new' && app.stage !== 'closed' && (
-            <Tabs value={app.route === 'undecided' ? '' : app.route} onValueChange={(v) => setRoute(v as Route)}>
-              <SegmentedList>
-                <Tooltip content={job.contact ? 'Send a cold email' : 'Needs a contact first'}>
-                  <span>
-                    <SegmentedTrigger value="cold_email" disabled={!job.contact}>
-                      <Mail />
-                      Email
-                    </SegmentedTrigger>
-                  </span>
-                </Tooltip>
-                <SegmentedTrigger value="web_apply">
-                  <Globe />
-                  Web apply
-                </SegmentedTrigger>
-              </SegmentedList>
-            </Tabs>
-          )}
+          <span data-tour="job-route">
+            <RouteBadge route={route} />
+          </span>
           <span data-tour="job-next">{primary}</span>
         </div>
       </header>
@@ -541,13 +434,15 @@ export default function JobPage() {
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)_320px] gap-6 max-lg:grid-cols-1">
         <div className="space-y-4">
           <JobFlags job={job} />
+          <div id="outreach" className="scroll-mt-4">
+            <OutreachSection job={job} />
+          </div>
           <WebApplyCallout job={job} onApplied={() => setApplying(true)} />
           <TrackingSection job={job} />
           <div data-tour="job-fit">
             <FitCard job={job} />
           </div>
           <CVSection job={job} />
-          <EmailSection job={job} />
           <NotesCard key={job.id} job={job} />
           <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
             <div className="p-4">

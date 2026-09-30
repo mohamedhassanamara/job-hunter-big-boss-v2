@@ -39,7 +39,7 @@ from app.schemas.contacts import (
 )
 from app.schemas.jobs import JobDetail
 from app.services import company_merge, contacts, contacts_import
-from app.services.pipeline import stage_label
+from app.services.pipeline import effective_route, stage_label
 from app.services.views import contact_out, fit_brief, job_detail, latest_fits
 
 router = APIRouter(tags=["contacts"])
@@ -139,7 +139,8 @@ def get_company(company_id: int, session: SessionDep) -> CompanyDetail:
         **base.model_dump(), website=company.website,
         contacts=[contact_out(c, ranking.groups) for c in people],
         jobs=[CompanyJob(application_id=a.id, job_id=j.id, title=j.title, stage=a.stage,
-                         stage_label=stage_label(a.stage, a.route), route=a.route,
+                         stage_label=stage_label(a.stage, effective_route(a)), route=a.route,
+                         effective_route=effective_route(a),
                          contact_tier=a.contact_tier, contact_id=a.contact_id,
                          fit=fit_brief(fits.get(j.id))) for a, j in rows],
     )

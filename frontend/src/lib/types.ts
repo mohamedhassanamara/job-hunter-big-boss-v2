@@ -1,6 +1,6 @@
 // Mirrors backend/app/schemas — keep in sync. JSON is snake_case end to end.
 
-export type Stage = 'new' | 'shortlisted' | 'cv_ready' | 'ready' | 'done' | 'interview' | 'closed'
+export type Stage = 'new' | 'shortlisted' | 'cv_ready' | 'drafted' | 'ready' | 'done' | 'interview' | 'closed'
 export type Route = 'undecided' | 'cold_email' | 'web_apply'
 export type ContactTier = 'apollo_dump' | 'lookup_queued' | 'lookup_found' | 'none'
 export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt'
@@ -90,6 +90,7 @@ export interface ApplicationBrief {
   stage: Stage
   stage_label: string
   route: Route
+  effective_route: Route // route, or derived from the contact while undecided
   contact_tier: ContactTier
   close_reason: CloseReason | null
   stage_changed_at: string
@@ -203,6 +204,7 @@ export interface PipelineCard {
   stage: Stage
   stage_label: string
   route: Route
+  effective_route: Route // route, or derived from the contact while undecided
   contact_tier: ContactTier
   close_reason: CloseReason | null
   stage_changed_at: string
@@ -384,6 +386,32 @@ export interface Draft {
   sent_at: string | null
 }
 
+export interface DraftReviewItem {
+  draft_id: number
+  job_id: number
+  job_title: string
+  company_name: string
+  contact_name: string | null
+  created_at: string
+}
+
+export type OutreachStepName = 'contact' | 'cv' | 'draft' | 'review' | 'queue' | 'queued' | 'sent'
+
+export interface OutreachStep {
+  step: OutreachStepName
+  route: Route
+  contact_tier: ContactTier
+  lookup_status: LookupStatus | null
+  has_contact: boolean
+  has_email: boolean
+  cv_version: number | null
+  draft: Draft | null
+  queue_position: number | null
+  queue_eta: string | null
+  queue_status: QueueStatus
+  sent_at: string | null
+}
+
 export interface Violation {
   type: string
   severity: 'error' | 'warning'
@@ -488,6 +516,7 @@ export interface CompanyJob {
   stage: Stage
   stage_label: string
   route: Route
+  effective_route: Route // route, or derived from the contact while undecided
   contact_tier: ContactTier
   contact_id: number | null
   fit: FitBrief | null
@@ -737,14 +766,8 @@ export interface Today {
     version: number
     created_at: string
   }[]
-  drafts_to_approve: {
-    draft_id: number
-    job_id: number
-    job_title: string
-    company_name: string
-    contact_name: string | null
-    created_at: string
-  }[]
+  drafts_to_approve: DraftReviewItem[]
+  emails_to_queue: DraftReviewItem[] // approved, not yet in the send queue
   ready_to_apply: PipelineCard[]
   reminders: Reminder[]
   upcoming_interviews: UpcomingInterview[] // next 14 days, pending

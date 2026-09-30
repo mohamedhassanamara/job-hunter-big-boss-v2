@@ -1,6 +1,6 @@
 import { Columns3, Compass, Rows3, Search, SearchX } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { CloseDialog } from '@/components/app/CloseDialog'
 import { LogInterviewDialog, MarkAppliedDialog, type TrackTarget } from '@/components/app/tracking/TrackingDialogs'
@@ -38,6 +38,7 @@ function BoardSkeleton() {
 
 export default function PipelinePage() {
   const url = useSearchParamState()
+  const navigate = useNavigate()
   const view = url.get('view') === 'table' ? 'table' : 'board'
   const showDismissed = url.get('dismissed') === '1'
   const [q, setQ] = useState('')
@@ -72,7 +73,13 @@ export default function PipelinePage() {
     }
     // Applying and interviews record details (date, method, CV sent; round), so they open a dialog.
     const tracked = { appId: card.application_id, title: card.title, company: card.company_name }
-    if (to === 'done' && card.route === 'web_apply') {
+    // Email steps (draft, review, queue, sent) happen in the job's Cold email section.
+    if (card.effective_route === 'cold_email' && (to === 'drafted' || to === 'ready' || to === 'done')) {
+      toast(`${COLUMN_LABELS[to]}: continue in the job's Cold email section`)
+      navigate(`/jobs/${card.job_id}#outreach`)
+      return
+    }
+    if (to === 'done' && card.effective_route === 'web_apply') {
       setApplying(tracked)
       return
     }

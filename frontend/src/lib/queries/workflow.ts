@@ -10,6 +10,7 @@ import type {
   Draft,
   FullListingResult,
   NavCounts,
+  OutreachStep,
   Queue,
   RescorePreview,
   ScoringHealth,
@@ -187,6 +188,31 @@ export function useGenerateDraft() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (appId: number) => api.post<Draft>(`/applications/${appId}/draft/generate`),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useOutreachStep(appId: number | undefined) {
+  return useQuery({
+    queryKey: ['outreach-step', appId],
+    queryFn: () => api.get<OutreachStep>(`/applications/${appId}/outreach`),
+    enabled: appId !== undefined,
+  })
+}
+
+export function useQueueDraft() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (draftId: number) => api.post<Draft>(`/outreach/drafts/${draftId}/queue`),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+export function useSentManually() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ appId, sent_on }: { appId: number; sent_on: string }) =>
+      api.post<OutreachStep>(`/applications/${appId}/sent-manually`, { sent_on }),
     onSettled: () => invalidateWork(qc),
   })
 }

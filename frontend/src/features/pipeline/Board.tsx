@@ -9,10 +9,10 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Mail, Globe, Search, UserRoundX } from 'lucide-react'
+import { Search, UserRoundX } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { FitBadge, StageDot } from '@/components/app/badges'
+import { FitBadge, RouteBadge, StageDot } from '@/components/app/badges'
 import { Tooltip } from '@/components/ui/tooltip'
 import { COLUMN_LABELS, shortAge, STAGE_ORDER } from '@/lib/format'
 import type { PipelineCard, Stage } from '@/lib/types'
@@ -32,16 +32,7 @@ function CardBody({ card, dragging }: { card: PipelineCard; dragging?: boolean }
       </div>
       <p className="truncate text-xs text-fg-muted">{card.company_name}</p>
       <div className="flex items-center gap-2 text-xs text-fg-subtle">
-        {card.route === 'cold_email' && (
-          <Tooltip content="Cold email">
-            <Mail className="size-3.5" />
-          </Tooltip>
-        )}
-        {card.route === 'web_apply' && (
-          <Tooltip content="Web apply">
-            <Globe className="size-3.5" />
-          </Tooltip>
-        )}
+        {card.stage !== 'new' && card.stage !== 'closed' && <RouteBadge route={card.effective_route} />}
         {card.contact_tier === 'lookup_queued' && (
           <Tooltip content="Apollo lookup queued">
             <Search className="size-3.5 text-warning-dot" />
