@@ -6,6 +6,7 @@ stores the draft with anything still wrong highlighted; nothing is ever fixed si
 signature and the opt-out line come from Settings → Email and are added at preview/send time.
 """
 
+import re
 import threading
 import time
 from pathlib import Path
@@ -44,7 +45,8 @@ from app.services.cv_claims import exact_statement
 from app.services.cv_pool import Pool, load_pool, prompt_pool, years_facts
 
 DEFAULT_OUTREACH: dict[str, Any] = {
-    "signature": {"name": "", "title": "", "email": "", "phone": "", "photo_path": ""},
+    "signature": {"name": "", "title": "", "email": "", "phone": "", "photo_path": "",
+                  "linkedin": "", "show_phone": False},
     "sign_off": "Best regards,",
     "opt_out": "If this isn't relevant for you, just let me know and I won't follow up.",
     # French emails (the language follows the listing).
@@ -81,6 +83,9 @@ def outreach_settings(s: Session) -> dict[str, Any]:
     sig["name"] = sig["name"] or profile.get("full_name", "")
     sig["email"] = sig["email"] or profile.get("email", "")
     sig["phone"] = sig["phone"] or profile.get("phone", "")
+    linkedin = next((x.get("url") for x in profile.get("links") or []
+                     if x.get("type") == "linkedin" and x.get("url")), "")
+    sig["linkedin"] = sig.get("linkedin") or linkedin
     headline = (profile.get("headline") or "").strip()
     sig["title"] = sig["title"] or (headline if len(headline) <= 60 else "")
     out["signature"] = sig
@@ -235,7 +240,10 @@ def signature_block(cfg: dict[str, Any], language: str = "en") -> str:
     lines = [sign_off, sig.get("name") or ""]
     if sig.get("title"):
         lines.append(sig["title"])
-    reach = " · ".join(x for x in (sig.get("email"), sig.get("phone")) if x)
+    # The phone number reveals the country code: off unless you turn it on (Settings → Email).
+    phone = sig.get("phone") if sig.get("show_phone") else ""
+    linkedin = re.sub(r"^https?://(www\.)?", "", (sig.get("linkedin") or "").strip()).rstrip("/")
+    reach = " · ".join(x for x in (sig.get("email"), phone, linkedin) if x)
     if reach:
         lines.append(reach)
     return "\n".join(x for x in lines if x)
@@ -513,8 +521,10 @@ def intro_request(s: Session, app: Application, job: Job, company: Company, cont
                  "years_statement": english, "years_statement_fr": french,
                  "areas_you_can_use": tracks + skill_groups,
                  "current_role": request.candidate.get("current_role")}
-    signals = [{"id": x.id, "kind": x.kind, "fact": x.fact, "quote": x.quote}
+    signals = [{"id": x.id, "kind": x.kind, "fact": x.fact, "quote": x.quote,
+                "connects_to": research.connection(x.fact, pool)}
                for x in research.signals(s, company.id, selected_only=True)]
+    signals.sort(key=lambda x: -len(x["connects_to"]))  # connected to your proofs first
     rules = {"language": language, "min_words": ic.MIN_WORDS, "max_words": ic.MAX_WORDS,
              "banned_phrases": request.rules.get("banned_phrases"),
              "jargon": request.rules.get("jargon"), "signals": signals,

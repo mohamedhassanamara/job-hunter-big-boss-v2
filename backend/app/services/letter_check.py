@@ -521,3 +521,10 @@ def feedback(violations: list[dict[str, str]]) -> str:
 def errors(violations: list[dict[str, str]]) -> list[dict[str, str]]:
     return [v for v in violations if v["severity"] == "error"]
 
+
+
+def short_statement_fr(statement: str | None) -> str | None:
+    """"3 ans d'expérience" for "3 ans d'expérience en ingénierie logicielle" (used next to
+    "ingénieur logiciel", where the field would be said twice)."""
+    m = _FR_STATEMENT.match((statement or "").replace("’", "'"))
+    return f"{m.group(1)} ans d'expérience" if m else None

@@ -65,7 +65,11 @@ def intro_line(first_name: str, focus: str, language: str, statement: str | None
     rules allow; French keeps the full wording)."""
     focus = re.sub(r"^(?:in|sur des|sur les|en)\s+", "", focus.strip().rstrip("."), flags=re.I)
     if language == "fr":
-        years = statement_fr or (f"{fallback_years} d'expérience" if fallback_years else "")
+        # "ingénieur logiciel" already says the field: the short form of the years wording.
+        from app.services.letter_check import short_statement_fr
+
+        years = short_statement_fr(statement_fr) or statement_fr or (
+            f"{fallback_years} d'expérience" if fallback_years else "")
         line = f"Je suis {first_name}, ingénieur logiciel" + (f" avec {years}" if years else "")
         if not focus:
             return f"{line}."

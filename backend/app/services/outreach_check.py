@@ -26,6 +26,7 @@ DEFAULT_BANNED = [
     "detail-oriented", "dynamic", "rockstar", "ninja", "guru", "touch base", "circle back",
     "reach out to you today", "i came across your profile", "perfect fit", "dream job",
     "j'espère que vous allez bien", "je me permets de vous contacter", "espero que estés bien",
+    "roi", "retour sur investissement",
 ]
 DEFAULT_MAX_WORDS = 150
 DUPLICATE_THRESHOLD = 0.5  # 3-word shingle overlap with a draft to someone else
