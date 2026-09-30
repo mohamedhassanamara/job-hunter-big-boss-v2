@@ -34,7 +34,8 @@ def fact_answer(info: dict, qid: int, repeat: int = 1) -> AnswerDraft:
 def test_answers_are_grounded_and_saved_in_order(web_job: dict) -> None:  # noqa: F811
     drafter = Script(AnswersPlan(answers=[fact_answer(web_job, 1), fact_answer(web_job, 2)]))
     rows = answers.generate(engine, web_job["app"], drafter, [
-        {"question": "Why this role?"}, {"question": "A project you're proud of", "char_limit": 900}])
+        {"question": "Why this role?"},
+        {"question": "A project you're proud of", "char_limit": 900}])
     assert [r.question for r in rows] == ["Why this role?", "A project you're proud of"]
     assert all(r.violations == [] for r in rows), [r.violations for r in rows]
     assert drafter.requests[0].questions[1]["char_limit"] == 900
