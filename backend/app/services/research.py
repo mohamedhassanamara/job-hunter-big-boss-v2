@@ -436,9 +436,13 @@ def signals(s: Session, company_id: int, *, selected_only: bool = False) -> list
     return [r for r in rows if r.selected] if selected_only else rows
 
 
-def last_run(s: Session, company_id: int) -> ResearchRun | None:
-    return s.exec(select(ResearchRun).where(ResearchRun.company_id == company_id)
-                  .order_by(col(ResearchRun.id).desc())).first()
+def last_run(s: Session, company_id: int, *, real: bool = False) -> ResearchRun | None:
+    """The latest run; `real=True` skips cache hits (the last run that fetched and called the
+    model: what the signals cost)."""
+    stmt = select(ResearchRun).where(ResearchRun.company_id == company_id)
+    if real:
+        stmt = stmt.where(ResearchRun.status != "cached")
+    return s.exec(stmt.order_by(col(ResearchRun.id).desc())).first()
 
 
 def _auto_select(rows: list[CompanySignal], limit: int) -> None:
