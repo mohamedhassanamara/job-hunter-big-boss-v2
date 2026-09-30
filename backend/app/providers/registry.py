@@ -5,12 +5,20 @@ from functools import lru_cache
 
 from app.config import get_settings
 from app.models.enums import Source
-from app.providers.base import CVGenerator, EmailDrafter, FitScorer, JobSource, Mailer
+from app.providers.base import (
+    CVGenerator,
+    EmailDrafter,
+    FitScorer,
+    JobSource,
+    LetterDrafter,
+    Mailer,
+)
 from app.providers.mock import (
     MockCVGenerator,
     MockEmailDrafter,
     MockFitScorer,
     MockJobSource,
+    MockLetterDrafter,
     MockMailer,
 )
 
@@ -65,6 +73,17 @@ def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") -
     from app.providers.claude_email import ClaudeEmailDrafter
 
     return ClaudeEmailDrafter(model)
+
+
+def letter_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> LetterDrafter:
+    """Cover letters and application answers. Real workspace: Claude Code headless (subscription
+    only). Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        return MockLetterDrafter()
+    from app.providers.claude_letter import ClaudeLetterDrafter
+
+    return ClaudeLetterDrafter(model)
 
 
 _mock_mailer = MockMailer()

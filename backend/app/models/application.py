@@ -35,6 +35,11 @@ class Application(TableBase, table=True):
         Integer, ForeignKey("cv_version.id", use_alter=True,
                             name="fk_application_applied_cv_version"), nullable=True))
     applied_notes: str = Field(default="", sa_type=Text)
+    # The (locked) cover letter sent with a web application; None = sent without one.
+    applied_cover_letter_id: int | None = Field(default=None, sa_column=Column(
+        Integer, ForeignKey("cover_letter.id", use_alter=True,
+                            name="fk_application_applied_cover_letter"), nullable=True))
+    letter_language: str = "auto"  # auto (the listing's language) | fr | en
     stage_changed_at: datetime = dt_field(default_factory=utcnow)
 
 
@@ -97,3 +102,49 @@ class OutreachDraft(TableBase, table=True):
     test_sent_at: datetime | None = dt_field()
     sent_at: datetime | None = dt_field()
     message_id: str | None = None
+
+
+class CoverLetter(TableBase, table=True):
+    """A cover letter version for a web application, written from the approved CV."""
+
+    __tablename__ = "cover_letter"
+
+    application_id: int = Field(foreign_key="application.id", index=True)
+    version: int = 1
+    status: CVStatus = enum_field(CVStatus.draft)
+    language: str = "en"  # fr | en
+    # {salutation, paragraphs: [{sentences: [{text, citations, about_job}]}], closing}; after
+    # you edit a paragraph, that paragraph is {text} (re-checked at text level).
+    content: dict[str, Any] = json_field(dict)
+    text: str = Field(default="", sa_type=Text)  # plain text (Copy as text)
+    tex: str | None = Field(default=None, sa_type=Text)
+    pdf_path: str | None = None
+    page_count: int | None = None
+    template: str = "default"
+    cv_version_id: int | None = Field(default=None, foreign_key="cv_version.id")
+    generator_model: str = "mock"
+    prompt_version: str | None = None
+    plan: dict[str, Any] = json_field(dict)  # the model's output and attempts
+    violations: list[dict[str, Any]] = json_field()
+    duration_ms: int | None = None
+    error: str | None = Field(default=None, sa_type=Text)
+    locked_at: datetime | None = dt_field()
+    pdf_sha256: str | None = None
+
+
+class ApplicationAnswer(TableBase, table=True):
+    """An answer to a question from an application form, grounded like the cover letter."""
+
+    __tablename__ = "application_answer"
+
+    application_id: int = Field(foreign_key="application.id", index=True)
+    question: str = Field(sa_type=Text)
+    char_limit: int | None = None
+    answer: str = Field(default="", sa_type=Text)
+    language: str = "en"
+    position: int = 0
+    edited: bool = False
+    plan: dict[str, Any] = json_field(dict)  # the model's sentences with citations
+    violations: list[dict[str, Any]] = json_field()
+    generator_model: str = "mock"
+    prompt_version: str | None = None

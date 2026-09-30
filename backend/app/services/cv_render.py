@@ -255,6 +255,54 @@ def render_tex(doc: CVDocument, profile: CVProfile, template: CVTemplate) -> str
     return re.sub(r"\n{3,}", "\n\n", tex)
 
 
+# ------------------------------------------------------------------------------ cover letter
+
+LETTER_FILE = "cover_letter.tex.j2"
+BABEL = {"fr": "french", "en": "english"}
+
+
+class LetterDocument(BaseModel):
+    """What a cover letter template renders (all content; the template is style only)."""
+
+    language: str = "en"
+    place_date: str = ""
+    company: str = ""
+    attention: str = ""
+    subject: str = ""
+    salutation: str = ""
+    paragraphs: list[str] = []
+    closing: str = ""
+
+
+def has_letter(template: CVTemplate) -> bool:
+    enabled = (template.config.get("cover_letter") or {}).get("enabled", True)
+    return bool(enabled) and (template.path / LETTER_FILE).exists()
+
+
+def _letter_text(value: str) -> str:
+    """Narrow no-break spaces (French typography) aren't in the T1 font: use a normal one."""
+    return value.replace("\u202f", "\u00a0").strip()
+
+
+def render_letter_tex(doc: LetterDocument, profile: CVProfile, template: CVTemplate) -> str:
+    env = jinja_env(template.path)
+    context = {
+        "paper_class": Raw(PAPER_CLASS.get(template.paper, "letterpaper")),
+        "babel": Raw(BABEL.get(doc.language, "english")),
+        "profile": profile.model_dump(),
+        "header_lines": header_lines(profile, template.config),
+        "place_date": _letter_text(doc.place_date),
+        "company": _letter_text(doc.company),
+        "attention": _letter_text(doc.attention),
+        "subject": _letter_text(doc.subject),
+        "salutation": _letter_text(doc.salutation),
+        "paragraphs": [_letter_text(p) for p in doc.paragraphs if p.strip()],
+        "closing": _letter_text(doc.closing),
+    }
+    tex = env.get_template(LETTER_FILE).render(**context)
+    return re.sub(r"\n{3,}", "\n\n", tex)
+
+
 # ---------------------------------------------------------------------------------- compiling
 
 
