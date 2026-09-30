@@ -44,11 +44,10 @@ function RunLine({ data }: { data: CompanyResearch }) {
   const tokens = run.calls.reduce((n, c) => n + (c.prompt_tokens ?? 0) + (c.output_tokens ?? 0), 0)
   return (
     <p className="text-xs text-fg-subtle">
-      {run.status === 'cached'
-        ? `Reused fresh signals ${relativeTime(run.started_at)} (no fetch, no model call)`
-        : run.status === 'failed'
-          ? `Last run failed: ${run.error}`
-          : `Researched ${relativeTime(run.started_at)} · ${run.pages} pages · ${run.calls.length} model call${run.calls.length === 1 ? '' : 's'}${models ? ` · ${models}` : ''}${seconds ? ` · ${Math.round(seconds)}s` : ''}${tokens ? ` · ${tokens.toLocaleString()} tokens` : ''} · ${run.signals_kept} kept, ${run.signals_dropped} dropped (quote not verified)`}
+      {run.status === 'failed'
+        ? `Last run failed: ${run.error}`
+        : `Researched ${relativeTime(run.started_at)} · ${run.pages} pages · ${run.calls.length} model call${run.calls.length === 1 ? '' : 's'}${models ? ` · ${models}` : ''}${seconds ? ` · ${Math.round(seconds)}s` : ''}${tokens ? ` · ${tokens.toLocaleString()} tokens` : ''} · ${run.signals_kept} kept, ${run.signals_dropped} dropped`}
+      {data.reused_at && ` · reused by a draft ${relativeTime(data.reused_at)} (no fetch, no model call)`}
     </p>
   )
 }

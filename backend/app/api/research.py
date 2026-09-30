@@ -51,7 +51,8 @@ class ResearchOut(BaseModel):
     refreshed_at: datetime | None
     refresh_days: int
     signals: list[SignalOut]
-    last_run: RunOut | None
+    last_run: RunOut | None  # the last real run (fetch + model calls)
+    reused_at: datetime | None = None  # the last time a draft reused the fresh signals
     progress: dict[str, Any] | None
 
 
@@ -79,7 +80,8 @@ _lock = threading.Lock()
 
 
 def _out(s: Session, company: Company, workspace: str) -> ResearchOut:
-    run = research.last_run(s, company.id)
+    run = research.last_run(s, company.id, real=True)
+    latest = research.last_run(s, company.id)
     with _lock:
         progress = dict(_runs[(workspace, company.id)]) if (workspace, company.id) in _runs \
             else None
@@ -90,6 +92,7 @@ def _out(s: Session, company: Company, workspace: str) -> ResearchOut:
         signals=[SignalOut.model_validate(x, from_attributes=True)
                  for x in research.signals(s, company.id)],
         last_run=RunOut.model_validate(run, from_attributes=True) if run else None,
+        reused_at=latest.started_at if latest and latest.status == "cached" else None,
         progress=progress)
 
 

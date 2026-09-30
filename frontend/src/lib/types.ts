@@ -1210,5 +1210,6 @@ export interface CompanyResearch {
   refresh_days: number
   signals: CompanySignal[]
   last_run: ResearchRun | null
+  reused_at: string | null
   progress: { status: string; phase: string; done: number; total: number; error: string | null } | null
 }
