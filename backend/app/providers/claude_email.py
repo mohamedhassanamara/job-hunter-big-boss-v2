@@ -32,6 +32,7 @@ def user_message(request: EmailRequest, feedback: str = "") -> str:
 
 
 class ClaudeEmailDrafter(ClaudeCVGenerator):
+    via = "claude -p"  # Claude Code headless on your subscription (never Ollama)
     def __init__(self, model: str = "claude-sonnet-5", *, timeout: int = TIMEOUT, **kw):  # noqa: ANN003
         super().__init__(model, timeout=timeout, **kw)
         self.prompt_version, self.email_prompt, self.retry_prompt = load_prompts()

@@ -61,6 +61,8 @@ class Context:
     other_companies: list[str] = field(default_factory=list)  # in drafts to other companies
     others: list[tuple[int, str, str]] = field(default_factory=list)  # (draft id, to, text)
     years_statement: str | None = None  # the only years wording allowed, when fixed
+    fixed_sentences: list[str] = field(default_factory=list)  # added by code (not claims)
+    extra_words: int = 0  # words code adds to the body (counted in the limit)
 
 
 # "a 15-minute call", "20 minutes", "30 min", "2 hours": a request's duration, not a claim.
@@ -70,6 +72,8 @@ _DURATION = re.compile(r"\b\d+\s*[-–]?\s*(?:minutes?|mins?|hours?|hrs?|h|minut
 
 def _claims_only(text: str, ctx: "Context") -> str:
     """Drop what isn't a claim: durations of the ask and the company's own name ("3E")."""
+    for fixed in ctx.fixed_sentences:
+        text = text.replace(fixed, " ")
     text = _DURATION.sub(" ", text)
     if ctx.years_statement:
         from app.services.cv_claims import strip_statement
@@ -96,7 +100,7 @@ def lint(subject: str, greeting: str, body_parts: list[str], ask: str | None,
     out: list[dict[str, str]] = []
     everything = " ".join([subject, greeting, *body_parts, ask or ""])
     folded = fold(everything)
-    n_words = len(words(" ".join([greeting, *body_parts, ask or ""])))
+    n_words = len(words(" ".join([greeting, *body_parts, ask or ""]))) + ctx.extra_words
     if n_words > ctx.max_words:
         out.append(violation("length", f"{n_words} words (limit {ctx.max_words})", "body",
                              "error"))

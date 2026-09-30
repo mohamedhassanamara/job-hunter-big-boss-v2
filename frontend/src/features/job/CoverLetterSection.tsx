@@ -16,7 +16,7 @@ const LANGUAGE = { fr: 'French', en: 'English' } as const
 export function CoverLetterSection({ job }: { job: JobDetail }) {
   const app = job.application
   const hasApprovedCv = job.cv_versions.some((v) => v.status === 'approved')
-  const show = app.effective_route === 'web_apply' && app.stage !== 'new' && (hasApprovedCv || job.cv_versions.length > 0)
+  const show = app.stage !== 'new' && app.stage !== 'closed' && app.tracks.application !== 'applied' && (hasApprovedCv || job.cv_versions.length > 0)
   const { data, isPending } = useLetterStudio(show ? app.id : NaN)
   if (!show) return null
   const letters = data?.letters ?? []

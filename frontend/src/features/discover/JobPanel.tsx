@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import {
   LocationText,
   RemoteBadge,
-  RouteBadge,
+  TrackBadges,
   SourceBadge,
   StageBadge,
 } from '@/components/app/badges'
@@ -81,7 +81,7 @@ export function JobPanel({
                 <LocationText location={job.location} />
                 <RemoteBadge remote={job.remote_type} />
                 <SourceBadge source={job.source} short={false} />
-                <RouteBadge route={job.application.effective_route} />
+                {job.application.stage !== 'new' && <TrackBadges tracks={job.application.tracks} />}
               </div>
               <p className="text-xs text-fg-subtle">
                 <Tooltip content={absoluteDate(job.posted_at)}>

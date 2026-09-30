@@ -1,4 +1,4 @@
-import { ArrowRight, CircleCheck, Clock, FileText, Mail, Search, Send, Sparkles, UserPlus } from 'lucide-react'
+import { ArrowRight, CircleCheck, Clock, Copy, FileText, Search, Send, Sparkles, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { clockTime, relativeTime } from '@/lib/format'
-import { usePatchApplication, useQueueLookup } from '@/lib/queries/jobs'
+import { useQueueLookup } from '@/lib/queries/jobs'
 import { useCompany, useSetJobContact } from '@/lib/queries/library'
 import { useDraftAction, useGenerateDraft, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
 import { todayIso } from '@/lib/tracking'
-import type { JobDetail, OutreachStepName } from '@/lib/types'
+import type { JobDetail, OutreachStepName, WhoToContact } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const STEPS: { key: OutreachStepName[]; label: string }[] = [
@@ -84,7 +84,54 @@ function SentMyselfDialog({ appId, open, onOpenChange }: { appId: number; open: 
   )
 }
 
-function FindContact({ job }: { job: JobDetail }) {
+function CopyLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="w-20 shrink-0 pt-0.5 text-xs text-fg-subtle">{label}</span>
+      <code className="min-w-0 flex-1 rounded-md bg-bg-subtle px-2 py-1 text-xs break-words">{value}</code>
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        aria-label={`Copy ${label}`}
+        onClick={() => navigator.clipboard.writeText(value).then(() => toast.success(`${label} copied`), () => toast.error("Couldn't copy"))}
+      >
+        <Copy />
+      </Button>
+    </div>
+  )
+}
+
+/** Which role to look for (by company size, Settings → Contacts) and search hints to copy. */
+function WhoToContactHints({ who }: { who: WhoToContact }) {
+  const apollo = [
+    `Company: ${who.apollo.company}${who.apollo.domain ? ` (${who.apollo.domain})` : ''}`,
+    `Job titles: ${who.apollo.titles.join(', ')}`,
+    who.apollo.seniority.length ? `Seniority: ${who.apollo.seniority.join(', ')}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  return (
+    <div data-tour="job-who-to-contact" className="space-y-2 rounded-md border border-border bg-bg-subtle/40 p-3">
+      <p className="text-sm font-medium">Who to contact</p>
+      <p className="text-sm text-fg-muted">{who.reason}</p>
+      <ol className="space-y-1 text-sm">
+        {who.roles.map((r, i) => (
+          <li key={r.label} className="flex gap-2">
+            <span className="text-fg-subtle tabular-nums">{i + 1}.</span>
+            <span className="font-medium">{r.label}</span>
+            <span className="truncate text-fg-muted">{r.titles.join(' · ')}</span>
+          </li>
+        ))}
+      </ol>
+      <CopyLine label="LinkedIn" value={who.linkedin_query} />
+      <CopyLine label="Search URL" value={who.linkedin_url} />
+      <CopyLine label="Apollo" value={apollo} />
+      <p className="text-xs text-fg-subtle">Found someone? Add them below (name, role, email): the email draft comes next.</p>
+    </div>
+  )
+}
+
+function FindContact({ job, who }: { job: JobDetail; who: WhoToContact | null }) {
   const company = useCompany(job.company.id)
   const lookup = useQueueLookup()
   const set = useSetJobContact()
@@ -92,6 +139,7 @@ function FindContact({ job }: { job: JobDetail }) {
   const people = company.data?.contacts ?? []
   return (
     <div className="space-y-3 p-4">
+      {who && <WhoToContactHints who={who} />}
       <div className="flex items-center gap-2 text-sm">
         <ContactTierBadge tier={job.application.contact_tier} />
         <span className="text-fg-muted">
@@ -106,7 +154,6 @@ function FindContact({ job }: { job: JobDetail }) {
         {job.lookup_status !== 'queued' && (
           <Button
             size="sm"
-            variant="default"
             onClick={() => lookup.mutate(job.application.id, { onSuccess: () => toast.success('Queued for an Apollo lookup'), onError: (e) => toast.error(e.message) })}
             disabled={lookup.isPending}
           >
@@ -133,9 +180,9 @@ function FindContact({ job }: { job: JobDetail }) {
             className="w-64"
           />
         )}
-        <Button size="sm" variant="ghost" onClick={() => setAdding(true)}>
+        <Button size="sm" onClick={() => setAdding(true)}>
           <UserPlus />
-          Add a contact
+          I found someone
         </Button>
       </div>
       <NewContactDialog
@@ -159,9 +206,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
   const { data, isPending } = useOutreachStep(app.id)
   const generate = useGenerateDraft()
   const action = useDraftAction()
-  const patch = usePatchApplication()
   const [sentMyself, setSentMyself] = useState(false)
-  const route = app.effective_route
   const ready = !isPending && !!data
   // Arriving from the Pipeline or Today with #outreach: bring the section into view.
   useEffect(() => {
@@ -170,21 +215,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
     }
   }, [ready])
 
-  if (route !== 'cold_email') {
-    if (!job.contact || ['done', 'interview', 'closed'].includes(app.stage)) return null
-    return (
-      <div className="flex items-center gap-3 rounded-lg border border-tone-blue-border bg-info-bg p-4 text-sm">
-        <Mail className="size-4 text-info-fg" />
-        <span className="flex-1 text-info-fg">A contact was found ({job.contact.full_name}). Switch this job to a cold email?</span>
-        <Button
-          size="sm"
-          onClick={() => patch.mutate({ id: app.id, patch: { route: 'cold_email' } }, { onSuccess: () => toast.success('Route set to cold email'), onError: (e) => toast.error(e.message) })}
-        >
-          Switch to cold email
-        </Button>
-      </div>
-    )
-  }
+  if (app.stage === 'new' || (app.stage === 'closed' && ['no_contact', 'contact'].includes(app.tracks.outreach))) return null
   if (isPending || !data) return <Skeleton className="h-40" />
 
   const draft = data.draft
@@ -200,7 +231,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
 
   return (
     <Section
-      title="Cold email"
+      title="Outreach"
       action={
         <span className="flex items-center gap-2 text-xs text-fg-subtle">
           {job.contact ? `To ${job.contact.full_name}` : 'No contact yet'}
@@ -210,12 +241,12 @@ export function OutreachSection({ job }: { job: JobDetail }) {
     >
       <div data-tour="job-outreach">
         <Stepper step={data.step} />
-        {data.step === 'contact' && <FindContact job={job} />}
+        {data.step === 'contact' && <FindContact job={job} who={data.who_to_contact} />}
         {data.step === 'cv' && (
           <div className="flex items-center gap-3 p-4 text-sm">
             <FileText className="size-4 text-fg-subtle" />
             <span className="flex-1 text-fg-muted">The email is written from your approved CV and attaches it. Approve the CV first.</span>
-            <Button size="sm" variant="default" asChild>
+            <Button size="sm" asChild>
               <Link to={`/jobs/${job.id}/cv`}>Open CV Studio</Link>
             </Button>
           </div>
@@ -229,7 +260,6 @@ export function OutreachSection({ job }: { job: JobDetail }) {
             </span>
             <Button
               size="sm"
-              variant="default"
               disabled={generate.isPending || !data.has_email}
               onClick={() => generate.mutate(app.id, { onSuccess: () => toast.success('Email drafted: review it below'), onError: (e) => toast.error(e.message) })}
             >

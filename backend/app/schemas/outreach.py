@@ -40,6 +40,15 @@ class DraftOut(BaseModel):
     full_body: str = ""  # as sent: your text + signature + opt-out
     test_sent_at: datetime | None = None
     sent_at: datetime | None = None
+    generated_via: str = "mock"  # "claude -p" = Claude Code headless (your subscription)
+    auth: str | None = None  # the CLI's apiKeySource at generation ("none" = subscription)
+    # "I have also applied through your careers page on …": available once Mark applied is in.
+    application_mention: str | None = None
+    mention_included: bool = False
+
+
+class MentionIn(BaseModel):
+    include: bool
 
 
 class DraftPatch(BaseModel):
@@ -109,6 +118,7 @@ class OutreachStep(BaseModel):
     queue_eta: datetime | None
     queue_status: str
     sent_at: datetime | None
+    who_to_contact: dict[str, Any] | None = None  # roles, reason and search hints (no contact)
 
 
 class SentManually(BaseModel):

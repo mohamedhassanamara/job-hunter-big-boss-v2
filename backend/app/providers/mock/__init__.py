@@ -167,6 +167,7 @@ class MockEmailDrafter:
 
     model = "mock-drafter"
     prompt_version = "outreach/mock"
+    via = "mock"
 
     def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan:
         job, contact = request.job, request.contact

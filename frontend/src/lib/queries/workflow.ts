@@ -175,6 +175,16 @@ export function useSaveDraft() {
   })
 }
 
+/** Add or remove "I have also applied through your careers page on …" (fixed wording). */
+export function useMentionApplication() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, include }: { id: number; include: boolean }) =>
+      api.post<Draft>(`/outreach/drafts/${id}/mention-application`, { include }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useDraftAction() {
   const qc = useQueryClient()
   return useMutation({

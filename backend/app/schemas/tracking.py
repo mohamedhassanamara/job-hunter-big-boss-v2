@@ -120,3 +120,5 @@ class StatsOut(BaseModel):
     by_track: list[dict[str, Any]]
     by_country: list[dict[str, Any]]
     by_source: list[dict[str, Any]]
+    both_routes: int = 0  # jobs where you applied on the website AND emailed someone
+    by_route: list[dict[str, Any]] = []  # web / email / both

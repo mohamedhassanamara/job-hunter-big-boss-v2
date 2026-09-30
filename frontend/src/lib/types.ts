@@ -1,7 +1,20 @@
 // Mirrors backend/app/schemas — keep in sync. JSON is snake_case end to end.
 
-export type Stage = 'new' | 'shortlisted' | 'cv_ready' | 'drafted' | 'ready' | 'done' | 'interview' | 'closed'
+export type Stage = 'new' | 'shortlisted' | 'cv_ready' | 'ready' | 'done' | 'interview' | 'closed'
 export type Route = 'undecided' | 'cold_email' | 'web_apply'
+
+/** Both routes of a job (services/tracks.py): the web application and the cold email. */
+export type ApplicationTrack = 'not_ready' | 'ready' | 'applied'
+export type OutreachTrack = 'no_contact' | 'contact' | 'drafted' | 'approved' | 'queued' | 'sent'
+export interface Tracks {
+  application: ApplicationTrack
+  outreach: OutreachTrack
+  applied_at: string | null
+  web_method: ApplyMethod | null
+  contact_name: string | null
+  draft_id: number | null
+  sent_at: string | null
+}
 export type ContactTier = 'apollo_dump' | 'lookup_queued' | 'lookup_found' | 'none'
 export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt'
 
@@ -90,7 +103,7 @@ export interface ApplicationBrief {
   stage: Stage
   stage_label: string
   route: Route
-  effective_route: Route // route, or derived from the contact while undecided
+  tracks: Tracks
   contact_tier: ContactTier
   close_reason: CloseReason | null
   stage_changed_at: string
@@ -204,7 +217,7 @@ export interface PipelineCard {
   stage: Stage
   stage_label: string
   route: Route
-  effective_route: Route // route, or derived from the contact while undecided
+  tracks: Tracks
   contact_tier: ContactTier
   close_reason: CloseReason | null
   stage_changed_at: string
@@ -384,6 +397,10 @@ export interface Draft {
   full_body: string // exactly as sent
   test_sent_at: string | null
   sent_at: string | null
+  generated_via: string // "claude -p" = Claude Code headless on your subscription
+  auth: string | null // the CLI's apiKeySource ("none" = subscription)
+  application_mention: string | null // "I have also applied through your careers page on …"
+  mention_included: boolean
 }
 
 export interface DraftReviewItem {
@@ -396,6 +413,16 @@ export interface DraftReviewItem {
 }
 
 export type OutreachStepName = 'contact' | 'cv' | 'draft' | 'review' | 'queue' | 'queued' | 'sent'
+
+export interface WhoToContact {
+  company_size: string
+  small: boolean
+  reason: string
+  roles: { label: string; titles: string[] }[]
+  linkedin_query: string
+  linkedin_url: string
+  apollo: { company: string; domain: string; titles: string[]; seniority: string[] }
+}
 
 export interface OutreachStep {
   step: OutreachStepName
@@ -410,6 +437,7 @@ export interface OutreachStep {
   queue_eta: string | null
   queue_status: QueueStatus
   sent_at: string | null
+  who_to_contact: WhoToContact | null
 }
 
 export interface Violation {
@@ -516,7 +544,6 @@ export interface CompanyJob {
   stage: Stage
   stage_label: string
   route: Route
-  effective_route: Route // route, or derived from the contact while undecided
   contact_tier: ContactTier
   contact_id: number | null
   fit: FitBrief | null
@@ -769,6 +796,7 @@ export interface Today {
   drafts_to_approve: DraftReviewItem[]
   emails_to_queue: DraftReviewItem[] // approved, not yet in the send queue
   ready_to_apply: PipelineCard[]
+  also_email: PipelineCard[] // applied on the website, nobody emailed yet
   reminders: Reminder[]
   upcoming_interviews: UpcomingInterview[] // next 14 days, pending
   stats_summary: StatsSummary
@@ -972,6 +1000,8 @@ export interface Stats {
   by_track: StatsGroup[]
   by_country: StatsGroup[]
   by_source: StatsGroup[]
+  both_routes: number
+  by_route: StatsGroup[] // web / email / both
 }
 
 export interface TrackingFilters {
@@ -986,6 +1016,7 @@ export interface TrackingFilters {
 // ---- Cover letters (mirror app/schemas/letters.py) -----------------------------------------
 
 export type LetterLanguage = 'fr' | 'en'
+export type LetterFormat = 'pdf' | 'form'
 
 export interface LetterSentence {
   text: string
@@ -1005,6 +1036,9 @@ export interface CoverLetter {
   version: number
   status: CVStatus
   language: LetterLanguage
+  format: LetterFormat
+  question: string | null
+  char_limit: number | null
   salutation: string
   paragraphs: LetterParagraph[]
   ask: string

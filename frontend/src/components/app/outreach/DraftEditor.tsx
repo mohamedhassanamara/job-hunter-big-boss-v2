@@ -4,12 +4,13 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, ToneBadge } from '@/components/app/badges'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input, Textarea } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useDraftAction, useGenerateDraft, useQueueDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
+import { useDraftAction, useGenerateDraft, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -81,6 +82,7 @@ export function DraftEditor({
   const action = useDraftAction()
   const testSend = useTestSend()
   const queueDraft = useQueueDraft()
+  const mention = useMentionApplication()
   const errors = draft.violations.filter((v) => v.severity === 'error')
   const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
@@ -140,9 +142,19 @@ export function DraftEditor({
               CV v{draft.cv_version} attached
             </Link>
           )}
-          <span className="ml-auto">
-            {draft.edited ? 'Edited by you · ' : ''}Drafted by {draft.model} · {relativeTime(draft.created_at)}
-          </span>
+          <Tooltip
+            content={
+              draft.generated_via === 'claude -p'
+                ? `Claude Code headless (claude -p)${draft.auth ? `, auth: ${draft.auth === 'none' ? 'your subscription' : draft.auth}` : ''}. Emails never use the local model.`
+                : 'Sample drafter (no model call)'
+            }
+          >
+            <span className="ml-auto" data-tour="outreach-model">
+              {draft.edited ? 'Edited by you · ' : ''}Drafted by {draft.model}
+              {draft.generated_via === 'claude -p' ? ' via claude -p' : ''}
+              {draft.auth === 'none' ? ' · subscription' : ''} · {relativeTime(draft.created_at)}
+            </span>
+          </Tooltip>
         </div>
       </div>
 
@@ -173,6 +185,22 @@ export function DraftEditor({
             }}
             className="field-sizing-content min-h-48 text-base leading-7"
           />
+          {draft.application_mention && (draft.status === 'draft' || draft.status === 'approved') && (
+            <label className="flex items-center gap-2 pt-1 text-sm text-fg-muted">
+              <Checkbox
+                checked={draft.mention_included}
+                disabled={mention.isPending}
+                onCheckedChange={(v) =>
+                  mention.mutate(
+                    { id: draft.id, include: v === true },
+                    { onError: (e) => toast.error(e.message) },
+                  )
+                }
+                aria-label="Mention my web application"
+              />
+              Mention my web application: “{draft.application_mention}”
+            </label>
+          )}
         </div>
         {added && (
           <div className="space-y-1.5">

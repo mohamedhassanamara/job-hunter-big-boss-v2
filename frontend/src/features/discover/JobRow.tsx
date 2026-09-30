@@ -1,5 +1,5 @@
 import { Copy, Star, UserRoundCheck, X } from 'lucide-react'
-import { FitBadge, LabelBadge, RemoteBadge, RouteBadge, SourceBadge, StageBadge } from '@/components/app/badges'
+import { FitBadge, LabelBadge, RemoteBadge, SourceBadge, StageBadge, TrackBadge } from '@/components/app/badges'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -66,7 +66,7 @@ export function JobRow({
       {!isNew && <StageBadge stage={job.application.stage} label={job.application.stage_label} />}
       <div className="hidden items-center gap-1.5 lg:flex">
         <RemoteBadge remote={job.remote_type} />
-        <RouteBadge route={job.application.effective_route} className="max-xl:hidden" />
+        {job.application.tracks.outreach !== 'no_contact' && <TrackBadge kind="outreach" tracks={job.application.tracks} className="max-xl:hidden" />}
         <SourceBadge source={job.source} />
       </div>
       <Tooltip content={`Posted ${absoluteDate(posted)}`}>

@@ -73,14 +73,15 @@ export default function PipelinePage() {
     }
     // Applying and interviews record details (date, method, CV sent; round), so they open a dialog.
     const tracked = { appId: card.application_id, title: card.title, company: card.company_name }
-    // Email steps (draft, review, queue, sent) happen in the job's Cold email section.
-    if (card.effective_route === 'cold_email' && (to === 'drafted' || to === 'ready' || to === 'done')) {
-      toast(`${COLUMN_LABELS[to]}: continue in the job's Cold email section`)
-      navigate(`/jobs/${card.job_id}#outreach`)
+    // Applied: record the web application. Otherwise the email steps (review, approve, queue,
+    // sent) happen in the job's Outreach card.
+    if (to === 'done' && card.tracks.application === 'ready') {
+      setApplying(tracked)
       return
     }
-    if (to === 'done' && card.effective_route === 'web_apply') {
-      setApplying(tracked)
+    if (to === 'ready' || to === 'done') {
+      toast(`${COLUMN_LABELS[to]}: continue in the job's Outreach card`)
+      navigate(`/jobs/${card.job_id}#outreach`)
       return
     }
     if (to === 'interview') {

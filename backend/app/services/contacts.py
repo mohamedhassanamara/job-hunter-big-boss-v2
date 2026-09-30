@@ -73,7 +73,17 @@ DEFAULT_LARGE_ORDER = ["HR / Talent", "Engineering Manager", "CTO", "VP / Head o
 DEFAULT_SMALL_THRESHOLD = 200  # employees; "under 200" (Apollo lists) counts as small
 DEFAULT_LOOKUP = {"daily_cap": 10}
 UNRANKED = 999
-FROZEN_STAGES = (Stage.done, Stage.interview, Stage.closed)
+FROZEN_STAGES = (Stage.closed,)  # both routes: an applied job still gets a contact to email
+
+
+def _email_started(s: Session, app: Application) -> bool:
+    """A draft exists (not rejected): that email's contact is never swapped automatically."""
+    from app.models import OutreachDraft
+    from app.models.enums import DraftStatus
+
+    return s.exec(select(OutreachDraft.id).where(
+        OutreachDraft.application_id == app.id,
+        OutreachDraft.status != DraftStatus.rejected)).first() is not None
 
 
 def fold(text: str | None) -> list[str]:
@@ -254,7 +264,7 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
             priority: int = 0, ranking: Ranking | None = None) -> Resolution:
     """Resolve one application. `contacts` (the company's) and `ranking` can be passed in by
     batch callers."""
-    if Stage(app.stage) in FROZEN_STAGES or _manual(s, app):
+    if Stage(app.stage) in FROZEN_STAGES or _manual(s, app) or _email_started(s, app):
         return Resolution(False, app.contact_tier, app.contact_id)
     job = s.get(Job, app.job_id)
     if job is None:
@@ -593,3 +603,77 @@ def clear_contact(s: Session, app: Application) -> Application:
     s.flush()
     resolve(s, app)
     return app
+
+
+# ----------------------------------------------------------------------------- who to contact
+
+# Apollo seniority filters that match a ranking group, by its label's words.
+_SENIORITY = {"cto": "c_suite", "ceo": "c_suite", "founder": "founder", "vp": "vp",
+              "head": "head", "manager": "manager", "lead": "senior", "hr": "manager",
+              "talent": "manager"}
+
+
+def _titles(group: dict[str, Any], n: int = 3) -> list[str]:
+    """Search titles for a ranking group: its keywords as people write them."""
+    out = []
+    for k in group.get("keywords") or []:
+        title = k.upper() if len(k) <= 4 else k.title()  # "cto" → "CTO"; phrases get capitals
+        title = {"Talent": "Talent Acquisition"}.get(title, title)
+        if title not in out:
+            out.append(title)
+        if len(out) >= n:
+            break
+    return out
+
+
+def _is(group: dict[str, Any], *words: str) -> bool:
+    return any(w in fold(group.get("label")) for w in words)
+
+
+def who_to_contact(s: Session, job: Job, company: Company) -> dict[str, Any]:
+    """Which roles to look for at this company, and why, plus copyable LinkedIn and Apollo
+    search hints. Small companies follow Settings → Contacts' small-company order (CTO, founder…);
+    at large or unknown-size ones it's the head of the hiring team or the engineering manager,
+    then talent acquisition. Nothing is searched or opened."""
+    import urllib.parse
+
+    ranking = ranking_settings(s)
+    small = is_small(company, ranking.threshold)
+    ordered = [ranking.groups[i] for i in ranking.order_for(company)
+               if 0 <= i < len(ranking.groups)]
+    team = [t.strip() for t in (job.matched_track or "").split("/") if t.strip()]
+    roles = []
+    if small:
+        roles = [{"label": g.get("label") or "", "titles": _titles(g)} for g in ordered[:3]]
+    else:
+        if team:
+            roles.append({"label": f"Head of the {'/'.join(team)} team",
+                          "titles": [f"Head of {t}" for t in team]})
+        managers = [g for g in ordered if _is(g, "manager")][:1]
+        hr = [g for g in ordered if _is(g, "hr", "talent")][:1]
+        roles += [{"label": g.get("label") or "", "titles": _titles(g)} for g in managers + hr]
+    labels = [r["label"] for r in roles]
+    size = size_label(company)
+    if small:
+        reason = (f"{company.name} is small ({size}): the {' or the '.join(labels[:2])} usually "
+                  "reads cold emails and decides on hires, so write to them first.")
+    else:
+        lead = (f"{company.name} is large ({size})" if size != "size unknown"
+                else f"{company.name}'s size is unknown, so it's treated as large")
+        first = [x for x in labels if "hr" not in fold(x) and "talent" not in fold(x)]
+        reason = (f"{lead}: write to the {' or the '.join(first[:2]) or 'hiring manager'} of the "
+                  "team hiring; talent acquisition is the fallback.")
+    titles = [t for r in roles for t in r["titles"]][:6]
+    query = "(" + " OR ".join(f'"{t}"' for t in titles) + f') "{company.name}"'
+    seniority = sorted({v for r in roles for w in fold(r["label"]) if (v := _SENIORITY.get(w))})
+    return {
+        "company_size": size,
+        "small": small,
+        "reason": reason,
+        "roles": roles,
+        "linkedin_query": query,
+        "linkedin_url": "https://www.linkedin.com/search/results/people/?keywords="
+                        + urllib.parse.quote(query),
+        "apollo": {"company": company.name, "domain": company.domain or "",
+                   "titles": titles, "seniority": seniority},
+    }

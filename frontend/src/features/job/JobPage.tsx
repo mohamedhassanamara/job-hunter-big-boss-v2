@@ -4,7 +4,6 @@ import {
   ChevronDown,
   CircleCheck,
   FileText,
-  Globe,
   Mail,
   RotateCcw,
   SearchX,
@@ -17,7 +16,6 @@ import { toast } from 'sonner'
 import {
   LocationText,
   RemoteBadge,
-  RouteBadge,
   SourceBadge,
   StageBadge,
   StageDot,
@@ -44,20 +42,19 @@ import { Textarea } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useTriageActions } from '@/hooks/useTriageActions'
-import { ApiError, apiUrl } from '@/lib/api'
+import { ApiError } from '@/lib/api'
 import { absoluteDate, relativeTime, SOURCE_LABELS, STAGE_LABELS } from '@/lib/format'
 import { useJob, usePatchApplication } from '@/lib/queries/jobs'
-import { useLetterStudio } from '@/lib/queries/letters'
-import { isApplied, openListingAndCv } from '@/lib/tracking'
-import type { CloseReason, JobDetail, Route, Stage } from '@/lib/types'
+import { isApplied } from '@/lib/tracking'
+import type { CloseReason, JobDetail, Stage } from '@/lib/types'
+import { ApplicationSection, TracksSummary } from './ApplicationSection'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
 import { QuestionsSection } from './QuestionsSection'
 import { Timeline } from './Timeline'
 
-function stageMenuLabel(stage: Stage, route: Route) {
-  if (stage === 'ready') return route === 'web_apply' ? 'Ready to apply' : 'Ready to send'
-  if (stage === 'done') return route === 'web_apply' ? 'Applied' : 'Sent'
+function stageMenuLabel(stage: Stage) {
+  if (stage === 'done') return 'Applied / emailed'
   return STAGE_LABELS[stage]
 }
 
@@ -173,54 +170,13 @@ function CVSection({ job }: { job: JobDetail }) {
   )
 }
 
-function WebApplyCallout({ job, onApplied }: { job: JobDetail; onApplied: () => void }) {
-  const stage = job.application.stage
-  const approved = job.cv_versions.find((v) => v.status === 'approved')
-  const show = job.application.effective_route === 'web_apply' && (stage === 'ready' || stage === 'cv_ready') && !!approved
-  const letters = useLetterStudio(show ? job.application.id : NaN)
-  if (!show || !approved) return null
-  const pdf = apiUrl(`/cv/${approved.id}/pdf`, { download: true })
-  const letter = letters.data?.letters.find((l) => l.status === 'approved')
-  const letterPdf = letter ? apiUrl(`/letters/${letter.id}/pdf`, { download: true }) : null
-  return (
-    <div className="rounded-lg border border-tone-blue-border bg-info-bg p-4">
-      <div className="flex items-start gap-3">
-        <Globe className="mt-0.5 size-4 text-info-fg" />
-        <div className="flex-1 space-y-1">
-          <p className="text-sm font-semibold text-info-fg">Apply on the company site</p>
-          <p className="text-sm text-fg-muted">
-            No contact was found, so this one is a manual application. Open the listing with your approved
-            CV v{approved.version}{letter ? ` and cover letter v${letter.version}` : ''}, apply, then mark it applied: those versions get locked.
-          </p>
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button size="sm" onClick={() => openListingAndCv(job.url, pdf, letterPdf)}>
-              {letter ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
-              <ArrowRight />
-            </Button>
-            <Button size="sm" variant="ghost" asChild>
-              <a href={pdf}>
-                <FileText />
-                Download CV only
-              </a>
-            </Button>
-            <Button size="sm" onClick={onApplied}>
-              <CircleCheck />
-              Mark applied
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function TrackingSection({ job }: { job: JobDetail }) {
   const t = job.tracking
   if (!t) return null
   const target = { appId: job.application.id, title: job.title, company: job.company.name }
   return (
     <Section
-      title={job.application.route === 'web_apply' ? 'Application' : 'Application (sent)'}
+      title="Replies and interviews"
       action={
         <TrackingActions target={target} stage={job.application.stage} rounds={t.interviews.length} primary="none" />
       }
@@ -291,26 +247,26 @@ export default function JobPage() {
         onError: (e) => toast.error(e.message),
       },
     )
-  const setRoute = (route: Route) =>
-    patch.mutate(
-      { id: app.id, patch: { route } },
-      {
-        onSuccess: () =>
-          toast.success(route === 'web_apply' ? 'Route set to web apply' : 'Route set to cold email'),
-        onError: (e) => toast.error(e.message),
-      },
-    )
   const target = { jobId: job.id, title: job.title, company: job.company.name }
   const latestCV = job.cv_versions[0]
   const approvedCV = job.cv_versions.find((v) => v.status === 'approved')
-  const route = app.effective_route
+  const tracks = app.tracks
   const toOutreach = () => document.getElementById('outreach')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   const pickStage = (s: Stage) => {
     if (s === 'closed') setClosing(true)
-    else if (s === 'done' && route === 'web_apply') setApplying(true)
+    else if (s === 'done' && tracks.application === 'ready') setApplying(true)
     else if (s === 'interview') setInterviewing(true)
-    else if (s === 'drafted' || (route === 'cold_email' && (s === 'ready' || s === 'done'))) toOutreach()
+    else if (s === 'ready' || s === 'done') toOutreach()
     else setStage(s)
+  }
+  const emailPending = tracks.outreach !== 'sent'
+  const emailLabel: Record<typeof tracks.outreach, string> = {
+    no_contact: 'Find a contact',
+    contact: 'Draft email',
+    drafted: 'Review email',
+    approved: 'Add to send queue',
+    queued: 'Send queue',
+    sent: 'Email sent',
   }
 
   // The single primary action for this stage.
@@ -331,19 +287,19 @@ export default function JobPage() {
         </Link>
       </Button>
     )
-  } else if ((app.stage === 'cv_ready' || app.stage === 'ready') && route === 'web_apply') {
+  } else if ((app.stage === 'cv_ready' || app.stage === 'ready' || app.stage === 'done') && tracks.application === 'ready') {
+    // Both routes: the application first (one click), the email card has its own next step.
     primary = (
       <Button variant="default" onClick={() => setApplying(true)} disabled={!approvedCV}>
         <CircleCheck />
         Mark applied
       </Button>
     )
-  } else if (app.stage === 'cv_ready' || app.stage === 'drafted' || app.stage === 'ready') {
-    // Email route: the Cold email section below holds the next action.
+  } else if ((app.stage === 'cv_ready' || app.stage === 'ready' || app.stage === 'done') && emailPending) {
     primary = (
       <Button variant="default" onClick={toOutreach}>
         <Mail />
-        {app.stage === 'cv_ready' ? 'Draft email' : app.stage === 'drafted' ? 'Review email' : 'Send queue step'}
+        {emailLabel[tracks.outreach]}
       </Button>
     )
   } else if (app.stage === 'done') {
@@ -410,30 +366,11 @@ export default function JobPage() {
                   onSelect={() => pickStage(s)}
                 >
                   <StageDot stage={s} />
-                  {s === 'closed' ? 'Close…' : stageMenuLabel(s, route)}
+                  {s === 'closed' ? 'Close…' : stageMenuLabel(s)}
                 </DropdownMenuItem>
               ))}
-              {app.stage !== 'new' && app.stage !== 'closed' && app.stage !== 'done' && app.stage !== 'interview' && (
-                <>
-                  <DropdownMenuLabel>Route</DropdownMenuLabel>
-                  {route === 'cold_email' ? (
-                    <DropdownMenuItem onSelect={() => setRoute('web_apply')}>
-                      <Globe />
-                      Switch to web apply
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem disabled={!job.contact} onSelect={() => setRoute('cold_email')}>
-                      <Mail />
-                      {job.contact ? 'Switch to cold email' : 'Cold email (needs a contact)'}
-                    </DropdownMenuItem>
-                  )}
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span data-tour="job-route">
-            <RouteBadge route={route} />
-          </span>
           <span data-tour="job-next">{primary}</span>
         </div>
       </header>
@@ -441,10 +378,13 @@ export default function JobPage() {
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)_320px] gap-6 max-lg:grid-cols-1">
         <div className="space-y-4">
           <JobFlags job={job} />
+          {app.stage !== 'new' && <TracksSummary job={job} />}
+          <div id="application" className="scroll-mt-4">
+            <ApplicationSection job={job} onApplied={() => setApplying(true)} />
+          </div>
           <div id="outreach" className="scroll-mt-4">
             <OutreachSection job={job} />
           </div>
-          <WebApplyCallout job={job} onApplied={() => setApplying(true)} />
           <TrackingSection job={job} />
           <div data-tour="job-fit">
             <FitCard job={job} />

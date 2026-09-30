@@ -115,7 +115,7 @@ export const TOURS: Record<TourId, Tour> = {
     },
     steps: [
       { target: 'job-header', title: 'One place per opportunity', body: 'Listing, fit, contact, CV, email, notes and timeline for a single job.' },
-      { target: 'job-stage', title: 'Stage and route', body: 'Move the job between stages, and choose cold email (needs a contact) or web apply.' },
+      { target: 'job-stage', title: 'Stage', body: 'Move the job between stages. The web application and the cold email each have their own track below.' },
       { target: 'job-next', title: 'Always the next step', body: 'The primary button changes with the stage: shortlist, generate CV, draft email, mark applied…' },
       { target: 'job-fit', title: 'Sub-scores and evidence', body: 'Each sub-score has a reason and a quote from the listing; quotes the app cannot find in the text are marked unverified. Low confidence? Fetch or paste the full listing and rescore.', placement: 'right' },
       { target: 'job-contact', title: 'Contact resolution', body: 'Tier 1: your Apollo import. Tier 2: a queued manual Apollo lookup. Tier 3: no contact → web apply.', placement: 'left' },
@@ -172,16 +172,16 @@ export const TOURS: Record<TourId, Tour> = {
   },
   'email-route': {
     id: 'email-route',
-    title: 'Cold email on the job page',
-    description: 'Contact → draft → review → queue → sent',
+    title: 'Apply and email on the job page',
+    description: 'Two tracks: application and outreach',
     resolveRoute: async () => {
       const cards = await api.get<PipelineCard[]>('/applications')
-      const card = cards.find((c) => c.stage === 'drafted') ?? cards.find((c) => c.effective_route === 'cold_email')
+      const card = cards.find((c) => c.tracks.outreach === 'drafted') ?? cards.find((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'new')
       return card ? `/jobs/${card.job_id}#outreach` : '/pipeline'
     },
     steps: [
-      { target: 'job-route', title: 'The route', body: 'A job with a contact goes by cold email, one without goes to web apply. Switch it in the stage menu; when a contact turns up later, the page offers to switch.', placement: 'bottom' },
-      { target: 'job-outreach', title: 'One step at a time', body: 'Find a contact, draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
+      { target: 'job-tracks', title: 'Both routes', body: 'Every job can have a web application and a cold email to someone there. Each track shows its own status and next step; the stage reaches Applied / Emailed with the first one.', placement: 'bottom' },
+      { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'No contact yet? The card says who to look for (by company size) with LinkedIn and Apollo search hints to copy. Then add the person you found, draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
     ],
   },
   outreach: {

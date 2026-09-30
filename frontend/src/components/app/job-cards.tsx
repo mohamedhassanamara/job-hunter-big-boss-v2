@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { relativeTime } from '@/lib/format'
-import { usePatchApplication, useQueueLookup } from '@/lib/queries/jobs'
+import { useQueueLookup } from '@/lib/queries/jobs'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { JobDetail, JobListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -35,8 +35,8 @@ function ChangeContact({ job }: { job: JobDetail }) {
   const clear = useClearJobContact()
   const [adding, setAdding] = useState(false)
   const done = (msg: string) => ({ onSuccess: () => toast.success(msg), onError: (e: Error) => toast.error(e.message) })
-  const stage = job.application.stage
-  if (stage === 'done' || stage === 'interview' || stage === 'closed') return null
+  // Both routes: after applying you can still pick someone to email, until the email is sent.
+  if (job.application.stage === 'closed' || job.application.tracks.outreach === 'sent') return null
   return (
     <>
       <DropdownMenu>
@@ -95,11 +95,8 @@ function ChangeContact({ job }: { job: JobDetail }) {
 
 export function ContactCard({ job, className }: { job: JobDetail; className?: string }) {
   const lookup = useQueueLookup()
-  const patch = usePatchApplication()
   const tier = job.application.contact_tier
   const contact = job.contact
-  const stage = job.application.stage
-  const canSwitch = contact && job.application.route === 'web_apply' && !['done', 'interview', 'closed'].includes(stage)
 
   const copy = (text: string) => {
     void navigator.clipboard.writeText(text)
@@ -139,22 +136,6 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
             )}
           </div>
           <ChangeContact job={job} />
-          {canSwitch && (
-            <div className="rounded-md bg-info-bg px-3 py-2 text-xs text-info-fg">
-              Contact found, but this job is on web apply.{' '}
-              <button
-                className="font-medium underline"
-                onClick={() =>
-                  patch.mutate(
-                    { id: job.application.id, patch: { route: 'cold_email' } },
-                    { onSuccess: () => toast.success('Route set to cold email'), onError: (e) => toast.error(e.message) },
-                  )
-                }
-              >
-                Switch to cold email?
-              </button>
-            </div>
-          )}
           <p className="text-xs text-fg-subtle">
             {job.company_contacts > 1 ? `${job.company_contacts - 1} more at ${job.company.name} · ` : ''}
             <Link to={`/contacts?company=${job.company.id}`} className="text-primary hover:underline">

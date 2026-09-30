@@ -161,6 +161,8 @@ def today(session: SessionDep) -> TodayOut:
             for d in to_queue
         ],
         ready_to_apply=pipeline_cards(session, tracking.ready_to_apply(session)),
+        also_email=[c for c in pipeline_cards(session, tracking.also_email(session))
+                    if c.tracks.outreach in ("no_contact", "contact")][:5],
         reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],
         upcoming_interviews=upcoming,
         stats_summary=StatsSummary(**tracking.stats_summary(session)),
