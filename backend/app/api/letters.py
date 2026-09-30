@@ -5,9 +5,20 @@ from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
-from app.models import Application, AppSetting, Company, CoverLetter, CVVersion, Job
+from app.models import (
+    Application,
+    ApplicationAnswer,
+    AppSetting,
+    Company,
+    CoverLetter,
+    CVVersion,
+    Job,
+)
 from app.providers.registry import letter_drafter
 from app.schemas.letters import (
+    AnswerOut,
+    AnswerPatch,
+    AnswersIn,
     LetterGenerateIn,
     LetterLanguageIn,
     LetterOut,
@@ -17,6 +28,7 @@ from app.schemas.letters import (
     LetterStudio,
     LetterText,
 )
+from app.services import answers as answer_service
 from app.services import cover_letter as cl
 from app.services import outreach_check as oc
 from app.services.cv_pool import load_pool
@@ -147,3 +159,61 @@ def letter_pdf(letter_id: int, session: SessionDep, engine: EngineDep, download:
 def letter_text(letter_id: int, session: SessionDep) -> LetterText:
     letter = get_or_404(session, CoverLetter, letter_id, "Cover letter")
     return LetterText(text=cl.plain_text(session, letter))
+
+
+# ------------------------------------------------------------------------ application questions
+
+
+def answer_out(s: Session, a: ApplicationAnswer, pool=None) -> AnswerOut:  # noqa: ANN001
+    pool = pool or load_pool(s)
+    sentences = [LetterSentenceOut(**x) for x in (a.plan or {}).get("sentences") or []]
+    sources = {}
+    for item_id in sorted({c for x in sentences for c in x.citations}):
+        if item := pool.get(item_id):
+            sources[item_id] = " · ".join(x for x in (item.title, item.org) if x)
+    return AnswerOut(id=a.id, application_id=a.application_id, question=a.question,
+                     char_limit=a.char_limit, answer=a.answer, length=len(a.answer),
+                     language=a.language, edited=a.edited,
+                     sentences=[] if a.edited else sentences, sources=sources,
+                     violations=a.violations or [], created_at=a.created_at,
+                     updated_at=a.updated_at)
+
+
+@router.get("/applications/{app_id}/answers", response_model=list[AnswerOut])
+def list_answers(app_id: int, session: SessionDep) -> list[AnswerOut]:
+    get_or_404(session, Application, app_id, "Application")
+    pool = load_pool(session)
+    return [answer_out(session, a, pool) for a in answer_service.answers(session, app_id)]
+
+
+@router.post("/applications/{app_id}/answers", response_model=list[AnswerOut], status_code=201)
+def answer_questions(app_id: int, body: AnswersIn, session: SessionDep, engine: EngineDep,
+                     workspace: WorkspaceDep) -> list[AnswerOut]:
+    """One Claude call for the batch (mock in the sandbox/tests), checks, one retry."""
+    get_or_404(session, Application, app_id, "Application")
+    drafter = letter_drafter(mock=True if workspace == "demo" else None, model=_model(session))
+    try:
+        rows = answer_service.generate(engine, app_id, drafter,
+                                       [q.model_dump() for q in body.questions])
+    except answer_service.AnswerError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.expire_all()
+    return [answer_out(session, session.get(ApplicationAnswer, r.id)) for r in rows]
+
+
+@router.patch("/answers/{answer_id}", response_model=AnswerOut)
+def patch_answer(answer_id: int, body: AnswerPatch, session: SessionDep) -> AnswerOut:
+    a = get_or_404(session, ApplicationAnswer, answer_id, "Answer")
+    if body.char_limit is not None and body.char_limit < 20:
+        raise HTTPException(422, "A character limit must be at least 20")
+    limit = None if body.clear_limit else (body.char_limit if body.char_limit is not None
+                                            else "keep")
+    return answer_out(session, answer_service.update(session, a, text=body.answer,
+                                                     question=body.question, char_limit=limit))
+
+
+@router.delete("/answers/{answer_id}", status_code=204)
+def delete_answer(answer_id: int, session: SessionDep) -> None:
+    a = get_or_404(session, ApplicationAnswer, answer_id, "Answer")
+    session.delete(a)
+    session.commit()

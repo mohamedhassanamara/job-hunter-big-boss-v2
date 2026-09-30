@@ -75,3 +75,35 @@ class LetterLanguageIn(BaseModel):
 
 class LetterText(BaseModel):
     text: str
+
+
+class QuestionIn(BaseModel):
+    question: str
+    char_limit: int | None = None
+
+
+class AnswersIn(BaseModel):
+    questions: list[QuestionIn]
+
+
+class AnswerPatch(BaseModel):
+    answer: str | None = None
+    question: str | None = None
+    char_limit: int | None = None
+    clear_limit: bool = False  # char_limit None means "unchanged" unless this is set
+
+
+class AnswerOut(BaseModel):
+    id: int
+    application_id: int
+    question: str
+    char_limit: int | None
+    answer: str
+    length: int
+    language: str
+    edited: bool
+    sentences: list[LetterSentenceOut]
+    sources: dict[int, str]
+    violations: list[dict[str, Any]]
+    created_at: datetime
+    updated_at: datetime
