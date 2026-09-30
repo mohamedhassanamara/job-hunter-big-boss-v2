@@ -64,7 +64,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v4"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v5"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]

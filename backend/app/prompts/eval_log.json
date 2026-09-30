@@ -1,0 +1,11 @@
+{
+  "outreach": {
+    "5": {
+      "report": "data/eval/emails/20260930-125246_outreach_v5.md",
+      "date": "2026-09-30",
+      "cases": 3,
+      "errors": 0,
+      "note": "Adopted after make eval-emails: the 3 reference cases (Zaion), old vs new side by side."
+    }
+  }
+}

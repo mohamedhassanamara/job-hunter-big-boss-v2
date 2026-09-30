@@ -242,6 +242,20 @@ def _short_error(exc: Exception) -> str:
     return str(exc)[:200]
 
 
+def _unwrap_properties(content: str, schema: type) -> str:
+    """Cloud models sometimes answer in the schema's own shape ({"properties": {...}}): unwrap
+    it when the real fields are only found inside."""
+    try:
+        data = json.loads(content)
+    except ValueError:
+        return content
+    fields = set(getattr(schema, "model_fields", {}))
+    if isinstance(data, dict) and "properties" in data and not fields & set(data) \
+            and isinstance(data["properties"], dict) and fields & set(data["properties"]):
+        return json.dumps(data["properties"])
+    return content
+
+
 def structured(model: str, system: str, user: str, schema: type, *, base_url: str = DEFAULT_URL,
                timeout: float = 180.0, num_ctx: int = 16384,
                transport: httpx.BaseTransport | None = None) -> tuple[Any, dict[str, Any]]:
@@ -280,6 +294,7 @@ def structured(model: str, system: str, user: str, schema: type, *, base_url: st
         meta["prompt_tokens"] = meta.get("prompt_tokens", 0) + (data.get("prompt_eval_count") or 0)
         meta["output_tokens"] = meta.get("output_tokens", 0) + (data.get("eval_count") or 0)
         content = strip_fence((data.get("message") or {}).get("content") or "")
+        content = _unwrap_properties(content, schema)
         try:
             out = schema.model_validate_json(content)
             meta["duration_ms"] = int((time.monotonic() - started) * 1000)

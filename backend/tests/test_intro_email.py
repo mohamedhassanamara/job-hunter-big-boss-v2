@@ -153,3 +153,26 @@ def test_the_draft_step_runs_in_the_background_with_progress(job_ready: dict,  #
             break
         time.sleep(0.05)
     assert state["status"] in ("done", "failed"), state
+
+
+def test_intro_grammar_and_the_intro_line_isnt_compared_with_examples(job_ready: dict) -> None:  # noqa: F811
+    fr = ic.intro_line("Alex", "l'IA conversationnelle et les données", "fr", None,
+                       "3 ans d'expérience en ingénierie logicielle")
+    assert fr.endswith("sur l'IA conversationnelle et les données.")
+    ctx = ctx_for(job_ready)
+    example = f"Hi Stéphane,\n\nSomething else entirely here.\n\n{ctx.intro_line}\n\nMore."
+    found = ic.check_plan(plan(job_ready), ctx_for(job_ready, examples=[("ref", example)]))
+    assert "example_copy" not in kinds(found)
+
+
+def test_based_on_is_not_a_location_and_long_tool_lists_are_caught(job_ready: dict) -> None:  # noqa: F811
+    p = plan(job_ready)
+    p.problem = ("Un modèle basé sur des données clients doit rester fiable quand le volume de "
+                 "clients grandit chaque mois, et c'est difficile à garantir.")
+    assert "location" not in kinds(ic.check_plan(p, ctx_for(job_ready)))
+    p.problem = ("Basé à Tunis, je peux aider à garder vos intégrations fiables quand le "
+                 "volume grandit.")
+    assert "location" in kinds(ic.check_plan(p, ctx_for(job_ready)))
+    long = plan(job_ready)
+    long.proofs[0].text += " " + "It kept working as the team grew and more customers joined." * 2
+    assert "proofs" in kinds(ic.check_plan(long, ctx_for(job_ready)))
