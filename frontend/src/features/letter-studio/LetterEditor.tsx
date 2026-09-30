@@ -9,12 +9,14 @@ import { usePatchLetter } from '@/lib/queries/letters'
 import type { CoverLetter, LetterPatchInput, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-function Checks({ violations }: { violations: Violation[] }) {
+function Checks({ violations, form }: { violations: Violation[]; form: boolean }) {
   if (violations.length === 0)
     return (
       <p data-tour="letter-checks" className="flex items-center gap-2 rounded-md bg-success-bg px-3 py-2 text-sm text-success-fg">
         <CircleCheck className="size-4" />
-        Every check passed: grounded in your CV and the listing, one ask, the right length, no banned phrases, one page.
+        {form
+          ? 'Every check passed: grounded in your CV and the listing, within the character limit, no banned phrases or CV jargon.'
+          : 'Every check passed: grounded in your CV and the listing, one ask, the right length, no banned phrases, one page.'}
       </p>
     )
   return (
@@ -117,7 +119,9 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
           ? 'Sent with your application: changes create a new draft'
           : letter.status === 'approved'
             ? 'Editing sends it back to review'
-            : 'Edit freely: checks and the PDF update'
+            : form
+              ? 'Edit freely: checks and the character count update'
+              : 'Edit freely: checks and the PDF update'
 
   return (
     <div className="space-y-4 px-5 py-4" data-tour="letter-editor">
@@ -129,7 +133,7 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
           {note}
         </span>
       </div>
-      <Checks violations={letter.violations} />
+      <Checks violations={letter.violations} form={form} />
       {!form && <div className="space-y-1.5">
         <Label htmlFor="letter-salutation">Salutation</Label>
         <Input
