@@ -38,7 +38,8 @@ def test_seed_shape(client: TestClient) -> None:
     assert 15 <= jobs["total"] <= 20
     assert {i["source"] for i in jobs["items"]} == {"adzuna", "remotive", "arbeitnow", "wttj"}
     stages = {c["stage"] for c in client.get("/api/applications").json()}
-    assert stages == {"new", "shortlisted", "cv_ready", "ready", "done", "interview", "closed"}
+    assert stages == {"new", "shortlisted", "cv_ready", "drafted", "ready", "done", "interview",
+                      "closed"}
     assert sum(1 for i in jobs["items"] if i["duplicate_of_id"]) == 2
 
 
@@ -124,7 +125,10 @@ def test_outreach_flow(client: TestClient) -> None:
     edited = client.patch(f"/api/outreach/drafts/{first['id']}", json={"subject": "New subject"})
     assert edited.json()["edited"] is True
     approved = client.post(f"/api/outreach/drafts/{first['id']}/approve").json()
-    assert approved["status"] == "queued"
+    assert approved["status"] == "approved"  # approving doesn't queue
+    assert client.get("/api/queue").json()["counts"]["pending"] == queue_before
+    queued = client.post(f"/api/outreach/drafts/{first['id']}/queue").json()
+    assert queued["status"] == "queued"
     assert client.get("/api/queue").json()["counts"]["pending"] == queue_before + 1
     rejected = client.post(f"/api/outreach/drafts/{second['id']}/reject").json()
     assert rejected["status"] == "rejected"

@@ -25,7 +25,7 @@ from app.models import (
     SendLog,
 )
 from app.models.base import utcnow
-from app.models.enums import CVStatus, DraftStatus, EventKind, Route
+from app.models.enums import CVStatus, DraftStatus, EventKind, Route, Stage
 from app.providers.base import (
     CVPlan,
     DraftFailed,
@@ -225,6 +225,8 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter) -> OutreachDraf
             if app.route == Route.undecided:
                 app.route = Route.cold_email
                 s.add(app)
+            if Stage(app.stage) in (Stage.cv_ready, Stage.ready):  # regenerating: back to review
+                pipeline.transition(s, app, Stage.drafted)
             s.add(draft)
             problems = len(oc.errors(found))
             pipeline.log_event(s, app, EventKind.draft_created,
