@@ -2,7 +2,7 @@
 still weak from the reader's side. Never a rewrite; the latest result is kept on the document.
 
 Rubric adapted from jobhunt-critique in github.com/mohamedaminehamdi/job-hunter (MIT License,
-Copyright (c) 2026 Mohamed Amine Hamdi; see docs/CREDITS.md): unbacked claims first, then the
+the copyright notice is in docs/CREDITS.md): unbacked claims first, then the
 opening, buried evidence, duties instead of outcomes, specificity, real gaps.
 """
 

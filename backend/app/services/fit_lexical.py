@@ -1,7 +1,7 @@
 """The lexical evidence check behind "fit before/after" (no model, no network).
 
 Adapted from jobhunt-fit in github.com/mohamedaminehamdi/job-hunter
-(MIT License, Copyright (c) 2026 Mohamed Amine Hamdi; see docs/CREDITS.md). Re-written for this
+(MIT License; the copyright notice is in docs/CREDITS.md). Re-written for this
 app's data model (the experience pool and the CV document); no code is imported from it.
 
 The idea: take the listing's lines that name something checkable (tools, methods, credentials),
