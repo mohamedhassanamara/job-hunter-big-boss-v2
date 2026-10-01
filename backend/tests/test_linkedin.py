@@ -102,7 +102,7 @@ def test_import_scores_only_that_job_dedupes_and_saves_the_hiring_team(seeded: N
             "https://www.linkedin.com/company/exemplo-labs/"
         person = s.exec(select(LinkedInOutreach).where(
             LinkedInOutreach.application_id == out["application_id"])).one()
-        assert person.group == LinkedInGroup.hiring_team
+        assert person.hiring_team and person.group == LinkedInGroup.lead  # Head of Data
         ana = s.get(Contact, person.contact_id)
         assert ana.source == "linkedin" and ana.email is None
         app = s.get(Application, out["application_id"])

@@ -27,10 +27,17 @@ const GROUP: Record<LinkedInGroup, { label: string; tone: Tone }> = {
   other: { label: 'Other', tone: 'gray' },
 }
 
+/** The note's angle: detected from the title unless you pick one. */
+const ANGLES: { value: string; label: string }[] = [
+  { value: 'auto', label: 'Detect from title' },
+  ...(['recruiter', 'lead', 'alumni', 'other'] as const).map((g) => ({ value: g, label: GROUP[g].label })),
+]
+
 function AddPerson({ appId, group, school, onDone }: { appId: number; group: LinkedInGroup; school: string | null; onDone: () => void }) {
   const add = useAddLinkedInPerson(appId)
   const parse = useParsePaste()
-  const [f, setF] = useState({ full_name: '', title: '', linkedin_url: '', group, alumni: group === 'alumni' })
+  const hiring = group === 'hiring_team'
+  const [f, setF] = useState({ full_name: '', title: '', linkedin_url: '', group: hiring || group === 'other' ? 'auto' : (group as string), alumni: group === 'alumni' })
   const fill = (text: string) =>
     text.trim() &&
     parse.mutate(text, {
@@ -41,7 +48,7 @@ function AddPerson({ appId, group, school, onDone }: { appId: number; group: Lin
       className="space-y-2 rounded-md border border-border bg-bg-subtle p-3"
       onSubmit={(e) => {
         e.preventDefault()
-        add.mutate(f, { onSuccess: () => (toast.success(`${f.full_name} added`), onDone()), onError: (err) => toast.error(err.message) })
+        add.mutate({ ...f, group: f.group === 'auto' ? null : (f.group as LinkedInGroup), hiring_team: hiring }, { onSuccess: () => (toast.success(`${f.full_name} added`), onDone()), onError: (err) => toast.error(err.message) })
       }}
     >
       <Textarea onPaste={(e) => fill(e.clipboardData.getData('text'))} placeholder="Paste their LinkedIn profile header (name, title, URL): the fields fill in" className="min-h-12 text-xs" aria-label="Paste a profile" />
@@ -51,7 +58,8 @@ function AddPerson({ appId, group, school, onDone }: { appId: number; group: Lin
         <Input value={f.linkedin_url} onChange={(e) => setF({ ...f, linkedin_url: e.target.value })} placeholder="Profile URL" aria-label="Profile URL" />
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Select size="sm" value={f.group} onValueChange={(v) => setF({ ...f, group: v as LinkedInGroup, alumni: v === 'alumni' || f.alumni })} options={Object.entries(GROUP).map(([value, g]) => ({ value, label: g.label }))} aria-label="Group" />
+        <Select size="sm" value={f.group} onValueChange={(v) => setF({ ...f, group: v, alumni: v === 'alumni' || f.alumni })} options={ANGLES} aria-label="Who they are" />
+        {hiring && <span className="text-xs text-fg-subtle">Saved as hiring team</span>}
         {school && (
           <label className="flex items-center gap-1.5 text-xs text-fg-muted">
             <Checkbox checked={f.alumni} onCheckedChange={(v) => setF({ ...f, alumni: v === true })} />
@@ -148,7 +156,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
   const status = useLinkedInStatus(appId)
   const remove = useRemoveLinkedInPerson(appId)
   const add = useAddLinkedInPerson(appId)
-  const g = GROUP[person.group]
+  const edit = useEditLinkedIn(appId)
   const st = LINKEDIN_TRACK[person.status]
   const move = (to: LinkedInPerson['status'], message: string) => {
     const from = person.status
@@ -166,9 +174,22 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">{person.full_name}</span>
         {person.title && <span className="text-sm text-fg-muted">· {person.title}</span>}
-        <ToneBadge tone={g.tone} dot={false}>
-          {g.label}
-        </ToneBadge>
+        {person.hiring_team && (
+          <ToneBadge tone={GROUP.hiring_team.tone} dot={false}>
+            Hiring team
+          </ToneBadge>
+        )}
+        <Tooltip content="Who they are sets the note's angle (detected from the title). Redraft after a change.">
+          <span>
+            <Select
+              size="sm"
+              value={person.group === 'hiring_team' ? 'other' : person.group}
+              onValueChange={(v) => edit.mutate({ id: person.id, group: v as LinkedInGroup }, { onSuccess: () => toast.success(`${person.full_name}: ${GROUP[v as LinkedInGroup].label}`), onError: (e) => toast.error(e.message) })}
+              options={ANGLES.slice(1)}
+              aria-label={`Who ${person.full_name} is`}
+            />
+          </span>
+        </Tooltip>
         {person.alumni && person.group !== 'alumni' && <ToneBadge tone="teal">Alumni</ToneBadge>}
         <ToneBadge tone={st.tone}>{st.label}</ToneBadge>
         <span className="ml-auto flex items-center gap-1">
@@ -191,7 +212,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
                     onSuccess: () =>
                       toast(`${person.full_name} removed`, {
                         duration: 8000,
-                        action: { label: 'Undo', onClick: () => add.mutate({ full_name: person.full_name, title: person.title, linkedin_url: person.linkedin_url, group: person.group, alumni: person.alumni }) },
+                        action: { label: 'Undo', onClick: () => add.mutate({ full_name: person.full_name, title: person.title, linkedin_url: person.linkedin_url, group: person.group, alumni: person.alumni, hiring_team: person.hiring_team }) },
                       }),
                   })
                 }
@@ -300,6 +321,14 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
           <ErrorState compact error={error} onRetry={() => refetch()} />
         ) : (
           <>
+            {data.agency.length > 0 && (
+              <p className="flex items-start gap-1.5 rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2 text-xs text-warning-fg">
+                <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  <span className="font-medium">Agency, employer not named</span> ({data.agency.join('; ')}): its alumni and team leads would be the agency's own staff, so message the recruiter first.
+                </span>
+              </p>
+            )}
             <p className="flex flex-wrap items-center gap-1.5 text-xs text-fg-subtle">
               Suggested order:
               {data.order_hint.map((h, i) => (
@@ -312,7 +341,7 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
             <div className="space-y-2" data-tour="linkedin-groups">
               <p className="text-xs font-medium text-fg-subtle">Who to message, in this order</p>
               {data.groups.map((g) => {
-                const count = data.people.filter((p) => p.group === g.group).length
+                const count = data.people.filter((p) => (g.group === 'hiring_team' ? p.hiring_team : p.group === g.group && !p.hiring_team)).length
                 return (
                   <div key={g.group} className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">

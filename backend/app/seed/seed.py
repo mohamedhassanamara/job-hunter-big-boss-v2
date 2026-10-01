@@ -551,7 +551,7 @@ def _seed_linkedin(s: Session, apps: dict[str, Application]) -> None:
         return
     hire = lt.add(s, app, full_name="Morgan Sample", title="Head of Data",
                   linkedin_url="https://www.linkedin.com/in/morgan-sample/",
-                  group=LinkedInGroup.hiring_team)
+                  hiring_team=True)
     alum = lt.add(s, app, full_name="Robin Example", title="Data Engineer",
                   linkedin_url="https://www.linkedin.com/in/robin-example/",
                   group=LinkedInGroup.alumni)

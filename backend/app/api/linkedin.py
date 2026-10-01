@@ -147,8 +147,9 @@ class PersonOut(BaseModel):
     full_name: str
     title: str | None
     linkedin_url: str | None
-    group: str
+    group: str  # the note's angle: recruiter | lead | alumni | other (detected, overridable)
     alumni: bool
+    hiring_team: bool  # they posted this job
     status: str
     note: dict[str, Any] | None
     followup: dict[str, Any] | None
@@ -178,6 +179,7 @@ class PanelOut(BaseModel):
     daily_limit: int
     groups: list[GroupOut]
     people: list[PersonOut]
+    agency: list[str]  # why the company looks like a recruiting agency (employer not named)
     order_hint: list[dict[str, Any]]  # apply → LinkedIn request today → email 1-2 days later
 
 
@@ -185,8 +187,9 @@ class PersonIn(BaseModel):
     full_name: str
     title: str | None = None
     linkedin_url: str | None = None
-    group: str = "other"
+    group: str | None = None  # empty: detected from the title
     alumni: bool = False
+    hiring_team: bool = False
 
 
 class PersonPatch(BaseModel):
@@ -207,6 +210,7 @@ def _person(s, row) -> PersonOut:  # noqa: ANN001
     c = s.get(Contact, row.contact_id)
     return PersonOut(id=row.id, contact_id=c.id, full_name=c.full_name, title=c.title,
                      linkedin_url=c.linkedin_url, group=row.group, alumni=row.alumni,
+                     hiring_team=row.hiring_team,
                      status=row.status, note=row.note, followup=row.followup,
                      critique=row.critique, sent_at=row.sent_at, accepted_at=row.accepted_at,
                      messaged_at=row.messaged_at, replied_at=row.replied_at,
@@ -215,8 +219,8 @@ def _person(s, row) -> PersonOut:  # noqa: ANN001
 
 def _panel(s, app) -> PanelOut:  # noqa: ANN001
     from app.models import Company, Job
+    from app.services import agency, tracks
     from app.services import linkedin_track as lt
-    from app.services import tracks
     from app.services.cv_pool import load_pool
 
     job = s.get(Job, app.job_id)
@@ -232,7 +236,8 @@ def _panel(s, app) -> PanelOut:  # noqa: ANN001
                     school=lt.school(load_pool(s))[0], max_chars=int(cfg["note_max_chars"]),
                     requests_today=lt.requests_today(s), daily_limit=int(cfg["daily_requests"]),
                     groups=[GroupOut(**g) for g in lt.suggestions(s, app)],
-                    people=[_person(s, r) for r in people], order_hint=order)
+                    people=[_person(s, r) for r in people], order_hint=order,
+                    agency=agency.signals(s.get(Company, job.company_id), job))
 
 
 def _app(session, app_id: int):  # noqa: ANN001, ANN202
@@ -263,8 +268,9 @@ def add_person(app_id: int, body: PersonIn, session: SessionDep) -> PanelOut:
     app = _app(session, app_id)
     try:
         lt.add(session, app, full_name=body.full_name, title=body.title,
-               linkedin_url=body.linkedin_url, group=LinkedInGroup(body.group),
-               alumni=body.alumni)
+               linkedin_url=body.linkedin_url,
+               group=LinkedInGroup(body.group) if body.group else None,
+               alumni=body.alumni, hiring_team=body.hiring_team)
     except (lt.LinkedInError, ValueError) as exc:
         raise HTTPException(422, str(exc)) from exc
     session.commit()

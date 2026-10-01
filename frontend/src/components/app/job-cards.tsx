@@ -213,8 +213,18 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
 }
 
 /** Duplicate / already-contacted callouts. */
-export function JobFlags({ job, compact }: { job: JobListItem; compact?: boolean }) {
+export function JobFlags({ job, compact }: { job: JobListItem & { agency?: string[] }; compact?: boolean }) {
   const flags: { key: string; text: React.ReactNode }[] = []
+  if (job.agency?.length) {
+    flags.push({
+      key: 'agency',
+      text: (
+        <>
+          <span className="font-medium">Agency, employer not named</span> ({job.agency.join('; ')}). LinkedIn messages skip alumni and team leads and go to the recruiter first.
+        </>
+      ),
+    })
+  }
   if (job.duplicate_of_id) {
     flags.push({
       key: 'dup',

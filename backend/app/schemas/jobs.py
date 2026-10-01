@@ -173,6 +173,7 @@ class JobDetail(JobListItem):
     tracking: TrackedItem | None = None  # set once applied: how, CV sent, replies, interviews
     contact_search: str = "none"  # the company's Get contact state: none | not_found | never
     contact_state: str = "get"  # this job's: get | verify | ready | never
+    agency: list[str] = []  # why it looks like a recruiting agency (employer not named)
     # Signs the contact left (active ones block the email's approval) and who to write to instead
     contact_alerts: list[ContactAlertOut] = []
     next_contact: ContactOut | None = None

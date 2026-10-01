@@ -49,7 +49,7 @@ export function useLinkedInPanel(appId: number) {
 export function useAddLinkedInPerson(appId: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: { full_name: string; title?: string | null; linkedin_url?: string | null; group: LinkedInGroup; alumni: boolean }) =>
+    mutationFn: (body: { full_name: string; title?: string | null; linkedin_url?: string | null; group: LinkedInGroup | null; alumni: boolean; hiring_team?: boolean }) =>
       api.post<LinkedInPanel>(`/applications/${appId}/linkedin/people`, body),
     onSuccess: (panel) => qc.setQueryData(panelKey(appId), panel),
     onSettled: () => invalidateWork(qc),
