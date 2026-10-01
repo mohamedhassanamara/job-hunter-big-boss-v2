@@ -1328,6 +1328,8 @@ export interface LinkedInLink {
   role: string
   country: string
   country_name: string
+  geo_id: string
+  verified: boolean // you confirmed the country's geoId (Settings → LinkedIn)
   url: string
   opened_today: boolean
 }
@@ -1336,6 +1338,7 @@ export interface LinkedInLinks {
   groups: { track: string; role: string; links: LinkedInLink[] }[]
   total: number
   opened: number
+  missing_geo: { code: string; name: string }[] // target countries without a geoId: no link
 }
 
 /** A job captured on LinkedIn: `sources` says how each field was found. */

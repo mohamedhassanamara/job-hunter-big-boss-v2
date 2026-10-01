@@ -172,6 +172,14 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
             v = body.value.get(name)
             if v is not None and (not isinstance(v, int) or not lo <= v <= hi):
                 raise HTTPException(422, f"{name} must be between {lo} and {hi}")
+        geos = body.value.get("geo_ids")
+        if geos is not None:
+            if not isinstance(geos, dict):
+                raise HTTPException(422, "geo_ids must map country codes to {id, verified}")
+            for code, g in geos.items():
+                gid = str((g or {}).get("id") or "").strip() if isinstance(g, dict) else None
+                if gid is None or (gid and not gid.isdigit()) or len(code) != 2:
+                    raise HTTPException(422, f"{code}: a geoId is digits only (or empty)")
     if key == "research":
         days = body.value.get("refresh_days", 30)
         if not isinstance(days, int) or not 1 <= days <= 365:

@@ -27,6 +27,12 @@ DEFAULT_LINKEDIN: dict[str, Any] = {
     "daily_requests": 10,  # connection requests you send per day (a warning, never a block)
     "followup_days": 5,  # no answer after this many days: a reminder
     "gap_days": 3,  # never an email and a LinkedIn request to the same person within this
+    # LinkedIn's location id per target country (a text location can resolve to the wrong place:
+    # "Jordan" → Jordan, Pennsylvania). Seeded unverified; you confirm each in Settings → LinkedIn.
+    "geo_ids": {code: {"id": gid, "verified": False} for code, gid in {
+        "FR": "105015875", "DE": "101282230", "ES": "105646813", "IT": "103350119",
+        "PT": "100364837", "BE": "100565514", "AE": "104305776", "QA": "104170880",
+        "JO": "103710677", "BH": "100425729", "KW": "103239229"}.items()},
 }
 JOBS_SEARCH = "https://www.linkedin.com/jobs/search/"
 PAST_24H = "r86400"
@@ -54,6 +60,8 @@ class SearchLink:
     role: str
     country: str  # ISO code
     country_name: str
+    geo_id: str
+    verified: bool  # you confirmed this country's geoId (Settings → LinkedIn)
     url: str
     opened_today: bool = False
 
@@ -65,15 +73,22 @@ class LinkGroup:
     links: list[SearchLink] = field(default_factory=list)
 
 
+@dataclass
+class Links:
+    groups: list[LinkGroup]
+    # Target countries without a geoId: no link at all (never a text-location fallback).
+    missing_geo: list[dict[str, str]]
+
+
 def link_key(role: str, country: str, remote: bool, easy: bool) -> str:
     return f"{role.strip().lower()}|{country.lower()}|{'r' if remote else ''}{'e' if easy else ''}"
 
 
-def search_url(role: str, country_name: str, *, remote: bool = False, easy: bool = False) -> str:
-    """One LinkedIn job search: this role in this country, posted in the past 24 hours, newest
-    first; optionally remote only (f_WT=2) and Easy Apply only (f_AL=true)."""
-    params = [("keywords", role), ("location", country_name), ("f_TPR", PAST_24H),
-              ("sortBy", "DD")]
+def search_url(role: str, geo_id: str, *, remote: bool = False, easy: bool = False) -> str:
+    """One LinkedIn job search: this role in this country (LinkedIn's geoId, never a text
+    location), posted in the past 24 hours, newest first; optionally remote only (f_WT=2) and
+    Easy Apply only (f_AL=true)."""
+    params = [("keywords", role), ("geoId", geo_id), ("f_TPR", PAST_24H), ("sortBy", "DD")]
     if remote:
         params.append(("f_WT", "2"))
     if easy:
@@ -81,16 +96,26 @@ def search_url(role: str, country_name: str, *, remote: bool = False, easy: bool
     return JOBS_SEARCH + "?" + "&".join(f"{k}={quote(v, safe='')}" for k, v in params)
 
 
+def geo_ids(s: Session) -> dict[str, dict[str, Any]]:
+    """{ISO code: {id, verified}} (Settings → LinkedIn); a code without an id has no links."""
+    return {code.upper(): v for code, v in (linkedin_settings(s).get("geo_ids") or {}).items()
+            if isinstance(v, dict) and str(v.get("id") or "").strip()}
+
+
 def search_links(s: Session, *, remote: bool = False, easy: bool = False,
-                 today: date | None = None) -> list[LinkGroup]:
-    """One link per role × target country (Settings → Search profile), grouped by role."""
+                 today: date | None = None) -> Links:
+    """One link per role × target country (Settings → Search profile) that has a geoId,
+    grouped by role. Countries without one are listed apart, with no link."""
     from app.services.discovery import active_profile
     from app.services.geo import country_catalog
 
     _, profile = active_profile(s)
     names = {c["code"]: c["name"] for c in country_catalog()}
+    geos = geo_ids(s)
     day = today or local_midnight().date()
     opened = set(s.exec(select(LinkedInLinkOpen.key).where(LinkedInLinkOpen.day == day)).all())
+    missing = [{"code": c.upper(), "name": names.get(c.upper(), c)} for c in profile.locations
+               if c.upper() not in geos]
     groups = []
     for track in profile.tracks:
         for role in track.get("roles") or []:
@@ -99,13 +124,17 @@ def search_links(s: Session, *, remote: bool = False, easy: bool = False,
                 continue
             group = LinkGroup(track=track.get("name") or "", role=title)
             for code in profile.locations:
+                geo = geos.get(code.upper())
+                if geo is None:
+                    continue
                 key = link_key(title, code, remote, easy)
-                name = names.get(code.upper(), code)
-                group.links.append(SearchLink(key, title, code, name,
-                                              search_url(title, name, remote=remote, easy=easy),
-                                              key in opened))
+                gid = str(geo["id"]).strip()
+                group.links.append(SearchLink(
+                    key, title, code.upper(), names.get(code.upper(), code), gid,
+                    bool(geo.get("verified")),
+                    search_url(title, gid, remote=remote, easy=easy), key in opened))
             groups.append(group)
-    return groups
+    return Links(groups, missing)
 
 
 def mark_opened(s: Session, key: str, today: date | None = None) -> None:
