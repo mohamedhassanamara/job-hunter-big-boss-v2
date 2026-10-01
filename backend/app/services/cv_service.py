@@ -154,8 +154,8 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
     from app.services import honesty
 
     text = " ".join(s.text.strip() for s in items)
-    dishonest = [msg for _k, _s, msg in honesty.problems(text, honesty_rules)] \
-        if honesty_rules else []
+    dishonest = [cv_rules.HardProblem(msg) for _k, _s, msg in
+                 honesty.problems(text, honesty_rules)] if honesty_rules else []
     bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
     internships = [i for i in pool.of("job") if cv_rules.role_type(i, rules) == "internship"]
     tools = {t for i in pool.items.values() for t in i.tags if len(t) > 2}
@@ -347,9 +347,18 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
             issues.append(violation("summary_fallback", "Summary sentences failed the grounding "
                                     "check twice and you have no summary snippet: kept only the "
                                     f"{len(good)} grounded sentence(s)", "summary"))
-    elif style:
-        issues.append(violation("summary_style", "The summary still breaks the writing guide "
-                                f"after one retry: {'; '.join(style)}", "summary"))
+    else:
+        # Errors: no subject, a dishonest years claim (also in the short form: it can be shown).
+        hard = [p for p in style if isinstance(p, cv_rules.HardProblem)]
+        hard += [f"Short summary: {p}" for p in short_style
+                 if isinstance(p, cv_rules.HardProblem) and p not in hard]
+        soft = [p for p in style if not isinstance(p, cv_rules.HardProblem)]
+        if hard:
+            issues.append(violation("summary_rule", "The summary still breaks a hard rule after "
+                                    f"one retry: {'; '.join(hard)}", "summary", "error"))
+        if soft:
+            issues.append(violation("summary_style", "The summary still breaks the writing guide "
+                                    f"after one retry: {'; '.join(soft)}", "summary"))
     if bad or short_bad:
         short_good = short_good if short_good and not short_bad else good[:1]
     return plan.model_copy(update={

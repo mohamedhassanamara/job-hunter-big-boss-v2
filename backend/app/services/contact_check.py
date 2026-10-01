@@ -198,7 +198,7 @@ def next_contact(s: Session, app: Application) -> Contact | None:
         col(ContactAlert.dismissed_at).is_(None))).all()}
     pool = [c for c in s.exec(select(Contact).where(Contact.company_id == job.company_id)).all()
             if c.id != app.contact_id and c.id not in flagged and c.email]
-    order = ranking_settings(s).order_for(s.get(Company, job.company_id))
+    order = ranking_settings(s).order_for(s.get(Company, job.company_id), job)
     return ranked(pool, order)[0] if pool else None
 
 

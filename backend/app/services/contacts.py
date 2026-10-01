@@ -127,8 +127,17 @@ class Ranking:
     large: list[int]
     threshold: int
 
-    def order_for(self, company: Company | None) -> list[int]:
-        return self.small if is_small(company, self.threshold) else self.large
+    def order_for(self, company: Company | None, job: Job | None = None) -> list[int]:
+        """The size-based order; at a recruiting agency (services/agency.py: its name, or the
+        job's listing), recruiters / talent acquisition first."""
+        order = self.small if is_small(company, self.threshold) else self.large
+        if company is not None:
+            from app.services import agency
+
+            if agency.is_agency(company, job):
+                hr = [i for i in order if _is(self.groups[i], "hr", "talent", "recruit")]
+                return hr + [i for i in order if i not in hr]
+        return order
 
     def position(self, contact: Contact, order: list[int]) -> int:
         return order.index(contact.role_rank) if contact.role_rank in order else UNRANKED
@@ -265,7 +274,7 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
     # People added only to message on LinkedIn (no email) never become the email's contact.
     usable = [c for c in contacts if c.left_at is None
               and not (c.source == ContactSource.linkedin and not c.email)]
-    best = best_contact(usable, ranking.order_for(company))
+    best = best_contact(usable, ranking.order_for(company, job))
     if best is not None:
         tier = tier_for(best)
         role = f" ({best.title})" if best.title else ""
@@ -506,7 +515,7 @@ def who_to_contact(s: Session, job: Job, company: Company) -> dict[str, Any]:
 
     ranking = ranking_settings(s)
     small = is_small(company, ranking.threshold)
-    ordered = [ranking.groups[i] for i in ranking.order_for(company)
+    ordered = [ranking.groups[i] for i in ranking.order_for(company, job)
                if 0 <= i < len(ranking.groups)]
     team = [t.strip() for t in (job.matched_track or "").split("/") if t.strip()]
     roles = []
