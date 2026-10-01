@@ -24,25 +24,40 @@ CAPTURE = {
 }
 
 
-def test_search_url_has_the_past_day_newest_first_and_the_filters() -> None:
-    url = linkedin.search_url("Data Engineer", "Spain", remote=True, easy=True)
+def test_search_url_uses_the_geo_id_never_a_text_location() -> None:
+    url = linkedin.search_url("Data Engineer", "103710677", remote=True, easy=True)
     assert url.startswith("https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer")
-    for part in ("location=Spain", "f_TPR=r86400", "sortBy=DD", "f_WT=2", "f_AL=true"):
+    for part in ("geoId=103710677", "f_TPR=r86400", "sortBy=DD", "f_WT=2", "f_AL=true"):
         assert part in url
-    assert "f_WT" not in linkedin.search_url("Data Engineer", "Spain")
+    assert "location=" not in url and "f_WT" not in linkedin.search_url("Data Engineer", "1")
 
 
-def test_links_per_role_and_country_and_opened_today_resets(seeded: None) -> None:
+def test_links_need_a_geo_id_and_opened_today_resets(seeded: None, client) -> None:  # noqa: ANN001
+    from app.models import AppSetting
+
     with Session(engine) as s:
-        groups = linkedin.search_links(s)
-        assert groups and all(g.links for g in groups)
-        first = groups[0].links[0]
+        found = linkedin.search_links(s)
+        assert found.groups and all(g.links for g in found.groups)
+        assert all(not x.verified for g in found.groups for x in g.links)  # seeded unverified
+        first = found.groups[0].links[0]
         linkedin.mark_opened(s, first.key, date(2026, 10, 1))
         s.flush()
-        today = linkedin.search_links(s, today=date(2026, 10, 1))
-        assert today[0].links[0].opened_today
-        assert not linkedin.search_links(s, today=date(2026, 10, 2))[0].links[0].opened_today
+        assert linkedin.search_links(s, today=date(2026, 10, 1)).groups[0].links[0].opened_today
+        assert not linkedin.search_links(s, today=date(2026, 10, 2)).groups[0].links[0] \
+            .opened_today
+        row = s.exec(select(AppSetting).where(AppSetting.key == "linkedin")).first()
+        geos = dict(linkedin.DEFAULT_LINKEDIN["geo_ids"])
+        geos.pop(first.country)  # this country now has no geoId
+        row.value = {**row.value, "geo_ids": geos}
+        s.add(row)
+        s.flush()
+        after = linkedin.search_links(s)
+        assert first.country in [c["code"] for c in after.missing_geo]
+        assert all(x.country != first.country for g in after.groups for x in g.links)
         s.rollback()
+    bad = client.put("/api/settings/linkedin",
+                     json={"value": {"geo_ids": {"JO": {"id": "Jordan"}}}})
+    assert bad.status_code == 422
 
 
 def test_validate_reports_what_is_missing_and_never_hides_it() -> None:

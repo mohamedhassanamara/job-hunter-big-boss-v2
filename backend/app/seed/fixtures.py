@@ -8,6 +8,7 @@ from app.services.contacts import (
     DEFAULT_SMALL_ORDER,
     DEFAULT_SMALL_THRESHOLD,
 )
+from app.services.linkedin import DEFAULT_LINKEDIN
 from app.services.outreach_check import DEFAULT_BANNED
 
 # --------------------------------------------------------------------------------------------
@@ -545,7 +546,8 @@ SETTINGS: dict[str, dict] = {
                  "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "auto"},
     # LinkedIn (Settings → LinkedIn): note length (free account: 200), daily requests, reminders,
     # and the gap between an email and a LinkedIn request to the same person.
-    "linkedin": {"note_max_chars": 200, "daily_requests": 10, "followup_days": 5, "gap_days": 3},
+    "linkedin": {"note_max_chars": 200, "daily_requests": 10, "followup_days": 5, "gap_days": 3,
+                 "geo_ids": DEFAULT_LINKEDIN["geo_ids"]},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
     "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
                  "large_order": DEFAULT_LARGE_ORDER,
