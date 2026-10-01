@@ -407,8 +407,9 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
         state = FitState.from_dict((v.plan or {}).get("fit"))
         history = [*(v.plan or {}).get("summary_history", []), previous]
         v.plan = {**v.plan, "summary_grounding": report, "summary_history": history}
+        # Everything about the old summary goes with it (its type or its place).
         v.violations = [x for x in v.violations or [] if not x.get("type", "").startswith(
-            "summary")] + summary_issues
+            "summary") and x.get("where") != "summary"] + summary_issues
         _save_render(s, v, plan, pool, v.template, dict(v.overrides or {}), state)
         pipeline.log_event(s, app, EventKind.cv_generated,
                            f"CV v{v.version}: summary regenerated ({generator.model})")

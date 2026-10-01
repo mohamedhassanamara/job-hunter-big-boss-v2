@@ -164,6 +164,7 @@ export default function CVStudioPage() {
   const error = job.error ?? studio.error
   const loading = job.isPending || (Number.isFinite(appId) && studio.isPending)
   const onePage = version?.page_count === 1 && !version.error
+  const errors = (version?.violations ?? []).filter((v) => v.severity === 'error')
 
   return (
     <div className="flex h-full flex-col">
@@ -241,9 +242,17 @@ export default function CVStudioPage() {
                   Approved
                 </ToneBadge>
               ) : (
-                <Tooltip content={!onePage ? 'The CV must be exactly one page to approve' : null}>
+                <Tooltip
+                  content={
+                    !onePage
+                      ? 'The CV must be exactly one page to approve'
+                      : errors.length > 0
+                        ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first: ${errors[0].message}`
+                        : null
+                  }
+                >
                   <span>
-                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || version.status !== 'draft' || !onePage}>
+                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || version.status !== 'draft' || !onePage || errors.length > 0}>
                       <CircleCheck />
                       Approve
                     </Button>

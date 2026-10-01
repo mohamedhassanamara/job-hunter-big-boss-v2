@@ -123,7 +123,8 @@ def test_checks_numbers_ids_skills_tools_and_restore_roles(pool) -> None:  # noq
     kinds = {(i["type"], i["severity"]) for i in issues}
     assert ("number", "error") in kinds  # 73% isn't in the source
     assert ("unknown_fact", "error") in kinds and ("unknown_item", "error") in kinds
-    assert ("new_skill", "error") in kinds and ("new_tool", "warning") in kinds  # COBOL, DeepSpeed
+    # COBOL is removed (fixed: a warning); DeepSpeed stays flagged
+    assert ("new_skill", "warning") in kinds and ("new_tool", "warning") in kinds
     assert [b.source_index for b in repaired.roles[0].bullets] == [0]
     assert {e.item_id for e in repaired.roles} == {r.id for r in roles}  # nothing dropped
     assert all(e.bullets for e in repaired.roles if pool.facts(pool.get(e.item_id)))

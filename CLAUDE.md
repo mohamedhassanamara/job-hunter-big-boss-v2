@@ -225,7 +225,9 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   Per-group rules are in `linkedin_check._group_rules`; the transition line is code (`linkedin_track.framing`).
   LinkedIn reference notes (`email_example.inputs.channel == "linkedin"`) never enter the email eval or prompts.
 - `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches), and recruiters first in
-  the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it).
+  the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it). `company.agency_override`
+  (employer | agency) always wins over the signals; `agency.detected` is the rule alone.
+- CV approval blocks on errors (as letters and emails). Mark problems the checker fixes itself as warnings.
 - CV summary hard rules (`cv_rules.HardProblem`: no subject, incl. a figure as the subject, and honesty) are
   errors; other guide problems stay warnings.
 - Contact check (`services/contact_check.py`): research also searches news for each contact's name and scans

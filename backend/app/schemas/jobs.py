@@ -10,6 +10,7 @@ class CompanyRef(BaseModel):
     id: int
     name: str
     contacted_at: datetime | None = None
+    agency_override: str | None = None  # employer | agency | None (detected)
 
 
 class FitBrief(BaseModel):

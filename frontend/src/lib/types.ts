@@ -48,6 +48,7 @@ export interface CompanyRef {
   id: number
   name: string
   contacted_at: string | null
+  agency_override?: 'employer' | 'agency' | null // your answer to the agency rule
 }
 
 export type Confidence = 'high' | 'medium' | 'low'
@@ -1420,6 +1421,7 @@ export interface LinkedInPanel {
   application_id: number
   job_id: number
   company: string
+  company_id: number
   school: string | null
   max_chars: number
   requests_today: number

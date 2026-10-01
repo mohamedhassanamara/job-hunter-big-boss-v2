@@ -25,6 +25,8 @@ class Company(TableBase, table=True):
     size_source: str | None = None  # manual | apollo_list
     # You looked at the "looks like a job board" suggestion and said no.
     aggregator_reviewed: bool = False
+    # Your answer to the agency rule (services/agency.py): employer | agency | None (the rule).
+    agency_override: str | None = None
     # Get contact: nobody found with the Apollo extension, or never look up (a job board).
     contact_search: ContactSearch = enum_field(ContactSearch.none)
     contact_search_at: datetime | None = dt_field()
