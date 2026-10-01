@@ -361,14 +361,20 @@ linkedin.com).
   leads: one concrete technical proof, a short chat. Alumni: the shared school, advice or a referral. Approved
   notes go in the regression set (`email_example`, `inputs.channel = linkedin`) as structure and honesty
   references: 8+ words copied from one is an error.
-- **Agency jobs** (`services/agency.py`: the company name or listing phrases such as "our client"): the job shows
+- **Agency jobs** (`services/agency.py`: the company name, or listing phrases that mean recruiting on someone's
+  behalf such as "for one of our clients", never a consultancy's client mission): the job shows
   "Agency, employer not named" with the reasons, and LinkedIn suggestions are the hiring team then recruiters
   only (alumni and team leads there would be the agency's own staff). The Email "who to contact" list is the
   recruiter / talent acquisition only, with no head of team or manager (`contacts.who_to_contact`), and the
   automatic contact ranking puts recruiters / talent acquisition first (`Ranking.order_for(company, job)`).
+  Your answer always wins: "It's an employer" on the agency notice (job page, LinkedIn panel) and "It's a
+  recruiting agency" / "Let the rule decide" on the job page's Company card (`PUT /companies/{id}/agency`, an
+  Undo toast, the company's jobs are matched again).
 - **Corrected copy of an approved CV** (`POST /cv/{id}/revise-summary`, `cv_service.revise_summary`): a new
   draft with the original's exact document and only the summary written again; the original stays approved
   until you approve the copy.
+- **CV approval blocks on errors**, like letters and emails ("Fix N problems first: …", the button is disabled with
+  the reason). Problems the checker already fixed (a skill removed, a source fact restored) are warnings.
 
 ### Honesty about years (every generated text)
 Each track in Settings → Search profile says whether your experience in it is **Professional** or **Projects

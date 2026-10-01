@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { relativeTime } from '@/lib/format'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { JobDetail, JobListItem } from '@/lib/types'
@@ -214,14 +215,20 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
 
 /** Duplicate / already-contacted callouts. */
 export function JobFlags({ job, compact }: { job: JobListItem & { agency?: string[] }; compact?: boolean }) {
-  const flags: { key: string; text: React.ReactNode }[] = []
+  const flags: { key: string; text: React.ReactNode; action?: React.ReactNode }[] = []
+  const agency = useAgencyAction()
   if (job.agency?.length) {
     flags.push({
       key: 'agency',
       text: (
         <>
-          <span className="font-medium">Agency, employer not named</span> ({job.agency.join('; ')}). LinkedIn messages skip alumni and team leads and go to the recruiter first.
+          <span className="font-medium">Agency, employer not named</span> ({job.agency.join('; ')}). Contacts and LinkedIn messages go to the recruiter first.
         </>
+      ),
+      action: (
+        <Button size="xs" variant="ghost" className="-my-1 shrink-0" disabled={agency.pending} onClick={() => agency.run(job.company, job.company.agency_override === 'agency' ? null : 'employer')}>
+          {job.company.agency_override === 'agency' ? 'Let the rule decide' : "It's an employer"}
+        </Button>
       ),
     })
   }
@@ -258,7 +265,8 @@ export function JobFlags({ job, compact }: { job: JobListItem & { agency?: strin
           className="flex gap-2 rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2 text-sm text-warning-fg"
         >
           <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
-          <span>{f.text}</span>
+          <span className="min-w-0 flex-1">{f.text}</span>
+          {f.action}
         </div>
       ))}
     </div>
@@ -273,5 +281,20 @@ export function ExternalListingButton({ url, label = 'Open listing' }: { url: st
         <ExternalLink />
       </a>
     </Button>
+  )
+}
+
+/** The company card's answer to the agency rule: mark it an agency, or undo your answer. */
+export function AgencyLine({ job }: { job: JobDetail }) {
+  const agency = useAgencyAction()
+  const answer = job.company.agency_override
+  if (!answer && job.agency.length > 0) return null // the flag above offers "It's an employer"
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-fg-subtle">
+      {answer && <span>You marked it as {answer === 'agency' ? 'a recruiting agency' : 'an employer'}.</span>}
+      <Button size="xs" variant="ghost" className="-mx-2" disabled={agency.pending} onClick={() => agency.run(job.company, answer ? null : 'agency')}>
+        {answer ? 'Let the rule decide' : "It's a recruiting agency"}
+      </Button>
+    </div>
   )
 }

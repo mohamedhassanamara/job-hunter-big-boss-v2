@@ -154,6 +154,10 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
     app = get_or_404(session, Application, v.application_id)
     if v.page_count is not None and v.page_count != 1:
         raise HTTPException(409, "The CV must fit on exactly one page before approval")
+    found = [x for x in v.violations or [] if x.get("severity") == "error"]
+    if found:  # the same rule as letters and emails
+        raise HTTPException(409, f"Fix {len(found)} problem{'s' if len(found) > 1 else ''} first: "
+                            + found[0]["message"])
     for other in cv_service.versions(session, app.id):
         if other.locked_at is not None:
             continue  # the CV that was sent with the application never changes

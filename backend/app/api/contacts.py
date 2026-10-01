@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel
 from sqlmodel import Session, col, func, select
 
 from app.api.deps import EngineDep, SessionDep, get_or_404
@@ -150,6 +151,30 @@ def set_company_size(company_id: int, body: CompanySize, session: SessionDep) ->
     contacts.resolve_company(session, company_id)
     session.commit()
     return get_company(company_id, session)
+
+
+class AgencyOverride(BaseModel):
+    value: Literal["employer", "agency"] | None  # None: the rule decides again
+
+
+class AgencyOut(BaseModel):
+    company_id: int
+    agency_override: str | None
+    previous: str | None  # for Undo
+    detected: list[str]  # what the rule sees on its own (name only, without a job)
+
+
+@router.put("/companies/{company_id}/agency", response_model=AgencyOut)
+def set_agency(company_id: int, body: AgencyOverride, session: SessionDep) -> AgencyOut:
+    """"It's an employer" / "It's an agency" for this company (or back to the rule). Used by the
+    agency notices, LinkedIn suggestions, who to contact and the contact ranking."""
+    from app.services import agency
+
+    company = get_or_404(session, Company, company_id, "Company")
+    previous = agency.set_override(session, company, body.value)
+    session.commit()
+    return AgencyOut(company_id=company.id, agency_override=company.agency_override,
+                     previous=previous, detected=agency.detected(company))
 
 
 @router.get("/company-merges", response_model=list[MergeSuggestion])

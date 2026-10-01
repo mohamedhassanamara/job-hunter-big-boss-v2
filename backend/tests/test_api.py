@@ -108,6 +108,24 @@ def test_cv_flow(client: TestClient) -> None:
     assert any(bullet["text"] + " Quickly." in b for r in edited["content"]["roles"]
                for b in r["bullets"])
 
+    # An error blocks approval, the same as letters and emails.
+    from sqlmodel import Session
+
+    from app.db import engine
+    from app.models import CVVersion
+
+    with Session(engine) as s:
+        row = s.get(CVVersion, new["id"])
+        kept = list(row.violations or [])
+        row.violations = [*kept, {"type": "number", "severity": "error", "where": "summary",
+                                  "message": "“73%” isn't anywhere in your experience"}]
+        s.commit()
+    blocked = client.post(f"/api/cv/{new['id']}/approve")
+    assert blocked.status_code == 409 and "Fix 1 problem first" in blocked.json()["detail"]
+    with Session(engine) as s:
+        s.get(CVVersion, new["id"]).violations = kept
+        s.commit()
+
     result = client.post(f"/api/cv/{new['id']}/approve").json()
     assert result["stage"] == "cv_ready"
     assert result["next_step"] == "draft_email"  # this job has a contact

@@ -160,8 +160,9 @@ class MockCVGenerator:
         out = []
         for role in pool.get("roles", [])[:2]:
             fact = next(iter(role.get("facts", {}).values()), "")
-            if fact:
-                out.append(SummarySentence(text=fact.rstrip(".") + ".", citations=[role["id"]]))
+            if fact:  # a bullet starts with a verb: give the sentence a subject
+                text = f"Recent work: {fact[0].lower()}{fact[1:].rstrip('.')}."
+                out.append(SummarySentence(text=text, citations=[role["id"]]))
         return out
 
     def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:

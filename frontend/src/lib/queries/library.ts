@@ -278,3 +278,15 @@ export function useRemoveTestData() {
     },
   })
 }
+
+export type AgencyOverride = 'employer' | 'agency' | null
+
+/** "It's an employer" / "It's an agency" for a company (null: the rule decides again). */
+export function useSetAgency() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ companyId, value }: { companyId: number; value: AgencyOverride }) =>
+      api.put<{ company_id: number; agency_override: AgencyOverride; previous: AgencyOverride; detected: string[] }>(`/companies/${companyId}/agency`, { value }),
+    onSettled: () => invalidateWork(qc),
+  })
+}

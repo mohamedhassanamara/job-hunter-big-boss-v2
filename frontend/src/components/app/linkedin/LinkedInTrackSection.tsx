@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
+import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
 import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson } from '@/lib/queries/linkedin'
@@ -299,6 +300,7 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
   const appId = job.application.id
   const { data, isPending, error, refetch } = useLinkedInPanel(appId)
   const [adding, setAdding] = useState<LinkedInGroup | null>(null)
+  const agency = useAgencyAction()
   if (job.application.stage === 'new') return null
   return (
     <Section
@@ -324,9 +326,12 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
             {data.agency.length > 0 && (
               <p className="flex items-start gap-1.5 rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2 text-xs text-warning-fg">
                 <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
-                <span>
+                <span className="min-w-0 flex-1">
                   <span className="font-medium">Agency, employer not named</span> ({data.agency.join('; ')}): its alumni and team leads would be the agency's own staff, so message the recruiter first.
                 </span>
+                <Button size="xs" variant="ghost" className="-my-1 shrink-0" disabled={agency.pending} onClick={() => agency.run({ id: data.company_id, name: data.company }, "employer")}>
+                  It's an employer
+                </Button>
               </p>
             )}
             <p className="flex flex-wrap items-center gap-1.5 text-xs text-fg-subtle">

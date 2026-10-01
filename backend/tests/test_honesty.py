@@ -179,3 +179,33 @@ def test_agencies_vs_consultancies(name: str, listing: str, expected: bool) -> N
 
     assert agency.is_agency(Company(name=name, normalized_name=name.lower()),
                             Job(title="Data Engineer", description=listing)) is expected
+
+
+def test_your_agency_answer_wins_and_drives_the_ranking(seeded: None, client) -> None:  # noqa: ANN001
+    from app.services import contacts
+
+    with Session(engine) as s:
+        company = make_company(s, ("Cora Tech", "CTO", "apollo_dump"),
+                               ("Rita Recruit", "Talent Acquisition Partner", "apollo_dump"))
+        company.name, company.employees = "Northwind Workforce Staffing", 40
+        app = make_job(s, company)
+        contacts.resolve(s, app)
+        assert s.get(contacts.Contact, app.contact_id).full_name == "Rita Recruit"
+        s.commit()
+        company_id, app_id = company.id, app.id
+
+    r = client.put(f"/api/companies/{company_id}/agency", json={"value": "employer"}).json()
+    assert r["agency_override"] == "employer" and r["previous"] is None and r["detected"]
+    with Session(engine) as s:
+        app, company = s.get(contacts.Application, app_id), s.get(contacts.Company, company_id)
+        assert not agency.is_agency(company) and \
+            s.get(contacts.Contact, app.contact_id).full_name == "Cora Tech"  # matched again
+        assert len(lt.suggestions(s, app)) > 2  # team leads (and alumni) are back
+    undo = client.put(f"/api/companies/{company_id}/agency", json={"value": r["previous"]}).json()
+    assert undo["agency_override"] is None and undo["previous"] == "employer"
+    marked = client.put(f"/api/companies/{company_id}/agency", json={"value": "agency"}).json()
+    assert marked["agency_override"] == "agency"
+    with Session(engine) as s:
+        assert agency.signals(s.get(contacts.Company, company_id)) == ["you marked it as an agency"]
+    assert client.put(f"/api/companies/{company_id}/agency",
+                      json={"value": "maybe"}).status_code == 422

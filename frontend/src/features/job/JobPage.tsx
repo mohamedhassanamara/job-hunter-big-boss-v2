@@ -27,7 +27,7 @@ import { CloseDialog } from '@/components/app/CloseDialog'
 import { LogInterviewDialog, MarkAppliedDialog } from '@/components/app/tracking/TrackingDialogs'
 import { AppliedFacts, TrackingActions } from '@/components/app/tracking/TrackingPanel'
 import { FitCard } from '@/components/app/FitCard'
-import { ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
+import { AgencyLine, ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
 import { Section } from '@/components/app/PageHeader'
 import { Prose } from '@/components/app/Prose'
 import { EmptyState, ErrorState } from '@/components/app/states'
@@ -440,6 +440,7 @@ export default function JobPage() {
                 ? `Contacted ${relativeTime(job.company.contacted_at)}`
                 : 'Not contacted yet'}
             </p>
+            <AgencyLine job={job} />
             {job.other_jobs_at_company.length > 0 && (
               <div className="mt-3 space-y-1">
                 <p className="text-xs text-fg-subtle">Other jobs here</p>

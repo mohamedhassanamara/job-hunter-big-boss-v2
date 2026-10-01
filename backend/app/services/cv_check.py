@@ -99,7 +99,7 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
                 if claims := [c for c, _ in years_claims(b.text)
                               if c not in facts[b.source_index]]:
                     issues.append(violation("years", f"Years claim “{claims[0]}” in a bullet: "
-                                            "kept the source fact instead", where, "error"))
+                                            "kept the source fact instead", where))  # fixed
                     b = b.model_copy(update={"text": facts[b.source_index]})
                 issues.extend(check_bullet(b, facts[b.source_index], where))
                 if tools := new_tools(b.text, vocab):
@@ -140,12 +140,12 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
         item = pool.get(group.item_id, "skill")
         if item is None:
             issues.append(violation("unknown_item", f"Unknown skill group {group.item_id}: dropped",
-                                    "skills", "error"))
+                                    "skills"))  # fixed: a warning
             continue
         unknown = [s for s in group.items if norm(s) not in terms]
         if unknown:
             issues.append(violation("new_skill", f"Not in your skills: {', '.join(unknown)} "
-                                    "(removed)", item.title, "error"))
+                                    "(removed)", item.title))  # fixed: a warning
         skills.append(group.model_copy(update={
             "items": [s for s in group.items if norm(s) in terms]}))
 

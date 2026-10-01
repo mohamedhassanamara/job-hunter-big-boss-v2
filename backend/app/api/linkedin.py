@@ -173,6 +173,7 @@ class PanelOut(BaseModel):
     application_id: int
     job_id: int
     company: str
+    company_id: int
     school: str | None
     max_chars: int
     requests_today: int
@@ -232,7 +233,7 @@ def _panel(s, app) -> PanelOut:  # noqa: ANN001
                                                                                    "to_contact")},
              {"step": "Email, 1-2 days later", "done": t.outreach in ("queued", "sent")}]
     return PanelOut(application_id=app.id, job_id=job.id,
-                    company=s.get(Company, job.company_id).name,
+                    company=s.get(Company, job.company_id).name, company_id=job.company_id,
                     school=lt.school(load_pool(s))[0], max_chars=int(cfg["note_max_chars"]),
                     requests_today=lt.requests_today(s), daily_limit=int(cfg["daily_requests"]),
                     groups=[GroupOut(**g) for g in lt.suggestions(s, app)],

@@ -103,7 +103,9 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 
 ### company (size, aliases, merges)
 `company` also has `employees` (exact), `employees_max` ("under N"), `size_source` (`manual | apollo_list`) and
-`aggregator_reviewed` (you said "it's an employer" to the job-board suggestion), and the Get contact state
+`aggregator_reviewed` (you said "it's an employer" to the job-board suggestion), `agency_override` (migration
+0019: `employer | agency | null`, your answer to the recruiting-agency rule; null = the rule decides), and the Get
+contact state
 `contact_search` (`none | not_found | never`: nobody found with the extension / never look up, a job board) with
 `contact_search_at` and `contact_search_notes`. Migration 0016 moved these from the removed `company_lookup` table
 (never → never, not_found → not_found, queued/skipped/found → none) and renamed tiers and sources. `company_alias`
