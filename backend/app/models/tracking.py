@@ -7,7 +7,7 @@ from sqlalchemy import Text
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, utcnow
-from app.models.enums import InterviewOutcome, InterviewType, ResponseKind
+from app.models.enums import InterviewOutcome, InterviewType, ResponseChannel, ResponseKind
 
 
 class ApplicationResponse(TableBase, table=True):
@@ -15,6 +15,7 @@ class ApplicationResponse(TableBase, table=True):
 
     application_id: int = Field(foreign_key="application.id", index=True)
     kind: ResponseKind = enum_field()
+    channel: ResponseChannel = enum_field(ResponseChannel.application)
     received_at: datetime = dt_field(default_factory=utcnow)
     notes: str = Field(default="", sa_type=Text)
 

@@ -51,6 +51,8 @@ export function invalidateWork(qc: QueryClient) {
     'drafts',
     'queue',
     'to-get',
+    'linkedin-links',
+    'linkedin',
     'get-contact',
     'companies',
     'company',

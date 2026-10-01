@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Text, UniqueConstraint
+from sqlalchemy import JSON, Text, UniqueConstraint
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field, utcnow
@@ -37,6 +37,10 @@ class Job(TableBase, table=True):
     # Which of the user's tracks/roles (Settings → Search profile) the title matched.
     matched_track: str | None = Field(default=None, index=True)
     matched_role: str | None = None
+    # Imported with the LinkedIn bookmark: the job id and how each field was captured
+    # ({field: "json-ld" | "page" | "meta" | "url" | "you" | "missing"}).
+    linkedin_job_id: str | None = Field(default=None, index=True)
+    capture: dict[str, Any] | None = Field(default=None, sa_type=JSON)
 
 
 class FitScore(TableBase, table=True):

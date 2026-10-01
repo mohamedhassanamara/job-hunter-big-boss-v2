@@ -25,6 +25,7 @@ SOURCE_NAMES = {
     "wttj": "Welcome to the Jungle",
     "boards": "Company job boards",
     "bayt": "Bayt",
+    "linkedin": "LinkedIn (your import)",
 }
 
 

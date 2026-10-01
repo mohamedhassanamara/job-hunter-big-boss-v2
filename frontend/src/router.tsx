@@ -6,7 +6,9 @@ import CopilotPage from '@/features/copilot/CopilotPage'
 import CVStudioPage from '@/features/cv-studio/CVStudioPage'
 import DiscoverPage from '@/features/discover/DiscoverPage'
 import ExperiencePage from '@/features/experience/ExperiencePage'
+import ImportPage from '@/features/import/ImportPage'
 import JobPage from '@/features/job/JobPage'
+import LinkedInPage from '@/features/linkedin/LinkedInPage'
 import LetterStudioPage from '@/features/letter-studio/LetterStudioPage'
 import NotFoundPage from '@/features/NotFoundPage'
 import OutreachPage from '@/features/outreach/OutreachPage'
@@ -16,6 +18,8 @@ import StudioPage from '@/features/studio/StudioPage'
 import TodayPage from '@/features/today/TodayPage'
 
 export const router = createBrowserRouter([
+  // The LinkedIn bookmark's import window: no app shell.
+  { path: 'import', element: <ImportPage /> },
   {
     element: <AppShell />,
     children: [
@@ -27,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'jobs/:id/cv', element: <CVStudioPage /> },
       { path: 'jobs/:id/letter', element: <LetterStudioPage /> },
       { path: 'outreach', element: <OutreachPage /> },
+      { path: 'linkedin', element: <LinkedInPage /> },
       { path: 'copilot', element: <CopilotPage /> },
       { path: 'studio', element: <StudioPage /> },
       { path: 'contacts', element: <ContactsPage /> },

@@ -5,7 +5,7 @@ from sqlmodel import Session, col, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep
 from app.models import DiscoveryRun, SourceRun
-from app.models.enums import RunStatus, Source
+from app.models.enums import DISCOVERY_SOURCES, RunStatus, Source
 from app.providers.registry import job_sources, unsupported_countries
 from app.schemas.settings import (
     DiscoveryRunOut,
@@ -82,7 +82,7 @@ def discovery_status(session: SessionDep) -> DiscoveryStatus:
 @router.get("/sources", response_model=list[SourceInfo])
 def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInfo]:
     enabled = set(discovery.enabled_sources(session))
-    impls = job_sources(list(Source), mock=workspace == "demo" or None)
+    impls = job_sources(DISCOVERY_SOURCES, mock=workspace == "demo" or None)
     _, profile = discovery.active_profile(session)
     out = []
     for src, impl in impls.items():

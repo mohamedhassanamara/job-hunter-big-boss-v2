@@ -27,7 +27,7 @@ router = APIRouter(tags=["settings"])
 
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
-    "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research",
+    "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
 }
 
 
@@ -65,6 +65,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services.research import research_settings
 
     values["research"] = research_settings(session)
+    from app.services.linkedin import linkedin_settings
+
+    values["linkedin"] = linkedin_settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -163,6 +166,12 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_outreach(body.value)
     if key == "cover_letter":
         _check_cover_letter(body.value)
+    if key == "linkedin":
+        for name, lo, hi in (("note_max_chars", 100, 300), ("daily_requests", 1, 100),
+                             ("followup_days", 1, 60), ("gap_days", 0, 30)):
+            v = body.value.get(name)
+            if v is not None and (not isinstance(v, int) or not lo <= v <= hi):
+                raise HTTPException(422, f"{name} must be between {lo} and {hi}")
     if key == "research":
         days = body.value.get("refresh_days", 30)
         if not isinstance(days, int) or not 1 <= days <= 365:

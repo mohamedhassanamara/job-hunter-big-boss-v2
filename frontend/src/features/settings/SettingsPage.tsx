@@ -1,4 +1,4 @@
-import { BellRing, Bot, Contact as ContactIcon, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Radar, ScrollText, SlidersHorizontal, UserRound } from 'lucide-react'
+import { BellRing, Bot, Contact as ContactIcon, CalendarClock, Database, FileText, Gauge, LayoutTemplate, Mail, Network, Radar, ScrollText, SlidersHorizontal, UserRound } from 'lucide-react'
 import { PageHeader } from '@/components/app/PageHeader'
 import { ErrorState } from '@/components/app/states'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -20,6 +20,7 @@ import { ContactsSection } from './ContactsSection'
 import { CoverLetterSection } from './CoverLetterSection'
 import { WritingSection } from './WritingSection'
 import { ResearchSection } from './ResearchSection'
+import { LinkedInSection } from './LinkedInSection'
 import { OutreachSection } from './OutreachSection'
 import { SourcesSection } from './SourcesSection'
 
@@ -36,6 +37,7 @@ const SECTIONS = [
   { id: 'tracking', label: 'Tracking', icon: BellRing },
   { id: 'models', label: 'Models', icon: Bot },
   { id: 'email', label: 'Email', icon: Mail },
+  { id: 'linkedin', label: 'LinkedIn', icon: Network },
   { id: 'data', label: 'Data', icon: Database },
 ] as const
 
@@ -107,6 +109,8 @@ export default function SettingsPage() {
                 <WritingSection key={`we-${JSON.stringify(settings.data.values.writing)}`} settings={settings.data} />
                 <ResearchSection key={`r-${JSON.stringify(settings.data.values.research)}`} settings={settings.data} />
               </div>
+            ) : section === 'linkedin' ? (
+              <LinkedInSection key={JSON.stringify(settings.data.values.linkedin)} settings={settings.data} />
             ) : section === 'data' ? (
               <DataSection settings={settings.data} />
             ) : (

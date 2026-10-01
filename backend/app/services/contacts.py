@@ -262,7 +262,10 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
                          "No contact: never looked up (job board or aggregator)")
         return Resolution(changed, ContactTier.none, None)
     ranking = ranking or ranking_settings(s)
-    best = best_contact([c for c in contacts if c.left_at is None], ranking.order_for(company))
+    # People added only to message on LinkedIn (no email) never become the email's contact.
+    usable = [c for c in contacts if c.left_at is None
+              and not (c.source == ContactSource.linkedin and not c.email)]
+    best = best_contact(usable, ranking.order_for(company))
     if best is not None:
         tier = tier_for(best)
         role = f" ({best.title})" if best.title else ""

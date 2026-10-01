@@ -6,6 +6,7 @@ import {
   Inbox,
   Layers,
   type LucideIcon,
+  Network,
   Send,
   Settings,
   SquareKanban,
@@ -27,6 +28,7 @@ export const NAV_MAIN: NavItem[] = [
   { to: '/pipeline', label: 'Pipeline', icon: SquareKanban, shortcut: 'p', count: 'pipeline_active' },
   { to: '/applications', label: 'Applications', icon: BriefcaseBusiness, shortcut: 'a', count: 'ready_to_apply' },
   { to: '/outreach', label: 'Outreach', icon: Send, shortcut: 'o', count: 'outreach_review' },
+  { to: '/linkedin', label: 'LinkedIn', icon: Network, shortcut: 'n' },
   { to: '/copilot', label: 'Copilot', icon: BotMessageSquare, shortcut: 'i' },
 ]
 

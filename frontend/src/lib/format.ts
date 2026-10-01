@@ -52,6 +52,7 @@ export const SOURCE_LABELS: Record<Source, string> = {
   wttj: 'Welcome to the Jungle',
   boards: 'Company job boards',
   bayt: 'Bayt',
+  linkedin: 'LinkedIn (your import)',
 }
 
 export const SOURCE_SHORT: Record<Source, string> = {
@@ -61,6 +62,7 @@ export const SOURCE_SHORT: Record<Source, string> = {
   wttj: 'WTTJ',
   boards: 'Company',
   bayt: 'Bayt',
+  linkedin: 'LinkedIn',
 }
 
 export const REMOTE_LABELS: Record<RemoteType, string> = {
