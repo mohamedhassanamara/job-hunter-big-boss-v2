@@ -364,7 +364,8 @@ linkedin.com).
 - **Agency jobs** (`services/agency.py`: the company name or listing phrases such as "our client"): the job shows
   "Agency, employer not named" with the reasons, and LinkedIn suggestions are the hiring team then recruiters
   only (alumni and team leads there would be the agency's own staff). The Email "who to contact" list is the
-  recruiter / talent acquisition only, with no head of team or manager (`contacts.who_to_contact`).
+  recruiter / talent acquisition only, with no head of team or manager (`contacts.who_to_contact`), and the
+  automatic contact ranking puts recruiters / talent acquisition first (`Ranking.order_for(company, job)`).
 - **Corrected copy of an approved CV** (`POST /cv/{id}/revise-summary`, `cv_service.revise_summary`): a new
   draft with the original's exact document and only the summary written again; the original stays approved
   until you approve the copy.

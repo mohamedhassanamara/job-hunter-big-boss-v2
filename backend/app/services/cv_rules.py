@@ -12,13 +12,15 @@ from typing import Any
 from app.models import ExperienceItem
 
 DEFAULT_GUIDE = "\n".join([
-    "Summary: two full sentences with a subject (never a fragment like \"Brings…\"), no \"I\", "
-    "about 45 words. Sentence 1: who I am, positioned for this job's track; for Data/AI jobs lead "
-    "with what I build (e.g. \"Software engineer building data pipelines and local LLM "
-    "systems\"). Sentence 2: what I bring to THIS role, naming at least one concrete thing I "
-    "built from the cited items (e.g. \"a privacy-first resume parser on a local Mistral LLM\", "
-    "\"a dbt/Airflow lakehouse for football data\"). Give sentence 2 a subject without \"I\" "
-    "(e.g. \"Recent work includes…\", \"Projects include…\", \"That work spans…\"), never a bare "
+    "Summary: two full sentences with a subject (never a fragment like \"Brings…\", never a "
+    "figure as the subject like \"3 years of experience spans…\"), no \"I\", about 45 words. "
+    "Sentence 1: who I am, positioned for this job's track, with my years attached only to the "
+    "tracks where my experience is professional (e.g. \"Software engineer with 3 years of "
+    "experience in mobile and backend development, …\"). Sentence 2: what I bring to THIS role, "
+    "naming at least one concrete thing I built from the cited items (e.g. \"a privacy-first "
+    "resume parser on a local Mistral LLM\", \"a dbt/Airflow lakehouse for football data\"); "
+    "work in a track that is projects only is said to be projects. Give sentence 2 a subject "
+    "without \"I\" (e.g. \"Recent work includes…\", \"Projects include…\"), never a bare "
     "verb like \"Built…\" or \"Delivered…\". Vary the opening between CVs. No numbers "
     "that also appear in bullets, no certifications, no internships, no tool lists. In Data/AI "
     "summaries, state track years only when they are 2 or more; otherwise the total years, or "
@@ -265,6 +267,15 @@ def sentences(text: str) -> list[str]:
     return [s for s in _SENTENCE.split(text.strip()) if s.strip()]
 
 
+class HardProblem(str):
+    """A summary problem reported as an error, not a warning (a sentence without a subject, a
+    dishonest years claim). Still a plain string for the retry feedback."""
+
+
+# "3 years of software engineering experience spans…": a figure as the subject, not who you are.
+_YEARS_SUBJECT = re.compile(r"^(?:over|more than|nearly|almost|about|around|some)?\s*(?:\d+|one|"
+                            r"two|three|four|five|six|seven|eight|nine|ten)\+?\s*\+?\s*"
+                            r"(?:years?|yrs)\b", re.I)
 # A sentence opening on one of these is a fragment ("Brings experience…"), not a sentence.
 _FRAGMENT_START = {
     "brings", "bringing", "delivers", "offers", "combines", "has", "having", "specializes",
@@ -340,10 +351,11 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
     for sentence in sentences(text):
         body = _LEADING_CLAUSE.sub("", sentence.strip())  # "At Acme, built…" → "built…"
         first = (re.findall(r"[a-z]+", body.lower()) or [""])[0]
-        if first in _FRAGMENT_START:
+        if first in _FRAGMENT_START or _YEARS_SUBJECT.match(body):
             start = " ".join(sentence.split()[:3])
-            out.append(f"“{start}…” has no subject: start it with a subject such as “Recent "
-                       "work includes…” or “Projects include…” (no “I”)")
+            out.append(HardProblem(f"“{start}…” has no subject: start it with who you are or "
+                                   "what the work is, such as “Software engineer with…”, "
+                                   "“Recent work includes…” or “Projects include…” (no “I”)"))
             break
     if years_statement:
         from app.services.cv_claims import short_form

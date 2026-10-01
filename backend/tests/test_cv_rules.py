@@ -211,6 +211,22 @@ def test_summary_rules(text: str, expected: str) -> None:
     assert any(expected in p for p in problems(text))
 
 
+@pytest.mark.parametrize("text", [
+    "3 years of software engineering experience spans Flutter and Spring Boot. It works well.",
+    "Over 3 years of experience in backend services. Projects include a lakehouse.",
+    "Built a resume parser on a local model. Projects include a lakehouse.",
+])
+def test_a_summary_without_a_subject_is_a_hard_problem(text: str) -> None:
+    hard = [p for p in problems(text) if isinstance(p, cv_rules.HardProblem)]
+    assert hard and "has no subject" in hard[0]
+
+
+def test_a_summary_with_a_subject_has_no_hard_problem() -> None:
+    assert not [p for p in problems("Software engineer with 3 years of experience in backend "
+                                    "and mobile. Projects include a lakehouse.")
+                if isinstance(p, cv_rules.HardProblem)]
+
+
 def v5(text: str, cited: list[str] | None = None, openings: list[str] | None = None):  # noqa: ANN201
     return cv_rules.summary_problems(
         text, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set(),
@@ -289,6 +305,18 @@ def test_a_summary_breaking_the_guide_is_regenerated_once(monkeypatch) -> None: 
                                                     RULES)
     assert report["attempts"] == 2 and "sentences" in gen.feedback[0]
     assert out.summary == "Software Engineer fact 0." and not issues
+
+
+def test_a_subjectless_summary_left_after_the_retry_is_an_error(monkeypatch) -> None:  # noqa: ANN001
+    bad = "3 years of software engineering experience spans Reality Sports fact 0."
+    plan = make_plan(summary_sentences=[SummarySentence(text=bad, citations=[1])],
+                     summary_short_sentences=[SummarySentence(text=bad, citations=[1])])
+    monkeypatch.setattr(cv_service, "ground_sentences",
+                        lambda sentences, pool, allowed, *a: (list(sentences), []))
+    _out, issues, _report = cv_service.ground_summary(plan, make_pool(), CVRequest(job={}, pool={}),
+                                                      SummaryScript(bad), RULES)
+    errors = [v for v in issues if v["severity"] == "error"]
+    assert errors and errors[0]["type"] == "summary_rule" and "no subject" in errors[0]["message"]
 
 
 # --------------------------------------------------------------------- model request

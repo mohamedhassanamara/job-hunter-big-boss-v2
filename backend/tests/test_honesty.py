@@ -146,3 +146,36 @@ def test_who_to_contact_at_an_agency_is_the_recruiter_only(seeded: None) -> None
         assert who["agency"] and "Head of" not in who["linkedin_query"]
         assert "recruiting agency" in who["reason"]
         s.rollback()
+
+
+def test_at_an_agency_the_recruiter_is_the_automatic_contact(seeded: None) -> None:
+    from app.services import contacts
+
+    with Session(engine) as s:
+        company = make_company(s, ("Cora Tech", "CTO", "apollo_dump"),
+                               ("Rita Recruit", "Talent Acquisition Partner", "apollo_dump"))
+        company.employees = 40  # small: the CTO first, unless it's an agency
+        app = make_job(s, company)
+        contacts.resolve(s, app)
+        assert s.get(contacts.Contact, app.contact_id).full_name == "Cora Tech"
+        company.name = "Northwind Recruitment"
+        app.contact_id = None
+        contacts.resolve(s, app)
+        assert s.get(contacts.Contact, app.contact_id).full_name == "Rita Recruit"
+        s.rollback()
+
+
+@pytest.mark.parametrize(("name", "listing", "expected"), [
+    ("Acme", "Unser Kunde ist eine Genossenschaftsbank in München.", True),
+    ("Acme", "For one of our clients active in defense, we are looking for a Data Engineer.", True),
+    ("Northwind Recruitment", "", True),
+    ("Recruitee", "We build recruiting software.", False),  # a product name, not an agency
+    ("Acme Conseil", "Pour notre client TF1, nous recherchons un Tech Lead.", False),
+    ("Acme Conseil", "Vous êtes en mission chez l'un de nos clients du secteur du luxe.", False),
+    ("Acme Conseil", "Mission longue chez l'un de nos clients grands comptes.", False),
+])
+def test_agencies_vs_consultancies(name: str, listing: str, expected: bool) -> None:
+    from app.models import Company
+
+    assert agency.is_agency(Company(name=name, normalized_name=name.lower()),
+                            Job(title="Data Engineer", description=listing)) is expected

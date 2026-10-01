@@ -224,7 +224,10 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - LinkedIn groups are the note's angle (`linkedin.detect_group`, overridable); `hiring_team` is a separate flag.
   Per-group rules are in `linkedin_check._group_rules`; the transition line is code (`linkedin_track.framing`).
   LinkedIn reference notes (`email_example.inputs.channel == "linkedin"`) never enter the email eval or prompts.
-- `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches).
+- `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches), and recruiters first in
+  the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it).
+- CV summary hard rules (`cv_rules.HardProblem`: no subject, incl. a figure as the subject, and honesty) are
+  errors; other guide problems stay warnings.
 - Contact check (`services/contact_check.py`): research also searches news for each contact's name and scans
   pages for departure/new-holder sentences (regex, no model). Active `contact_alert` rows block approval;
   `next_contact` follows the ranking. The sandbox seeds one sample departure (`seed._seed_contact_alert`).

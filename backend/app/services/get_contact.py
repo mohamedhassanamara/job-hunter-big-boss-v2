@@ -307,7 +307,7 @@ def view(s: Session, app: Application) -> dict[str, Any]:
     ranking = contacts_svc.ranking_settings(s)
     people = contacts_svc.ranked(
         [c for c in s.exec(select(Contact).where(Contact.company_id == company.id)).all()
-         if c.left_at is None and c.id != app.contact_id], ranking.order_for(company))
+         if c.left_at is None and c.id != app.contact_id], ranking.order_for(company, job))
     alerts = contact_check.active(s, contact.id) if contact else []
     jobs = list(s.exec(select(Job).where(Job.company_id == company.id)).all())
     return {
