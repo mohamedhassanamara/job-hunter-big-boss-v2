@@ -161,6 +161,13 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   - Changing an approved CV creates a new draft.
 - *Empty:* "No CV for this job yet" with Generate (or "Open Candidate settings" when the full name is missing).
 
+- **Fit before/after** (on approval, in the background): the job scored against this CV by the same gemma scorer
+  (one call, stored in `cv_fit`, never as the job's fit) next to the job's own fit, plus the lexical evidence
+  check (`services/fit_lexical.py`, no model): requirements shown on the first screen before → after, backed
+  strengths the CV left out, claims your experience doesn't back, the years note.
+- **Critique** (CV, letters, emails, LinkedIn messages): one `claude -p` call listing what's still weak from the
+  reader's side; never a rewrite (`app/prompts/critique.md`).
+
 ### 3.5b Cover letter studio (`/jobs/:id/letter`)
 *Purpose:* a cover letter for a web application, from the approved CV, in two formats (tabs, `?format=form`):
 **PDF letter** (one page, to upload) and **Form text** (plain text for a text box such as "Expliquez-nous pourquoi
@@ -318,6 +325,35 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   is in `send_log`. A sent email moves the job to **Sent** (`done`, method email) and feeds follow-ups, replies
   and stats (Applications).
 - *Empty review:* "No drafts waiting. Drafts appear after you approve a CV for a job with a contact." *Empty queue:* "Queue is empty. Approved drafts land here."
+
+### 3.6b LinkedIn (`/linkedin`, Phase 10)
+*Purpose:* LinkedIn as its own channel. **The app never scrapes, crawls or automates LinkedIn**: it builds links,
+and reads only the one job page you hand it with the bookmark (a test guards against any backend request to
+linkedin.com).
+- **Today's searches:** one LinkedIn job search per role × target country, posted in the past 24 hours, newest
+  first (`f_TPR=r86400&sortBy=DD`), optionally remote only (`f_WT=2`) and Easy Apply only (`f_AL=true`). Countries
+  are LinkedIn **geoIds** (Settings → LinkedIn, each Unverified until you Test and Confirm it), never a text
+  location; a country without a geoId shows a warning and no link. A link you open is marked "opened today".
+- **One-click import:** the "Save to Job Hunter" bookmark (Settings → LinkedIn) reads the job page you're on
+  (JSON-LD JobPosting → LinkedIn's layout → headings → meta tags → the URL), opens the local `/import` window with
+  the data in its URL fragment (postMessage as a second channel), and shows every field with how it was found.
+  Required fields (title, company, description) are never saved empty; sign-in walls are detected; a paste box is
+  the fallback. Saving dedupes against every source, matches the track, saves the hiring-team person, and scores
+  only this job (front of the queue, same scorer and rules); the fit shows in the window.
+- **To do on LinkedIn** (also a card on Today): searches not opened today, imports to decide on, requests to send,
+  follow-ups due, and today's request counter.
+- **Per job, the LinkedIn messages track** (job page section, optional): who to message in order (the hiring team
+  captured with the bookmark, alumni of your school from your education, team leads in your track's roles,
+  recruiters), each with a code-built people search (company-scoped when its slug is known). You add people (paste
+  their profile header). Claude (`claude -p`, prompt `linkedin.md`) drafts a connection note within
+  `linkedin.note_max_chars` (200 on a free account), different per group; the school angle is for alumni only and
+  only on LinkedIn (email rules unchanged). After "accepted", a follow-up: one proof, one direct ask (a referral, or
+  who to talk to); company research is reused, or run only at that step. Checks on every message: length, no links,
+  a question, banned phrases, grounding of numbers and tools, years, never location/visa. Statuses to contact →
+  request sent → accepted → messaged → replied (one-step undo), a daily request counter (a warning), reminders,
+  and the gap rule (no email and LinkedIn request to the same person within `linkedin.gap_days`, 3: a hint).
+- **Job page:** three tracks (Application / Email / LinkedIn) and the suggested order (apply → LinkedIn request
+  the same day → email 1-2 days later; a hint). "Apply on LinkedIn" for imported jobs; method LinkedIn.
 
 ### 3.7 Contacts (`/contacts`)
 *Purpose:* who each job is written to. Tabs in the URL (`?tab=companies|import|merges|match`; the old `lookups` tab

@@ -207,3 +207,19 @@ def test_the_panel_endpoint(seeded: None, client) -> None:  # noqa: ANN001
     assert {v["type"] for v in edited["note"]["violations"]} >= {"banned", "ask"}
     sent = client.post(f"/api/linkedin/people/{row_id}/status", json={"status": "sent"}).json()
     assert sent["status"] == "sent" and sent["sent_at"]
+
+
+def test_stats_per_channel_group_and_source(seeded: None, client) -> None:  # noqa: ANN001
+    with Session(engine) as s:
+        app, _ = job_with_people(s)
+        row = lt.add(s, app, full_name="Al Umni", title="Engineer", linkedin_url=None,
+                     group=LinkedInGroup.alumni)
+        lt.set_status(s, row, LinkedInStatus.sent)
+        lt.set_status(s, row, LinkedInStatus.replied)
+        s.commit()
+    out = client.get("/api/stats").json()
+    linkedin_row = next(c for c in out["by_channel"] if c["group"] == "linkedin")
+    assert linkedin_row["reached"] >= 1 and linkedin_row["count"] >= 1
+    alumni = next(g for g in out["linkedin_groups"] if g["group"] == "alumni")
+    assert alumni["sent"] >= 1 and alumni["replied"]["count"] >= 1
+    assert {o["group"] for o in out["by_origin"]} == {"linkedin_import", "discovery"}

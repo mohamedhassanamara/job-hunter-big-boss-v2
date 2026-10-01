@@ -56,6 +56,29 @@ function GroupTable({ title, groups, label }: { title: string; groups: StatsGrou
   )
 }
 
+/** A small stats table: a label column, then numbers and rate bars. */
+function Table({ title, head, rows }: { title: string; head: string[]; rows: { key: string; label: string; cells: (number | Rate)[] }[] }) {
+  const cols = `minmax(0,1fr) ${head.map((h) => (h.endsWith('rate') ? '1fr' : '72px')).join(' ')}`
+  return (
+    <section className="rounded-lg border border-border bg-surface shadow-sm">
+      <div className="grid h-11 items-center gap-4 border-b border-border px-4 text-xs font-medium text-fg-subtle" style={{ gridTemplateColumns: cols }}>
+        <h2 className="text-sm font-semibold text-fg">{title}</h2>
+        {head.map((h) => (
+          <span key={h} className={h.endsWith('rate') ? undefined : 'text-right'}>
+            {h}
+          </span>
+        ))}
+      </div>
+      {rows.map((r) => (
+        <div key={r.key} className="grid items-center gap-4 border-b border-border px-4 py-2.5 last:border-b-0" style={{ gridTemplateColumns: cols }}>
+          <span className="truncate text-sm">{r.label}</span>
+          {r.cells.map((c, i) => (typeof c === 'number' ? <span key={i} className="text-right text-sm tabular-nums">{c}</span> : <RateCell key={i} rate={c} />))}
+        </div>
+      ))}
+    </section>
+  )
+}
+
 export function StatsTab() {
   const url = useSearchParamState()
   const { filters, active, clear } = useTrackingFilters()
@@ -125,6 +148,29 @@ export function StatsTab() {
           title={`By route · ${data.both_routes} job${data.both_routes === 1 ? '' : 's'} with both`}
           groups={data.by_route}
           label={(g) => ({ web: 'Website only', email: 'Email only', both: 'Website + email' })[g] ?? g}
+        />
+        <Table
+          title="Replies by track"
+          head={['Reached', 'Reply rate']}
+          rows={data.by_channel.map((c) => ({
+            key: c.group,
+            label: { application: 'Application (website)', email: 'Email', linkedin: 'LinkedIn (requests sent)' }[c.group],
+            cells: [c.reached, { count: c.count, total: c.total, rate: c.rate }],
+          }))}
+        />
+        <Table
+          title="LinkedIn by group"
+          head={['Requests', 'Accepted rate', 'Reply rate']}
+          rows={data.linkedin_groups.map((g) => ({
+            key: g.group,
+            label: { hiring_team: 'Hiring team', alumni: 'Alumni', others: 'Team leads, recruiters, others' }[g.group],
+            cells: [g.sent, g.accepted, g.replied],
+          }))}
+        />
+        <Table
+          title="Jobs by source"
+          head={['Jobs', 'Past New', 'Applied', 'Replied']}
+          rows={data.by_origin.map((o) => ({ key: o.group, label: o.group === 'linkedin_import' ? 'LinkedIn (your imports)' : 'Discovery', cells: [o.jobs, o.past_new, o.applied, o.replied] }))}
         />
         <GroupTable title="By track" groups={data.by_track} label={(g) => (g === '(none)' ? 'No track' : g)} />
         <GroupTable title="By country" groups={data.by_country} label={(g) => (g === '(none)' ? 'Remote / none' : countryName(g))} />

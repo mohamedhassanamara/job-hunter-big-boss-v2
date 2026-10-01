@@ -1117,6 +1117,9 @@ export interface Stats {
   by_source: StatsGroup[]
   both_routes: number
   by_route: StatsGroup[] // web / email / both
+  by_channel: { group: 'application' | 'email' | 'linkedin'; reached: number; count: number; total: number; rate: number | null }[]
+  linkedin_groups: { group: 'hiring_team' | 'alumni' | 'others'; sent: number; accepted: Rate; replied: Rate }[]
+  by_origin: { group: 'linkedin_import' | 'discovery'; jobs: number; past_new: number; applied: number; replied: number }[]
 }
 
 export interface TrackingFilters {

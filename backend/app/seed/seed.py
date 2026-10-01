@@ -446,6 +446,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         _seed_letters(s, apps)
         _seed_signals(s, apps)
         _seed_contact_alert(s, apps)
+        _seed_linkedin(s, apps)
         _seed_get_contact(s, apps, jobs, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
@@ -535,6 +536,32 @@ def _seed_contact_alert(s: Session, apps: dict[str, Application]) -> None:
                       page_date=utcnow()))
     s.flush()
     contact_check.scan(s, company.id, [contact])
+
+
+def _seed_linkedin(s: Session, apps: dict[str, Application]) -> None:
+    """The LinkedIn messages tour: on the first job past New, a hiring-team person with a
+    drafted note (mock drafter) and an alumni contact already requested. Sample data only."""
+    from app.models.enums import LinkedInGroup, LinkedInStatus
+    from app.providers.mock import MockLinkedInDrafter
+    from app.services import linkedin_track as lt
+
+    s.flush()
+    app = next((a for a in apps.values() if a.stage in (Stage.shortlisted, Stage.cv_ready)), None)
+    if app is None:
+        return
+    hire = lt.add(s, app, full_name="Morgan Sample", title="Head of Data",
+                  linkedin_url="https://www.linkedin.com/in/morgan-sample/",
+                  group=LinkedInGroup.hiring_team)
+    alum = lt.add(s, app, full_name="Robin Example", title="Data Engineer",
+                  linkedin_url="https://www.linkedin.com/in/robin-example/",
+                  group=LinkedInGroup.alumni)
+    s.flush()
+    request, ctx = lt._request(s, hire, "note")
+    hire.note = lt._draft(MockLinkedInDrafter(), request, ctx)
+    request, ctx = lt._request(s, alum, "note")
+    alum.note = lt._draft(MockLinkedInDrafter(), request, ctx)
+    lt.set_status(s, alum, LinkedInStatus.sent)
+    s.add_all([hire, alum])
 
 
 def _seed_letters(s: Session, apps: dict[str, Application]) -> None:

@@ -219,6 +219,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   pages for departure/new-holder sentences (regex, no model). Active `contact_alert` rows block approval;
   `next_contact` follows the ranking. The sandbox seeds one sample departure (`seed._seed_contact_alert`).
 
+## LinkedIn (Phase 10: services/linkedin.py, linkedin_track.py, linkedin_check.py)
+
+- Never scrape, crawl or automate LinkedIn: the backend builds links only (`tests/test_linkedin.py` guards against
+  requests to linkedin.com). Search links use geoIds from `linkedin.geo_ids`, never a text location.
+- The bookmarklet (`frontend/src/features/linkedin/capture.ts`, self-contained: its source becomes the bookmark)
+  passes data in the `/import` URL fragment. Imports are `Source.linkedin` (excluded from `DISCOVERY_SOURCES`),
+  scored alone at the front of the queue.
+- LinkedIn messages: `claude -p` with `prompts/linkedin.md` (sections note / followup / retry); checks in
+  `linkedin_check.py`; the school angle is alumni-only and LinkedIn-only. Follow-up research may call
+  `research.ensure` (allowed in the research guard).
+- Fit before/after (`cv_fit.py`, stored in `cv_fit`, never a `fit_score` row) and Critique (`critique.py`,
+  `prompts/critique.md`, issues only). Adapted ideas are credited in `docs/CREDITS.md` (MIT).
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.
