@@ -409,6 +409,68 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
         return v
 
 
+def revise_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CVVersion:
+    """A corrected copy of an approved (or sent) CV: a new draft with the same bullets, layout and
+    template, and only the summary written again. The original never changes; approving the copy
+    supersedes it as usual (a locked version stays as it was sent)."""
+    with Session(engine) as s:
+        old = s.get(CVVersion, cv_id)
+        if old is None:
+            raise CVError("CV version not found")
+        if old.status == CVStatus.draft:
+            raise CVError("This is already a draft: regenerate its summary")
+        if not (old.plan or {}).get("plan"):
+            raise CVError("This version has no generator plan; regenerate the CV")
+        existing = versions(s, old.application_id)
+        for d in existing:
+            if d.status == CVStatus.draft:
+                d.status = CVStatus.superseded
+                s.add(d)
+        v = CVVersion(application_id=old.application_id, version=existing[0].version + 1,
+                      status=CVStatus.draft, generator_model=old.generator_model,
+                      template=old.template, overrides=dict(old.overrides or {}),
+                      violations=list(old.violations or []), content=old.content, tex=old.tex,
+                      page_count=old.page_count, fill=old.fill, fit_passes=old.fit_passes,
+                      plan={**old.plan, "revised_from": {"id": old.id, "version": old.version}})
+        s.add(v)
+        app = s.get(Application, old.application_id)
+        pipeline.log_event(s, app, EventKind.cv_generated,
+                           f"CV v{v.version}: a copy of v{old.version} to correct its summary")
+        s.commit()
+        new_id, old_content, old_fit = v.id, dict(old.content or {}), old.plan.get("fit")
+    v = regenerate_summary(engine, new_id, generator)
+    return _keep_document(engine, v.id, old_content, old_fit)
+
+
+def _keep_document(engine: Engine, cv_id: int, old_content: dict[str, Any],
+                   old_fit: dict[str, Any] | None) -> CVVersion:
+    """Only the summary changes: the original's document (bullets as they were, even under older
+    structure rules) with the new summary, compiled as is. If that no longer fits one page, the
+    re-fitted version from regenerate_summary stays (and says so)."""
+    with Session(engine) as s:
+        v = s.get(CVVersion, cv_id)
+        pool = load_pool(s)
+        plan = (v.plan or {}).get("plan") or {}
+        content = {**old_content, "summary": plan.get("summary") or old_content.get("summary")}
+        tex = render_tex(CVDocument.model_validate(content), cv_profile(pool),
+                         load_template(v.template or "default"))
+        compiled = compile_tex(tex, CV_DIR / str(v.application_id) / f"v{v.version}")
+        if compiled.ok and compiled.pages == 1:
+            v.content, v.tex = content, tex
+            v.page_count, v.fill = 1, round(compiled.fill, 3)
+            v.pdf_path = str(compiled.pdf_path) if compiled.pdf_path else None
+            v.plan = {**v.plan, "fit": old_fit or v.plan.get("fit"), "kept_document": True}
+        else:
+            v.plan = {**v.plan, "kept_document": False}
+            # The re-fitted render was overwritten in the same folder: render it again.
+            _save_render(s, v, CVPlan.model_validate(plan), pool, v.template,
+                         dict(v.overrides or {}), FitState.from_dict(v.plan.get("fit")))
+        s.add(v)
+        s.commit()
+        s.refresh(v)
+        return v
+
+
 def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = None,
              template: str | None = None) -> CVVersion:
     """User changes (force in/out, edited text, template): re-fit and re-render, no Claude call.

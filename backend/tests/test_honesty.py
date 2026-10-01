@@ -129,3 +129,20 @@ def test_the_transition_line_names_project_tools_not_concepts(seeded: None) -> N
 
         tools = lt.project_tools(load_pool(s), RULES.projects[0].terms, "Python, SQL and AWS")
         assert tools and not {t.lower() for t in tools} & honesty.CONCEPTS
+
+
+def test_who_to_contact_at_an_agency_is_the_recruiter_only(seeded: None) -> None:
+    from app.services.contacts import who_to_contact
+
+    with Session(engine) as s:
+        company = make_company(s)
+        app = make_job(s, company)
+        job = s.get(Job, app.job_id)
+        job.matched_track = "Data/AI"
+        assert any("Head of" in r["label"] for r in who_to_contact(s, job, company)["roles"])
+        company.name = "Mentor Talent Acquisition"
+        who = who_to_contact(s, job, company)
+        assert [r["label"] for r in who["roles"]] == ["Recruiter / Talent acquisition"]
+        assert who["agency"] and "Head of" not in who["linkedin_query"]
+        assert "recruiting agency" in who["reason"]
+        s.rollback()

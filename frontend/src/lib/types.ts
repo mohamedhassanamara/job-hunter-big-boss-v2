@@ -464,6 +464,7 @@ export type OutreachStepName = 'get_contact' | 'verify_contact' | 'cv' | 'draft'
 
 export interface WhoToContact {
   company_size: string
+  agency?: string[] // why it looks like a recruiting agency (then: recruiters only)
   small: boolean
   reason: string
   roles: { label: string; titles: string[] }[]

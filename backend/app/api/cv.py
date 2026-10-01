@@ -134,6 +134,19 @@ def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
     return _out(v)
 
 
+@router.post("/cv/{cv_id}/revise-summary", response_model=CVVersionOut)
+def revise_summary(cv_id: int, session: SessionDep, engine: EngineDep,
+                   workspace: WorkspaceDep) -> CVVersionOut:
+    """A corrected draft of an approved CV: same bullets and layout, a new summary."""
+    get_or_404(session, CVVersion, cv_id, "CV version")
+    generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
+    try:
+        v = cv_service.revise_summary(engine, cv_id, generator)
+    except cv_service.CVError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return _out(v)
+
+
 @router.post("/cv/{cv_id}/approve", response_model=CVApproveResult)
 def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
                workspace: WorkspaceDep) -> CVApproveResult:

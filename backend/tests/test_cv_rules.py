@@ -346,6 +346,16 @@ def test_regenerating_the_summary_keeps_bullets_layout_and_status(seeded: None, 
         s.commit()
     with pytest.raises(cv_service.CVError, match="draft"):
         cv_service.regenerate_summary(engine, v.id, MockCVGenerator())
+    monkeypatch.setattr(cv_service, "compile_tex", fake_compiler(capacity=60, calls=[]))
+    copy = cv_service.revise_summary(engine, v.id, MockCVGenerator())  # approved → a new draft
+    assert copy.status == CVStatus.draft and copy.version == v.version + 1
+    assert (copy.content["roles"], copy.content["projects"]) == before[:2]
+    assert copy.plan["revised_from"]["id"] == v.id and copy.plan["kept_document"]
+    assert copy.content["summary"] == copy.plan["plan"]["summary"]
+    with Session(engine) as s:
+        assert s.get(CVVersion, v.id).status == CVStatus.approved  # untouched until you approve
+    with pytest.raises(cv_service.CVError, match="already a draft"):
+        cv_service.revise_summary(engine, copy.id, MockCVGenerator())
 
 
 def test_data_ai_summaries_never_state_track_years_under_two() -> None:
