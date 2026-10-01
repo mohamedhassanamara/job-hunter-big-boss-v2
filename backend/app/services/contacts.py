@@ -510,7 +510,15 @@ def who_to_contact(s: Session, job: Job, company: Company) -> dict[str, Any]:
                if 0 <= i < len(ranking.groups)]
     team = [t.strip() for t in (job.matched_track or "").split("/") if t.strip()]
     roles = []
-    if small:
+    from app.services import agency
+
+    signals = agency.signals(company, job)
+    if signals:
+        # A recruiting agency, employer not named: its managers are the agency's own staff.
+        hr = [g for g in ordered if _is(g, "hr", "talent")][:1]
+        titles = list(dict.fromkeys(["Recruiter", *(t for g in hr for t in _titles(g))]))
+        roles = [{"label": "Recruiter / Talent acquisition", "titles": titles}]
+    elif small:
         roles = [{"label": g.get("label") or "", "titles": _titles(g)} for g in ordered[:3]]
     else:
         if team:
@@ -521,7 +529,11 @@ def who_to_contact(s: Session, job: Job, company: Company) -> dict[str, Any]:
         roles += [{"label": g.get("label") or "", "titles": _titles(g)} for g in managers + hr]
     labels = [r["label"] for r in roles]
     size = size_label(company)
-    if small:
+    if signals:
+        reason = (f"{company.name} looks like a recruiting agency, employer not named "
+                  f"({'; '.join(signals)}): write to the recruiter handling this opening. Its "
+                  "heads of team and managers are the agency's own staff, not the employer's.")
+    elif small:
         reason = (f"{company.name} is small ({size}): the {' or the '.join(labels[:2])} usually "
                   "reads cold emails and decides on hires, so write to them first.")
     else:
@@ -536,6 +548,7 @@ def who_to_contact(s: Session, job: Job, company: Company) -> dict[str, Any]:
     return {
         "company_size": size,
         "small": small,
+        "agency": signals,
         "reason": reason,
         "roles": roles,
         "linkedin_query": query,
