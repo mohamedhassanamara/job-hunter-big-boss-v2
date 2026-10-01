@@ -352,6 +352,27 @@ linkedin.com).
   a question, banned phrases, grounding of numbers and tools, years, never location/visa. Statuses to contact →
   request sent → accepted → messaged → replied (one-step undo), a daily request counter (a warning), reminders,
   and the gap rule (no email and LinkedIn request to the same person within `linkedin.gap_days`, 3: a hint).
+- **Notes written for their reader:** each person's group (the note's angle) is detected from their title
+  (`linkedin.detect_group`: recruiter / team lead / other; alumni when ticked) and overridable on the card; the
+  captured poster also carries a "Hiring team" badge (`hiring_team`). Recruiters / talent acquisition: plain words
+  (a jargon list is an error), the role match, the years wording, 2-3 tools from the listing that you have, an
+  easy ask ("Could I send you my CV?"); for a projects-only track (Data/AI) the transition line is built in code
+  ("a software engineer (3 years, mobile and backend) moving into data, with dbt and Airflow projects"). Team
+  leads: one concrete technical proof, a short chat. Alumni: the shared school, advice or a referral. Approved
+  notes go in the regression set (`email_example`, `inputs.channel = linkedin`) as structure and honesty
+  references: 8+ words copied from one is an error.
+- **Agency jobs** (`services/agency.py`: the company name or listing phrases such as "our client"): the job shows
+  "Agency, employer not named" with the reasons, and LinkedIn suggestions are the hiring team then recruiters
+  only (alumni and team leads there would be the agency's own staff).
+
+### Honesty about years (every generated text)
+Each track in Settings → Search profile says whether your experience in it is **Professional** or **Projects
+only** (with a note: "personal projects, a graduation project, an internship and certifications"). Your years
+wording is professional experience: CVs, cover letters, form answers, emails and LinkedIn notes never attach it
+to a projects track ("3 years of experience building data pipelines", "experienced data engineer"); that work is
+described as what it is, in its own sentence or as a move. `services/honesty.py` flags it (an error in every
+checker: `cv_service.summary_style`, `letter_check`, `intro_check`, `linkedin_check`), and the prompts get
+`experience_by_track` + `years_rule`.
 - **Job page:** three tracks (Application / Email / LinkedIn) and the suggested order (apply → LinkedIn request
   the same day → email 1-2 days later; a hint). "Apply on LinkedIn" for imported jobs; method LinkedIn.
 

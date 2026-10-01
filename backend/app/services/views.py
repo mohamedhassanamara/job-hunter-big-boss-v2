@@ -276,6 +276,12 @@ def contact_alert_fields(session: Session, app: Application,
             "next_contact": contact_out(nxt, _ranking(session)) if nxt else None}
 
 
+def agency_signals(company: Company, job: Job) -> list[str]:
+    from app.services import agency
+
+    return agency.signals(company, job)
+
+
 def job_detail(session: Session, job: Job) -> JobDetail:
     from app.services import get_contact
 
@@ -343,6 +349,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         tracking=tracked_item(session, row) if (row := tracking.row_for(session, app)) else None,
         contact=contact_out(contact, _ranking(session)) if contact else None,
         contact_search=company.contact_search,
+        agency=agency_signals(company, j),
         contact_state=get_contact.state_of(contact, company, get_contact.verify_days(session)),
         **contact_alert_fields(session, app, contact),
         company_contacts=contact_count,

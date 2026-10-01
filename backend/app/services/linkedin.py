@@ -337,7 +337,7 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
         app = s.exec(select(Application).where(Application.job_id == job.id)).one()
         if c.poster:
             add_person(s, app, full_name=c.poster["name"], title=c.poster.get("title"),
-                       linkedin_url=c.poster.get("url"), group=LinkedInGroup.hiring_team)
+                       linkedin_url=c.poster.get("url"), hiring_team=True)
         duplicate = None
         if job.duplicate_of_id:
             orig = s.get(Job, job.duplicate_of_id)
@@ -354,11 +354,31 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
     return ImportResult(job_id, app_id, created, duplicate, track, warnings, scoring)
 
 
+_RECRUITER = re.compile(r"recruit|talent|sourc|\bhr\b|human resources|people (?:partner|ops)|"
+                        r"staffing|headhunt|\brh\b|recrutement|ressources humaines", re.I)
+_LEAD = re.compile(r"\bhead\b|\blead\b|manager|director|\bvp\b|vice president|\bcto\b|chief|"
+                   r"principal|founder|\bceo\b|responsable|directeur|directrice|engineering "
+                   r"manager", re.I)
+
+
+def detect_group(title: str | None) -> LinkedInGroup:
+    """Who they are, from their title: a recruiter, a team lead / hiring manager, or other."""
+    if _RECRUITER.search(title or ""):
+        return LinkedInGroup.recruiter
+    if _LEAD.search(title or ""):
+        return LinkedInGroup.lead
+    return LinkedInGroup.other
+
+
 def add_person(s: Session, app: Application, *, full_name: str, title: str | None,
-               linkedin_url: str | None, group: LinkedInGroup,
-               alumni: bool = False) -> LinkedInOutreach:
+               linkedin_url: str | None, group: LinkedInGroup | None = None,
+               alumni: bool = False, hiring_team: bool = False) -> LinkedInOutreach:
     """Someone to message on LinkedIn about this job: one person table across tracks (a
-    contact at the company), one LinkedIn row per job. Known by their profile URL or name."""
+    contact at the company), one LinkedIn row per job. Known by their profile URL or name. The
+    group (the note's angle) is detected from the title unless you set it."""
+    if group is None or group == LinkedInGroup.hiring_team:
+        hiring_team = hiring_team or group == LinkedInGroup.hiring_team
+        group = LinkedInGroup.alumni if alumni else detect_group(title)
     from app.services.contacts import normalize_person, rank, role_ranking
 
     job = s.get(Job, app.job_id)
@@ -386,7 +406,8 @@ def add_person(s: Session, app: Application, *, full_name: str, title: str | Non
                                                 LinkedInOutreach.contact_id == contact.id)).first()
     if row is None:
         row = LinkedInOutreach(application_id=app.id, contact_id=contact.id, group=group,
-                               alumni=alumni or group == LinkedInGroup.alumni)
+                               alumni=alumni or group == LinkedInGroup.alumni,
+                               hiring_team=hiring_team)
         s.add(row)
         s.flush()
     return row

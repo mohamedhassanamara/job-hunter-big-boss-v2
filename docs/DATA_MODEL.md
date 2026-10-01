@@ -36,7 +36,7 @@ What discovery looks for.
 | Column | Type | Notes |
 |---|---|---|
 | name | str | e.g. "Data/AI Engineering, South EU" |
-| tracks | JSON | `[{name, years_experience, roles: [{title, variants: {en,fr,es,de,it,nl: [..]}}]}]`, edited in Settings → Search profile. The only source of roles: queries, pre-filter and the scorer all read it (`services/roles.py` holds language data only) |
+| tracks | JSON | `[{name, years_experience, experience: professional\|projects, experience_note, roles: [{title, variants: {en,fr,es,de,it,nl: [..]}}]}]` (`experience` drives `services/honesty.py`), edited in Settings → Search profile. The only source of roles: queries, pre-filter and the scorer all read it (`services/roles.py` holds language data only) |
 | roles | JSON list[str] | All role titles, derived from `tracks` on save |
 | keywords | JSON list[str] | Boosting keywords (spark, dbt, llm…) |
 | excluded_keywords | JSON list[str] | **Title** keywords the pre-filter drops (default: intern, stage, alternance…). No seniority words by default |
@@ -344,6 +344,9 @@ years wording), `duration_ms`, `error`.
   messaged | replied), `note` / `followup` (JSON: text, citations, violations, model, prompt version, edited,
   max_chars), `critique`, `sent_at` / `accepted_at` / `messaged_at` / `replied_at`. People are `contact` rows
   (source `linkedin` when added only for LinkedIn: never the email's contact without an email).
+- `linkedin_outreach.hiring_team` (migration 0018): they posted this job (captured poster). `group` is then the
+  note's angle (recruiter | lead | alumni | other), detected from the title and overridable; 0018 moved old
+  `hiring_team` groups to the flag.
 - `linkedin_link_open`: (key, day) for the "opened today" mark on search links.
 - `cv_fit`: per approved CV version: base fit id/score, the tailored score and sub-scores, model, prompt version,
   status (pending | ok | failed), the lexical report.

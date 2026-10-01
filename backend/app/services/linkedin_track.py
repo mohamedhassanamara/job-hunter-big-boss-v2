@@ -14,6 +14,7 @@ Coordination: no email and LinkedIn request to the same person within `linkedin.
 """
 
 import contextlib
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -74,39 +75,49 @@ def people_search(company: Company, keywords: str) -> str:
 
 
 def suggestions(s: Session, app: Application) -> list[dict[str, Any]]:
-    """The groups to message, in order, each with why and a ready LinkedIn search link."""
+    """The groups to message, in order, each with why and a ready LinkedIn search link. At a
+    recruiting agency (employer not named): the recruiter first, no alumni or team leads (they'd
+    be the agency's own staff)."""
+    from app.services import agency
     from app.services.contacts import who_to_contact
 
     job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id)
+    hiring = {"group": "hiring_team", "label": "Hiring team",
+              "why": "They posted this opening: the shortest path to a reply about it.",
+              "search": None}
+    recruiters = {"group": LinkedInGroup.recruiter, "label": "Recruiters",
+                  "why": "They run the process: plain words, your match, an easy ask.",
+                  "search": people_search(company, '"Recruiter" OR "Talent Acquisition"')}
+    if agency.is_agency(company, job):
+        recruiters["why"] = ("A recruiting agency, employer not named: the recruiter is who to "
+                             "write to (alumni and team leads there are the agency's own staff).")
+        return [hiring, recruiters]
     short, _full = school(load_pool(s))
     who = who_to_contact(s, job, company)
     lead_titles = [t for r in who["roles"] if "talent" not in r["label"].lower()
                    and "hr" not in r["label"].lower().split() for t in r["titles"]][:3]
     team = (job.matched_track or "").split("/")[0].strip()
-    out = [{"group": LinkedInGroup.hiring_team, "label": "Hiring team",
-            "why": "They own this opening: the shortest path to a reply about it.",
-            "search": None}]
+    out = [hiring]
     if short:
         out.append({"group": LinkedInGroup.alumni, "label": f"{short} alumni",
-                    "why": f"A shared school ({short}) is the warmest cold start on LinkedIn.",
+                    "why": f"A shared school ({short}): ask for advice or a referral.",
                     "search": people_search(company, short)})
     lead_kw = " OR ".join(f'"{t}"' for t in lead_titles) or (f'"Head of {team}"' if team
                                                               else '"Engineering Manager"')
     out.append({"group": LinkedInGroup.lead, "label": "Team leads",
                 "why": (f"People leading the {team} team" if team else "Team leads")
-                + " know what the opening is really about.",
+                + " know what the opening is really about: one technical proof, a short chat.",
                 "search": people_search(company, lead_kw), "titles": lead_titles})
-    out.append({"group": LinkedInGroup.recruiter, "label": "Recruiters",
-                "why": "They run the process: fine for a short note, slower to reply.",
-                "search": people_search(company, '"Recruiter" OR "Talent Acquisition"')})
+    out.append(recruiters)
     return out
 
 
 def rows(s: Session, app: Application) -> list[LinkedInOutreach]:
     found = list(s.exec(select(LinkedInOutreach).where(
         LinkedInOutreach.application_id == app.id)).all())
-    return sorted(found, key=lambda r: (ORDER.index(LinkedInGroup(r.group)), r.id or 0))
+    return sorted(found, key=lambda r: (not r.hiring_team, ORDER.index(LinkedInGroup(r.group)),
+                                        r.id or 0))
 
 
 def track_status(found: list[LinkedInOutreach]) -> str:
@@ -118,10 +129,12 @@ def track_status(found: list[LinkedInOutreach]) -> str:
 
 
 def add(s: Session, app: Application, *, full_name: str, title: str | None,
-        linkedin_url: str | None, group: LinkedInGroup, alumni: bool = False) -> LinkedInOutreach:
+        linkedin_url: str | None, group: LinkedInGroup | None = None, alumni: bool = False,
+        hiring_team: bool = False) -> LinkedInOutreach:
     try:
         return linkedin.add_person(s, app, full_name=full_name, title=title,
-                                   linkedin_url=linkedin_url, group=group, alumni=alumni)
+                                   linkedin_url=linkedin_url, group=group, alumni=alumni,
+                                   hiring_team=hiring_team)
     except linkedin.CaptureError as exc:
         raise LinkedInError(str(exc)) from exc
 
@@ -172,8 +185,77 @@ def requests_today(s: Session) -> int:
 # ---------------------------------------------------------------------------------- drafting
 
 
+ANGLE = {
+    LinkedInGroup.recruiter: "recruiter",
+    LinkedInGroup.lead: "lead",
+    LinkedInGroup.alumni: "alumni",
+    LinkedInGroup.other: "lead",
+    LinkedInGroup.hiring_team: "recruiter",
+}
+
+
+def matching_tools(pool: Pool, job_text: str, limit: int = 3) -> list[str]:
+    """Tools the listing names that you have (as your pool writes them), in listing order."""
+    found = []
+    for tag in {t for i in pool.items.values() for t in (i.tags or []) if len(t) >= 2}:
+        m = re.search(rf"(?<![A-Za-z0-9]){re.escape(tag)}(?![A-Za-z0-9])", job_text, re.I)
+        if m:
+            found.append((m.start(), tag))
+    return [t for _, t in sorted(found)][:limit]
+
+
+def project_tools(pool: Pool, terms: list[str], job_text: str, limit: int = 2) -> list[str]:
+    """Tools from your projects (project, education and certification items) for the transition
+    line: the track's own tools first (dbt, Airflow), then ones the listing names, then the most
+    used; never a concept word (ETL, data modeling)."""
+    from collections import Counter
+
+    from app.services.honesty import CONCEPTS
+
+    counts: Counter[str] = Counter(t for kind in ("project", "education", "certification")
+                                   for i in pool.of(kind) for t in (i.tags or [])
+                                   if len(t) >= 2 and t.lower() not in CONCEPTS)
+    folded = {t.lower() for t in terms}
+
+    def rank(tag: str) -> tuple[bool, bool, int]:
+        listed = re.search(rf"(?<![A-Za-z0-9]){re.escape(tag)}(?![A-Za-z0-9])", job_text, re.I)
+        return (tag.lower() not in folded, not listed, -counts[tag])
+
+    return sorted(counts, key=rank)[:limit]
+
+
+def framing(s: Session, job: Job, years: int | None, pool: Pool) -> dict[str, Any] | None:
+    """For a job in a projects-only track (e.g. Data/AI): the transparent transition, built in
+    code: "a software engineer (3 years, mobile and backend) moving into data, with … projects"."""
+    from app.services import honesty
+
+    r = honesty.rules(s)
+    track = next((t for t in r.projects if t.name == job.matched_track), None)
+    if track is None:
+        return None
+    pro = " and ".join(n.lower() for n in r.professional) or "software"
+    into = track.name.split("/")[0].strip().lower()
+    head = f"a software engineer ({years} years, {pro})" if years else f"a {pro} software engineer"
+    tools = project_tools(pool, track.terms, f"{job.title}\n{job.description or ''}")
+    return {"use": True, "text": f"{head} moving into {into}"
+            + (f", with {' and '.join(tools)} projects" if tools else ""),
+            "tools": tools, "how": track.note,
+            "words": [w for n in r.professional for w in re.split(r"[^A-Za-z]+", n) if w]}
+
+
+def reference_notes(s: Session, row_id: int | None = None) -> list[str]:
+    """Approved LinkedIn notes (the regression set): structure and honesty, never wording. A
+    note saved from this very row isn't a copy of itself."""
+    from app.models import EmailExample
+
+    return [e.body for e in s.exec(select(EmailExample)).all()
+            if (e.inputs or {}).get("channel") == "linkedin"
+            and (row_id is None or (e.inputs or {}).get("linkedin_outreach_id") != row_id)]
+
+
 def _request(s: Session, row: LinkedInOutreach, kind: str,
              signals: list[dict[str, Any]] | None = None) -> tuple[LinkedInRequest, lc.Context]:
+    from app.services import agency, honesty
     from app.services.cover_letter import _statements
     from app.services.outreach import _places, email_language
     from app.services.outreach_check import DEFAULT_BANNED
@@ -190,25 +272,37 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     max_chars = int(cfg["note_max_chars"]) if kind == "note" else FOLLOWUP_MAX_CHARS
     first = person.first_name or person.full_name.split(" ")[0]
     alumni = bool(row.alumni or row.group == LinkedInGroup.alumni)
+    angle = "alumni" if row.group == LinkedInGroup.alumni else ANGLE[LinkedInGroup(row.group)]
+    job_text = f"{job.title}\n{job.description or ''}"
+    tools = matching_tools(pool, job_text)
+    years = max((int(f["years"]) for f in facts), default=None)
+    rules_ = honesty.rules(s)
+    transition = framing(s, job, years, pool)
     request = LinkedInRequest(
         kind=kind,
-        job={"title": job.title, "company": company.name,
+        job={"title": job.title, "company": company.name, "track": job.matched_track,
+             "agency": agency.is_agency(company, job),
              "description": (job.description or "")[:4000]},
         person={"first_name": first, "full_name": person.full_name, "title": person.title,
-                "group": str(row.group), "alumni": alumni},
+                "group": angle, "hiring_team": row.hiring_team, "alumni": alumni},
         candidate={"first_name": (pool.profile.get("full_name") or "").split(" ")[0],
                    "years_statement": english if language != "fr" else french,
-                   "school": short if alumni else None},
+                   "school": short if alumni else None,
+                   "matching_tools": tools,
+                   "transition": transition and {k: transition[k] for k in ("use", "text", "how")},
+                   **honesty.prompt_facts(rules_)},
         pool=prompt_pool(pool),
         rules={"max_chars": max_chars, "language": language,
                "banned_phrases": DEFAULT_BANNED + lc.LINKEDIN_BANNED,
                **({"signals": signals} if signals else {})})
     ctx = lc.Context(
         pool=pool, allowed_years={int(f["years"]) for f in facts},
-        job_text=f"{job.title}\n{job.description or ''}\n"
-                 + " ".join(f"{x['fact']} {x.get('quote', '')}" for x in signals or []),
+        job_text=job_text + "\n"
+        + " ".join(f"{x['fact']} {x.get('quote', '')}" for x in signals or []),
         company=company.name, kind=kind, max_chars=max_chars, alumni=alumni, school=short,
-        school_full=full, first_name=first, places=_places(pool), banned=list(DEFAULT_BANNED))
+        school_full=full, first_name=first, places=_places(pool), banned=list(DEFAULT_BANNED),
+        honesty=rules_, examples=reference_notes(s, row.id), group=angle,
+        matching_tools=tools + (transition["tools"] + transition["words"] if transition else []))
     return request, ctx
 
 

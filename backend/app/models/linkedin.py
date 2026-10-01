@@ -30,8 +30,10 @@ class LinkedInOutreach(TableBase, table=True):
 
     application_id: int = Field(foreign_key="application.id", index=True)
     contact_id: int = Field(foreign_key="contact.id", index=True)
+    # Who they are (the note's angle): detected from their title, yours to override.
     group: LinkedInGroup = enum_field(LinkedInGroup.other)
     alumni: bool = False
+    hiring_team: bool = False  # they posted this job / are on its hiring team (captured)
     status: LinkedInStatus = enum_field(LinkedInStatus.to_contact, index=True)
     # The drafts: {text, plan, violations, model, prompt_version, auth, via, created_at, edited}
     note: dict[str, Any] | None = Field(default=None, sa_type=JSON)

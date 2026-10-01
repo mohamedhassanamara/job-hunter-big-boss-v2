@@ -210,6 +210,7 @@ export interface JobDetail extends JobListItem {
   tracking: TrackedApplication | null // set once applied
   contact_search: ContactSearch // the company's Get contact state
   contact_state: ContactState // this job's
+  agency: string[] // why it looks like a recruiting agency (employer not named)
   contact_alerts: ContactAlert[] // active signs the contact left (they block the email's approval)
   next_contact: Contact | null // the next contact by the ranking rule, when there are alerts
 }
@@ -728,6 +729,9 @@ export interface TrackRole {
 export interface Track {
   name: string
   years_experience: number | null
+  /** Professional experience, or projects only (the years wording is never attached to it). */
+  experience?: 'professional' | 'projects'
+  experience_note?: string // how it was gained: "personal projects, a graduation project…"
   roles: TrackRole[]
 }
 
@@ -1397,8 +1401,9 @@ export interface LinkedInPerson {
   full_name: string
   title: string | null
   linkedin_url: string | null
-  group: LinkedInGroup
+  group: LinkedInGroup // the note's angle (detected from the title, overridable)
   alumni: boolean
+  hiring_team: boolean // they posted this job
   status: LinkedInStatus
   note: LinkedInDraft | null
   followup: LinkedInDraft | null
@@ -1421,6 +1426,7 @@ export interface LinkedInPanel {
   groups: { group: LinkedInGroup; label: string; why: string; search: string | null; titles: string[] }[]
   people: LinkedInPerson[]
   order_hint: { step: string; done: boolean }[]
+  agency: string[] // why the company looks like a recruiting agency
 }
 
 /** Critique: what's still weak from the reader's side (never a rewrite). */

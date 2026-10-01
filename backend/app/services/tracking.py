@@ -504,9 +504,10 @@ def channel_stats(s: Session) -> dict[str, Any]:
                   len(requested))},
     ]
     groups = []
-    for label, members in (("hiring_team", {"hiring_team"}), ("alumni", {"alumni"}),
-                           ("others", {"lead", "recruiter", "other"})):
-        sent = [p for p in requested if str(p.group) in members]
+    for label, test in (("hiring_team", lambda p: p.hiring_team),
+                        ("alumni", lambda p: not p.hiring_team and str(p.group) == "alumni"),
+                        ("others", lambda p: not p.hiring_team and str(p.group) != "alumni")):
+        sent = [p for p in requested if test(p)]
         groups.append({"group": label, "sent": len(sent),
                        "accepted": _ratio(sum(1 for p in sent if p.accepted_at), len(sent)),
                        "replied": _ratio(sum(1 for p in sent if p.status == LinkedInStatus.replied),

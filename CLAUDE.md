@@ -215,6 +215,16 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Any edit to `app/prompts/outreach.md` needs a version bump **and** a `make eval-emails` run recorded in
   `app/prompts/eval_log.json` (tested). Examples set structure and tone only: never put their wording in prompts.
 - The sandbox uses `SampleFetcher` + `MockResearcher`: it never fetches the web.
+
+## Honesty and LinkedIn readers
+
+- `search_profile.tracks[].experience` is `professional` | `projects`. `services/honesty.py` flags years attached to a
+  projects track and titles implying professional experience in it; every checker (CV summary, letters, answers,
+  emails, LinkedIn) adds it as an error and every prompt gets `honesty.prompt_facts`. Never weaken it to pass a draft.
+- LinkedIn groups are the note's angle (`linkedin.detect_group`, overridable); `hiring_team` is a separate flag.
+  Per-group rules are in `linkedin_check._group_rules`; the transition line is code (`linkedin_track.framing`).
+  LinkedIn reference notes (`email_example.inputs.channel == "linkedin"`) never enter the email eval or prompts.
+- `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches).
 - Contact check (`services/contact_check.py`): research also searches news for each contact's name and scans
   pages for departure/new-holder sentences (regex, no model). Active `contact_alert` rows block approval;
   `next_contact` follows the ranking. The sandbox seeds one sample departure (`seed._seed_contact_alert`).
