@@ -123,3 +123,7 @@ class StatsOut(BaseModel):
     by_source: list[dict[str, Any]]
     both_routes: int = 0  # jobs where you applied on the website AND emailed someone
     by_route: list[dict[str, Any]] = []  # web / email / both
+    # Replies per track, LinkedIn by group, jobs by source (tracking.channel_stats; unfiltered)
+    by_channel: list[dict[str, Any]] = []
+    linkedin_groups: list[dict[str, Any]] = []
+    by_origin: list[dict[str, Any]] = []

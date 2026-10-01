@@ -473,3 +473,55 @@ def export_csv(s: Session, rows: list[TrackedRow]) -> str:
             r.job.url,
         ])
     return buf.getvalue()
+
+
+def _ratio(k: int, n: int) -> dict[str, Any]:
+    return {"count": k, "total": n, "rate": round(k / n, 3) if n else None}
+
+
+def channel_stats(s: Session) -> dict[str, Any]:
+    """Replies per track (application, email, LinkedIn), LinkedIn by group (hiring team,
+    alumni, others), and jobs by source (your LinkedIn imports vs discovery). Counts come with
+    every rate, so small numbers aren't misread."""
+    from app.models import ApplicationResponse, LinkedInOutreach, OutreachDraft
+    from app.models.enums import DraftStatus, LinkedInStatus, ResponseChannel, Source
+
+    replies = {c: 0 for c in ResponseChannel}
+    for r in s.exec(select(ApplicationResponse)).all():
+        replies[ResponseChannel(r.channel)] += 1
+    applied = len(s.exec(select(Application.id).where(
+        col(Application.web_applied_at).is_not(None))).all())
+    emailed = len(s.exec(select(OutreachDraft.id).where(
+        OutreachDraft.status == DraftStatus.sent)).all())
+    people = s.exec(select(LinkedInOutreach)).all()
+    requested = [p for p in people if p.sent_at is not None]
+    channels = [
+        {"group": "application", "reached": applied, **_ratio(replies[ResponseChannel.application],
+                                                              applied)},
+        {"group": "email", "reached": emailed, **_ratio(replies[ResponseChannel.email], emailed)},
+        {"group": "linkedin", "reached": len(requested),
+         **_ratio(sum(1 for p in requested if p.status == LinkedInStatus.replied),
+                  len(requested))},
+    ]
+    groups = []
+    for label, members in (("hiring_team", {"hiring_team"}), ("alumni", {"alumni"}),
+                           ("others", {"lead", "recruiter", "other"})):
+        sent = [p for p in requested if str(p.group) in members]
+        groups.append({"group": label, "sent": len(sent),
+                       "accepted": _ratio(sum(1 for p in sent if p.accepted_at), len(sent)),
+                       "replied": _ratio(sum(1 for p in sent if p.status == LinkedInStatus.replied),
+                                         len(sent))})
+    origins = []
+    rows = s.exec(select(Job, Application).join(
+        Application, col(Application.job_id) == col(Job.id))
+        .where(col(Job.duplicate_of_id).is_(None))).all()
+    replied_apps = {r.application_id for r in s.exec(select(ApplicationResponse)).all()}
+    for label, test in (("linkedin_import", lambda j: j.source == Source.linkedin),
+                        ("discovery", lambda j: j.source != Source.linkedin)):
+        mine = [(j, a) for j, a in rows if test(j)]
+        origins.append({
+            "group": label, "jobs": len(mine),
+            "past_new": sum(1 for _, a in mine if a.stage not in (Stage.new,)),
+            "applied": sum(1 for _, a in mine if a.web_applied_at is not None),
+            "replied": sum(1 for _, a in mine if a.id in replied_apps)})
+    return {"by_channel": channels, "linkedin_groups": groups, "by_origin": origins}

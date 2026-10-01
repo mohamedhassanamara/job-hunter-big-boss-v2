@@ -176,7 +176,8 @@ def tracked(session: SessionDep, track: Multi = None, country: Multi = None,
 @router.get("/stats", response_model=StatsOut)
 def stats(session: SessionDep, track: Multi = None, country: Multi = None, source: Multi = None,
           stage: Multi = None, start: date | None = None, end: date | None = None) -> StatsOut:
-    return StatsOut(**tracking.stats(_rows(session, track, country, source, stage, start, end)))
+    return StatsOut(**tracking.stats(_rows(session, track, country, source, stage, start, end)),
+                    **tracking.channel_stats(session))
 
 
 @router.get("/applications/export.csv")

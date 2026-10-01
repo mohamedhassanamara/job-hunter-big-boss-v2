@@ -336,6 +336,22 @@ years wording), `duration_ms`, `error`.
 | received_at | datetime | |
 | notes | text | |
 
+`application_response.channel`: `application | email | linkedin` (replies per track in Stats).
+
+### linkedin_outreach / linkedin_link_open / cv_fit (Phase 10, migration 0017)
+- `linkedin_outreach`: one person to message on LinkedIn about one job (unique application + contact):
+  `group` (hiring_team | alumni | lead | recruiter | other), `alumni`, `status` (to_contact | sent | accepted |
+  messaged | replied), `note` / `followup` (JSON: text, citations, violations, model, prompt version, edited,
+  max_chars), `critique`, `sent_at` / `accepted_at` / `messaged_at` / `replied_at`. People are `contact` rows
+  (source `linkedin` when added only for LinkedIn: never the email's contact without an email).
+- `linkedin_link_open`: (key, day) for the "opened today" mark on search links.
+- `cv_fit`: per approved CV version: base fit id/score, the tailored score and sub-scores, model, prompt version,
+  status (pending | ok | failed), the lexical report.
+- `job.linkedin_job_id` (indexed), `job.capture` (how each field of an import was found, plus warnings);
+  `source = linkedin` (never a discovery source).
+- Settings `linkedin`: `note_max_chars` 200, `daily_requests` 10, `followup_days` 5, `gap_days` 3,
+  `geo_ids` {ISO code: {id, verified}}.
+
 ### interview
 | Column | Type | Notes |
 |---|---|---|
