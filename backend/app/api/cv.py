@@ -1,7 +1,9 @@
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
@@ -18,7 +20,7 @@ from app.schemas.cv import (
     TemplateIn,
     TemplateOut,
 )
-from app.services import cv_service, cv_templates, pipeline
+from app.services import cv_fit, cv_service, cv_templates, pipeline
 from app.services.cv_pool import load_pool, readiness
 
 router = APIRouter(tags=["cv"])
@@ -133,7 +135,8 @@ def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
 
 
 @router.post("/cv/{cv_id}/approve", response_model=CVApproveResult)
-def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
+def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
+               workspace: WorkspaceDep) -> CVApproveResult:
     v = get_or_404(session, CVVersion, cv_id, "CV version")
     app = get_or_404(session, Application, v.application_id)
     if v.page_count is not None and v.page_count != 1:
@@ -156,10 +159,59 @@ def approve_cv(cv_id: int, session: SessionDep) -> CVApproveResult:
     session.add(app)
     session.commit()
     session.refresh(v)
+    # Fit before/after: the job scored against this CV, in the background (one model call).
+    cv_fit.start(engine, v.id, mock=_mock_scoring(workspace))
     return CVApproveResult(
         version=_out(v), stage=app.stage, route=app.route,
         next_step="draft_email" if app.route == Route.cold_email else "apply",
     )
+
+
+def _mock_scoring(workspace: str) -> bool:
+    from app.config import get_settings
+
+    return workspace == "demo" or get_settings().job_sources == "mock"
+
+
+class CVFitOut(BaseModel):
+    cv_version_id: int
+    status: str  # pending | ok | failed
+    base_score: int | None
+    score: int | None
+    sub_scores: dict[str, Any]
+    base_sub_scores: dict[str, Any]
+    model: str | None
+    prompt_version: str | None
+    error: str | None
+    lexical: dict[str, Any]
+    scored_at: Any = None
+
+
+@router.get("/cv/{cv_id}/fit", response_model=CVFitOut | None)
+def get_cv_fit(cv_id: int, session: SessionDep) -> CVFitOut | None:
+    """Fit before (the job's own fit) and after (scored against this CV), with the evidence
+    check. None until the CV is approved."""
+    from app.models import CVFit, FitScore
+
+    row = session.exec(select(CVFit).where(CVFit.cv_version_id == cv_id)).first()
+    if row is None:
+        return None
+    base = session.get(FitScore, row.base_fit_id) if row.base_fit_id else None
+    return CVFitOut(cv_version_id=cv_id, status=row.status, base_score=row.base_score,
+                    score=row.score, sub_scores=row.sub_scores,
+                    base_sub_scores=base.sub_scores if base else {}, model=row.model,
+                    prompt_version=row.prompt_version, error=row.error, lexical=row.lexical,
+                    scored_at=row.scored_at)
+
+
+@router.post("/cv/{cv_id}/fit", status_code=202)
+def rerun_cv_fit(cv_id: int, session: SessionDep, engine: EngineDep,
+                 workspace: WorkspaceDep) -> dict[str, bool]:
+    """Score again (e.g. after a model problem)."""
+    v = get_or_404(session, CVVersion, cv_id, "CV version")
+    if v.status != CVStatus.approved:
+        raise HTTPException(409, "Fit before/after is for an approved CV")
+    return {"started": cv_fit.start(engine, cv_id, mock=_mock_scoring(workspace))}
 
 
 # ----------------------------------------------------------------------------------- templates

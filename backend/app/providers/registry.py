@@ -131,6 +131,15 @@ def linkedin_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5"
     return MockLinkedInDrafter() if use_mock else ClaudeLinkedInDrafter(model)
 
 
+def critic(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
+    """Critique (claude -p). Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.claude_critique import ClaudeCritic
+    from app.providers.mock import MockCritic
+
+    return MockCritic() if use_mock else ClaudeCritic(model)
+
+
 _mock_hunter = None
 
 

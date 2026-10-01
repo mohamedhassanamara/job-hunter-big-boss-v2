@@ -3,6 +3,7 @@
 import hashlib
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from app.models.enums import RemoteType, Source
 from app.providers.base import (
@@ -10,6 +11,8 @@ from app.providers.base import (
     AnswersPlan,
     AnswersRequest,
     CoverLetterPlan,
+    CritiqueIssue,
+    CritiquePlan,
     CVPlan,
     CVPlanDraft,
     CVRequest,
@@ -340,3 +343,25 @@ class MockLinkedInDrafter:
             text = (f"Hi {first}, I work on data systems and saw the {job.get('title')} opening "
                     f"at {job.get('company')}. Could I ask what the team values most in it?")
         return LinkedInMessage(text=text[:limit])
+
+
+class MockCritic:
+    """A deterministic critique (sandbox and tests; no model call): the first line, and any
+    unbacked or dropped terms the checks found."""
+
+    model = "mock-critic"
+    prompt_version = "critique/mock"
+    via = "mock"
+
+    def critique(self, request: dict[str, Any]) -> CritiquePlan:
+        doc = str(request.get("document") or "")
+        checks = request.get("checks") or {}
+        issues = [CritiqueIssue(where="opening", issue=f"It opens with “{doc.strip()[:60]}”.",
+                                why="The reader decides in the first lines whether to go on.")]
+        for t in (checks.get("unbacked") or [])[:2]:
+            issues.append(CritiqueIssue(where="claims", issue=f"“{t}” isn't in your experience.",
+                                        why="An unbacked claim is the first thing to fall apart."))
+        for t in (checks.get("dropped") or [])[:2]:
+            issues.append(CritiqueIssue(where="evidence", issue=f"Your {t} experience is left out.",
+                                        why="The listing asks for it and you have it."))
+        return CritiquePlan(issues=issues)
