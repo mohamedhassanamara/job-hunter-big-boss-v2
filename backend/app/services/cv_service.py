@@ -91,13 +91,26 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
         },
         pool=prompt_pool(pool),
         emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
-        facts={"years": summary_years(years_facts(pool, _tracks(s)), track or "")},
+        facts={"years": summary_years(years_facts(pool, _tracks(s)), track or ""),
+               **honesty_facts(_tracks(s))},
         guide=cv_rules.guide(cv_settings(s)) + (
             "\nNever use these phrases: " + "; ".join(cv_rules.banned(cv_settings(s)))
             if cv_rules.banned(cv_settings(s)) else ""),
         style=cv_rules.style_exemplar(),
         layout=layout_hints(pool, cv_rules.structure(cv_settings(s))),
     )
+
+
+def honesty_facts(tracks: list[dict[str, Any]]) -> dict[str, Any]:
+    """For the model: which tracks are professional and which are projects, and the years rule.
+    For the checks: the tracks themselves (services/honesty.py)."""
+    from app.services import honesty
+
+    return {**honesty.prompt_facts(honesty.rules_from(tracks)),
+            "honesty_tracks": [{"name": t.get("name"), "experience": t.get("experience"),
+                                "experience_note": t.get("experience_note"),
+                                "roles": [{"title": r.get("title")} for r in t.get("roles") or []]}
+                               for t in tracks]}
 
 
 def summary_years(facts: list[dict[str, Any]], track: str) -> list[dict[str, Any]]:
@@ -135,9 +148,14 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
                   items: list[SummarySentence], short: bool = False,
                   banned: list[str] | None = None,
                   other_openings: list[str] | None = None, track: str = "",
-                  statement: str | None = None) -> list[str]:
-    """The guide's summary rules, checked in code (see cv_rules.summary_problems)."""
+                  statement: str | None = None, honesty_rules: Any = None) -> list[str]:
+    """The guide's summary rules, checked in code (see cv_rules.summary_problems), plus the
+    honesty rule about years (services/honesty.py)."""
+    from app.services import honesty
+
     text = " ".join(s.text.strip() for s in items)
+    dishonest = [msg for _k, _s, msg in honesty.problems(text, honesty_rules)] \
+        if honesty_rules else []
     bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
     internships = [i for i in pool.of("job") if cv_rules.role_type(i, rules) == "internship"]
     tools = {t for i in pool.items.values() for t in i.tags if len(t) > 2}
@@ -145,7 +163,7 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
     # Anything on the CV counts as "something you built" (grounding is checked separately).
     on_cv = [pool.get(e.item_id) for e in [*plan.roles, *plan.projects]]
     cited_texts = [p for i in on_cv if i is not None for p in [i.title, *i.bullets]]
-    return cv_rules.summary_problems(
+    return dishonest + cv_rules.summary_problems(
         text, rules=rules, bullet_texts=bullets, certifications=pool.of("certification"),
         internships=internships, tools=tools, max_sentences=1 if short else None,
         max_words=max(15, int(rules["summary_max_words"]) // 2) if short else None,
@@ -269,6 +287,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
     rules = rules or dict(cv_rules.DEFAULT_STRUCTURE)
     allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
     statement = exact_statement((request.facts or {}).get("years"))
+    from app.services import honesty
+
+    hr = honesty.rules_from((request.facts or {}).get("honesty_tracks") or [])
     report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None, "style": []}
 
     def join(items: list[SummarySentence]) -> str:
@@ -279,9 +300,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
                                              statement)
     track = str((request.job or {}).get("matched_track") or "")
     style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings,
-                          track, statement)
+                          track, statement, hr)
     short_style = summary_style(plan, pool, rules, plan.summary_short_sentences, True, banned,
-                                statement=statement)
+                                statement=statement, honesty_rules=hr)
     if bad or short_bad or style or short_style:
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
                                    for s, r in bad + short_bad])
@@ -296,9 +317,9 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
         short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed,
                                               statement)
         style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned,
-                               openings, track, statement)
+                               openings, track, statement, hr)
         short_style2 = summary_style(plan, pool, rules, retry.summary_short_sentences, True,
-                                     banned, statement=statement)
+                                     banned, statement=statement, honesty_rules=hr)
         report["style"].append({"summary": style2, "short": short_style2})
         if bad2:
             report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}

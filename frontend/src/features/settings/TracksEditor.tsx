@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { TagInput } from '@/components/app/TagInput'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import { useSuggestVariants } from '@/lib/queries/library'
 import type { Track, TrackRole, VariantLang } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -51,6 +52,25 @@ export function TracksEditor({ tracks, onChange }: { tracks: Track[]; onChange: 
                 aria-label={`Years of experience in ${track.name || 'this track'}`}
               />
             </label>
+            <Select
+              size="sm"
+              value={track.experience ?? 'professional'}
+              onValueChange={(v) => setTrack(i, { experience: v as 'professional' | 'projects' })}
+              options={[
+                { value: 'professional', label: 'Professional' },
+                { value: 'projects', label: 'Projects only' },
+              ]}
+              aria-label={`Experience in ${track.name || 'this track'}`}
+            />
+            {track.experience === 'projects' && (
+              <Input
+                value={track.experience_note ?? ''}
+                onChange={(e) => setTrack(i, { experience_note: e.target.value })}
+                placeholder="How: personal projects, graduation project, internship…"
+                className="h-8 min-w-48 flex-1 text-xs"
+                aria-label={`How you gained ${track.name || 'this track'} experience`}
+              />
+            )}
             <div className="flex-1" />
             <Button variant="ghost" size="icon-sm" onClick={() => onChange(tracks.filter((_, j) => j !== i))} aria-label={`Remove track ${track.name}`}>
               <Trash2 />

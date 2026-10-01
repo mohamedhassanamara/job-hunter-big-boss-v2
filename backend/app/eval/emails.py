@@ -63,18 +63,38 @@ def import_examples(engine: Engine, path: Path = EXAMPLES_FILE) -> int:
     return added
 
 
+def case_contact(s: Session, example: EmailExample, app: Application | None) -> Contact | None:
+    """Who the case writes to: the job's contact, else the one its draft was written to (a
+    contact being verified is unassigned from the job meanwhile)."""
+    if app is None:
+        return None
+    if app.contact_id:
+        return s.get(Contact, app.contact_id)
+    draft = s.get(OutreachDraft, example.draft_id) if example.draft_id else s.exec(
+        select(OutreachDraft).where(OutreachDraft.application_id == app.id)
+        .order_by(col(OutreachDraft.id).desc())).first()
+    return s.get(Contact, draft.contact_id) if draft and draft.contact_id else None
+
+
 def _request(s: Session, example: EmailExample) -> tuple[EmailRequest | None, str]:
     """The inputs to write this case again: its snapshot, or today's for its job."""
-    from app.services import outreach
+    from app.services import honesty, outreach
 
     inputs = example.inputs or {}
     if inputs.get("request"):
+        # The snapshot, with today's honesty facts (they're rules, not the case's inputs).
         req = EmailRequest.model_validate(inputs["request"])
+        hr = honesty.rules(s)
+        req.candidate = {**req.candidate, **honesty.prompt_facts(hr),
+                         "areas_you_can_use": honesty.professional_areas(
+                             [a for a in req.candidate.get("areas_you_can_use") or []
+                              if a not in {t.name for t in hr.projects}], hr)}
         return req, req.rules.get("language") or example.language
     app = s.get(Application, inputs.get("application_id") or -1)
-    if app is None or app.contact_id is None:
+    contact = case_contact(s, example, app)
+    if app is None or contact is None:
         return None, example.language
-    job, contact = s.get(Job, app.job_id), s.get(Contact, app.contact_id)
+    job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id)
     cv = outreach.approved_cv(s, app)
     if cv is None:
@@ -97,7 +117,9 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
         stmt = select(EmailExample).order_by(col(EmailExample.id))
         if case is not None:
             stmt = stmt.where(EmailExample.id == case)
-        examples = list(s.exec(stmt).all())[:limit] if limit else list(s.exec(stmt).all())
+        examples = [e for e in s.exec(stmt).all()
+                    if (e.inputs or {}).get("channel") != "linkedin"]  # emails only
+        examples = examples[:limit] if limit else examples
         for ex in examples:
             request, language = _request(s, ex)
             row: dict[str, Any] = {"id": ex.id, "kind": ex.kind, "company": ex.company,
@@ -116,8 +138,9 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
                                   request.candidate.get("years_statement_fr"))
             text = ic.body(plan, intro)
             found: list[dict] = []
-            if app is not None and app.contact_id:
-                job, contact = s.get(Job, app.job_id), s.get(Contact, app.contact_id)
+            contact = case_contact(s, ex, app)
+            if app is not None and contact is not None:
+                job = s.get(Job, app.job_id)
                 ctx = outreach.intro_context(s, app, job, s.get(Company, job.company_id),
                                              contact, load_pool(s), language=language,
                                              intro=intro)

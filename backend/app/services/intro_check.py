@@ -9,6 +9,7 @@ examples or from drafts to other people.
 
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 from app.providers.base import IntroEmailPlan, SummarySentence
 from app.services import outreach_check as oc
@@ -82,6 +83,7 @@ class Context:
     others: list[tuple[int, str, str]] = field(default_factory=list)  # drafts to others
     min_words: int = MIN_WORDS
     max_words: int = MAX_WORDS
+    honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
 
 
 def intro_line(first_name: str, focus: str, language: str, statement: str | None,
@@ -227,6 +229,9 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
         if score >= oc.DUPLICATE_THRESHOLD:
             out.append(violation("duplicate", f"{round(score * 100)}% the same as your draft to "
                                  f"{to} (#{draft_id})", "body"))
+    from app.services import honesty
+
+    out += honesty.violations(text, ctx.honesty)
     return out
 
 

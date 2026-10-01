@@ -34,8 +34,8 @@ from app.models import (
 from app.models.base import utcnow
 from app.models.enums import CVStatus, EventKind
 from app.providers.base import CoverLetterPlan, DraftFailed, LetterDrafter, LetterRequest
+from app.services import honesty, pipeline
 from app.services import letter_check as lc
-from app.services import pipeline
 from app.services.cv_check import violation
 from app.services.cv_claims import exact_statement
 from app.services.cv_pool import Pool, cv_profile, load_pool, years_facts
@@ -234,7 +234,8 @@ def context(s: Session, app: Application, language: str, pool: Pool | None = Non
         mention_authorization=allowed, company_reason=(app.company_reason or "").strip(),
         years_statement=english, years_statement_fr=french,
         other_companies=sorted(others - {company.name}),
-        contact_name=contact.full_name if contact and language == "en" else "")
+        contact_name=contact.full_name if contact and language == "en" else "",
+        honesty=honesty.rules(s))
 
 
 def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, language: str,
@@ -258,6 +259,7 @@ def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, langu
                    "company_reason": ctx_words.company_reason or None,
                    "years": facts, "years_statement": english,
                    "years_statement_fr": french,
+                   **honesty.prompt_facts(ctx_words.honesty or honesty.rules(s)),
                    "current_role": {"id": role.id, "title": role.title, "org": role.org}
                    if role else None},
         pool=cv_pool_subset(pool, cv),
