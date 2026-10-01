@@ -4,6 +4,7 @@ export const METHOD_LABELS: Record<ApplyMethod, string> = {
   company_site: 'Company site',
   job_board: 'Job board',
   email: 'Email',
+  linkedin: 'LinkedIn (Easy Apply or from LinkedIn)',
   other: 'Other',
 }
 

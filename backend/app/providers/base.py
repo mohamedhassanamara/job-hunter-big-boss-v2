@@ -382,6 +382,33 @@ class CVGenerator(Protocol):
         ...
 
 
+class LinkedInMessage(BaseModel):
+    """A LinkedIn connection note or follow-up, as one short text. Facts about you cite pool
+    ids; the program checks length, grounding, years and banned phrases."""
+
+    text: str = Field(description="The whole message, ready to paste (no greeting line breaks)")
+    citations: list[int] = Field(default_factory=list,
+                                 description="Pool ids of every fact about you it states")
+    signal_ids: list[int] = Field(default_factory=list,
+                                  description="Company signals it uses (follow-up only)")
+
+
+class LinkedInRequest(BaseModel):
+    kind: str  # note | followup
+    job: dict[str, Any]
+    person: dict[str, Any]  # first_name, full_name, title, group, alumni
+    candidate: dict[str, Any]
+    pool: dict[str, Any]
+    rules: dict[str, Any]
+
+
+class LinkedInDrafter(Protocol):
+    model: str
+    prompt_version: str
+
+    def draft(self, request: LinkedInRequest, feedback: str = "") -> LinkedInMessage: ...
+
+
 class EmailDrafter(Protocol):
     model: str
     prompt_version: str

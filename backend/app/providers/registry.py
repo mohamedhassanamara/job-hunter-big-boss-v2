@@ -121,6 +121,16 @@ def hook_checker(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
     return MockHookChecker() if use_mock else OllamaHookChecker(model, fallback)
 
 
+def linkedin_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
+    """LinkedIn connection notes and follow-ups: Claude Code headless (your subscription). Tests
+    and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.claude_linkedin import ClaudeLinkedInDrafter
+    from app.providers.mock import MockLinkedInDrafter
+
+    return MockLinkedInDrafter() if use_mock else ClaudeLinkedInDrafter(model)
+
+
 _mock_hunter = None
 
 

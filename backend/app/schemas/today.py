@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -63,6 +64,8 @@ class TodayOut(BaseModel):
     also_email: list[PipelineCard] = []
     # The Get contact step: jobs past New that need a contact or a verification (top 5).
     contacts_to_get: ToGetQueue | None = None
+    # LinkedIn: searches not opened today, imports to decide on, requests to send, follow-ups.
+    linkedin: dict[str, Any] | None = None
     reminders: list[ReminderOut]
     upcoming_interviews: list[UpcomingInterview]  # next 14 days, pending
     stats_summary: StatsSummary

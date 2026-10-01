@@ -65,17 +65,19 @@ export function MarkAppliedDialog({
   target,
   cvVersion,
   cvVersionId,
+  defaultMethod = 'company_site',
   onOpenChange,
   onDone,
 }: {
   target: TrackTarget | null
   cvVersion: number | null
   cvVersionId?: number
+  defaultMethod?: ApplyMethod
   onOpenChange: (open: boolean) => void
   onDone?: () => void
 }) {
   const [date, setDate] = useState(todayIso())
-  const [method, setMethod] = useState<ApplyMethod>('company_site')
+  const [method, setMethod] = useState<ApplyMethod>(defaultMethod)
   const [notes, setNotes] = useState('')
   const [withLetter, setWithLetter] = useState(true)
   const [withForm, setWithForm] = useState(true)

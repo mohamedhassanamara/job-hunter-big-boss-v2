@@ -9,6 +9,7 @@ import {
   Layers,
   type LucideIcon,
   Mail,
+  Network,
   Pause,
   Play,
   Radar,
@@ -22,6 +23,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
 import { FoundCounter } from '@/components/app/contact/FoundCounter'
+import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
@@ -546,6 +548,13 @@ export default function TodayPage() {
                   <FitBadge fit={i.fit} size="sm" />
                 </RowLink>
               ))}
+            </Card>
+          )}
+          {data.linkedin && (
+            <Card icon={Network} title="LinkedIn" tour="today-linkedin" href="/linkedin" hrefLabel="Open LinkedIn" count={data.linkedin.to_send.length + data.linkedin.followups.length + data.linkedin.to_decide_total}>
+              <div className="px-2 py-2">
+                <LinkedInSummaryList data={data.linkedin} />
+              </div>
             </Card>
           )}
           {data.also_email.length > 0 && (

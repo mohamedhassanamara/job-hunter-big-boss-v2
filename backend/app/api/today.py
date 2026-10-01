@@ -28,7 +28,7 @@ from app.schemas.today import (
     UpcomingInterview,
 )
 from app.schemas.tracking import ReminderOut
-from app.services import get_contact, tracking
+from app.services import get_contact, linkedin_track, tracking
 from app.services.views import job_items, pipeline_cards
 
 router = APIRouter(tags=["today"])
@@ -165,6 +165,7 @@ def today(session: SessionDep) -> TodayOut:
         also_email=[c for c in pipeline_cards(session, tracking.also_email(session))
                     if c.tracks.outreach in ("no_contact", "verify", "contact")][:5],
         contacts_to_get=queue_out(session, limit=5),
+        linkedin=linkedin_track.summary(session),
         reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],
         upcoming_interviews=upcoming,
         stats_summary=StatsSummary(**tracking.stats_summary(session)),

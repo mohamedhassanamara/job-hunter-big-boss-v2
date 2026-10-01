@@ -22,6 +22,8 @@ from app.providers.base import (
     JobSnapshot,
     LetterParagraph,
     LetterRequest,
+    LinkedInMessage,
+    LinkedInRequest,
     OutgoingEmail,
     ProfileSpec,
     RawJob,
@@ -310,3 +312,31 @@ class MockMailer:
             raise self.fail
         self.sent.append(email)
         return f"<mock-{len(self.sent)}@job-hunter.local>"
+
+
+class MockLinkedInDrafter:
+    """Short grounded LinkedIn messages from the request (sandbox and tests; no model call)."""
+
+    model = "mock-linkedin"
+    prompt_version = "linkedin/mock"
+    via = "mock"
+
+    def draft(self, request: LinkedInRequest, feedback: str = "") -> LinkedInMessage:
+        person, job = request.person, request.job
+        first = person.get("first_name") or "there"
+        limit = int(request.rules.get("max_chars") or 200)
+        if request.kind == "followup":
+            role = next((r for r in request.pool.get("roles", []) if r.get("facts")), None)
+            proof = (f" At {role['org']} I {next(iter(role['facts'].values()))[0].lower()}"
+                     f"{next(iter(role['facts'].values()))[1:].rstrip('.')}." if role else "")
+            text = (f"Thanks for connecting, {first}.{proof} Who would be the right person to "
+                    f"talk to about the {job.get('title')} opening?")
+            return LinkedInMessage(text=text, citations=[role["id"]] if role else [])
+        if person.get("alumni") and request.candidate.get("school"):
+            text = (f"Hi {first}, fellow {request.candidate['school']} graduate here. I work on "
+                    f"data systems and noticed the {job.get('title')} opening at "
+                    f"{job.get('company')}. Could I ask you how the team works?")
+        else:
+            text = (f"Hi {first}, I work on data systems and saw the {job.get('title')} opening "
+                    f"at {job.get('company')}. Could I ask what the team values most in it?")
+        return LinkedInMessage(text=text[:limit])
