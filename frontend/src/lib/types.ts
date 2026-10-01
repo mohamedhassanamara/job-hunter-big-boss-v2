@@ -1438,3 +1438,27 @@ export interface LinkedInSummary {
   requests_today: number
   daily_limit: number
 }
+
+export interface CVFit {
+  cv_version_id: number
+  status: 'pending' | 'ok' | 'failed'
+  base_score: number | null
+  score: number | null
+  sub_scores: Record<string, { score?: number } | number>
+  base_sub_scores: Record<string, { score?: number } | number>
+  model: string | null
+  prompt_version: string | null
+  error: string | null
+  lexical: {
+    checkable: number
+    evidenced: number
+    shown_before: number
+    shown_after: number | null
+    present_after: number | null
+    dropped: string[]
+    unbacked: string[]
+    gaps: string[]
+    years: string | null
+  }
+  scored_at: string | null
+}

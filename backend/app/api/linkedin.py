@@ -372,3 +372,23 @@ def jsonable(value: Any) -> Any:
     from fastapi.encoders import jsonable_encoder
 
     return jsonable_encoder(value)
+
+
+class CritiqueIn(BaseModel):
+    kind: str  # cv | letter | email | linkedin_note | linkedin_followup
+    id: int
+
+
+@router.post("/critique")
+def run_critique(body: CritiqueIn, session: SessionDep, workspace: WorkspaceDep) -> dict[str, Any]:
+    """What's still weak in this document from the reader's side (one Claude call, no rewrite)."""
+    from app.providers.registry import critic
+    from app.services import critique
+
+    try:
+        result = critique.critique(session, body.kind, body.id,
+                                   critic(mock=True if workspace == "demo" else None))
+    except critique.CritiqueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return result

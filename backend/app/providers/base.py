@@ -409,6 +409,18 @@ class LinkedInDrafter(Protocol):
     def draft(self, request: LinkedInRequest, feedback: str = "") -> LinkedInMessage: ...
 
 
+class CritiqueIssue(BaseModel):
+    where: str
+    issue: str
+    why: str
+
+
+class CritiquePlan(BaseModel):
+    """What's still weak from the reader's side (never a rewrite)."""
+
+    issues: list[CritiqueIssue] = Field(default_factory=list)
+
+
 class EmailDrafter(Protocol):
     model: str
     prompt_version: str

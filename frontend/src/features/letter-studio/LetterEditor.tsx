@@ -1,4 +1,5 @@
 import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
+import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -129,8 +130,9 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
         <span className="font-medium text-fg-muted">
           {letter.word_count} words{form ? ` · ${letter.length}${letter.char_limit != null ? `/${letter.char_limit}` : ''} characters` : ''} · {letter.language === 'fr' ? 'French' : 'English'} · from CV v{letter.cv_version ?? '?'}
         </span>
-        <span className="text-fg-subtle" aria-live="polite">
+        <span className="flex items-center gap-2 text-fg-subtle" aria-live="polite">
           {note}
+          <CritiqueButton kind="letter" id={letter.id} size="xs" />
         </span>
       </div>
       <Checks violations={letter.violations} form={form} />

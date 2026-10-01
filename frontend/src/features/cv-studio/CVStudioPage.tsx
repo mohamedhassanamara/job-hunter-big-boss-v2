@@ -17,6 +17,8 @@ import { useJob } from '@/lib/queries/jobs'
 import { useApproveCV, useCVStudio, useGenerateCV, usePatchCV, useRegenerateSummary } from '@/lib/queries/workflow'
 import type { CVPatchInput, CVStudio, CVVersion } from '@/lib/types'
 import { CVContentPanel } from './CVContentPanel'
+import { CritiqueButton } from '@/components/app/CritiqueButton'
+import { CVFitStrip } from './CVFitStrip'
 
 const STATUS_LABEL = { draft: 'Draft', approved: 'Approved', superseded: 'Superseded' } as const
 
@@ -231,6 +233,7 @@ export default function CVStudioPage() {
                 </a>
               </Button>
             </Tooltip>
+            <CritiqueButton kind="cv" id={version.id} />
             <span data-tour="cv-approve">
               {version.status === 'approved' ? (
                 <ToneBadge tone="green" dot={false} className="h-8 px-3 text-sm">
@@ -252,6 +255,7 @@ export default function CVStudioPage() {
         )}
       </div>
 
+      {version?.status === 'approved' && <CVFitStrip cvId={version.id} />}
       {loading ? (
         <div className="grid flex-1 grid-cols-2 gap-6 p-6">
           <div className="space-y-3">

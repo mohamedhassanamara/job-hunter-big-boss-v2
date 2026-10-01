@@ -1,4 +1,5 @@
 import { ClipboardPaste, Copy, ExternalLink, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
+import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge, type Tone } from '@/components/app/badges'
@@ -135,6 +136,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
             Copy
           </Button>
         )}
+        {draft && <CritiqueButton kind={kind === 'note' ? 'linkedin_note' : 'linkedin_followup'} id={person.id} />}
         {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
       </div>
     </div>

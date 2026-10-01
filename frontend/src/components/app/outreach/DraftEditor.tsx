@@ -1,4 +1,5 @@
 import { CircleCheck, CircleX, FileText, ListPlus, Mail, RefreshCw, RotateCcw, Send, TriangleAlert, X } from 'lucide-react'
+import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -297,6 +298,7 @@ export function DraftEditor({
                 Reject
                 <Kbd>R</Kbd>
               </Button>
+              <CritiqueButton kind="email" id={draft.id} />
               <Button
                 onClick={() => regenerate.start(undefined, { onError: (e) => toast.error(e.message) })}
                 disabled={regenerate.running}
