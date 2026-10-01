@@ -38,10 +38,12 @@ class FitDetail(FitBrief):
 
 
 class TracksOut(BaseModel):
-    """Both routes of a job (services/tracks.py)."""
+    """The routes of a job (services/tracks.py): application, email and LinkedIn."""
 
     application: str = "not_ready"  # not_ready | ready | applied
-    outreach: str = "no_contact"  # no_contact | contact | drafted | approved | queued | sent
+    # no_contact | verify | contact | drafted | approved | queued | sent
+    outreach: str = "no_contact"
+    linkedin: str = "none"  # none | to_contact | sent | accepted | messaged | replied
     applied_at: datetime | None = None
     web_method: str | None = None
     contact_name: str | None = None

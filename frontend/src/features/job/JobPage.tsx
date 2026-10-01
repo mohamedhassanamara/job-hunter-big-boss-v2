@@ -51,6 +51,7 @@ import { isApplied } from '@/lib/tracking'
 import type { CloseReason, JobDetail, Stage } from '@/lib/types'
 import { ApplicationSection, CompanyReasonField, TracksSummary } from './ApplicationSection'
 import { CopilotSheet } from './CopilotSheet'
+import { LinkedInTrackSection } from '@/components/app/linkedin/LinkedInTrackSection'
 import { SignalsPanel } from '@/components/app/research/SignalsPanel'
 import { CoverLetterSection } from './CoverLetterSection'
 import { OutreachSection } from './OutreachSection'
@@ -399,6 +400,9 @@ export default function JobPage() {
           <div id="outreach" className="scroll-mt-4">
             <OutreachSection job={job} />
           </div>
+          <div id="linkedin" className="scroll-mt-4">
+            <LinkedInTrackSection job={job} />
+          </div>
           {app.stage !== 'new' && app.stage !== 'closed' && (
             <Section title={`Signals about ${job.company.name}`}>
               <div className="p-4">
@@ -465,6 +469,7 @@ export default function JobPage() {
         target={applying ? { appId: app.id, title: job.title, company: job.company.name } : null}
         cvVersion={approvedCV?.version ?? null}
         cvVersionId={approvedCV?.id}
+        defaultMethod={job.source === 'linkedin' ? 'linkedin' : 'company_site'}
         onOpenChange={setApplying}
       />
       <LogInterviewDialog

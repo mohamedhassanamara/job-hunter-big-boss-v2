@@ -28,6 +28,7 @@ _OUTREACH = {DraftStatus.sent: "sent", DraftStatus.queued: "queued",
 class Tracks:
     application: str  # not_ready | ready | applied
     outreach: str  # no_contact | verify | contact | drafted | approved | queued | sent
+    linkedin: str = "none"  # none | to_contact | sent | accepted | messaged | replied
     applied_at: datetime | None = None
     web_method: str | None = None
     contact_name: str | None = None
@@ -76,7 +77,14 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
     drafts: dict[int, list[OutreachDraft]] = {}
     for d in s.exec(select(OutreachDraft).where(col(OutreachDraft.application_id).in_(ids))).all():
         drafts.setdefault(d.application_id, []).append(d)
+    from app.models import LinkedInOutreach
     from app.services.get_contact import state_of, verify_days
+    from app.services.linkedin_track import track_status
+
+    li: dict[int, list[LinkedInOutreach]] = {}
+    for r in s.exec(select(LinkedInOutreach).where(
+            col(LinkedInOutreach.application_id).in_(ids))).all():
+        li.setdefault(r.application_id, []).append(r)
 
     contact_ids = {a.contact_id for a in apps if a.contact_id}
     people = {c.id: c for c in s.exec(
@@ -89,6 +97,7 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
         out[a.id] = Tracks(
             application=application_status(a, a.id in approved),
             outreach=outreach_status(a, draft, state_of(contact, None, days)),
+            linkedin=track_status(li.get(a.id, [])),
             applied_at=a.web_applied_at,
             web_method=a.web_method, contact_name=contact.full_name if contact else None,
             draft_id=draft.id if draft else None,

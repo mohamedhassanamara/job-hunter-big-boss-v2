@@ -1,4 +1,4 @@
-import { ArrowRight, CircleCheck, FileText, Globe, Lightbulb, Mail } from 'lucide-react'
+import { ArrowRight, CircleCheck, FileText, Globe, Lightbulb, Mail, Network } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,15 @@ const OUTREACH_NEXT: Record<JobDetail['application']['tracks']['outreach'], stri
   sent: 'Sent',
 }
 
+const LINKEDIN_NEXT: Record<JobDetail['application']['tracks']['linkedin'], string> = {
+  none: 'Optional: message the hiring team or alumni',
+  to_contact: 'Send the connection request',
+  sent: 'Waiting for them to accept',
+  accepted: 'Send the follow-up',
+  messaged: 'Waiting for a reply',
+  replied: 'They replied',
+}
+
 /** Both routes at a glance: the web application and the cold email, each with its next step. */
 export function TracksSummary({ job }: { job: JobDetail }) {
   const t = job.application.tracks
@@ -35,7 +44,7 @@ export function TracksSummary({ job }: { job: JobDetail }) {
         ? 'Open the listing, apply, then mark it applied'
         : 'Approve a CV first'
   return (
-    <div data-tour="job-tracks" className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+    <div data-tour="job-tracks" className="grid grid-cols-3 gap-3 max-lg:grid-cols-1">
       <button
         type="button"
         onClick={() => scrollTo('application')}
@@ -58,13 +67,27 @@ export function TracksSummary({ job }: { job: JobDetail }) {
         <Mail className="mt-0.5 size-4 text-fg-subtle" />
         <span className="min-w-0 flex-1 space-y-1">
           <span className="flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold">Outreach</span>
+            <span className="text-sm font-semibold">Email</span>
             <TrackBadge kind="outreach" tracks={t} />
           </span>
           <span className="block truncate text-xs text-fg-muted">
             {t.contact_name ? `${t.contact_name} · ` : ''}
             {t.outreach === 'sent' && t.sent_at ? `Sent ${shortDate(t.sent_at)}` : OUTREACH_NEXT[t.outreach]}
           </span>
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => scrollTo('linkedin')}
+        className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3 text-left shadow-sm transition-colors duration-120 hover:border-border-strong"
+      >
+        <Network className="mt-0.5 size-4 text-fg-subtle" />
+        <span className="min-w-0 flex-1 space-y-1">
+          <span className="flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold">LinkedIn</span>
+            <TrackBadge kind="linkedin" tracks={t} />
+          </span>
+          <span className="block truncate text-xs text-fg-muted">{LINKEDIN_NEXT[t.linkedin ?? 'none']}</span>
         </span>
       </button>
     </div>
@@ -101,13 +124,13 @@ export function ApplicationSection({ job, onApplied }: { job: JobDetail; onAppli
         ) : (
           <div className="space-y-3">
             <p className="text-fg-muted">
-              Apply on the company site with your approved CV v{approved.version}
+              {job.source === 'linkedin' ? 'Apply on LinkedIn (Easy Apply, or the company site it links to)' : 'Apply on the company site'} with your approved CV v{approved.version}
               {letter ? ` and cover letter v${letter.version}` : ''}, then mark it applied: those versions get locked. You can
               email someone there too (Outreach below).
             </p>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => openListingAndCv(job.url, pdf, letterPdf)}>
-                {letter ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
+                {job.source === 'linkedin' ? (letter ? 'Open on LinkedIn + CV + cover letter' : 'Open on LinkedIn + CV') : letter ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
                 <ArrowRight />
               </Button>
               <Button size="sm" variant="ghost" asChild>

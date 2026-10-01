@@ -12,7 +12,8 @@ from app.models import Application, AppSetting, ResearchRun
 from app.models.enums import Source
 
 APP = Path(__file__).resolve().parents[1] / "app"
-ALLOWED = {"services/outreach.py", "api/research.py", "services/research.py"}
+ALLOWED = {"services/outreach.py", "api/research.py", "services/research.py",
+           "services/linkedin_track.py"}  # the email and LinkedIn follow-up draft steps
 CALL = re.compile(r"\b(?:research|rs|research_service)\.(?:ensure|_run)\(|"
                   r"from app\.services\.research import[^\n]*\b(?:ensure|_run)\b")
 

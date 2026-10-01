@@ -9,6 +9,7 @@ export type OutreachTrack = 'no_contact' | 'verify' | 'contact' | 'drafted' | 'a
 export interface Tracks {
   application: ApplicationTrack
   outreach: OutreachTrack
+  linkedin: 'none' | LinkedInStatus
   applied_at: string | null
   web_method: ApplyMethod | null
   contact_name: string | null
@@ -37,7 +38,7 @@ export type CloseReason =
   | 'offer_accepted'
   | 'offer_declined'
   | 'offer' // legacy, shown as "Offer"
-export type ApplyMethod = 'company_site' | 'job_board' | 'email' | 'other'
+export type ApplyMethod = 'company_site' | 'job_board' | 'email' | 'linkedin' | 'other'
 export type ResponseKind = 'positive' | 'rejection' | 'other'
 export type InterviewType = 'hr' | 'technical' | 'take_home' | 'final' | 'other'
 export type InterviewOutcome = 'pending' | 'passed' | 'failed' | 'cancelled'
@@ -819,6 +820,7 @@ export interface Today {
   ready_to_apply: PipelineCard[]
   also_email: PipelineCard[] // applied on the website, nobody emailed yet
   contacts_to_get: ToGetQueue | null // the Get contact step (top 5)
+  linkedin: LinkedInSummary | null
   reminders: Reminder[]
   upcoming_interviews: UpcomingInterview[] // next 14 days, pending
   stats_summary: StatsSummary
@@ -1366,4 +1368,73 @@ export interface LinkedInImport {
   matched_track: string | null
   warnings: string[]
   scoring: string
+}
+
+export type LinkedInGroup = 'hiring_team' | 'alumni' | 'lead' | 'recruiter' | 'other'
+export type LinkedInStatus = 'to_contact' | 'sent' | 'accepted' | 'messaged' | 'replied'
+
+/** A drafted LinkedIn message (note or follow-up) with its checks. */
+export interface LinkedInDraft {
+  text: string
+  citations: number[]
+  violations: Violation[]
+  attempts: number
+  model: string
+  prompt_version: string
+  via: string
+  auth: string | null
+  created_at: string
+  edited: boolean
+  max_chars: number
+}
+
+export interface LinkedInPerson {
+  id: number
+  contact_id: number
+  full_name: string
+  title: string | null
+  linkedin_url: string | null
+  group: LinkedInGroup
+  alumni: boolean
+  status: LinkedInStatus
+  note: LinkedInDraft | null
+  followup: LinkedInDraft | null
+  critique: Critique | null
+  sent_at: string | null
+  accepted_at: string | null
+  messaged_at: string | null
+  replied_at: string | null
+  gap_hint: string | null
+}
+
+export interface LinkedInPanel {
+  application_id: number
+  job_id: number
+  company: string
+  school: string | null
+  max_chars: number
+  requests_today: number
+  daily_limit: number
+  groups: { group: LinkedInGroup; label: string; why: string; search: string | null; titles: string[] }[]
+  people: LinkedInPerson[]
+  order_hint: { step: string; done: boolean }[]
+}
+
+/** Critique: what's still weak from the reader's side (never a rewrite). */
+export interface Critique {
+  issues: { where: string; issue: string; why: string }[]
+  model: string
+  prompt_version: string
+  created_at: string
+}
+
+export interface LinkedInSummary {
+  links_total: number
+  links_unopened: number
+  to_decide: { job_id: number; title: string; company: string }[]
+  to_decide_total: number
+  to_send: { row_id: number; application_id: number; job_id: number; job_title: string; company: string; person: string; group: LinkedInGroup; note_ready: boolean }[]
+  followups: { row_id: number; application_id: number; job_id: number; person: string; company: string; kind: 'no_answer' | 'no_reply' | 'write_followup'; since: string }[]
+  requests_today: number
+  daily_limit: number
 }

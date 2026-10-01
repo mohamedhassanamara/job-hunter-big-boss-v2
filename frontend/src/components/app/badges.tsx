@@ -1,15 +1,4 @@
-import {
-  CircleAlert,
-  CircleDashed,
-  EyeOff,
-  Flag,
-  Globe,
-  Mail,
-  MapPin,
-  Search as SearchIcon,
-  UserRoundCheck,
-  UserRoundX,
-} from 'lucide-react'
+import { CircleAlert, CircleDashed, EyeOff, Flag, Globe, Mail, MapPin, Network, Search as SearchIcon, UserRoundCheck, UserRoundX } from 'lucide-react'
 import { Tooltip } from '@/components/ui/tooltip'
 import { REMOTE_LABELS, SOURCE_LABELS, SOURCE_SHORT, TIER_LABELS } from '@/lib/format'
 import type {
@@ -25,6 +14,7 @@ import type {
   Tracks,
   UserLabel,
 } from '@/lib/types'
+import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { cn } from '@/lib/utils'
 
 // Static class maps: Tailwind needs full class names at build time.
@@ -296,12 +286,16 @@ const OUTREACH_TRACK: Record<OutreachTrack, { label: string; tone: Tone }> = {
   sent: { label: 'Sent', tone: 'green' },
 }
 
-/** One route's status: "Apply · Ready to apply" or "Email · Draft to review". */
-export function TrackBadge({ kind, tracks, className }: { kind: 'application' | 'outreach'; tracks: Tracks; className?: string }) {
-  const item = kind === 'application' ? APPLICATION_TRACK[tracks.application] : OUTREACH_TRACK[tracks.outreach]
-  const Icon = kind === 'application' ? Globe : Mail
+
+/** One route's status: "Apply · Ready to apply", "Email · Draft to review", "LinkedIn · Sent". */
+export function TrackBadge({ kind, tracks, className }: { kind: 'application' | 'outreach' | 'linkedin'; tracks: Tracks; className?: string }) {
+  const item =
+    kind === 'application' ? APPLICATION_TRACK[tracks.application] : kind === 'outreach' ? OUTREACH_TRACK[tracks.outreach] : LINKEDIN_TRACK[tracks.linkedin ?? 'none']
+  const Icon = kind === 'application' ? Globe : kind === 'outreach' ? Mail : Network
   return (
-    <Tooltip content={kind === 'application' ? 'Web application' : `Cold email${tracks.contact_name ? ` to ${tracks.contact_name}` : ''}`}>
+    <Tooltip
+      content={kind === 'application' ? 'Web application' : kind === 'outreach' ? `Cold email${tracks.contact_name ? ` to ${tracks.contact_name}` : ''}` : 'LinkedIn messages'}
+    >
       <span>
         <ToneBadge tone={item.tone} dot={false} className={className}>
           <Icon className="size-3.5" />
@@ -318,6 +312,7 @@ export function TrackBadges({ tracks, className }: { tracks: Tracks; className?:
     <span className={cn('inline-flex items-center gap-1', className)}>
       <TrackBadge kind="application" tracks={tracks} />
       <TrackBadge kind="outreach" tracks={tracks} />
+      {tracks.linkedin && tracks.linkedin !== 'none' && <TrackBadge kind="linkedin" tracks={tracks} />}
     </span>
   )
 }

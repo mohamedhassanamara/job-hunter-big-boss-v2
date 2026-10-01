@@ -28,6 +28,7 @@ export type TourId =
   | 'contact-check'
   | 'get-contact'
   | 'linkedin'
+  | 'linkedin-messages'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -223,6 +224,21 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'linkedin-searches', title: "Today's searches", body: 'One LinkedIn job search per role and target country, posted in the past 24 hours, newest first. Click one: it opens in a new tab and is marked opened today. You browse; the app never visits LinkedIn.', placement: 'bottom' },
       { target: 'linkedin-bookmark', title: 'One-click import', body: 'Drag “Save to Job Hunter” to your bookmarks bar. On a LinkedIn job page, click it: a small window shows what it read (and how), you check it, save, and the job is scored right away.', placement: 'top' },
+    ],
+  },
+  'linkedin-messages': {
+    id: 'linkedin-messages',
+    title: 'LinkedIn messages',
+    description: 'Who to message about a job, notes and follow-ups',
+    resolveRoute: async () => {
+      const cards = await api.get<PipelineCard[]>('/applications')
+      const card = cards.find((c) => c.stage !== 'new' && c.stage !== 'closed')
+      return card ? `/jobs/${card.job_id}#linkedin` : '/pipeline'
+    },
+    steps: [
+      { target: 'linkedin-groups', title: 'Who to message', body: 'In this order: the hiring team (captured with the bookmark), alumni of your school, team leads in your field, then recruiters. Each group has a LinkedIn search link built for this company; you pick people and add them (paste their profile header).', placement: 'bottom' },
+      { target: 'linkedin-person', title: 'A note per person', body: 'Claude drafts a connection note within your limit (200 characters on a free account), different for the hiring team, alumni and others. The school angle is for alumni only. You copy it, send it yourself, and mark it sent; the counter tracks your daily requests.', placement: 'top' },
+      { target: 'linkedin-person', title: 'After they accept', body: 'Draft the follow-up: one proof from your experience and one direct ask (a referral, or who to talk to). Reminders come up when nobody answers. An email and a LinkedIn request never go to the same person within 3 days.', placement: 'top' },
     ],
   },
   'get-contact': {
