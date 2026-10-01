@@ -18,6 +18,7 @@ from app.models.company import (
 from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceItem
 from app.models.job import FitScore, Job
+from app.models.linkedin import CVFit, LinkedInLinkOpen, LinkedInOutreach
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
 from app.models.queue import SendLog, SendQueue, SendQueueItem
 from app.models.research import (
@@ -32,6 +33,9 @@ from app.models.settings import AppSetting
 from app.models.tracking import ApplicationResponse, Interview, ReminderAction
 
 __all__ = [
+    "CVFit",
+    "LinkedInLinkOpen",
+    "LinkedInOutreach",
     "AppSetting",
     "Application",
     "ApplicationAnswer",

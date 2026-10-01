@@ -36,6 +36,7 @@ from app.models import (
 )
 from app.models.base import utcnow
 from app.models.enums import (
+    DISCOVERY_SOURCES,
     ApplyMethod,
     CVStatus,
     DraftStatus,
@@ -114,7 +115,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         # Discovery runs: today (07:00-ish) and yesterday for every source.
         runs: dict[str, SourceRun] = {}
         for day_offset in (1, 0):
-            for i, src in enumerate(Source):
+            for i, src in enumerate(DISCOVERY_SOURCES):
                 started = (now - timedelta(days=day_offset)).replace(hour=5, minute=i * 2)
                 failed = day_offset == 0 and src == Source.wttj
                 run = SourceRun(

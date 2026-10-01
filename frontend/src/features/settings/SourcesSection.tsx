@@ -21,6 +21,7 @@ const NOTES: Record<Source, string> = {
   arbeitnow: 'Public API · mostly German/DACH listings, so expect few matches',
   wttj: "Unofficial · uses the public search key from the Welcome to the Jungle website · summary + key missions only",
   boards: 'Official public job-board APIs (Greenhouse, Lever, Ashby, Workable, SmartRecruiters) of the companies below · full descriptions · at most every 6h',
+  linkedin: 'Never fetched: LinkedIn jobs arrive only through your one-click import (LinkedIn section)',
   bayt: 'Public search pages of Bayt (Gulf/MENA), allowed by its robots.txt · one request per role × country, 3s apart, at most every 6h · short summaries (fetch the full listing per job)',
 }
 

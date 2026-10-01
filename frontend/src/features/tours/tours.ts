@@ -27,6 +27,7 @@ export type TourId =
   | 'signals'
   | 'contact-check'
   | 'get-contact'
+  | 'linkedin'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -212,6 +213,16 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'signals-panel', title: 'Researched only when you draft', body: "When you click Draft email with AI (or Research now), the app reads the company's own site and recent news, and a model extracts facts. Each keeps its exact quote, checked in code against the page; a fact without a verified quote is dropped. Fresh signals (30 days) are reused with no new fetch.", placement: 'top' },
       { target: 'signals-panel', title: 'Pick what the email uses', body: 'Ticked signals feed the email hook; the email cites them. Add a fact you know yourself. With no signal, a draft is marked Needs a signal and cannot be approved.', placement: 'top' },
+    ],
+  },
+  linkedin: {
+    id: 'linkedin',
+    title: 'LinkedIn',
+    description: 'Daily searches and one-click import',
+    resolveRoute: async () => '/linkedin',
+    steps: [
+      { target: 'linkedin-searches', title: "Today's searches", body: 'One LinkedIn job search per role and target country, posted in the past 24 hours, newest first. Click one: it opens in a new tab and is marked opened today. You browse; the app never visits LinkedIn.', placement: 'bottom' },
+      { target: 'linkedin-bookmark', title: 'One-click import', body: 'Drag “Save to Job Hunter” to your bookmarks bar. On a LinkedIn job page, click it: a small window shows what it read (and how), you check it, save, and the job is scored right away.', placement: 'top' },
     ],
   },
   'get-contact': {

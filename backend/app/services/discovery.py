@@ -17,7 +17,7 @@ from sqlmodel import Session, col, select
 from app.config import get_settings
 from app.models import AppSetting, DiscoveryRun, SearchProfile, SourceRun
 from app.models.base import utcnow
-from app.models.enums import RunStatus, RunTrigger, Source
+from app.models.enums import DISCOVERY_SOURCES, RunStatus, RunTrigger, Source
 from app.providers.base import JobSource, ProfileSpec
 from app.services.ingest import ingest
 from app.services.prefilter import prefilter
@@ -45,7 +45,7 @@ def _logger() -> logging.Logger:
 def enabled_sources(session: Session) -> list[Source]:
     setting = session.exec(select(AppSetting).where(AppSetting.key == "sources")).first()
     flags = setting.value if setting else {}
-    return [s for s in Source if flags.get(s.value, True)]
+    return [s for s in DISCOVERY_SOURCES if flags.get(s.value, True)]
 
 
 def prepare_source(session: Session, source: JobSource) -> JobSource:

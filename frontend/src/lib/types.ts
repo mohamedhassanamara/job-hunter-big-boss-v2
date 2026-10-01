@@ -20,7 +20,7 @@ export type ContactTier = 'imported' | 'found' | 'to_get' | 'none'
 export type ContactSearch = 'none' | 'not_found' | 'never'
 /** This job's Get contact state (services/get_contact.py). */
 export type ContactState = 'get' | 'verify' | 'ready' | 'never'
-export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt'
+export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt' | 'linkedin'
 
 export interface CompanyBoard {
   ats: 'greenhouse' | 'lever' | 'ashby' | 'workable' | 'smartrecruiters'
@@ -1319,4 +1319,48 @@ export interface CompanyResearch {
   last_run: ResearchRun | null
   reused_at: string | null
   progress: { status: string; phase: string; done: number; total: number; error: string | null } | null
+}
+
+// ---- LinkedIn (Phase 10) -------------------------------------------------------------------
+
+export interface LinkedInLink {
+  key: string
+  role: string
+  country: string
+  country_name: string
+  url: string
+  opened_today: boolean
+}
+
+export interface LinkedInLinks {
+  groups: { track: string; role: string; links: LinkedInLink[] }[]
+  total: number
+  opened: number
+}
+
+/** A job captured on LinkedIn: `sources` says how each field was found. */
+export interface LinkedInCapture {
+  url: string
+  job_id: string | null
+  title: string
+  company: string
+  company_url: string | null
+  location: string
+  workplace: string
+  description: string
+  poster: { name: string; title: string; url: string } | null
+  sources: Record<string, string> // json-ld | page | meta | url | you | missing
+  missing: string[]
+  warnings: string[]
+  existing: { id: number; title: string; source: Source; how: string } | null
+}
+
+export interface LinkedInImport {
+  job_id: number
+  application_id: number
+  created: boolean
+  duplicate_of: { id: number; title: string; source: Source } | null
+  matched_track: string | null
+  warnings: string[]
+  scoring: string
 }

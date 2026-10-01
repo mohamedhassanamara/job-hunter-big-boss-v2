@@ -10,6 +10,11 @@ class Source(StrEnum):
     wttj = "wttj"
     boards = "boards"  # company job boards (Greenhouse, Lever, Ashby, Workable, SmartRecruiters)
     bayt = "bayt"
+    linkedin = "linkedin"  # imported by you with the LinkedIn bookmark (never discovered/scraped)
+
+
+# The sources discovery runs: LinkedIn jobs only arrive through your one-click import.
+DISCOVERY_SOURCES = [s for s in Source if s != Source.linkedin]
 
 
 class ScoringTaskStatus(StrEnum):
@@ -61,6 +66,7 @@ class ContactSource(StrEnum):
     found = "found"  # you found them (Apollo extension) in the Get contact step
     manual = "manual"  # added by hand from Change contact
     hunter = "hunter"  # Try Hunter found the email (you confirmed it)
+    linkedin = "linkedin"  # someone to message on LinkedIn (hiring team, alumni…): no email needed
 
 
 class ExperienceKind(StrEnum):
@@ -124,7 +130,34 @@ class ApplyMethod(StrEnum):
     company_site = "company_site"
     job_board = "job_board"
     email = "email"
+    linkedin = "linkedin"  # Easy Apply, or the company site reached from LinkedIn
     other = "other"
+
+
+class ResponseChannel(StrEnum):
+    """Which track a reply came through (stats per track)."""
+
+    application = "application"
+    email = "email"
+    linkedin = "linkedin"
+
+
+class LinkedInGroup(StrEnum):
+    """Who to message on LinkedIn, in the order they're suggested."""
+
+    hiring_team = "hiring_team"
+    alumni = "alumni"
+    lead = "lead"
+    recruiter = "recruiter"
+    other = "other"
+
+
+class LinkedInStatus(StrEnum):
+    to_contact = "to_contact"
+    sent = "sent"  # you sent the connection request yourself
+    accepted = "accepted"
+    messaged = "messaged"  # you sent the follow-up
+    replied = "replied"
 
 
 class ResponseKind(StrEnum):
