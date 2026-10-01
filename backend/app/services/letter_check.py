@@ -93,6 +93,7 @@ class Context:
     facts_text: str = ""  # Settings → Candidate: where you're based, authorization, languages
     mention_authorization: bool = False  # Settings → Letters and emails (and the listing)
     company_reason: str = ""  # your one-line reason for this company (the job's field)
+    honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
 
     def email_context(self) -> oc.Context:
         return oc.Context(pool=self.pool, allowed_years=self.allowed_years,
@@ -483,6 +484,9 @@ def check_letter(salutation: str, paragraphs: list[dict[str, Any]], ask: str | N
         out += [violation("grounding", f"The ask: {p}", "ask", "error")
                 for p in oc._source_problems(ask, email)]
     out += writing_rules(paragraphs, ctx)
+    from app.services import honesty
+
+    out += honesty.violations(" ".join([*texts, ask or ""]), ctx.honesty)
     return out + lint(salutation, texts, ask, ctx)
 
 
@@ -510,7 +514,9 @@ def check_answer(sentences: list[EmailSentence] | None, text: str, char_limit: i
     out += _banned(text, ctx)
     out += [violation("years", _years_message(c, ctx), "answer", "error")
             for c in years_problems(text, ctx)]
-    return out
+    from app.services import honesty
+
+    return out + honesty.violations(text, ctx.honesty, "answer")
 
 
 def feedback(violations: list[dict[str, str]]) -> str:

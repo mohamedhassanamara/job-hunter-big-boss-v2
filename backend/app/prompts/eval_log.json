@@ -20,6 +20,13 @@
       "cases": 3,
       "errors": 3,
       "note": "Adopted. Value paragraphs now say what you like working on (never a general truth); every hook keeps the two signals as separate facts (the gemma4:31b-cloud hook check ran on each case and flagged case 3 for turning 'mutuelle' into 'insurer'). The greeting is built by code (v7/v8 opened English emails with 'Bonjour Stéphane'). The other errors are first-attempt length checks (36-word proof, 153 words); the draft step retries once. v7 (20260930-155313) and v8 (20260930-155539) were not adopted."
+    },
+    "10": {
+      "report": "data/eval/emails/20261001-152220_outreach_v10.md",
+      "date": "2026-10-01",
+      "cases": 4,
+      "errors": 3,
+      "note": "Adopted: honesty about years. All 4 intro lines keep the 3 years with backend and mobile only (v9 attached them to generative AI and data). Snapshots get today's honesty facts; the LinkedIn reference note is excluded. The 3 errors are first-attempt checks (a 40-word proof, 151 words, one vague proof); the draft step retries once with the problems."
     }
   }
 }

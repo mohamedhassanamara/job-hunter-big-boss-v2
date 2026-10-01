@@ -499,12 +499,19 @@ def _places(pool: Pool) -> list[str]:
     return sorted({x for x in out if len(x) >= 3})
 
 
+def honesty_rules(s: Session) -> Any:
+    from app.services import honesty
+
+    return honesty.rules(s)
+
+
 def reference_examples(s: Session) -> list[tuple[str, str]]:
     from app.models import EmailExample
 
     return [(f"{e.kind} #{e.id}", f"{e.subject}\n{e.body}") for e in s.exec(
         select(EmailExample).where(col(EmailExample.kind).in_(
-            ["reference_good", "reference_bad"]))).all()]
+            ["reference_good", "reference_bad"]))).all()
+        if (e.inputs or {}).get("channel") != "linkedin"]  # LinkedIn notes: their own set
 
 
 def email_first_name(s: Session, company_id: int, contact: Contact) -> tuple[str,
@@ -571,7 +578,7 @@ def intro_context(s: Session, app: Application, job: Job, company: Company, cont
         years_statement_fr=french, banned=base.banned + list(
             letter_settings(s)["banned_phrases"].get(language) or []),
         jargon=list(letter_settings(s).get("jargon") or []), places=_places(pool),
-        examples=reference_examples(s), others=base.others)
+        examples=reference_examples(s), others=base.others, honesty=honesty_rules(s))
 
 
 def intro_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
@@ -586,11 +593,18 @@ def intro_request(s: Session, app: Application, job: Job, company: Company, cont
     if source:
         request.contact["name_source"] = source
     _facts, english, french = _statements(s, pool)
-    tracks = [t.get("name") for t in _tracks(s) if t.get("name")]
-    skill_groups = [i.title for i in pool.of("skill")]
+    from app.services import honesty
+
+    hr = honesty.rules(s)
+    projects = {t.name for t in hr.projects}
+    # The intro's areas carry the years: only the professional tracks and skill groups outside
+    # a projects track's domain (services/honesty.py).
+    tracks = [t.get("name") for t in _tracks(s) if t.get("name") and t.get("name") not in projects]
+    skill_groups = honesty.professional_areas([i.title for i in pool.of("skill")], hr)
     candidate = {"first_name": (pool.profile.get("full_name") or "").split(" ")[0],
                  "years_statement": english, "years_statement_fr": french,
                  "areas_you_can_use": tracks + skill_groups,
+                 **honesty.prompt_facts(hr),
                  "current_role": request.candidate.get("current_role")}
     signals = [{"id": x.id, "kind": x.kind, "fact": x.fact, "quote": x.quote,
                 "connects_to": research.connection(x.fact, pool)}

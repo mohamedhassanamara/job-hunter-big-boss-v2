@@ -72,7 +72,7 @@ def test_letter_drafter_uses_the_isolated_subscription_call() -> None:
     d = ClaudeLetterDrafter(runner=fake_run({"is_error": False, "structured_output": LETTER},
                                             calls=calls))
     out = d.draft_letter(LetterRequest(job={}, candidate={}, pool={}), feedback="- too short")
-    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v5"
+    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v6"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     system = cmd[cmd.index("--system-prompt") + 1]

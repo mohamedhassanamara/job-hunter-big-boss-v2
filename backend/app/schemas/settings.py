@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -30,6 +30,10 @@ class RoleIO(BaseModel):
 class TrackIO(BaseModel):
     name: str
     years_experience: float | None = None
+    # Honesty (services/honesty.py): professional experience, or projects only (then the years
+    # wording is never attached to this track) and how it was gained.
+    experience: Literal["professional", "projects"] = "professional"
+    experience_note: str = ""
     roles: list[RoleIO] = []
 
 
