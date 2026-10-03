@@ -9,6 +9,7 @@ import ExperiencePage from '@/features/experience/ExperiencePage'
 import ImportPage from '@/features/import/ImportPage'
 import JobPage from '@/features/job/JobPage'
 import LinkedInPage from '@/features/linkedin/LinkedInPage'
+import MotivCenterPage from '@/features/motivation/MotivCenterPage'
 import LetterStudioPage from '@/features/letter-studio/LetterStudioPage'
 import NotFoundPage from '@/features/NotFoundPage'
 import OutreachPage from '@/features/outreach/OutreachPage'
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'outreach', element: <OutreachPage /> },
       { path: 'linkedin', element: <LinkedInPage /> },
       { path: 'copilot', element: <CopilotPage /> },
+      { path: 'motivation', element: <MotivCenterPage /> },
       { path: 'studio', element: <StudioPage /> },
       { path: 'contacts', element: <ContactsPage /> },
       { path: 'experience', element: <ExperiencePage /> },

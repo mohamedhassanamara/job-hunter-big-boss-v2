@@ -1474,3 +1474,135 @@ export interface CVFit {
   }
   scored_at: string | null
 }
+
+// ------------------------------------------------------------------- motivation (Phase 11)
+
+export type StreakDayState = 'met' | 'missed' | 'in_progress' | 'weekend' | 'weekend_idle' | 'idle' | 'future'
+
+export interface StreakDay {
+  day: string
+  count: number
+  state: StreakDayState
+  streak: number
+}
+
+export interface Streak {
+  current: number
+  longest: number
+  today_count: number
+  goal: number
+  today_state: 'met' | 'in_progress' | 'weekend' | 'weekend_idle'
+  calendar: StreakDay[]
+}
+
+export interface Chests {
+  goal: number
+  progress: number
+  available: number
+  counted: number
+  opened: number
+  since: string
+}
+
+export interface MotivationSummary {
+  enabled: boolean
+  streak: Streak
+  tokens: number
+  chests: Chests
+}
+
+export interface ChestOpen {
+  id: number
+  opened_at: string
+  tokens: number
+  cost: number
+  ordinal: number
+}
+
+export interface TokenEntry {
+  id: number
+  at: string
+  amount: number
+  kind: string
+  note: string
+}
+
+export interface ShopItem {
+  id: number
+  name: string
+  price: number
+  emoji: string | null
+  image_name: string | null
+  archived: boolean
+}
+
+export interface Purchase {
+  id: number
+  item_id: number | null
+  name: string
+  price: number
+  emoji: string | null
+  bought_at: string
+  redeemed_at: string | null
+}
+
+export interface Shop {
+  balance: number
+  items: ShopItem[]
+  purchases: Purchase[]
+}
+
+export interface Woop {
+  id: number
+  wish: string
+  outcome: string
+  obstacle: string
+  plan: string
+  created_at: string
+}
+
+export interface WinEntry {
+  id: number
+  text: string
+  created_at: string
+}
+
+export interface Wins {
+  applications_week: number
+  applications_total: number
+  replies: number
+  positive_replies: number
+  interviews: number
+  longest_streak: number
+  chests_opened: number
+  recent_rejection: boolean
+  journal: WinEntry[]
+}
+
+export interface Suggestion {
+  label: string
+  detail: string
+  href: string
+}
+
+export interface GoalTile {
+  id: number
+  kind: 'image' | 'video'
+  file_name: string
+  original_name: string
+  mime: string
+  size: number
+  caption: string
+  position: number
+}
+
+export interface MotivationSettings {
+  enabled: boolean
+  daily_goal: number
+  count_emails: boolean
+  count_linkedin: boolean
+  chest_goal: number
+  timezone: string
+  max_upload_mb: number
+  chests_since: string | null
+}

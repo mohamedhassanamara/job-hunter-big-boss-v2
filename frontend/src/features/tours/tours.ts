@@ -35,6 +35,7 @@ export type TourId =
   | 'contacts'
   | 'experience'
   | 'settings'
+  | 'motivation'
 
 export interface Tour {
   id: TourId
@@ -335,6 +336,19 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'settings-templates', title: 'CV templates', body: 'Templates are style only. Add your own (.tex.j2 + config); it must compile to one page with sample data before you can pick it.', route: '/settings?section=templates', placement: 'left' },
       { target: 'settings-contacts-ranking', title: 'Who to write to', body: 'Order the role groups: the first group with someone at the company gets the email. Saving re-ranks every contact and re-matches open jobs.', route: '/settings?section=contacts', placement: 'left' },
       { target: 'settings-card', title: 'Daily schedule', body: 'Discovery runs automatically at this time every day. The Run discovery button works anytime.', route: '/settings?section=schedule', placement: 'left' },
+    ],
+  },
+  motivation: {
+    id: 'motivation',
+    title: 'Motivation',
+    description: 'Streak, chests, your shop and the Motiv Center',
+    resolveRoute: async () => '/',
+    steps: [
+      { target: 'motivation-badges', title: 'Your streak, always in view', body: 'The flame is your streak of workdays where you reached your daily goal (5 applications by default), with today\'s progress next to it. Weekends carry a running streak by themselves. Today never shows as broken before midnight.', placement: 'bottom' },
+      { target: 'today-streak', title: 'The last weeks', body: 'Each square is a day: filled when you reached the goal, outlined on counted weekends. It is computed from your history every time, so undoing an application corrects it.', placement: 'left' },
+      { target: 'today-chest', title: 'Chests', body: 'Every 30 applications (Settings → Motivation) unlock a chest with 1 to 10 tokens. Extra applications carry over; tokens are never taken back.', placement: 'left' },
+      { target: 'motiv-tabs', route: '/motivation', title: 'Motiv Center', body: 'Small tools for the hard days: a breathing exercise, the 5-minute rule to get started, WOOP planning, your wins from real data, and your own goal images and videos.', placement: 'bottom' },
+      { target: 'motiv-shop', route: '/motivation?tab=shop', title: 'Spend your tokens', body: 'Set your own rewards with a token price. Buying asks first and never takes you below zero; tick a purchase once you have taken the treat.', placement: 'top' },
     ],
   },
 }

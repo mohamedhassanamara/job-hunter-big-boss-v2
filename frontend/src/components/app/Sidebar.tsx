@@ -3,6 +3,7 @@ import { NavLink } from 'react-router'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useNavCounts } from '@/lib/queries/workflow'
+import { useMotivationEnabled } from '@/lib/queries/motivation'
 import { cn } from '@/lib/utils'
 import { NAV_LIBRARY, NAV_MAIN, NAV_SETTINGS, type NavItem } from './nav'
 
@@ -88,6 +89,7 @@ export function Sidebar({
   onToggle: () => void
 }) {
   const { data: counts } = useNavCounts()
+  const motivation = useMotivationEnabled()
   return (
     <aside
       className={cn(
@@ -98,7 +100,7 @@ export function Sidebar({
       <Logo collapsed={collapsed} />
       <nav className={cn('flex flex-1 flex-col gap-4 py-2', collapsed ? 'px-2' : 'px-2.5')}>
         <div className="flex flex-col gap-0.5">
-          {NAV_MAIN.map((item) => (
+          {NAV_MAIN.filter((item) => !item.feature || motivation).map((item) => (
             <NavEntry
               key={item.to}
               item={item}
