@@ -7,7 +7,7 @@ import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { useLetterStudio } from '@/lib/queries/letters'
-import { useLogInterview, useLogResponse, useMarkApplied } from '@/lib/queries/tracking'
+import { useLogInterview, useLogResponse, useMarkApplied, useUndoApplied } from '@/lib/queries/tracking'
 import { INTERVIEW_TYPE_LABELS, localIso, METHOD_LABELS, RESPONSE_LABELS, todayIso } from '@/lib/tracking'
 import type { ApplyMethod, InterviewType, ResponseKind } from '@/lib/types'
 
@@ -82,6 +82,7 @@ export function MarkAppliedDialog({
   const [withLetter, setWithLetter] = useState(true)
   const [withForm, setWithForm] = useState(true)
   const mark = useMarkApplied()
+  const undo = useUndoApplied()
   const letters = useLetterStudio(target?.appId ?? NaN)
   const letter = letters.data?.letters.find((l) => l.status === 'approved' && l.format !== 'form')
   const formText = letters.data?.letters.find((l) => l.status === 'approved' && l.format === 'form')
@@ -94,7 +95,15 @@ export function MarkAppliedDialog({
       {
         onSuccess: () => {
           const sent = `${cvVersion ? `CV v${cvVersion}` : 'approved CV'}${sendLetter ? ` and cover letter v${letter.version}` : ''}${sendForm ? ` and form text v${formText.version}` : ''}`
-          toast.success('Marked applied', { description: `${target.title} · ${sent} locked` })
+          const appId = target.appId
+          toast.success('Marked applied', {
+            description: `${target.title} · ${sent} locked`,
+            duration: 8000,
+            action: {
+              label: 'Undo',
+              onClick: () => undo.mutate(appId, { onSuccess: () => toast('Applied undone'), onError: (e) => toast.error(e.message) }),
+            },
+          })
           onOpenChange(false)
           onDone?.()
         },

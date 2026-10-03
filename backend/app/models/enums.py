@@ -193,6 +193,7 @@ class EventKind(StrEnum):
     letter_approved = "letter_approved"
     sent = "sent"
     applied = "applied"
+    applied_undone = "applied_undone"  # you undid "Mark applied"
     contact_resolved = "contact_resolved"
     response = "response"
     interview = "interview"

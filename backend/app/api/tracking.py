@@ -82,6 +82,14 @@ def mark_applied(app_id: int, body: AppliedIn, session: SessionDep) -> PipelineC
     return _card(session, app)
 
 
+@router.delete("/applications/{app_id}/applied", response_model=PipelineCard)
+def undo_applied(app_id: int, session: SessionDep) -> PipelineCard:
+    """Undo "Mark applied" (the Undo toast): dates, stage and the locks it made go back."""
+    app = get_or_404(session, Application, app_id, "Application")
+    _run(session, tracking.undo_applied, app)
+    return _card(session, app)
+
+
 # ------------------------------------------------------------------------------ after applying
 
 
