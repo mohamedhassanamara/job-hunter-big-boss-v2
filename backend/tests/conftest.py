@@ -11,6 +11,16 @@ os.environ["JOB_SOURCES"] = "mock"
 os.environ["SCHEDULER_ENABLED"] = "false"
 os.environ["SEND_WORKER_ENABLED"] = "false"
 os.environ["SMTP_APP_PASSWORD"] = ""
+os.environ["HUNTER_API_KEY"] = ""  # .env may hold a real key: tests never use it
+
+# Rendered CVs, letters and uploads go to the throwaway folder too, never into data/.
+from app.services import cover_letter as _cover_letter  # noqa: E402
+from app.services import cv_service as _cv_service  # noqa: E402
+from app.services.motivation import files as _motivation_files  # noqa: E402
+
+_cv_service.CV_DIR = _tmp / "cv"
+_cover_letter.LETTER_DIR = _tmp / "letters"
+_motivation_files.ROOT = _tmp / "motivation"
 
 import socket  # noqa: E402
 
