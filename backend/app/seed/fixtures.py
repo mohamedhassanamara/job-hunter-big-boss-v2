@@ -542,8 +542,7 @@ SETTINGS: dict[str, dict] = {
     "outreach": {"signature": {"name": "", "title": "", "email": "", "phone": "",
                                "photo_path": ""},
                  "sign_off": "Best regards,",
-                 "opt_out": "If this isn't relevant for you, just let me know and I won't "
-                            "follow up.",
+                 "opt_out": "",  # an optional last line after your name (none by default)
                  "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "auto"},
     # LinkedIn (Settings → LinkedIn): note length (free account: 200), daily requests, reminders,
     # and the gap between an email and a LinkedIn request to the same person.
