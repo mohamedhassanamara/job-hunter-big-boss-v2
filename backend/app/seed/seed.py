@@ -448,12 +448,97 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
         _seed_contact_alert(s, apps)
         _seed_linkedin(s, apps)
         _seed_get_contact(s, apps, jobs, now)
+        _seed_motivation(s, now)
         # The tour can start the send queue: a test send to yourself already went through.
         s.add(SendLog(kind="test", to="you@example.com", subject="[TEST] sample", status="sent",
                       at=now - timedelta(days=2)))
         s.flush()
         s.add(AppSetting(key="contacts_last_match", value=contacts_report(s)))
         s.commit()
+
+
+def _seed_motivation(s: Session, now: datetime) -> None:
+    """Sandbox only: a running streak (goal 1, emails and LinkedIn counted, the existing sample
+    actions spread over the last five workdays), a chest waiting, a small shop, a WOOP, a win
+    and one goal tile (a generated gradient)."""
+    from zoneinfo import ZoneInfo
+
+    import pymupdf
+
+    from app.models import (
+        ApplicationEvent,
+        ChestOpen,
+        GoalTile,
+        LinkedInOutreach,
+        OutreachDraft,
+        Purchase,
+        ShopItem,
+        TokenEntry,
+        WinEntry,
+        Woop,
+    )
+    from app.services.motivation import DEFAULT_MOTIVATION, files
+
+    tz = ZoneInfo("Africa/Tunis")
+    today = now.astimezone(tz).date()
+    workdays: list[date] = []
+    d = today - timedelta(days=1)
+    while len(workdays) < 5:
+        if d.weekday() < 5:
+            workdays.append(d)
+        d -= timedelta(days=1)
+    moments = iter(datetime.combine(day, datetime.min.time(), tz).replace(hour=10)
+                   for day in workdays)
+    for applied in s.exec(select(Application).where(
+            Application.web_applied_at.is_not(None))).all():
+        s.add(ApplicationEvent(application_id=applied.id, kind=EventKind.applied,
+                               message="Applied", at=next(moments, now)))
+    for draft in s.exec(select(OutreachDraft).where(OutreachDraft.status == DraftStatus.sent)):
+        draft.sent_at = draft.sent_at or next(moments, now - timedelta(days=1))
+        s.add(draft)
+    for row in s.exec(select(LinkedInOutreach).where(LinkedInOutreach.sent_at.is_not(None))):
+        row.sent_at = next(moments, row.sent_at)
+        s.add(row)
+    setting = s.exec(select(AppSetting).where(AppSetting.key == "motivation")).one()
+    setting.value = {**DEFAULT_MOTIVATION, "daily_goal": 1, "count_emails": True,
+                     "count_linkedin": True, "chest_goal": 2,
+                     "chests_since": (today - timedelta(days=30)).isoformat()}
+    s.add(setting)
+    chest = ChestOpen(tokens=6, cost=2, ordinal=1, opened_at=now - timedelta(days=3))
+    s.add(chest)
+    s.flush()
+    s.add(TokenEntry(amount=6, kind="chest", ref_id=chest.id, note="Chest #1",
+                     at=chest.opened_at))
+    coffee = ShopItem(name="Coffee at my favourite café", price=4, emoji="☕", position=1)
+    s.add_all([coffee, ShopItem(name="Movie night", price=8, emoji="🎬", position=2),
+               ShopItem(name="A day hiking", price=20, emoji="🥾", position=3)])
+    s.flush()
+    bought = Purchase(item_id=coffee.id, name=coffee.name, price=4, emoji="☕",
+                      bought_at=now - timedelta(days=2), redeemed_at=now - timedelta(days=1))
+    s.add(bought)
+    s.flush()
+    s.add(TokenEntry(amount=-4, kind="purchase", ref_id=bought.id, note=coffee.name,
+                     at=bought.bought_at))
+    s.add(Woop(wish="Land a data engineering role in Europe by spring",
+               outcome="Work on data platforms with a team I learn from, and a visa sorted",
+               obstacle="I stall after a rejection and stop sending for days",
+               plan="If a rejection comes in, then I open the Start tab and do one tiny task "
+                    "right away.", created_at=now - timedelta(days=4)))
+    s.add(WinEntry(text="Five tailored applications this week, all with a one-page CV.",
+                   created_at=now - timedelta(days=1)))
+    pix = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 640, 400), False)
+    width = pix.width
+    pix.set_rect(pix.irect, (40, 60, 120))
+    for x in range(0, width, 8):  # a soft left-to-right gradient
+        shade = (40 + x * 80 // width, 60 + x * 100 // width, 120 + x * 90 // width)
+        pix.set_rect(pymupdf.IRect(x, 0, x + 8, 400), shade)
+    data = pix.tobytes("png")
+    for old in files.folder("demo").iterdir():  # the sandbox's files only, rebuilt each reset
+        old.unlink(missing_ok=True)
+    s.add(GoalTile(kind="image", file_name=files.save("demo", "png", data),
+                   original_name="horizon.png", mime="image/png", size=len(data),
+                   caption="The team I want to join: data platforms that matter, in a city I "
+                           "love.", position=1))
 
 
 def _seed_get_contact(s: Session, apps: dict[str, Application], jobs: dict[str, Job],

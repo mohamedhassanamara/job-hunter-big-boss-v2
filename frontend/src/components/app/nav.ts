@@ -9,6 +9,7 @@ import {
   Network,
   Send,
   Settings,
+  Sparkles,
   SquareKanban,
   Users,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ export interface NavItem {
   icon: LucideIcon
   shortcut: string // second key of the "g x" sequence
   count?: keyof NavCounts
+  feature?: 'motivation' // hidden when that feature is off in Settings
 }
 
 export const NAV_MAIN: NavItem[] = [
@@ -30,6 +32,7 @@ export const NAV_MAIN: NavItem[] = [
   { to: '/outreach', label: 'Outreach', icon: Send, shortcut: 'o', count: 'outreach_review' },
   { to: '/linkedin', label: 'LinkedIn', icon: Network, shortcut: 'n' },
   { to: '/copilot', label: 'Copilot', icon: BotMessageSquare, shortcut: 'i' },
+  { to: '/motivation', label: 'Motiv Center', icon: Sparkles, shortcut: 'm', feature: 'motivation' },
 ]
 
 export const NAV_LIBRARY: NavItem[] = [

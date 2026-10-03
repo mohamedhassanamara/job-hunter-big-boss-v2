@@ -11,6 +11,7 @@ import {
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
+import { MotivationBadges } from './motivation/MotivationBadges'
 import { ThemeToggle } from './ThemeToggle'
 import { TOUR_LIST } from '@/features/tours/tours'
 import { useTour } from './tour/tour-context'
@@ -32,6 +33,7 @@ export function TopBar({ onSearch, onHelp }: { onSearch: () => void; onHelp: () 
         </span>
       </button>
       <div className="ml-auto flex items-center gap-1">
+        <MotivationBadges />
         <Tooltip content="Pull new jobs from all enabled sources (mock in phase 0)">
           <Button variant="ghost" size="sm" onClick={discovery.trigger} disabled={discovery.pending}>
             {discovery.pending ? <LoaderCircle className="animate-spin" /> : <Radar />}

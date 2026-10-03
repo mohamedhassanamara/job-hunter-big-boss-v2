@@ -5,11 +5,13 @@ import {
   CircleCheck,
   Compass,
   FileText,
+  Flame,
   Globe,
   Layers,
   type LucideIcon,
   Mail,
   Network,
+  Package,
   Pause,
   Play,
   Radar,
@@ -24,6 +26,7 @@ import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
 import { FoundCounter } from '@/components/app/contact/FoundCounter'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
+import { ChestSummary, StreakSummary } from '@/components/app/motivation/MotivationCards'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
@@ -34,6 +37,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
+import { useMotivation } from '@/lib/queries/motivation'
 import { useReminderAction } from '@/lib/queries/tracking'
 import { useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
 import { INTERVIEW_TYPE_LABELS, pct, shortDateTime } from '@/lib/tracking'
@@ -422,6 +426,22 @@ function FollowUpsCard({ reminders }: { reminders: Reminder[] }) {
   )
 }
 
+/** Streak and chest (Settings → Motivation): nothing here blocks the work above. */
+function MotivationColumn() {
+  const { data } = useMotivation()
+  if (!data?.enabled) return null
+  return (
+    <>
+      <Card icon={Flame} title="Streak" tour="today-streak" href="/motivation?tab=wins" hrefLabel="Wins">
+        <StreakSummary data={data} />
+      </Card>
+      <Card icon={Package} title="Chest" tour="today-chest" count={data.chests.available || undefined} href="/motivation?tab=shop" hrefLabel="Shop">
+        <ChestSummary data={data} />
+      </Card>
+    </>
+  )
+}
+
 export default function TodayPage() {
   const { data, isPending, error, refetch } = useToday()
   const [applying, setApplying] = useState<TrackTarget | null>(null)
@@ -607,6 +627,7 @@ export default function TodayPage() {
         </div>
 
         <div className="space-y-4">
+          <MotivationColumn />
           <QueueCard queue={data.queue} />
           <Card
             icon={CalendarClock}

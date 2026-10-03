@@ -28,6 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
+    "motivation",
 }
 
 
@@ -68,6 +69,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services.linkedin import linkedin_settings
 
     values["linkedin"] = linkedin_settings(session)
+    from app.services import motivation
+
+    values["motivation"] = motivation.settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -180,6 +184,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 gid = str((g or {}).get("id") or "").strip() if isinstance(g, dict) else None
                 if gid is None or (gid and not gid.isdigit()) or len(code) != 2:
                     raise HTTPException(422, f"{code}: a geoId is digits only (or empty)")
+    if key == "motivation":
+        _check_motivation(session, body.value)
     if key == "research":
         days = body.value.get("refresh_days", 30)
         if not isinstance(days, int) or not 1 <= days <= 365:
@@ -208,6 +214,27 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         # every stored score from its sub-scores (no LLM). Profile edits also make scores stale.
         recompute_all(session.get_bind())  # type: ignore[arg-type]
     return get_settings_view(session)
+
+
+def _check_motivation(session: Session, value: dict) -> None:
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+    from app.services import motivation
+
+    for name, lo, hi in (("daily_goal", 1, 50), ("chest_goal", 1, 1000),
+                         ("max_upload_mb", 1, 2000)):
+        v = value.get(name)
+        if not isinstance(v, int) or isinstance(v, bool) or not lo <= v <= hi:
+            raise HTTPException(422, f"{name} must be between {lo} and {hi}")
+    for name in ("enabled", "count_emails", "count_linkedin"):
+        if not isinstance(value.get(name), bool):
+            raise HTTPException(422, f"{name} must be true or false")
+    try:
+        ZoneInfo(str(value.get("timezone") or ""))
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise HTTPException(422, "Unknown timezone (e.g. Africa/Tunis)") from exc
+    # When chests started counting is set once: never moved by a settings save.
+    value["chests_since"] = motivation.settings(session)["chests_since"]
 
 
 def _check_outreach(value: dict) -> None:

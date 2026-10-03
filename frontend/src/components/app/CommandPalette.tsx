@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Kbd } from '@/components/ui/kbd'
 import { useQueueControl, useSearch, useToday } from '@/lib/queries/workflow'
+import { useMotivationEnabled } from '@/lib/queries/motivation'
 import { cn } from '@/lib/utils'
 import { ALL_NAV } from './nav'
 import { useTheme } from './theme'
@@ -54,6 +55,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
 
   const q = query.trim().toLowerCase()
   const matches = (label: string) => !q || label.toLowerCase().includes(q)
+  const motivation = useMotivationEnabled()
   const queueRunning = today.data?.queue.status === 'running'
 
   const actions = [
@@ -92,7 +94,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     })),
   ].filter((a) => matches(a.label))
 
-  const nav = ALL_NAV.filter((n) => matches(`Go to ${n.label}`))
+  const nav = ALL_NAV.filter((n) => (!n.feature || motivation) && matches(`Go to ${n.label}`))
   const hits = q.length > 1 ? (search.data?.hits ?? []) : []
 
   return (

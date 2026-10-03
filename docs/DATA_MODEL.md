@@ -340,6 +340,19 @@ years wording), `duration_ms`, `error`.
 
 `application_response.channel`: `application | email | linkedin` (replies per track in Stats).
 
+### Motivation (Phase 11, migration 0020)
+- `chest_open` (opened_at, tokens 1-10, cost = the chest goal then, ordinal), `token_entry` (the ledger: at,
+  amount ±, kind chest | purchase | refund | adjust, ref_id, note; balance = sum), `shop_item` (name, price,
+  emoji, image_name, archived, position), `purchase` (item_id, name/price/emoji as bought, bought_at,
+  redeemed_at), `woop`, `win_entry`, `goal_tile` (kind image | video, file_name under data/motivation/<ws>/,
+  mime, size, caption, position).
+- The streak is never stored: `services/motivation/streak.compute` over `activity.per_day` (applied jobs by
+  their latest `applied` event, optional sent emails and LinkedIn requests).
+- Setting `motivation`: enabled, daily_goal 5, count_emails, count_linkedin, chest_goal 30, timezone
+  Africa/Tunis, max_upload_mb 100, chests_since (stamped once on first read; never moved by a save).
+- `application_event.kind` gains `applied_undone`; the `applied` event payload records what undo restores
+  (stage_before, cv_locked_now, letters_locked_now, applied_at_before, applied_method_before).
+
 ### linkedin_outreach / linkedin_link_open / cv_fit (Phase 10, migration 0017)
 - `linkedin_outreach`: one person to message on LinkedIn about one job (unique application + contact):
   `group` (hiring_team | alumni | lead | recruiter | other), `alumni`, `status` (to_contact | sent | accepted |

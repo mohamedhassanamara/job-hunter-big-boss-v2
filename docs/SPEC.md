@@ -387,6 +387,26 @@ checker: `cv_service.summary_style`, `letter_check`, `intro_check`, `linkedin_ch
 - **Job page:** three tracks (Application / Email / LinkedIn) and the suggested order (apply → LinkedIn request
   the same day → email 1-2 days later; a hint). "Apply on LinkedIn" for imported jobs; method LinkedIn.
 
+### 3.6c Motivation and the Motiv Center (`/motivation`, Phase 11)
+*Purpose:* keep going on hard days. A separate module: it reads job data, writes only its own tables, never changes
+or blocks a step, and Settings → Motivation → "Show motivation features" hides all of it.
+- **What counts:** a job marked Applied, on the local day you clicked (Africa/Tunis by default; the applied date
+  you pick doesn't move it); optionally sent cold emails and sent LinkedIn requests. Undoing "Mark applied" (the
+  toast's Undo, `DELETE /applications/{id}/applied`) or moving a LinkedIn request back removes it.
+- **Streak:** computed from history every time (never stored). A workday counts at the daily goal (5); a missed
+  workday resets to 0 the next day; today is in progress until midnight; Saturday and Sunday add 1 only while a
+  streak is running. Top bar: flame + streak + today x/goal, and the token balance. Today: a Streak card
+  (current, longest, 8-week calendar) and a Chest card.
+- **Chests:** every `chest_goal` (30) applications since the feature started; opening draws 1-10 tokens on the
+  server, with a short skippable animation. Extras carry over, several can wait, nothing is taken back, and a
+  goal change never re-awards (each chest keeps its cost).
+- **Tokens and shop:** a ledger (chest, purchase, …); your own rewards (name, price, emoji or image), edit,
+  archive; Buy asks first and never takes the balance below 0; purchases with a "redeemed" checkbox.
+- **Motiv Center tabs:** Breathe (cyclic sighing, 1/3/5 min, optional soft tone, Space/Esc), Start (the 5-minute
+  rule with a task suggested from your queue, then Keep going 25 min or Done), Plan (WOOP, saved to reread),
+  Wins (real numbers, a journal, and a note after a recent rejection), My goals (your images and videos under
+  `data/motivation/<workspace>/`, size limit in Settings, captions, reorder, delete with Undo), Shop.
+
 ### 3.7 Contacts (`/contacts`)
 *Purpose:* who each job is written to. Tabs in the URL (`?tab=companies|import|merges|match`; the old `lookups` tab
 redirects to Outreach → Contacts to get).

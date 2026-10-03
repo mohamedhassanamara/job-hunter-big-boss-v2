@@ -247,6 +247,15 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Fit before/after (`cv_fit.py`, stored in `cv_fit`, never a `fit_score` row) and Critique (`critique.py`,
   `prompts/critique.md`, issues only). Adapted ideas are credited in `docs/CREDITS.md` (MIT).
 
+## Motivation (Phase 11: services/motivation/, api/motivation.py, features/motivation/)
+
+- A separate module: it only reads job data (`activity.py`) and only writes its own tables. Never make an existing
+  flow depend on it; `motivation.enabled` hides it everywhere (sidebar entry has `feature: 'motivation'`).
+- The streak is computed from history every request (`streak.compute`, pure, tested); never store a counter.
+  Days are local (`motivation.timezone`). Chests subtract each opened chest's own cost; tokens are a ledger.
+- Uploads: `files.check` (extension + magic bytes, size limit), stored under data/motivation/<workspace>/, served
+  by name only (uuid names). Undo for "Mark applied" is `tracking.undo_applied` (+ `pipeline.revert`).
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.

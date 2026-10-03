@@ -9,6 +9,7 @@ from app.services.contacts import (
     DEFAULT_SMALL_THRESHOLD,
 )
 from app.services.linkedin import DEFAULT_LINKEDIN
+from app.services.motivation import DEFAULT_MOTIVATION
 from app.services.outreach_check import DEFAULT_BANNED
 
 # --------------------------------------------------------------------------------------------
@@ -548,6 +549,8 @@ SETTINGS: dict[str, dict] = {
     # and the gap between an email and a LinkedIn request to the same person.
     "linkedin": {"note_max_chars": 200, "daily_requests": 10, "followup_days": 5, "gap_days": 3,
                  "geo_ids": DEFAULT_LINKEDIN["geo_ids"]},
+    # Streak, chests, shop (Settings → Motivation). chests_since is stamped on first read.
+    "motivation": {k: v for k, v in DEFAULT_MOTIVATION.items() if k != "chests_since"},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.
     "contacts": {"role_ranking": DEFAULT_ROLE_RANKING, "small_order": DEFAULT_SMALL_ORDER,
                  "large_order": DEFAULT_LARGE_ORDER,
