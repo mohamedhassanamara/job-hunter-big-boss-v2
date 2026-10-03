@@ -312,8 +312,8 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   prompt change is adopted only once its report is recorded in `app/prompts/eval_log.json` (a test checks it).
 - Older reply-style drafts (prompt ≤ v3) keep their shape and checks (`services/outreach_check.py`).
 - **Review tab:** list (To review | Approved | Rejected | All); editor with the checks panel, subject, your text,
-  "Added when sent" (signature + opt-out from Settings → Email; the phone number is off by default, toggle
-  "Phone in the signature", and the signature shows your email and LinkedIn), "Where each sentence comes from" (hover for the
+  "Added when sent" (the signature from Settings → Email: the sign-off and your name, with an optional contact
+  line (title, email, LinkedIn; phone off by default) and an optional last line, both off by default), "Where each sentence comes from" (hover for the
   cited CV items), **Approve** (primary; the job becomes Ready to send), then **Add to send queue** on approved
   drafts (a separate step), Send test to me, Regenerate, Reject. Keys: j/k, a, r. The same editor is on the Job page.
 - **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage

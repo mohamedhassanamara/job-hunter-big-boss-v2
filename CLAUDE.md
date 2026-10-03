@@ -168,7 +168,9 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Drafts: one job at a time (a lock), from the **approved** CV's items only; Claude via `providers/claude_email.py`
   (subclass of the CV generator: same isolation, `apiKeySource == "none"`). Prompt `app/prompts/outreach.md` is
   versioned like the others. Checks reuse `cv_check.sentence_problems`; one retry with feedback; errors block approval.
-- Code builds the greeting and the intro line. The hook is checked against its cited signals by gemma
+- Code builds the subject ("Software engineer interested in joining {Company}", `intro_check.subject_line`),
+  the greeting and the intro line. The signature ends with the sign-off and your name (contact line opt-in);
+  no last line by default. The hook is checked against its cited signals by gemma
   (`services/hook_check.py`, `OllamaStructured` shared with research; `MockHookChecker` in tests/sandbox), per
   attempt and again on approve if the hook was edited. Any outreach prompt edit needs `make eval-emails` recorded
   in `app/prompts/eval_log.json`.
