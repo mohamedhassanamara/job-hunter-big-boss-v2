@@ -46,14 +46,15 @@ from app.services.cv_claims import exact_statement
 from app.services.cv_pool import Pool, load_pool, prompt_pool, years_facts
 
 DEFAULT_OUTREACH: dict[str, Any] = {
+    # The signature ends with your name; the contact line (title, email, LinkedIn) is opt-in:
+    # the attached CV already carries your contacts.
     "signature": {"name": "", "title": "", "email": "", "phone": "", "photo_path": "",
-                  "linkedin": "", "show_phone": False},
+                  "linkedin": "", "show_phone": False, "show_contacts": False},
     "sign_off": "Best regards,",
-    "opt_out": "If this isn't relevant for you, just let me know and I won't follow up.",
+    "opt_out": "",  # an optional last line after the signature (empty: none)
     # French emails (the language follows the listing).
     "sign_off_fr": "Bien cordialement,",
-    "opt_out_fr": "Si ce n'est pas pertinent pour vous, dites-le-moi simplement et je ne vous "
-                  "relancerai pas.",
+    "opt_out_fr": "",
     "banned_phrases": oc.DEFAULT_BANNED,
     "max_words": oc.DEFAULT_MAX_WORDS,
     "language": "auto",  # "auto" = the listing's language (French listing → French email)
@@ -239,6 +240,8 @@ def signature_block(cfg: dict[str, Any], language: str = "en") -> str:
     sign_off = (cfg.get("sign_off_fr") if language == "fr" else None) or cfg.get("sign_off") \
         or "Best regards,"
     lines = [sign_off, sig.get("name") or ""]
+    if not sig.get("show_contacts"):
+        return "\n".join(x for x in lines if x)  # "Best regards," and your name, nothing else
     if sig.get("title"):
         lines.append(sig["title"])
     # The phone number reveals the country code: off unless you turn it on (Settings → Email).
@@ -251,7 +254,7 @@ def signature_block(cfg: dict[str, Any], language: str = "en") -> str:
 
 
 def full_body(s: Session, draft: OutreachDraft) -> str:
-    """The email as it is sent: your text, the signature and the opt-out line."""
+    """The email as it is sent: your text and the signature (plus your last line, if set)."""
     cfg = outreach_settings(s)
     language = (draft.plan or {}).get("language") or "en"
     parts = [draft.body.strip(), signature_block(cfg, language)]
@@ -395,6 +398,7 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
 
             def checked(plan: Any) -> tuple[str, list[dict[str, str]], dict[str, Any]]:
                 plan.greeting = ic.greeting_line(request.contact["first_name"], language)
+                plan.subject = ic.subject_line(company.name, language)  # code, not the model
                 intro = ic.intro_line(first, plan.intro_focus, language, english, french)
                 ctx = intro_context(s, app, job, company, contact, pool, language=language,
                                     intro=intro)

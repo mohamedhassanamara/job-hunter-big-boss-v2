@@ -402,7 +402,7 @@ a ghosting suggestion at `applied_at + ghost_after_days`. This table only record
 
 `outreach_draft` also stores `cv_version_id` (the approved CV it's written from and attaches), `plan` (the
 model's sentences with citations, attempts), `violations` (the checks), `prompt_version`, `duration_ms`, `error`,
-`test_sent_at`, `sent_at`, `message_id`. `body` is your text only; signature and opt-out are added at send time.
+`test_sent_at`, `sent_at`, `message_id`. `body` is your text only; the signature (sign-off + name; contact line opt-in) and an optional last line are added at send time.
 
 ### send_log
 Every send attempt (never deleted): `draft_id`, `kind test | real`, `to`, `subject`, `status sent | failed`,

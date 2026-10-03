@@ -132,6 +132,8 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
             app = s.get(Application, (ex.inputs or {}).get("application_id") or -1)
             plan = drafter.draft_intro(request)
             plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
+            plan.subject = ic.subject_line(str((request.job or {}).get("company") or ex.company),
+                                           language)
             first = request.candidate.get("first_name") or "I"
             intro = ic.intro_line(first, plan.intro_focus, language,
                                   request.candidate.get("years_statement"),

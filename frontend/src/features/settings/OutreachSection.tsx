@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { Card, Field, SaveBar } from './sections'
 
 interface OutreachValue {
-  signature: { name: string; title: string; email: string; phone: string; photo_path: string; linkedin?: string; show_phone?: boolean }
+  signature: { name: string; title: string; email: string; phone: string; photo_path: string; linkedin?: string; show_phone?: boolean; show_contacts?: boolean }
   sign_off: string
   opt_out: string
   sign_off_fr?: string
@@ -28,10 +28,11 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
   const dirty = JSON.stringify(value) !== JSON.stringify(initial)
   const sig = (k: keyof OutreachValue['signature'], v: string | boolean) => setValue({ ...value, signature: { ...value.signature, [k]: v } })
   const showPhone = value.signature.show_phone === true
+  const showContacts = value.signature.show_contacts === true
   return (
     <Card
       title="Cold emails"
-      description="Claude writes the hook, the value paragraph and the ask; code adds the greeting, the intro line, and the signature and opt-out line below. Drafts breaking these rules are flagged and can't be approved."
+      description="Claude writes the hook, the value paragraph and the ask; code adds the greeting, the intro line and the signature below. Drafts breaking these rules are flagged and can't be approved."
       footer={
         <SaveBar
           dirty={dirty}
@@ -68,26 +69,34 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
           />
         </div>
       </Field>
-      <Field label="Phone in the signature" hint="Off by default: the country code tells where you are. The CV keeps it either way.">
+      <Field label="Contact line" hint="Off by default: the email ends with the sign-off and your name. The attached CV carries your contacts.">
         <label className="flex items-center gap-2 text-sm">
-          <Switch checked={showPhone} onCheckedChange={(v) => sig('show_phone', v)} aria-label="Show the phone number in the email signature" />
-          {showPhone ? 'Shown under your name' : 'Hidden (email and LinkedIn only)'}
+          <Switch checked={showContacts} onCheckedChange={(v) => sig('show_contacts', v)} aria-label="Show a contact line under your name" />
+          {showContacts ? 'Title, email and LinkedIn under your name' : 'Ends with your name'}
         </label>
       </Field>
+      {showContacts && (
+        <Field label="Phone in the signature" hint="Off by default: the country code tells where you are. The CV keeps it either way.">
+          <label className="flex items-center gap-2 text-sm">
+            <Switch checked={showPhone} onCheckedChange={(v) => sig('show_phone', v)} aria-label="Show the phone number in the email signature" />
+            {showPhone ? 'Shown under your name' : 'Hidden (email and LinkedIn only)'}
+          </label>
+        </Field>
+      )}
       <Field label="Sign-off">
         <Input value={value.sign_off} onChange={(e) => setValue({ ...value, sign_off: e.target.value })} className="w-60" />
       </Field>
-      <Field label="Opt-out line" hint="One polite line at the end">
+      <Field label="Last line" hint="Optional, after your name. Empty: none">
         <Textarea value={value.opt_out} onChange={(e) => setValue({ ...value, opt_out: e.target.value })} className="min-h-14" />
       </Field>
-      <Field label="French emails" hint="Sign-off and opt-out when the email is in French">
+      <Field label="French emails" hint="Sign-off and last line when the email is in French">
         <div className="space-y-2">
           <Input value={value.sign_off_fr ?? 'Bien cordialement,'} onChange={(e) => setValue({ ...value, sign_off_fr: e.target.value })} className="w-60" aria-label="French sign-off" />
           <Textarea
-            value={value.opt_out_fr ?? "Si ce n'est pas pertinent pour vous, dites-le-moi simplement et je ne vous relancerai pas."}
+            value={value.opt_out_fr ?? ''}
             onChange={(e) => setValue({ ...value, opt_out_fr: e.target.value })}
             className="min-h-14"
-            aria-label="French opt-out line"
+            aria-label="French last line"
           />
         </div>
       </Field>

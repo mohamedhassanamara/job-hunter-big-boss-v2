@@ -391,10 +391,13 @@ def test_queue_survives_restarts_because_it_lives_in_the_db(job_ready: dict,
 
 
 
-def test_the_signature_hides_the_phone_and_shows_linkedin() -> None:
+def test_the_signature_ends_with_the_name_unless_contacts_are_on() -> None:
     cfg = {"sign_off": "Best regards,",
-           "signature": {"name": "Alex", "title": "", "email": "a@x.test", "phone": "+1 555",
-                         "linkedin": "https://www.linkedin.com/in/alex/", "show_phone": False}}
+           "signature": {"name": "Alex", "title": "Engineer", "email": "a@x.test",
+                         "phone": "+1 555", "linkedin": "https://www.linkedin.com/in/alex/",
+                         "show_phone": False}}
+    assert outreach.signature_block(cfg) == "Best regards,\nAlex"
+    cfg["signature"]["show_contacts"] = True
     block = outreach.signature_block(cfg)
     assert "+1 555" not in block and "linkedin.com/in/alex" in block and "a@x.test" in block
     cfg["signature"]["show_phone"] = True
@@ -409,3 +412,11 @@ def test_the_phone_toggle_saves_from_settings(client) -> None:  # noqa: ANN001
     assert client.put("/api/settings/outreach", json={"value": value}).status_code == 422
     value["signature"]["show_phone"] = False
     assert client.put("/api/settings/outreach", json={"value": value}).status_code == 200
+
+
+def test_the_subject_says_who_and_which_company() -> None:
+    from app.services import intro_check as ic
+
+    assert ic.subject_line("Zaion", "en") == "Software engineer interested in joining Zaion"
+    assert ic.subject_line("  Zaion  SAS ", "fr") == "Ingénieur logiciel intéressé par Zaion SAS"
+    assert ic.subject_line("", "en") == "Software engineer"

@@ -109,6 +109,15 @@ def intro_line(first_name: str, focus: str, language: str, statement: str | None
     return f"{line} in {focus}." if focus else f"{line}."
 
 
+def subject_line(company: str, language: str) -> str:
+    """The subject, built by code: who you are and why you write, plain and honest (a model's
+    "value" subject read as vague). Your professional title only: never a projects track."""
+    name = " ".join((company or "").split())
+    if language == "fr":
+        return f"Ingénieur logiciel intéressé par {name}" if name else "Ingénieur logiciel"
+    return f"Software engineer interested in joining {name}" if name else "Software engineer"
+
+
 def greeting_line(first_name: str, language: str) -> str:
     """The greeting, built by code in the email's language (a French-looking name once made
     the model open an English email with "Bonjour")."""

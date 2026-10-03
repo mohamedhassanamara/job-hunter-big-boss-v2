@@ -37,7 +37,7 @@ class DraftOut(BaseModel):
     attempts: int = 1
     prompt_version: str | None = None
     duration_ms: int | None = None
-    full_body: str = ""  # as sent: your text + signature + opt-out
+    full_body: str = ""  # as sent: your text + signature (+ an optional last line)
     test_sent_at: datetime | None = None
     sent_at: datetime | None = None
     generated_via: str = "mock"  # "claude -p" = Claude Code headless (your subscription)
