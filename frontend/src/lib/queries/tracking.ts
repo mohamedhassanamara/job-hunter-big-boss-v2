@@ -62,6 +62,15 @@ export function useMarkApplied() {
   })
 }
 
+/** Undo "Mark applied" (the toast's Undo): dates, stage and the locks it made go back. */
+export function useUndoApplied() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (appId: number) => api.del<PipelineCard>(`/applications/${appId}/applied`),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
 export function useLogResponse() {
   const qc = useQueryClient()
   return useMutation({

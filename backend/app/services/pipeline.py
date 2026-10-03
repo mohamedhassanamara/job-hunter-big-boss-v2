@@ -91,6 +91,19 @@ def transition(
     return event
 
 
+def revert(session: Session, app: Application, to: Stage, message: str) -> ApplicationEvent:
+    """Put the stage back where an action found it (only for undoing that action, e.g. "Mark
+    applied"): outside the normal moves, but still logged as a stage change."""
+    src = Stage(app.stage)
+    now = utcnow()
+    app.stage, app.stage_changed_at, app.close_reason = to, now, None
+    event = ApplicationEvent(application_id=app.id, kind=EventKind.stage_change, from_stage=src,
+                             to_stage=to, message=message, at=now)
+    session.add(app)
+    session.add(event)
+    return event
+
+
 def log_event(
     session: Session, app: Application, kind: EventKind, message: str, **payload: object
 ) -> ApplicationEvent:

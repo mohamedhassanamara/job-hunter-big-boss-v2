@@ -133,6 +133,11 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
     letter = sent_letters.get("pdf")
     form_text = sent_letters.get("form")
     first = app.applied_at  # an email may already have gone out (both routes)
+    # What undo_applied needs to put things back exactly.
+    before = {"stage_before": str(app.stage), "cv_locked_now": cv.locked_at is None,
+              "letters_locked_now": [r.id for r in sent_letters.values() if r.locked_at is None],
+              "applied_at_before": first.isoformat() if first else None,
+              "applied_method_before": app.applied_method}
     if Stage(app.stage) == Stage.cv_ready:
         pipeline.transition(s, app, Stage.ready)
     lock_cv(cv)
@@ -154,7 +159,53 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
                        method=method, cv_version_id=cv.id, cv_version=cv.version,
                        cover_letter_id=letter.id if letter else None,
                        form_letter_id=form_text.id if form_text else None,
-                       applied_on=app.applied_at.date().isoformat(), notes=notes.strip())
+                       applied_on=app.applied_at.date().isoformat(), notes=notes.strip(),
+                       **before)
+    return app
+
+
+def undo_applied(s: Session, app: Application) -> Application:
+    """Undo "Mark applied": the applied date and method go, the stage and the first-contact date
+    go back to what they were, and only the CV / letters this mark locked are unlocked. Refused
+    once a reply or an interview was recorded (they hang on the application)."""
+    from app.models import ApplicationEvent, CoverLetter
+
+    if app.web_applied_at is None:
+        raise TrackingError("This application isn't marked applied")
+    event = s.exec(select(ApplicationEvent).where(
+        ApplicationEvent.application_id == app.id, ApplicationEvent.kind == EventKind.applied)
+        .order_by(col(ApplicationEvent.at).desc(), col(ApplicationEvent.id).desc())).first()
+    since = _aware(event.at) if event else None
+    later = [r for r in s.exec(select(ApplicationResponse).where(
+        ApplicationResponse.application_id == app.id)).all()] + [
+        i for i in s.exec(select(Interview).where(Interview.application_id == app.id)).all()]
+    if any(since is None or _aware(x.created_at) >= since for x in later):
+        raise TrackingError("A reply or interview is recorded for this application: remove it "
+                            "first")
+    p = event.payload if event else {}
+    if p.get("cv_locked_now") and app.applied_cv_version_id:
+        cv = s.get(CVVersion, app.applied_cv_version_id)
+        if cv is not None:
+            cv.locked_at = None
+            s.add(cv)
+    for letter_id in p.get("letters_locked_now") or []:
+        letter = s.get(CoverLetter, letter_id)
+        if letter is not None:
+            letter.locked_at = None
+            s.add(letter)
+    before = p.get("stage_before") or (Stage.cv_ready if app.applied_cv_version_id else
+                                       Stage.shortlisted)
+    if Stage(app.stage) != Stage(before):
+        pipeline.revert(s, app, Stage(before), "Back to " + pipeline.stage_label(Stage(before))
+                        + " (applied undone)")
+    first = p.get("applied_at_before")
+    app.web_applied_at, app.web_method = None, None
+    app.applied_at = datetime.fromisoformat(first) if first else None
+    app.applied_method = p.get("applied_method_before")
+    app.applied_cv_version_id = app.applied_cover_letter_id = None
+    app.applied_notes = ""
+    s.add(app)
+    pipeline.log_event(s, app, EventKind.applied_undone, "Applied undone")
     return app
 
 
