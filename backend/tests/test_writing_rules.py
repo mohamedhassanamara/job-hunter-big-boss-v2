@@ -86,7 +86,8 @@ def test_emails_follow_the_writing_rules_and_the_listing_language(job_ready: dic
     assert draft.plan["language"] == "fr"
     body = client.get("/api/outreach/drafts?status=draft").json()
     full = next(d for d in body if d["id"] == draft.id)["full_body"]
-    assert "Bien cordialement," in full and "Si ce n'est pas pertinent" in full
+    # French sign-off, and the email ends with your name (no default last line).
+    assert "Bien cordialement," in full and full.rstrip().endswith("Alex Sample")
 
 
 def test_the_reason_is_saved_on_the_job(job_ready: dict, client) -> None:  # noqa: F811, ANN001
