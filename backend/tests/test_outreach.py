@@ -224,7 +224,7 @@ def test_generate_retries_once_with_the_problems_then_stores_the_draft(job_ready
     assert draft.cv_version_id == job_ready["cv"] and draft.body.startswith("Hi Ana,")
     with Session(engine) as s:
         body = outreach.full_body(s, s.get(OutreachDraft, draft.id))
-    assert "If this isn't relevant" in body  # opt-out added by code
+    assert body.rstrip().endswith("Alex Sample")  # signature added by code; no last line
 
 
 def test_a_still_failing_draft_is_kept_with_its_problems_and_cant_be_approved(
