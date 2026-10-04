@@ -326,6 +326,21 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   and stats (Applications).
 - *Empty review:* "No drafts waiting. Drafts appear after you approve a CV for a job with a contact." *Empty queue:* "Queue is empty. Approved drafts land here."
 
+### 3.6a Claim verifier (before anything goes out)
+Every email, LinkedIn note or follow-up, cover letter and form answer is checked twice before it can leave:
+1. **Code checks** (fast, first): grounding of numbers and tools, years and honesty, banned phrases, names, length…
+2. **Claude** (`claude -p`, Opus, your subscription): a separate call that sees only the final text (an email with its
+   subject and signature) and its sources (your experience item by item, the approved CV, your facts, the company
+   signals with their quotes, the listing for letters/answers/LinkedIn, the recipient). It splits the whole text into
+   claims; each gets a verdict (supported, not a claim, or blocking: not in your sources, exaggerated, merged facts,
+   adds a cause), the source quote and a reason, shown in the review screen ("Check claims" runs it on demand).
+- **When:** at approval (emails, letters; reused if the exact text is unchanged), on demand, and before Copy /
+  "I sent it" (LinkedIn, form answers). Any edit makes the last check stale. A verifier that can't run blocks too.
+- **Send gate:** right before a queued email goes out, its exact subject, text (with the signature) and CV file must
+  match the verified hashes; otherwise it isn't sent and goes back to review with the reason.
+- **Regression set:** `make eval-verifier` (must pass: your approved examples; must fail: "mentoring other developers",
+  "3 years of experience building data pipelines"), with the time per verification.
+
 ### 3.6b LinkedIn (`/linkedin`, Phase 10)
 *Purpose:* LinkedIn as its own channel. **The app never scrapes, crawls or automates LinkedIn**: it builds links,
 and reads only the one job page you hand it with the bookmark (a test guards against any backend request to

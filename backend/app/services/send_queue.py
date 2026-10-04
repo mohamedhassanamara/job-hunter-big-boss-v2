@@ -41,7 +41,8 @@ from app.models.enums import (
     Stage,
 )
 from app.providers.base import Mailer, SendFailed
-from app.services import outreach, pipeline, tracking
+from app.services import outreach, pipeline, tracking, verifier
+from app.services.cv_check import violation
 
 log = logging.getLogger("send_queue")
 TICK_SECONDS = 30
@@ -186,6 +187,27 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
             s.add(company)
 
 
+def _back_to_review(s: Session, item: SendQueueItem, draft: OutreachDraft, entry: SendLog,
+                    reason: str, now: datetime) -> None:
+    """Not sent: the draft goes back to review with the reason (approving it again verifies
+    the current text again); the queue moves on to the next email."""
+    message = f"Not sent: {reason}. It's back in review: approve it again to re-verify"
+    item.status, item.error = QueueItemStatus.cancelled, message
+    draft.status = DraftStatus.draft
+    draft.violations = [v for v in draft.violations or [] if v.get("type") != "send_gate"] \
+        + [violation("send_gate", message, "body")]
+    entry.error = message
+    s.add_all([item, draft, entry])
+    app = s.get(Application, draft.application_id)
+    if app is not None:
+        pipeline.log_event(s, app, EventKind.note, message)
+    q = queue(s)
+    q.next_send_at = now  # nothing went out: the next email can go on the next tick
+    s.add(q)
+    s.commit()
+    log.warning("draft %s not sent: %s", draft.id, reason)
+
+
 def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
          now: datetime | None = None) -> str:
     """Send at most one email if the queue is running and due. Returns what happened."""
@@ -223,6 +245,11 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
             email = outreach.outgoing(s, engine, draft)
             entry.to, entry.subject, entry.attachment = email.to, email.subject, \
                 email.attachment_name
+            # The final gate: exactly the text and CV that were approved and verified.
+            if reason := verifier.send_gate(draft, email.subject, email.body,
+                                            email.attachment_path):
+                _back_to_review(s, item, draft, entry, reason, now)
+                return "blocked"
             message_id = mailer_for(s).send(email)
         except (SendFailed, outreach.OutreachError) as exc:
             fatal = isinstance(exc, SendFailed) and exc.fatal

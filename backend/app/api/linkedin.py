@@ -150,6 +150,9 @@ class PersonOut(BaseModel):
     group: str  # the note's angle: recruiter | lead | alumni | other (detected, overridable)
     alumni: bool
     hiring_team: bool  # they posted this job
+    # The claim verifier on the current text: passed | failed | error | stale | none.
+    note_verification_state: str = "none"
+    followup_verification_state: str = "none"
     status: str
     note: dict[str, Any] | None
     followup: dict[str, Any] | None
@@ -215,7 +218,17 @@ def _person(s, row) -> PersonOut:  # noqa: ANN001
                      status=row.status, note=row.note, followup=row.followup,
                      critique=row.critique, sent_at=row.sent_at, accepted_at=row.accepted_at,
                      messaged_at=row.messaged_at, replied_at=row.replied_at,
-                     gap_hint=lt.gap_hint(s, c.id))
+                     gap_hint=lt.gap_hint(s, c.id),
+                     note_verification_state=_vstate(row.note),
+                     followup_verification_state=_vstate(row.followup))
+
+
+def _vstate(message: dict | None) -> str:
+    from app.services import verifier
+
+    if not message or not message.get("text"):
+        return "none"
+    return verifier.state(message.get("verification"), message["text"])
 
 
 def _panel(s, app) -> PanelOut:  # noqa: ANN001
@@ -316,7 +329,35 @@ def set_status(row_id: int, body: StatusIn, session: SessionDep) -> PersonOut:
         status = LinkedInStatus(body.status)
     except ValueError as exc:
         raise HTTPException(422, "Unknown status") from exc
+    # Sending needs the exact text verified (moving back never does).
+    gates = {(LinkedInStatus.to_contact, LinkedInStatus.sent): ("note", row.note),
+             (LinkedInStatus.accepted, LinkedInStatus.messaged): ("follow-up", row.followup)}
+    if gate := gates.get((LinkedInStatus(row.status), status)):
+        label, message = gate
+        if message and _vstate(message) != "passed":
+            raise HTTPException(409, f"Verify the {label} first: every claim must hold before "
+                                     "you send it")
     lt.set_status(session, row, status)
+    session.commit()
+    session.refresh(row)
+    return _person(session, row)
+
+
+@router.post("/linkedin/people/{row_id}/verify", response_model=PersonOut)
+def verify_message(row_id: int, session: SessionDep, workspace: WorkspaceDep,
+                   kind: str = "note") -> PersonOut:
+    """Check every claim of the note (or follow-up) with Claude: Copy unlocks when it passes."""
+    from app.services import verifier
+
+    if kind not in ("note", "followup"):
+        raise HTTPException(422, "kind is note or followup")
+    row = _row(session, row_id)
+    try:
+        verifier.code_checks_first(((row.note if kind == "note" else row.followup) or {})
+                                   .get("violations"))
+        verifier.verify_linkedin(session, row, kind, verifier.for_workspace(session, workspace))
+    except verifier.VerifyError as exc:
+        raise HTTPException(422, str(exc)) from exc
     session.commit()
     session.refresh(row)
     return _person(session, row)

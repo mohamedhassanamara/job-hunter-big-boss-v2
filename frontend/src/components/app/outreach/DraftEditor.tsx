@@ -12,7 +12,8 @@ import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useDraftAction, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
+import { useDraftAction, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend, useVerifyDraft } from '@/lib/queries/workflow'
+import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -88,9 +89,12 @@ export function DraftEditor({
   onApprove,
   onReject,
   onJobPage = false,
+  approving = false,
 }: {
   draft: Draft
   onApprove: () => void
+  /** Approval is running: Claude checks every claim first (up to a minute). */
+  approving?: boolean
   onReject: () => void
   /** On the job page the Contact card carries the full "may have left" warning. */
   onJobPage?: boolean
@@ -101,6 +105,7 @@ export function DraftEditor({
   const testSend = useTestSend()
   const queueDraft = useQueueDraft()
   const mention = useMentionApplication()
+  const verify = useVerifyDraft()
   const errors = draft.violations.filter((v) => v.severity === 'error')
   const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
@@ -195,6 +200,15 @@ export function DraftEditor({
           />
         )}
         {draft.status === 'draft' && <Checks violations={draft.violations} contactFlagged={draft.contact_alerts.length > 0} />}
+        {(draft.status === 'draft' || draft.status === 'approved' || draft.status === 'queued') && (
+          <ClaimCheck
+            verification={draft.verification}
+            state={approving ? 'none' : draft.verification_state}
+            verifying={verify.isPending || approving}
+            gate="approval"
+            onVerify={editable && errors.length === 0 ? () => verify.mutate(draft.id, { onError: (e) => toast.error(e.message) }) : undefined}
+          />
+        )}
         {draft.format === 'intro' && (
           <div className="space-y-1.5 rounded-md border border-border bg-surface px-3 py-2 text-sm" data-tour="outreach-signals">
             <p className="text-xs font-medium text-fg-subtle">
@@ -325,13 +339,15 @@ export function DraftEditor({
                     ? `${draft.contact?.full_name ?? 'The contact'} may have left: write to someone else or verify them first`
                     : errors.length
                       ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first`
-                      : null
+                      : draft.verification_state === 'failed'
+                        ? 'Claims in this exact text don’t hold: edit them, then approve (it’s checked again)'
+                        : null
                 }
               >
                 <span>
-                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0 || draft.contact_alerts.length > 0}>
+                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0 || draft.contact_alerts.length > 0 || draft.verification_state === 'failed' || approving || verify.isPending}>
                     <CircleCheck />
-                    Approve
+                    {approving ? 'Checking claims…' : 'Approve'}
                     <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
                   </Button>
                 </span>

@@ -103,6 +103,8 @@ class OutreachDraft(TableBase, table=True):
     # The model's sentences with their citations, and the automatic checks' findings.
     plan: dict[str, Any] = json_field(dict)
     violations: list[dict[str, Any]] = json_field()
+    # The claim verifier's last run on this exact text (services/verifier.py).
+    verification: dict[str, Any] = json_field(dict)
     prompt_version: str | None = None
     duration_ms: int | None = None
     error: str | None = Field(default=None, sa_type=Text)
@@ -136,6 +138,8 @@ class CoverLetter(TableBase, table=True):
     prompt_version: str | None = None
     plan: dict[str, Any] = json_field(dict)  # the model's output and attempts
     violations: list[dict[str, Any]] = json_field()
+    # The claim verifier's last run on this exact text (services/verifier.py).
+    verification: dict[str, Any] = json_field(dict)
     duration_ms: int | None = None
     error: str | None = Field(default=None, sa_type=Text)
     locked_at: datetime | None = dt_field()
@@ -156,5 +160,7 @@ class ApplicationAnswer(TableBase, table=True):
     edited: bool = False
     plan: dict[str, Any] = json_field(dict)  # the model's sentences with citations
     violations: list[dict[str, Any]] = json_field()
+    # The claim verifier's last run on this exact text (services/verifier.py).
+    verification: dict[str, Any] = json_field(dict)
     generator_model: str = "mock"
     prompt_version: str | None = None

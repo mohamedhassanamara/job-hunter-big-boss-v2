@@ -31,6 +31,7 @@ from app.schemas.letters import (
 from app.services import answers as answer_service
 from app.services import cover_letter as cl
 from app.services import outreach_check as oc
+from app.services import verifier
 from app.services.cv_pool import load_pool
 from app.services.cv_render import has_letter, load_template
 from app.services.text import detect_language
@@ -69,7 +70,8 @@ def letter_out(s: Session, letter: CoverLetter, pool=None) -> LetterOut:  # noqa
         cv_version=cv.version if cv else None, generator_model=letter.generator_model,
         duration_ms=letter.duration_ms, error=letter.error, locked_at=letter.locked_at,
         download_name=cl.download_name(s, letter), created_at=letter.created_at,
-        updated_at=letter.updated_at)
+        updated_at=letter.updated_at, verification=letter.verification or {},
+        verification_state=verifier.state(letter.verification, verifier.letter_text(s, letter)))
 
 
 @router.get("/applications/{app_id}/letter", response_model=LetterStudio)
@@ -136,14 +138,40 @@ def patch_letter(letter_id: int, body: LetterPatch, session: SessionDep,
 
 
 @router.post("/letters/{letter_id}/approve", response_model=LetterOut)
-def approve_letter(letter_id: int, session: SessionDep, engine: EngineDep) -> LetterOut:
-    get_or_404(session, CoverLetter, letter_id, "Cover letter")
+def approve_letter(letter_id: int, session: SessionDep, engine: EngineDep,
+                   workspace: WorkspaceDep) -> LetterOut:
+    letter = get_or_404(session, CoverLetter, letter_id, "Cover letter")
+    found = [v for v in letter.violations or [] if v.get("severity") == "error"]
+    if found:  # the code checks first (fast); Claude only on a letter that passes them
+        raise HTTPException(409, f"Fix {len(found)} problem{'s' if len(found) > 1 else ''} "
+                            f"first: {found[0]['message']}")
+    if letter.status == "draft":
+        try:
+            verifier.require_letter(session, letter, verifier.for_workspace(session, workspace))
+        except verifier.VerifyError as exc:
+            session.commit()  # keep the verdicts for the studio
+            raise HTTPException(409, str(exc)) from exc
+        session.commit()
     try:
         letter = cl.approve(engine, letter_id)
     except cl.LetterError as exc:
         raise HTTPException(409, str(exc)) from exc
     session.expire_all()
     return letter_out(session, session.get(CoverLetter, letter.id))
+
+
+@router.post("/letters/{letter_id}/verify", response_model=LetterOut)
+def verify_letter(letter_id: int, session: SessionDep, workspace: WorkspaceDep) -> LetterOut:
+    """Check every claim now (Claude), without approving."""
+    letter = get_or_404(session, CoverLetter, letter_id, "Cover letter")
+    try:
+        verifier.code_checks_first(letter.violations)
+    except verifier.VerifyError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    verifier.verify_letter(session, letter, verifier.for_workspace(session, workspace))
+    session.commit()
+    session.refresh(letter)
+    return letter_out(session, letter)
 
 
 @router.get("/letters/{letter_id}/pdf")
@@ -180,7 +208,8 @@ def answer_out(s: Session, a: ApplicationAnswer, pool=None) -> AnswerOut:  # noq
                      language=a.language, edited=a.edited,
                      sentences=[] if a.edited else sentences, sources=sources,
                      violations=a.violations or [], created_at=a.created_at,
-                     updated_at=a.updated_at)
+                     updated_at=a.updated_at, verification=a.verification or {},
+                     verification_state=verifier.state(a.verification, a.answer))
 
 
 @router.get("/applications/{app_id}/answers", response_model=list[AnswerOut])
@@ -214,6 +243,20 @@ def patch_answer(answer_id: int, body: AnswerPatch, session: SessionDep) -> Answ
                                             else "keep")
     return answer_out(session, answer_service.update(session, a, text=body.answer,
                                                      question=body.question, char_limit=limit))
+
+
+@router.post("/answers/{answer_id}/verify", response_model=AnswerOut)
+def verify_answer(answer_id: int, session: SessionDep, workspace: WorkspaceDep) -> AnswerOut:
+    """Check every claim of this answer (Claude): Copy unlocks when it passes."""
+    a = get_or_404(session, ApplicationAnswer, answer_id, "Answer")
+    try:
+        verifier.code_checks_first(a.violations)
+        verifier.verify_answer(session, a, verifier.for_workspace(session, workspace))
+    except verifier.VerifyError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    session.refresh(a)
+    return answer_out(session, a)
 
 
 @router.delete("/answers/{answer_id}", status_code=204)

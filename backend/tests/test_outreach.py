@@ -255,13 +255,60 @@ def test_generate_needs_an_approved_cv_and_runs_one_at_a_time(job_ready: dict) -
 # ------------------------------------------------------------------------------ sending
 
 
+def mark_verified(s: Session, d: OutreachDraft) -> None:
+    """What a passed approval leaves: a verification of this exact text and CV."""
+    from app.services import verifier
+
+    d.verification = {"status": "passed", "claims": [],
+                      "hash": verifier.text_hash(verifier.email_text(s, d)),
+                      "attachment_sha256": verifier.email_attachment(s, d)}
+    s.add(d)
+
+
 def approved(job_ready: dict) -> int:
     draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
     with Session(engine) as s:
         d = s.get(OutreachDraft, draft.id)
+        mark_verified(s, d)
         assert send_queue.enqueue(s, d)
         s.commit()
     return draft.id
+
+
+def test_the_send_gate_returns_changed_or_unverified_emails_to_review(
+        job_ready: dict, fresh_queue: None) -> None:
+    draft_id = approved(job_ready)
+    with Session(engine) as s:
+        d = s.get(OutreachDraft, draft_id)
+        d.body = d.body + " Also, I mentored ten developers."  # changed after verification
+        s.add(d)
+        send_queue.resume(s, NOW)
+        s.commit()
+    mailer = MockMailer()
+    assert send_queue.tick(engine, lambda s: mailer, NOW) == "blocked"
+    assert mailer.sent == []
+    with Session(engine) as s:
+        d = s.get(OutreachDraft, draft_id)
+        item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft_id)).one()
+        assert d.status == DraftStatus.draft and item.status == QueueItemStatus.cancelled
+        assert "text changed" in item.error and any(
+            v["type"] == "send_gate" for v in d.violations)
+        assert send_queue.queue(s).next_send_at == NOW  # the next email isn't held up
+
+
+def test_the_send_gate_checks_the_attached_cv(job_ready: dict, fresh_queue: None) -> None:
+    draft_id = approved(job_ready)
+    with Session(engine) as s:
+        d = s.get(OutreachDraft, draft_id)
+        d.verification = {**d.verification, "attachment_sha256": "0" * 64}
+        s.add(d)
+        send_queue.resume(s, NOW)
+        s.commit()
+    mailer = MockMailer()
+    assert send_queue.tick(engine, lambda s: mailer, NOW) == "blocked" and mailer.sent == []
+    with Session(engine) as s:
+        item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft_id)).one()
+        assert "attached CV changed" in item.error
 
 
 @pytest.fixture

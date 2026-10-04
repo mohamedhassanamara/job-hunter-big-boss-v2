@@ -16,7 +16,9 @@ import { relativeTime } from '@/lib/format'
 import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
-import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson } from '@/lib/queries/linkedin'
+import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
+import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
+import { verified } from '@/lib/verify'
 import type { JobDetail, LinkedInGroup, LinkedInPanel, LinkedInPerson } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -83,7 +85,10 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const draft = kind === 'note' ? person.note : person.followup
   const run = useDraftLinkedIn(appId)
   const edit = useEditLinkedIn(appId)
+  const verify = useVerifyLinkedIn(appId)
+  const vstate = kind === 'note' ? person.note_verification_state : person.followup_verification_state
   const [text, setText] = useState(draft?.text ?? '')
+  const pendingEdit = edit.isPending || (draft?.text ?? '') !== text
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const save = (value: string) => {
     if (timer.current) clearTimeout(timer.current)
@@ -140,14 +145,28 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with Claude`}
         </Button>
         {draft && (
-          <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
-            <Copy />
-            Copy
-          </Button>
+          <Tooltip content={verified(vstate) && !pendingEdit ? null : 'Copy unlocks once Claude has checked every claim of this exact text'}>
+            <span>
+              <Button size="sm" variant="ghost" disabled={!verified(vstate) || pendingEdit} onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
+                <Copy />
+                Copy
+              </Button>
+            </span>
+          </Tooltip>
         )}
         {draft && <CritiqueButton kind={kind === 'note' ? 'linkedin_note' : 'linkedin_followup'} id={person.id} />}
         {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
       </div>
+      {draft && (
+        <ClaimCheck
+          compact
+          verification={draft.verification}
+          state={pendingEdit ? 'stale' : vstate}
+          verifying={verify.isPending}
+          gate="Copy"
+          onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind }, { onError: (e) => toast.error(e.message) })}
+        />
+      )}
     </div>
   )
 }
@@ -240,7 +259,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
         {person.status === 'to_contact' && (
           <Tooltip content={atLimit ? `You've sent ${panel.requests_today} requests today (your limit: ${panel.daily_limit})` : 'After you send it on LinkedIn'}>
             <span>
-              <Button size="sm" variant="outline" disabled={!person.note} onClick={() => move('sent', `Request to ${person.full_name} marked sent`)}>
+              <Button size="sm" variant="outline" disabled={!person.note || !verified(person.note_verification_state)} onClick={() => move('sent', `Request to ${person.full_name} marked sent`)}>
                 I sent the request
               </Button>
             </span>
@@ -252,7 +271,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           </Button>
         )}
         {person.status === 'accepted' && (
-          <Button size="sm" variant="outline" disabled={!person.followup} onClick={() => move('messaged', `Follow-up to ${person.full_name} marked sent`)}>
+          <Button size="sm" variant="outline" disabled={!person.followup || !verified(person.followup_verification_state)} onClick={() => move('messaged', `Follow-up to ${person.full_name} marked sent`)}>
             I sent the follow-up
           </Button>
         )}

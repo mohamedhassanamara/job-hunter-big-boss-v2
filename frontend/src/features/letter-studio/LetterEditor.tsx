@@ -6,7 +6,8 @@ import { ToneBadge } from '@/components/app/badges'
 import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tooltip } from '@/components/ui/tooltip'
-import { usePatchLetter } from '@/lib/queries/letters'
+import { usePatchLetter, useVerifyLetter } from '@/lib/queries/letters'
+import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import type { CoverLetter, LetterPatchInput, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -71,7 +72,8 @@ function Sources({ letter }: { letter: CoverLetter }) {
 }
 
 /** Salutation, paragraphs and the closing ask, autosaved (700ms) and re-checked; the PDF re-renders. */
-export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; onNewVersion: (id: number) => void }) {
+export function LetterEditor({ letter, onNewVersion, approving = false }: { letter: CoverLetter; onNewVersion: (id: number) => void; approving?: boolean }) {
+  const verify = useVerifyLetter()
   const patch = usePatchLetter()
   const [salutation, setSalutation] = useState(letter.salutation)
   const [paragraphs, setParagraphs] = useState(letter.paragraphs.map((p) => p.text))
@@ -136,6 +138,15 @@ export function LetterEditor({ letter, onNewVersion }: { letter: CoverLetter; on
         </span>
       </div>
       <Checks violations={letter.violations} form={form} />
+      {!readOnly && (
+        <ClaimCheck
+          verification={letter.verification}
+          state={approving ? 'none' : letter.verification_state}
+          verifying={verify.isPending || approving}
+          gate="approval"
+          onVerify={letter.status === 'draft' && !letter.violations.some((v) => v.severity === 'error') ? () => verify.mutate(letter.id, { onError: (e) => toast.error(e.message) }) : undefined}
+        />
+      )}
       {!form && <div className="space-y-1.5">
         <Label htmlFor="letter-salutation">Salutation</Label>
         <Input

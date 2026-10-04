@@ -140,6 +140,15 @@ def critic(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa
     return MockCritic() if use_mock else ClaudeCritic(model)
 
 
+def verifier(*, mock: bool | None = None, model: str = "claude-opus-5-5"):  # noqa: ANN201
+    """The claim verifier (claude -p, never an API key). Tests and the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.claude_verify import ClaudeVerifier
+    from app.providers.mock import MockVerifier
+
+    return MockVerifier() if use_mock else ClaudeVerifier(model)
+
+
 _mock_hunter = None
 
 

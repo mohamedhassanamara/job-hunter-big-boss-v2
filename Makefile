@@ -3,7 +3,7 @@ BACKEND := backend
 FRONTEND := frontend
 PY := $(BACKEND)/.venv/bin/python
 
-.PHONY: setup dev seed reset migrate test lint build eval eval-emails backend frontend
+.PHONY: setup dev seed reset migrate test lint build eval eval-emails eval-verifier backend frontend
 
 setup: ## Create venv, install backend + frontend deps, migrate and seed
 	cd $(BACKEND) && uv venv --python 3.12 --allow-existing .venv && uv pip install --python .venv/bin/python -e ".[dev]"
@@ -39,6 +39,9 @@ eval: ## Score your labeled jobs and report agreement (ARGS="--fresh" to force n
 
 eval-emails: ## Write the email regression set again with the current prompt; side-by-side report in data/eval/emails/ (ARGS="--limit 2", "--import")
 	cd $(BACKEND) && .venv/bin/python -m app.eval.emails $(ARGS)
+
+eval-verifier: ## Run the claim verifier (Claude, Opus) on the must-pass and must-fail examples; report in data/eval/verifier/ (ARGS="--mock", "--case 5")
+	cd $(BACKEND) && .venv/bin/python -m app.eval.verifier $(ARGS)
 
 lint:
 	cd $(BACKEND) && .venv/bin/ruff check app tests

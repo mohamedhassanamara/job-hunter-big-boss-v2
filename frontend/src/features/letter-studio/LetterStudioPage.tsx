@@ -202,9 +202,9 @@ export default function LetterStudioPage() {
               ) : (
                 <Tooltip content={errors.length ? `Fix first: ${errors[0].message}` : null}>
                   <span>
-                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || letter.status !== 'draft' || errors.length > 0 || (!form && !letter.has_pdf)}>
+                    <Button variant="default" onClick={onApprove} disabled={approve.isPending || letter.status !== 'draft' || errors.length > 0 || letter.verification_state === 'failed' || (!form && !letter.has_pdf)}>
                       <CircleCheck />
-                      Approve
+                      {approve.isPending ? 'Checking claims…' : 'Approve'}
                     </Button>
                   </span>
                 </Tooltip>
@@ -272,7 +272,7 @@ export default function LetterStudioPage() {
                 <p className="mt-2 text-xs text-fg-subtle">Changed the question or the limit? Regenerate to answer it again.</p>
               </div>
             )}
-            <LetterEditor key={letter.id} letter={letter} onNewVersion={setSelected} />
+            <LetterEditor key={letter.id} letter={letter} onNewVersion={setSelected} approving={approve.isPending} />
           </div>
           <div data-tour="letter-preview" className="relative min-h-0 bg-bg-subtle">
             {form ? (

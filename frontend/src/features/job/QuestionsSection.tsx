@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
-import { useAnswerQuestions, useAnswers, useDeleteAnswer, usePatchAnswer } from '@/lib/queries/letters'
+import { useAnswerQuestions, useAnswers, useDeleteAnswer, usePatchAnswer, useVerifyAnswer } from '@/lib/queries/letters'
+import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
+import { verified } from '@/lib/verify'
 import type { ApplicationAnswer, JobDetail } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -21,7 +23,11 @@ const empty = (): NewQuestion => ({ question: '', limit: '' })
 
 function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete: () => void }) {
   const patch = usePatchAnswer()
+  const verify = useVerifyAnswer()
   const [text, setText] = useState(answer.answer)
+  const pendingEdit = patch.isPending || text !== answer.answer
+  const codeErrors = answer.violations.some((v) => v.severity === 'error')
+  const canCopy = verified(answer.verification_state) && !pendingEdit
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -42,15 +48,18 @@ function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete:
     <li className="space-y-2 border-b border-border px-4 py-3 last:border-b-0">
       <div className="flex items-start gap-2">
         <p className="flex-1 text-sm font-medium">{answer.question}</p>
-        <Tooltip content="Copy the answer">
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            aria-label="Copy the answer"
-            onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Answer copied'), () => toast.error("Couldn't copy"))}
-          >
-            <Copy />
-          </Button>
+        <Tooltip content={canCopy ? 'Copy the answer' : 'Copy unlocks once Claude has checked every claim of this exact answer'}>
+          <span>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Copy the answer"
+              disabled={!canCopy}
+              onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Answer copied'), () => toast.error("Couldn't copy"))}
+            >
+              <Copy />
+            </Button>
+          </span>
         </Tooltip>
         <Tooltip content="Delete">
           <Button size="icon-sm" variant="ghost" aria-label="Delete the answer" onClick={onDelete}>
@@ -86,6 +95,14 @@ function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete:
           ))}
         </ul>
       )}
+      <ClaimCheck
+        compact
+        verification={answer.verification}
+        state={pendingEdit ? 'stale' : answer.verification_state}
+        verifying={verify.isPending}
+        gate="Copy"
+        onVerify={pendingEdit || codeErrors ? undefined : () => verify.mutate(answer.id, { onError: (e) => toast.error(e.message) })}
+      />
     </li>
   )
 }

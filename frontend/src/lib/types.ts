@@ -450,6 +450,8 @@ export interface Draft {
   name_source: { first_name: string; url: string; title: string; excerpt: string } | null
   contact_alerts: ContactAlert[]
   next_contact: Contact | null
+  verification: Verification // the claim verifier's last run (Claude)
+  verification_state: VerificationState
 }
 
 export interface DraftReviewItem {
@@ -1183,6 +1185,8 @@ export interface CoverLetter {
   download_name: string
   created_at: string
   updated_at: string
+  verification: Verification // the claim verifier's last run (Claude)
+  verification_state: VerificationState
 }
 
 export interface LetterStudio {
@@ -1221,6 +1225,8 @@ export interface ApplicationAnswer {
   violations: Violation[]
   created_at: string
   updated_at: string
+  verification: Verification // the claim verifier's last run (Claude)
+  verification_state: VerificationState
 }
 
 // ---- Copilot (mirror app/schemas/copilot.py) ----------------------------------------------
@@ -1395,6 +1401,7 @@ export interface LinkedInDraft {
   created_at: string
   edited: boolean
   max_chars: number
+  verification?: Verification
 }
 
 export interface LinkedInPerson {
@@ -1415,6 +1422,8 @@ export interface LinkedInPerson {
   messaged_at: string | null
   replied_at: string | null
   gap_hint: string | null
+  note_verification_state: VerificationState
+  followup_verification_state: VerificationState
 }
 
 export interface LinkedInPanel {
@@ -1606,3 +1615,33 @@ export interface MotivationSettings {
   max_upload_mb: number
   chests_since: string | null
 }
+
+// ------------------------------------------------------------------ claim verifier (Claude)
+
+export type ClaimVerdict = 'supported' | 'unsupported' | 'exaggerated' | 'merged' | 'causal' | 'not_a_claim'
+
+export interface VerifiedClaim {
+  sentence: string
+  claim: string
+  about: 'candidate' | 'company' | 'other'
+  verdict: ClaimVerdict
+  source_id: string
+  source_quote: string
+  reason: string
+  quote_not_found?: boolean
+  skipped?: boolean
+}
+
+/** The last claim verification of a text (services/verifier.py). */
+export interface Verification {
+  status?: 'passed' | 'failed' | 'error'
+  claims?: VerifiedClaim[]
+  blocking?: number
+  model?: string | null
+  prompt_version?: string | null
+  duration_ms?: number
+  at?: string
+  error?: string | null
+}
+
+export type VerificationState = 'passed' | 'failed' | 'error' | 'stale' | 'none'

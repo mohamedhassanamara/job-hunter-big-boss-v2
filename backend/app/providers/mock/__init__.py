@@ -34,6 +34,8 @@ from app.providers.base import (
     SubScore,
     SummaryDraft,
     SummarySentence,
+    VerifyClaim,
+    VerifyPlan,
     plan_from_draft,
 )
 
@@ -344,6 +346,57 @@ class MockLinkedInDrafter:
             text = (f"Hi {first}, I work on data systems and saw the {job.get('title')} opening "
                     f"at {job.get('company')}. Could I ask what the team values most in it?")
         return LinkedInMessage(text=text[:limit])
+
+
+_VERIFY_SKIP = re.compile(r"^(?:hi|hello|dear|bonjour|best regards|bien cordialement|kind "
+                          r"regards|thanks|merci)\b|\?$", re.I)
+# Words that make a strong claim: the mock rejects them unless a source says them too.
+_VERIFY_STRONG = re.compile(r"\b(?:mentor\w*|led|lead|managed|manag\w+ a team|team of|"
+                            r"head of|senior|expert|years?)\b", re.I)
+_VERIFY_NUMBER = re.compile(r"\d[\d,.]*\s*%?\+?")
+
+
+class MockVerifier:
+    """A deterministic stand-in for the claim verifier (sandbox and tests; no model call): one
+    claim per sentence; unsupported when a number or a strong claim (mentoring, led, managed,
+    years…) appears in no source as written, otherwise supported with a quote from the source
+    that shares the most words. The real verifier is Claude (providers/claude_verify.py)."""
+
+    model = "mock-verifier"
+    prompt_version = "verify/mock"
+    via = "mock"
+    auth_source = None
+
+    def verify(self, request: dict[str, Any]) -> VerifyPlan:
+        sources: dict[str, str] = request["sources"]
+        joined = " ".join(sources.values()).lower()
+        claims = []
+        from app.services.verifier import sentences as split  # the coverage check's split
+
+        for sentence in split(request["text"]):
+            if _VERIFY_SKIP.search(sentence) or len(sentence.split()) <= 3:
+                claims.append(VerifyClaim(sentence=sentence, claim=sentence, about="other",
+                                          verdict="not_a_claim", reason="No factual content"))
+                continue
+            low = sentence.lower()
+            missing = [m.group(0).strip() for m in _VERIFY_NUMBER.finditer(low)
+                       if m.group(0).strip(" %+.,") not in joined]
+            missing += [m.group(0) for m in _VERIFY_STRONG.finditer(low)
+                        if not re.search(rf"\b{re.escape(m.group(0))}\b", joined)]
+            words = set(re.findall(r"\w{4,}", low))
+            best = max(sources, key=lambda k: len(words & set(re.findall(r"\w{4,}",
+                                                                          sources[k].lower()))),
+                       default="")
+            if missing or not best:
+                claims.append(VerifyClaim(sentence=sentence, claim=sentence, about="candidate",
+                                          verdict="unsupported",
+                                          reason=f"Not in the sources: {', '.join(missing[:3])}"))
+            else:
+                claims.append(VerifyClaim(sentence=sentence, claim=sentence, about="candidate",
+                                          verdict="supported", source_id=best,
+                                          source_quote=sources[best][:40],
+                                          reason="Nothing beyond the source"))
+        return VerifyPlan(claims=claims)
 
 
 class MockCritic:

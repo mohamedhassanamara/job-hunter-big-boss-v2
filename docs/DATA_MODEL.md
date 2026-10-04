@@ -340,6 +340,13 @@ years wording), `duration_ms`, `error`.
 
 `application_response.channel`: `application | email | linkedin` (replies per track in Stats).
 
+### Claim verification (migration 0021)
+- `outreach_draft.verification`, `cover_letter.verification`, `application_answer.verification` (JSON; LinkedIn keeps it
+  inside `note` / `followup`): status passed | failed | error, claims [{sentence, claim, about, verdict, source_id,
+  source_quote, reason, quote_not_found?, skipped?}], blocking, hash (sha256 of the exact text; emails: "Subject: …"
+  + the body as sent), attachment_sha256 (emails: the CV PDF), model, prompt_version, duration_ms, at.
+- `email_example.kind` gains `must_fail` (the verifier's regression set; `inputs.case`, `inputs.expect`).
+
 ### Motivation (Phase 11, migration 0020)
 - `chest_open` (opened_at, tokens 1-10, cost = the chest goal then, ordinal), `token_entry` (the ledger: at,
   amount ±, kind chest | purchase | refund | adjust, ref_id, note; balance = sum), `shop_item` (name, price,
