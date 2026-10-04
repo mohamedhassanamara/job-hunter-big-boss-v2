@@ -249,6 +249,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Fit before/after (`cv_fit.py`, stored in `cv_fit`, never a `fit_score` row) and Critique (`critique.py`,
   `prompts/critique.md`, issues only). Adapted ideas are credited in `docs/CREDITS.md` (MIT).
 
+## Claim verifier (services/verifier.py, providers/claude_verify.py, prompts/verify.md)
+
+- Zero tolerance, Claude (`claude -p`, Opus by default, same isolation and subscription check, never an API key),
+  a separate call that gets only the final text and its sources (pool items, approved CV, facts, signals, and the
+  listing for letters/answers/LinkedIn, plus the recipient). It splits every sentence into claims; unsupported,
+  exaggerated, merged or causal blocks. Code checks the verifier: a "supported" quote must be in its source, and every
+  sentence must be judged. Code checks run first; Claude only sees a text that passes them.
+- Gates: email and letter approval (`require_email` / `require_letter`, reused when the exact text is unchanged),
+  Copy and "I sent it" for LinkedIn and form answers. The send queue's last step (`send_gate`) compares the exact
+  subject + body + CV file with the verified hashes; any difference sends the email back to review.
+- Tests and the sandbox use `MockVerifier`. `make eval-verifier` runs the must-pass / must-fail set (email_example
+  kinds reference_good / approved / must_fail). Any edit to `prompts/verify.md` needs a version bump.
+
 ## Motivation (Phase 11: services/motivation/, api/motivation.py, features/motivation/)
 
 - A separate module: it only reads job data (`activity.py`) and only writes its own tables. Never make an existing

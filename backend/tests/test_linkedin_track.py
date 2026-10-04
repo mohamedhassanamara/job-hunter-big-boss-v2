@@ -205,6 +205,16 @@ def test_the_panel_endpoint(seeded: None, client) -> None:  # noqa: ANN001
     edited = client.patch(f"/api/linkedin/people/{row_id}",
                           json={"note": "Hi Pat, I'd love to connect!"}).json()
     assert {v["type"] for v in edited["note"]["violations"]} >= {"banned", "ask"}
+    # Not verified yet: "I sent it" is refused until the exact text passes the claim verifier.
+    blocked = client.post(f"/api/linkedin/people/{row_id}/status", json={"status": "sent"})
+    assert blocked.status_code == 409 and "Verify the note" in blocked.json()["detail"]
+    # The code checks come first: Claude never sees a note that fails them.
+    early = client.post(f"/api/linkedin/people/{row_id}/verify?kind=note")
+    assert early.status_code == 422 and "checks found first" in early.json()["detail"]
+    client.patch(f"/api/linkedin/people/{row_id}",
+                 json={"note": "Hi Pat, could I send you my CV for your data roles?"})
+    checked = client.post(f"/api/linkedin/people/{row_id}/verify?kind=note").json()
+    assert checked["note_verification_state"] == "passed", checked
     sent = client.post(f"/api/linkedin/people/{row_id}/status", json={"status": "sent"}).json()
     assert sent["status"] == "sent" and sent["sent_at"]
 

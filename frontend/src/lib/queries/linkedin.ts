@@ -77,6 +77,11 @@ export function useEditLinkedIn(appId: number) {
   )
 }
 
+/** Check every claim of the note or follow-up (Claude): Copy unlocks when it passes. */
+export function useVerifyLinkedIn(appId: number) {
+  return usePersonMutation(appId, ({ id, kind }: { id: number; kind: 'note' | 'followup' }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/verify?kind=${kind}`))
+}
+
 export function useLinkedInStatus(appId: number) {
   return usePersonMutation(appId, ({ id, status }: { id: number; status: LinkedInStatus }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/status`, { status }))
 }

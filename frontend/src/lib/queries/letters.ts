@@ -89,3 +89,21 @@ export function useDeleteAnswer() {
     onSettled: (_r, _e, { appId }) => void qc.invalidateQueries({ queryKey: keys.answers(appId) }),
   })
 }
+
+/** Check every claim of a cover letter / form text (Claude), without approving. */
+export function useVerifyLetter() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post<CoverLetter>(`/letters/${id}/verify`),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['letter'] }),
+  })
+}
+
+/** Check every claim of a form answer (Claude): Copy unlocks when it passes. */
+export function useVerifyAnswer() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post<ApplicationAnswer>(`/answers/${id}/verify`),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['answers'] }),
+  })
+}

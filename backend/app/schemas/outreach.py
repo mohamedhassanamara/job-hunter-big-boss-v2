@@ -57,6 +57,9 @@ class DraftOut(BaseModel):
     # Signs the contact left: while any is active, the email can't be approved
     contact_alerts: list[ContactAlertOut] = []
     next_contact: ContactOut | None = None
+    # The claim verifier (services/verifier.py): its last run and whether it still applies.
+    verification: dict[str, Any] = {}
+    verification_state: str = "none"  # passed | failed | error | stale | none
 
 
 class DraftProgress(BaseModel):

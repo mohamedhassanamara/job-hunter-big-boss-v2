@@ -45,6 +45,9 @@ class LetterOut(BaseModel):
     download_name: str
     created_at: datetime
     updated_at: datetime
+    # The claim verifier (services/verifier.py): its last run and whether it still applies.
+    verification: dict[str, Any] = {}
+    verification_state: str = "none"  # passed | failed | error | stale | none
 
 
 class LetterStudio(BaseModel):
@@ -114,3 +117,6 @@ class AnswerOut(BaseModel):
     violations: list[dict[str, Any]]
     created_at: datetime
     updated_at: datetime
+    # The claim verifier (services/verifier.py): its last run and whether it still applies.
+    verification: dict[str, Any] = {}
+    verification_state: str = "none"  # passed | failed | error | stale | none

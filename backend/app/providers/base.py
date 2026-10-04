@@ -421,6 +421,28 @@ class CritiquePlan(BaseModel):
     issues: list[CritiqueIssue] = Field(default_factory=list)
 
 
+VerifyVerdict = Literal["supported", "unsupported", "exaggerated", "merged", "causal",
+                        "not_a_claim"]
+
+
+class VerifyClaim(BaseModel):
+    """One atomic statement of the text, judged against one named source."""
+
+    sentence: str  # the sentence of the text it comes from, copied exactly
+    claim: str  # the single statement being judged
+    about: Literal["candidate", "company", "other"]
+    verdict: VerifyVerdict
+    source_id: str = ""  # e.g. "pool:5", "cv", "facts", "signal:12", "listing"; "" when none
+    source_quote: str = ""  # copied verbatim from that source ("" when none)
+    reason: str = ""
+
+
+class VerifyPlan(BaseModel):
+    """The claim verifier's answer: every sentence of the text split into claims."""
+
+    claims: list[VerifyClaim] = Field(default_factory=list)
+
+
 class EmailDrafter(Protocol):
     model: str
     prompt_version: str

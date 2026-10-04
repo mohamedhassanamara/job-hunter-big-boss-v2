@@ -384,3 +384,12 @@ export function usePasteDescription() {
     },
   })
 }
+
+/** Check every claim of the email now (Claude, ~20-60 s), without approving. */
+export function useVerifyDraft() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post<Draft>(`/outreach/drafts/${id}/verify`),
+    onSettled: () => invalidateWork(qc),
+  })
+}

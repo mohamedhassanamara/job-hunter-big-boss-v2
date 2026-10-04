@@ -45,7 +45,7 @@ from app.schemas.outreach import (
     SentManually,
 )
 from app.services import contacts as contacts_svc
-from app.services import get_contact, outreach, pipeline, send_queue
+from app.services import get_contact, outreach, pipeline, send_queue, verifier
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -177,6 +177,9 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 hook_check=_hook_check_out((d.plan or {}).get("hook_check")),
                 name_source=(d.plan or {}).get("name_source"),
                 **contact_alert_fields(session, app, c),
+                verification=d.verification or {},
+                verification_state=verifier.state(d.verification,
+                                                  verifier.email_text(session, d)),
             )
         )
     return out
@@ -258,6 +261,12 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
         raise HTTPException(409, f"{contact.full_name} may have left ({alerts[0].reason}, "
                             f"{alerts[0].source_title or alerts[0].source_url}): pick another "
                             "contact, or dismiss the warning once you've verified them")
+    # Last: Claude checks every claim of the exact text against your sources (zero tolerance).
+    try:
+        verifier.require_email(session, d, verifier.for_workspace(session, workspace))
+    except verifier.VerifyError as exc:
+        session.commit()  # keep the verdicts: the review screen shows each claim
+        raise HTTPException(409, str(exc)) from exc
     d.status = DraftStatus.approved
     session.add(d)
     from app.eval.emails import record
@@ -266,6 +275,20 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     pipeline.log_event(session, app, EventKind.draft_approved, "Email draft approved")
     if app.stage == Stage.cv_ready:
         pipeline.transition(session, app, Stage.ready)  # an email is ready to send
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/outreach/drafts/{draft_id}/verify", response_model=DraftOut)
+def verify_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -> DraftOut:
+    """Check every claim now (Claude), without approving: the verdicts show in the review."""
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    try:
+        verifier.code_checks_first(d.violations)
+    except verifier.VerifyError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    verifier.verify_email(session, d, verifier.for_workspace(session, workspace))
     session.commit()
     session.refresh(d)
     return _drafts_out(session, [d])[0]

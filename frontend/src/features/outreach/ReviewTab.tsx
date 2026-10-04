@@ -155,6 +155,7 @@ export function ReviewTab() {
             key={selected.id}
             draft={selected}
             onApprove={() => decide(selected, 'approve')}
+            approving={action.isPending && action.variables?.action === 'approve'}
             onReject={() => decide(selected, 'reject')}
           />
         ) : (
