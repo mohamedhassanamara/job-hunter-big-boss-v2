@@ -237,8 +237,16 @@ def framing(s: Session, job: Job, years: int | None, pool: Pool) -> dict[str, An
     into = track.name.split("/")[0].strip().lower()
     head = f"a software engineer ({years} years, {pro})" if years else f"a {pro} software engineer"
     tools = project_tools(pool, track.terms, f"{job.title}\n{job.description or ''}")
+    # Singular or plural as your experience says it: one dbt and Airflow project isn't
+    # "projects" (the claim verifier flags it as exaggerated).
+    used = [i for kind in ("project", "education", "certification") for i in pool.of(kind)
+            if {t.lower() for t in tools} & {x.lower() for x in i.tags or []}]
+    from app.services.cv_build import _spell
+
+    named = " and ".join(_spell(x, pool) for x in tools)  # "Airflow", not the tag "airflow"
+    work = f"a {named} project" if len(used) == 1 else f"{named} projects"
     return {"use": True, "text": f"{head} moving into {into}"
-            + (f", with {' and '.join(tools)} projects" if tools else ""),
+            + (f", with {work}" if tools else ""),
             "tools": tools, "how": track.note,
             "words": [w for n in r.professional for w in re.split(r"[^A-Za-z]+", n) if w]}
 
@@ -250,6 +258,7 @@ def reference_notes(s: Session, row_id: int | None = None) -> list[str]:
 
     return [e.body for e in s.exec(select(EmailExample)).all()
             if (e.inputs or {}).get("channel") == "linkedin"
+            and e.kind in ("reference_good", "approved")  # never a must-fail case
             and (row_id is None or (e.inputs or {}).get("linkedin_outreach_id") != row_id)]
 
 
