@@ -19,13 +19,14 @@ from app.providers.base import (
     CVRequest,
     SummarySentence,
 )
-from app.services import cv_rules, pipeline
+from app.services import bullet_tailor, cv_rules, pipeline
 from app.services.cv_build import FitState, Layout, fit_to_page, layout
 from app.services.cv_check import (
     canonicalize,
     check_plan,
     feedback,
     ground_sentences,
+    verbatim_skills,
     violation,
 )
 from app.services.cv_claims import exact_statement
@@ -220,8 +221,9 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
 
 
 def generate(engine: Engine, app_id: int, generator: CVGenerator,
-             template: str | None = None) -> CVVersion:
-    """One Claude call → plan → checks → fit loop → a new draft version."""
+             template: str | None = None, verifier: Any = None) -> CVVersion:
+    """One Claude call → tailoring checks (+ the claim verifier on each adapted bullet) → plan
+    checks → fit loop → a new draft version. The pool is only read."""
     started = time.monotonic()
     with Session(engine) as s:
         app = s.get(Application, app_id)
@@ -238,12 +240,17 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
         openings = other_openings(s, app_id)
     try:
         plan = generator.generate(request)
-        plan, issues = check_plan(plan, pool)
+        plan = verbatim_skills(canonicalize(plan, pool), pool)
+        plan, issues, tailoring = bullet_tailor.enforce(plan, pool)
+        plan, verifier_issues, verification = bullet_tailor.verify(plan, pool, verifier)
+        issues += verifier_issues
+        plan, plan_issues = check_plan(plan, pool)
+        issues += plan_issues
         plan, summary_issues, grounding = ground_summary(
             plan, pool, request, generator, rules, banned=banned, openings=openings)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
-    plan = canonicalize(plan, pool)
+    plan = bullet_tailor.pin_originals(verbatim_skills(canonicalize(plan, pool), pool), pool)
     issues += summary_issues
     with Session(engine) as s:
         app = s.get(Application, app_id)
@@ -257,6 +264,9 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
                       violations=issues)
         v.plan = {"prompt_version": getattr(generator, "prompt_version", None),
                   "summary_grounding": grounding,
+                  "tailoring": {**tailoring, "verifier": verification and {
+                      k: verification.get(k) for k in ("status", "model", "prompt_version",
+                                                       "blocking", "error")}},
                   "cost_usd": getattr(generator, "last_cost_usd", None),
                   "generation_ms": getattr(generator, "last_duration_ms", None)}
         s.add(v)
@@ -621,6 +631,27 @@ def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
     shown_projects = {p.item_id: set(p.bullets) for p in doc.projects}
     texts = overrides.get("text") or {}
 
+    only = bool(overrides.get("original_only"))
+    reverted = set(overrides.get("revert") or [])
+
+    def bullet_row(key: str, item_id: int, b: Any, item: Any,
+                   shown: dict[int, set[str]]) -> dict[str, Any]:
+        """One bullet for CV Studio: what the CV shows, the pool original it comes from (pool id
+        `item:index`), and whether it is an adaptation (diffable) or reverted."""
+        bkey = f"{key}:{b.source_index}"
+        facts = pool.facts(item)
+        original = facts[b.source_index] if b.source_index < len(facts) else ""
+        manual = texts.get(bkey)
+        use_original = bkey in reverted or only
+        text = manual or (original if use_original and original else b.text)
+        return {"key": bkey, "pool_id": f"{item_id}:{b.source_index}", "text": text,
+                "source": original, "priority": b.priority,
+                "adapted": bool(original)
+                and bullet_tailor.plain(text) != bullet_tailor.plain(original),
+                "manual": bool(manual), "reverted": bool(bkey in reverted and not manual),
+                "tailored_text": b.text if b.adapted else None, "fallback": b.fallback,
+                "shown": text in shown.get(item_id, set())}
+
     def entries(kind: str, plan_entries: list, shown: dict[int, set[str]]) -> list[dict[str, Any]]:
         out = []
         for e in plan_entries:
@@ -631,13 +662,7 @@ def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
             out.append({
                 "key": key, "item_id": e.item_id, "title": item.title, "org": item.org,
                 "relevance": e.relevance, "shown": e.item_id in shown,
-                "bullets": [{"key": f"{key}:{b.source_index}",
-                             "text": texts.get(f"{key}:{b.source_index}", b.text),
-                             "source": pool.facts(item)[b.source_index]
-                             if b.source_index < len(pool.facts(item)) else "",
-                             "priority": b.priority,
-                             "shown": texts.get(f"{key}:{b.source_index}", b.text)
-                             in shown.get(e.item_id, set())}
+                "bullets": [bullet_row(key, e.item_id, b, item, shown)
                             for b in sorted(e.bullets, key=lambda x: x.priority)],
             })
         return out
@@ -664,4 +689,7 @@ def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
                            for i in pool.of("certification")],
         "force_in": overrides.get("force_in") or [],
         "force_out": overrides.get("force_out") or [],
+        "revert": sorted(reverted),
+        "original_only": only,
+        "tailoring": (v.plan or {}).get("tailoring"),
     }

@@ -16,7 +16,7 @@ from app.models.company import (
     ContactImport,
 )
 from app.models.copilot import CopilotMessage, CopilotThread
-from app.models.experience import ExperienceItem
+from app.models.experience import ExperienceHistory, ExperienceItem
 from app.models.job import FitScore, Job
 from app.models.linkedin import CVFit, LinkedInLinkOpen, LinkedInOutreach
 from app.models.motivation import (
@@ -71,6 +71,7 @@ __all__ = [
     "CopilotThread",
     "DiscoveryRun",
     "EmailExample",
+    "ExperienceHistory",
     "ExperienceItem",
     "FitScore",
     "Interview",

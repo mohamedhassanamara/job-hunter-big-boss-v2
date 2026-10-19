@@ -67,6 +67,10 @@ class CVPatch(BaseModel):
     force_in: list[str] | None = None
     force_out: list[str] | None = None
     text: dict[str, str] | None = None
+    # bullet keys ("role:12:0") shown with the pool original instead of the adapted wording
+    revert: list[str] | None = None
+    # this CV uses the pool's bullets exactly as written, no adaptation anywhere
+    original_only: bool | None = None
     template: str | None = None
 
 

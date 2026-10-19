@@ -315,9 +315,23 @@ export interface CVVersion {
 
 export interface CVUsageBullet {
   key: string
+  /** Pool id of the bullet this comes from: "<item id>:<bullet index>". */
+  pool_id: string
+  /** What the CV shows. */
   text: string
+  /** Your exact pool text for this bullet. */
   source: string
   priority: number
+  /** The CV shows something other than your original (a light adaptation). */
+  adapted: boolean
+  /** You edited it in CV Studio. */
+  manual: boolean
+  /** Reverted to the original for this bullet. */
+  reverted: boolean
+  /** The adapted wording Claude produced (kept so Revert can be undone). */
+  tailored_text: string | null
+  /** Why Claude's adaptation was refused and the original used instead. */
+  fallback: string | null
   shown: boolean
 }
 
@@ -351,6 +365,14 @@ export interface CVUsage {
   certifications: { key: string; item_id: number; title: string; org: string | null; shown: boolean }[]
   force_in: string[]
   force_out: string[]
+  revert: string[]
+  original_only: boolean
+  tailoring: {
+    adapted: number
+    original: number
+    fallbacks: { bullet: string; reasons: string[]; tried: string }[]
+    verifier: { status: string; model: string | null; blocking?: number; error?: string } | null
+  } | null
 }
 
 export interface ReadinessItem {
@@ -390,6 +412,10 @@ export interface CVPatchInput {
   force_in?: string[]
   force_out?: string[]
   text?: Record<string, string>
+  /** Bullet keys shown with your original wording. */
+  revert?: string[]
+  /** This CV uses your bullets exactly as written. */
+  original_only?: boolean
   template?: string
 }
 
@@ -555,6 +581,19 @@ export interface ExperienceInput {
   is_active: boolean
   url?: string | null
   credential_id?: string | null
+  /** The dates exactly as you wrote them; CVs print this as is. */
+  date_label?: string | null
+}
+
+export interface ExperienceHistoryEntry {
+  id: number
+  item_id: number
+  action: 'created' | 'edited' | 'archived' | 'undo' | 'deleted'
+  source: 'user' | 'master_import' | 'undo'
+  before: Record<string, unknown>
+  after: Record<string, unknown>
+  note: string | null
+  created_at: string
 }
 
 export interface ExperienceItem extends ExperienceInput {

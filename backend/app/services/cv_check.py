@@ -27,7 +27,7 @@ from app.services.cv_claims import (
     strip_statement,
     years_claims,
 )
-from app.services.cv_pool import Pool, norm
+from app.services.cv_pool import Pool, norm, terms_of
 
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)*(?:\s?%|\+|[kKmM]\b|x\b)?")
 # Tech-looking tokens: acronyms and mixed-case words (AWS, PySpark, GoRouter, YOLOv8, C#)...
@@ -228,6 +228,29 @@ def capital(text: str) -> str:
 
 
 _LOWERCASE_OK = {"dbt", "spacy", "npm", "pandas", "scikit-learn", "iphone", "ios", "macos"}
+
+
+def verbatim_skills(plan: CVPlan, pool: Pool) -> CVPlan:
+    """Skills are the pool's: each item is one of that group's skills exactly as stored (a name
+    inside a skill's parentheses selects the whole skill), nothing else, no repeats. Claude only
+    selects and orders."""
+    groups = []
+    for g in plan.skills:
+        item = pool.get(g.item_id, "skill")
+        if item is None:
+            groups.append(g)
+            continue
+        lookup = {}
+        for tag in item.tags:
+            for term in terms_of([tag]):
+                lookup.setdefault(norm(term), tag)
+        seen: list[str] = []
+        for x in g.items:
+            tag = lookup.get(norm(x))
+            if tag and tag not in seen:
+                seen.append(tag)
+        groups.append(g.model_copy(update={"items": seen}))
+    return plan.model_copy(update={"skills": groups})
 
 
 def canonicalize(plan: CVPlan, pool: Pool) -> CVPlan:

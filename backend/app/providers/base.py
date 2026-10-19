@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, Field
+from pydantic.json_schema import SkipJsonSchema
 
 from app.models.enums import DescriptionLevel, RemoteType, Source
 
@@ -142,11 +143,17 @@ class FitAssessment(BaseModel):
 
 class PlanBullet(BaseModel):
     source_index: int = Field(description="Index of the fact this bullet rewords")
-    text: str = Field(description="The reworded bullet (same facts and numbers as the source)")
+    text: str = Field(description=(
+        "The bullet, lightly adapted to the job: every number, tool and product of the source "
+        "kept, about the same length"))
     priority: int = Field(ge=1, description="1 = most relevant to this job")
     strength: int = Field(default=3, ge=1, le=5, description=(
         "How strong the bullet is on its own: 5 = a concrete outcome or impact, 3 = a specific "
         "thing built, 1 = a generic process line (e.g. 'collaborated in Agile sprints')"))
+    # Set by code (services/bullet_tailor.py), never by the model: is `text` an adaptation of the
+    # pool original (True) or the original itself (False), and why an adaptation was refused.
+    adapted: SkipJsonSchema[bool] = False
+    fallback: SkipJsonSchema[str | None] = None
 
 
 class PlanEntry(BaseModel):

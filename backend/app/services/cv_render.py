@@ -119,7 +119,9 @@ def latex_escape(value: Any) -> str:
         return ""
     if isinstance(value, Raw):
         return value
-    text = _ESCAPE_RE.sub(lambda m: _ESCAPES[m.group(0)], str(value))
+    # Markdown marks in your pool text (`code`, **bold**) are formatting, not characters.
+    plain = str(value).replace("`", "").replace("**", "")
+    text = _ESCAPE_RE.sub(lambda m: _ESCAPES[m.group(0)], plain)
     text = _OPEN_QUOTE.sub(lambda m: m.group(1) + "``", text)
     return text.replace('"', "''")
 

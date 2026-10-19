@@ -140,7 +140,8 @@ export const TOURS: Record<TourId, Tour> = {
       return item ? `/jobs/${item.job_id}/cv` : '/pipeline'
     },
     steps: [
-      { target: 'cv-editor', title: 'Only your experience', body: 'Claude picks and rewords bullets from your Experience for this job; titles, companies and dates come straight from your data. Every number and skill is checked against the source, and problems are listed at the top.', placement: 'right' },
+      { target: 'cv-editor', title: 'Only your experience', body: 'Claude picks bullets from your Experience for this job and may lightly adapt their wording (verb, clause order, the listing\'s term for what you did); titles, companies and dates come straight from your data. Every number and skill is checked against the source, and problems are listed at the top.', placement: 'right' },
+      { target: 'original-only', title: 'Your words stay yours', body: 'Your Experience text is never changed. An adapted bullet shows its difference from your original with Revert to original, and this switch makes the whole CV use your bullets exactly as written. Adaptations that drop a number, tool or outcome, or change the length by more than 15%, are refused in code.', placement: 'right' },
       { target: 'cv-editor', title: 'Force in, leave out, edit', body: 'The eye toggles a bullet, project or certification. Edit any text inline. The page re-fits in code, without calling Claude again. Every role stays on the CV so your timeline has no gaps.', placement: 'right' },
       { target: 'cv-preview', title: 'The real PDF', body: 'Rendered from a style-only LaTeX template and fitted to exactly one full page: low-value bullets are dropped when it overflows, more are added when it is short.', placement: 'left' },
       { target: 'cv-versions', title: 'Versions and templates', body: 'Regenerate makes a new draft; older versions are kept. With several templates you can switch style per CV.' },

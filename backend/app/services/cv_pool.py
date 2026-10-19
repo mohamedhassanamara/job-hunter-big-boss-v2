@@ -21,7 +21,11 @@ def month(d: date | None) -> str:
 
 
 def span(item: ExperienceItem) -> tuple[str, str]:
-    """('Sep 2025', 'Present') · ('Feb 2025', 'Aug 2025') · ('', '') when undated."""
+    """('Sep 2025', 'Present') · ('Feb 2025', 'Aug 2025') · ('', '') when undated. The dates as
+    you wrote them (`date_label`) win: "Sep 2020 – June 2025", "2020"."""
+    if item.date_label:
+        left, sep, right = item.date_label.partition(" – ")
+        return left.strip(), right.strip() if sep else ""
     start = month(item.start_date)
     end = month(item.end_date) if item.end_date else ("Present" if item.start_date else "")
     return start, end
@@ -56,7 +60,7 @@ class Pool:
 
     def skill_terms(self) -> set[str]:
         """Every skill the pool mentions: skill groups plus the tech tags of roles/projects."""
-        return {norm(t) for item in self.items.values() for t in item.tags}
+        return {norm(t) for item in self.items.values() for t in terms_of(item.tags)}
 
 
 def norm(text: str) -> str:
@@ -197,3 +201,16 @@ def prompt_pool(pool: Pool) -> dict[str, Any]:
                       for i in pool.of("education")],
         "volunteering": [entry(i) for i in pool.of("volunteering")],
     }
+
+
+def terms_of(tags: list[str]) -> list[str]:
+    """Each skill as written plus the names inside its parentheses: "LLMs (Mistral 7B, Ollama)"
+    is the skill, "LLMs", "Mistral 7B" and "Ollama"."""
+    out: list[str] = []
+    for tag in tags:
+        out.append(tag)
+        base, _, inner = tag.partition("(")
+        if inner:
+            out.append(base.strip())
+            out += [x.strip() for x in inner.rstrip(") ").split(",") if x.strip()]
+    return out

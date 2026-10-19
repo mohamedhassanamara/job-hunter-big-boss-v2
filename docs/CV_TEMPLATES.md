@@ -80,9 +80,10 @@ Leaving a section key out of `sections` hides that section in this template.
 
 ## How a CV is produced
 
-1. **Generate (one Claude call).** `claude -p` with our own system prompt (`app/prompts/cv_generate.md`), no tools, and `--json-schema`. It returns a **plan**: pool ids, reworded bullets ranked by priority, skill order, summary and short summary. It never returns titles, companies, dates or LaTeX.
+1. **Generate (one Claude call).** `claude -p` with our own system prompt (`app/prompts/cv_generate.md`), no tools, and `--json-schema`. It returns a **plan**: pool ids, bullets (your text or a light adaptation) ranked by priority, skill selection and order (verbatim from the pool), summary and short summary. It never returns titles, companies, dates or LaTeX.
 2. **Check (in code, `services/cv_check.py`):**
    - Unknown ids and facts are dropped.
+   - Adapted bullets (`services/bullet_tailor.py`): every number, tool and named product of the original stays, nothing new, length ±15%, most words kept; then the Claude verifier compares each adapted bullet with its original. Any failure restores the original text.
    - Numbers must match their source fact.
    - Skills must exist in the pool.
    - Unknown tools are flagged.

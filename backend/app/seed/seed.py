@@ -60,6 +60,7 @@ from app.services.cv_check import check_plan
 from app.services.cv_pool import load_pool
 from app.services.cv_service import build_request
 from app.services.dedupe import dedupe_key, normalize_company
+from app.services.experience_write import writing
 from app.services.pipeline import stage_label
 from app.services.roles import match_track, tracks_of, with_suggested_variants
 
@@ -94,7 +95,7 @@ def _stage_path(stage: Stage, close_reason: str | None) -> list[Stage]:
 
 def seed(engine: Engine, *, empty: bool = False) -> None:
     now = datetime.now(UTC).replace(microsecond=0)
-    with Session(engine) as s:
+    with writing(), Session(engine) as s:  # sample data: the tour sandbox only
         _clear(s)
 
         tracks = with_suggested_variants(fx.SEARCH_PROFILE["tracks"])

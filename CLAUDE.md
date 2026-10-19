@@ -137,17 +137,37 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 - Templates are **style only** (`templates/<name>/cv.tex.j2` + `cv.config.yaml`); `templates/reference/cv.tex` is the
   style reference (example content, never used for generation). Jinja delimiters `\VAR{}` (auto-escaped) / `\BLOCK{}`.
-- The generator returns a `CVPlan` (pool ids, ranked reworded bullets with a `strength`), never LaTeX, titles,
-  companies or dates. `cv_check` validates it; `cv_build.fit_to_page` fits one page in code (no model call).
+- The generator returns a `CVPlan` (pool ids, ranked bullets with a `strength`, each the pool fact or a light
+  adaptation of it: see Experience pool below), never LaTeX, titles, companies or dates. `cv_check` validates it; `cv_build.fit_to_page` fits one page in code (no model call).
 - Structure is decided in code (`services/cv_rules.py`, Settings → CV): bullet allowances by role type (current,
   roles over a year, graduation/short by relevance, internships ≤ 2, ≤ 2 projects of 2-3 bullets, never 1), entries
   start at their minimum and grow only within allowances while under the fill target (88%): never filler. Skills
-  are capped/merged/deduplicated; the summary is checked against the writing guide and regenerated once. The
+  are capped and deduplicated but never merged or respelled (categories and items are the pool's, Claude only
+  selects and orders: `cv_check.verbatim_skills`); the summary is checked against the writing guide and regenerated once. The
   writing guide and a style exemplar (plain text from `templates/reference/cv.tex`) go to the model.
 - `claude -p` runs with `--system-prompt`, `--tools ""`, `--setting-sources ""`, `--strict-mcp-config`, `--json-schema`
   in a temp dir (never `--bare`: it skips the user's login). Prompt: `app/prompts/cv_generate.md` (versioned).
 - Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
 - The style golden test (`tests/test_cv_render.py`) compiles the default template against the reference: keep it pixel-equal.
+
+## Experience pool (protected: services/experience_write.py, master_import.py, bullet_tailor.py)
+
+- The pool is the user's own text. **No automated process may change it.** Every write to an `ExperienceItem` text
+  field or a delete goes through `services/experience_write.py` (the Experience screen = source `user`, the explicit
+  master import, Undo). A `before_flush` guard raises `PoolWriteError` for anything else; seeds of the tour sandbox
+  run inside `writing()`. `tests/test_pool_protected.py` checks the guard, that no module writes pool text outside
+  the gateway, and that generation leaves the pool unchanged. Every change is a row in `experience_history`
+  (before/after, source), undoable per item from the Experience sheet.
+- Master document import (`scripts/import_master.py`, `data/import/master_experience.md` + `master_mapping.json`):
+  verbatim apart from `[cite: n]` markers; dry run by default, `--apply` backs up first; old items not in the
+  document are archived (inactive, restorable), never deleted. `date_label` holds the dates exactly as written and
+  CVs print it (`cv_pool.span`); `start_date`/`end_date` still drive the years arithmetic.
+- CV tailoring is light and only in the CV copy (`services/bullet_tailor.py`): verb, clause order, the listing's term
+  for what you did. In code, against the pool original of that exact bullet: every number, tool and named product
+  kept, nothing new, length ±15%, most words kept; then the Claude verifier (`kind cv_bullets`) judges each adapted
+  bullet against its original. Any failure puts the original back (a warning with the reason). Per CV:
+  `overrides.original_only` (no adaptation anywhere) and `overrides.revert` (bullet keys back to the original); user
+  edits in CV Studio win over both. Fitting to one page only chooses whole bullets, it never cuts text.
 
 ## Contacts (services/contacts.py, contacts_import.py)
 

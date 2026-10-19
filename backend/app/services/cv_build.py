@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from app.providers.base import CVPlan, PlanBullet, PlanEntry
-from app.services import cv_rules
+from app.services import bullet_tailor, cv_rules
 from app.services.cv_pool import Pool, span
 from app.services.cv_render import (
     CompileResult,
@@ -140,13 +140,25 @@ def ordered(entry: PlanEntry) -> list[PlanBullet]:
 
 
 def _visible(entry: PlanEntry, key: str, count: int, overrides: dict[str, Any],
-             keep_one: bool) -> list[tuple[str, str]]:
+             keep_one: bool, pool: Pool | None = None) -> list[tuple[str, str]]:
     """(override key, text) of the bullets shown for an entry, most relevant first: bullets the
     user forced in, then the best-ranked others up to `count`; never a forced-out one."""
     forced_in = set(overrides.get("force_in") or [])
     forced_out = set(overrides.get("force_out") or [])
     texts = overrides.get("text") or {}
-    ranked = [(f"{key}:{b.source_index}", b.text) for b in ordered(entry)]
+    only, revert = bool(overrides.get("original_only")), set(overrides.get("revert") or [])
+
+    def shown_text(b: PlanBullet) -> str:
+        """The adapted bullet, or your pool original when this bullet is reverted or the CV uses
+        original bullets only (your own edits in CV Studio always win)."""
+        k = f"{key}:{b.source_index}"
+        if pool is not None and (only or k in revert) and k not in texts:
+            original = bullet_tailor.original_of(pool, entry.item_id, b.source_index)
+            if original:
+                return original
+        return b.text
+
+    ranked = [(f"{key}:{b.source_index}", shown_text(b)) for b in ordered(entry)]
     forced = [b for b in ranked if b[0] in forced_in]
     rest = [b for b in ranked if b[0] not in forced_in and b[0] not in forced_out]
     shown = forced + rest[: max(0, count - len(forced))]
@@ -181,7 +193,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
             continue
         key = _key("role", e)
         start, end = span(item)
-        bullets = _visible(e, key, state.counts.get(key, 1), overrides, keep_one=True)
+        bullets = _visible(e, key, state.counts.get(key, 1), overrides, keep_one=True, pool=pool)
         roles.append(CVRole(item_id=item.id, title=item.title, org=item.org or "",
                             location=item.location or "", start=start, end=end,
                             bullets=[t for _, t in bullets]))
@@ -194,7 +206,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         count = state.counts.get(key, 0)
         if count <= 0 and key not in forced_in:
             continue
-        bullets = _visible(p, key, max(count, 2), overrides, keep_one=False)
+        bullets = _visible(p, key, max(count, 2), overrides, keep_one=False, pool=pool)
         if len(bullets) < 2 and key not in forced_in:
             continue  # never a 1-bullet project
         stack = [_spell(x, pool) for x in (list(p.stack) or item.tags)[:max_stack]]
@@ -209,7 +221,8 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
                                                  and key not in forced_in):
             continue
         start, end = span(item)
-        bullets = _visible(v, key, max(1, state.counts.get(key, 0)), overrides, keep_one=False)
+        bullets = _visible(v, key, max(1, state.counts.get(key, 0)), overrides, keep_one=False,
+                           pool=pool)
         volunteering.append(CVRole(item_id=item.id, title=item.title, org=item.org or "",
                                    location=item.location or "", start=start, end=end,
                                    bullets=[t for _, t in bullets]))
@@ -235,10 +248,10 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
     for g in plan.skills:
         item = pool.get(g.item_id, "skill")
         if item and g.items:
-            groups.append((item.title, [_spell(x, pool) for x in g.items]))
+            groups.append((item.title, list(g.items)))  # verbatim from the pool
     lay = lay or layout(plan, pool)
     skills = [CVSkillGroup(category=c, items=items)
-              for c, items in cv_rules.shape_skills(groups, lay.rules, lay.merges)]
+              for c, items in cv_rules.shape_skills(groups, lay.rules, [])]  # no merging
     return CVDocument(summary=summary, skills=skills, roles=roles, projects=projects,
                       certifications=certifications, education=education,
                       volunteering=volunteering)

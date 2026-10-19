@@ -13,6 +13,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, col, delete, select
 
 from app.models import AppSetting, ExperienceItem
+from app.services.experience_write import writing
 
 TEST_PROFILE = {
     "full_name": "Test Candidate",
@@ -131,7 +132,7 @@ TEST_ITEMS: list[dict] = [
 
 
 def remove_test_cv(engine: Engine) -> int:
-    with Session(engine) as s:
+    with writing(), Session(engine) as s:
         items = s.exec(select(ExperienceItem).where(col(ExperienceItem.is_placeholder))).all()
         n = len(items)
         s.exec(delete(ExperienceItem).where(col(ExperienceItem.is_placeholder)))  # type: ignore[call-overload]
@@ -147,7 +148,7 @@ def remove_test_cv(engine: Engine) -> int:
 
 def load_test_cv(engine: Engine) -> int:
     remove_test_cv(engine)
-    with Session(engine) as s:
+    with writing(), Session(engine) as s:
         for i, item in enumerate(TEST_ITEMS):
             s.add(
                 ExperienceItem(

@@ -1,9 +1,12 @@
-import { ChevronDown, CircleAlert, Eye, EyeOff, TriangleAlert } from 'lucide-react'
+import { ChevronDown, CircleAlert, Eye, EyeOff, TriangleAlert, Undo2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
 import type { CVPatchInput, CVUsage, CVUsageEntry, CVVersion, ReadinessItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { wordDiff } from '@/lib/wordDiff'
 
 /** Left side of CV Studio: what the CV uses from your experience pool and what it leaves out.
  * Toggling or editing re-fits the page in code (no Claude call). */
@@ -66,16 +69,31 @@ export function CVContentPanel({
         )}
       </Section>
 
-      <Section title="Experience" hint="Every role stays on the CV (no gaps); choose which bullets show.">
+      <Section title="Experience" hint="Every role stays on the CV (no gaps); choose which bullets show. Bullets may be lightly adapted to the job; your pool text is never changed.">
+        <label className="flex items-center gap-2 text-xs text-fg-muted" data-tour="original-only">
+          <Switch
+            checked={usage.original_only}
+            disabled={readOnly || busy}
+            onCheckedChange={(original_only) => onPatch({ original_only })}
+            aria-label="Use original bullets only"
+          />
+          Use original bullets only
+          {usage.tailoring && (
+            <span className="ml-auto text-2xs text-fg-subtle">
+              {usage.tailoring.adapted} adapted · {usage.tailoring.original} original
+              {usage.tailoring.fallbacks.length > 0 && ` · ${usage.tailoring.fallbacks.length} refused by the checks`}
+            </span>
+          )}
+        </label>
         {usage.roles.map((entry) => (
-          <Entry key={entry.key} entry={entry} readOnly={readOnly || busy} onToggle={toggle} onEdit={(key, text) => onPatch({ text: { [key]: text } })} />
+          <Entry key={entry.key} entry={entry} readOnly={readOnly || busy} onToggle={toggle} onEdit={(key, text) => onPatch({ text: { [key]: text } })} onRevert={(key, on) => onPatch({ revert: on ? [...usage.revert, key] : usage.revert.filter((k) => k !== key) })} />
         ))}
       </Section>
 
       {usage.projects.length > 0 && (
         <Section title="Projects" hint="Projects can be left out entirely.">
           {usage.projects.map((entry) => (
-            <Entry key={entry.key} entry={entry} readOnly={readOnly || busy} entryToggle onToggle={toggle} onEdit={(key, text) => onPatch({ text: { [key]: text } })} />
+            <Entry key={entry.key} entry={entry} readOnly={readOnly || busy} entryToggle onToggle={toggle} onEdit={(key, text) => onPatch({ text: { [key]: text } })} onRevert={(key, on) => onPatch({ revert: on ? [...usage.revert, key] : usage.revert.filter((k) => k !== key) })} />
           ))}
         </Section>
       )}
@@ -189,12 +207,14 @@ function Entry({
   entryToggle = false,
   onToggle,
   onEdit,
+  onRevert,
 }: {
   entry: CVUsageEntry
   readOnly: boolean
   entryToggle?: boolean
   onToggle: (key: string, shown: boolean) => void
   onEdit: (key: string, text: string) => void
+  onRevert: (key: string, on: boolean) => void
 }) {
   return (
     <div className={cn('rounded-lg border border-border bg-surface', !entry.shown && 'opacity-70')}>
@@ -219,16 +239,52 @@ function Entry({
               <ToggleButton shown={b.shown} disabled={readOnly} onClick={() => onToggle(b.key, b.shown)} label="bullet" />
               <div className="min-w-0 flex-1">
                 <EditableText key={b.text} value={b.text} readOnly={readOnly || !b.shown} onSave={(text) => onEdit(b.key, text)} muted={!b.shown} />
-                {b.source && b.source !== b.text && (
-                  <Tooltip content={<span className="block max-w-80">Source: {b.source}</span>}>
-                    <span className="text-2xs text-fg-subtle underline decoration-dotted underline-offset-2">reworded</span>
-                  </Tooltip>
+                {b.source && b.adapted && !b.manual && (
+                  <BulletDiff original={b.source} adapted={b.text} poolId={b.pool_id} disabled={readOnly} onRevert={() => onRevert(b.key, true)} />
                 )}
+                {b.reverted && b.tailored_text && (
+                  <p className="flex items-center gap-1.5 text-2xs text-fg-subtle">
+                    Original wording ({b.pool_id}).
+                    <button type="button" disabled={readOnly} className="underline decoration-dotted underline-offset-2 hover:text-fg disabled:opacity-40" onClick={() => onRevert(b.key, false)}>
+                      Use the adapted wording
+                    </button>
+                  </p>
+                )}
+                {b.fallback && !b.reverted && !b.adapted && <p className="text-2xs text-fg-subtle">Adaptation refused ({b.fallback}): original used.</p>}
               </div>
             </li>
           ))}
         </ul>
       )}
+    </div>
+  )
+}
+
+/** The bullet's change against your pool original (words removed struck through, added marked),
+ * with a one-click return to the original. */
+function BulletDiff({ original, adapted, poolId, disabled, onRevert }: { original: string; adapted: string; poolId: string; disabled: boolean; onRevert: () => void }) {
+  return (
+    <div className="mt-1 rounded-md bg-bg-subtle px-2 py-1.5 text-2xs leading-4 text-fg-muted" data-tour="bullet-diff">
+      <p className="mb-0.5 flex items-center gap-2">
+        <span className="font-medium text-fg-subtle">Adapted from pool bullet {poolId}</span>
+        <Button type="button" size="xs" variant="ghost" className="ml-auto" disabled={disabled} onClick={onRevert}>
+          <Undo2 />
+          Revert to original
+        </Button>
+      </p>
+      <p>
+        {wordDiff(original, adapted).map((part, i) => (
+          <span
+            key={i}
+            className={cn(
+              part.kind === 'removed' && 'bg-danger-bg text-danger-fg line-through',
+              part.kind === 'added' && 'bg-success-bg text-success-fg',
+            )}
+          >
+            {part.text}
+          </span>
+        ))}
+      </p>
     </div>
   )
 }
