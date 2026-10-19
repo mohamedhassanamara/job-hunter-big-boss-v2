@@ -140,3 +140,52 @@ class HunterVerifyOut(BaseModel):
     status: str
     score: int | None
     credits: HunterCredits
+
+
+# --- Phase 12: the contact waterfall -------------------------------------------------------
+
+
+class FindIn(BaseModel):
+    requery: bool = False  # ask the providers again even though the company is cached
+    domain: str | None = None  # the company's domain, when none could be resolved
+
+
+class WaterfallStep(BaseModel):
+    provider: str  # cache | hunter | prospeo | apollo | apify | pattern | manual
+    status: str
+    detail: str
+    key_label: str | None
+    credits: float
+    usd: float
+
+
+class WaterfallCandidate(BaseModel):
+    contact_id: int | None
+    full_name: str
+    title: str | None
+    email: str | None
+    email_status: str | None
+    verified: bool
+    rank_label: str | None
+    provider: str
+    key_label: str | None
+    actor: str | None
+    found_at: datetime | None
+    note: str
+    alerts: list[str]  # "may have left" findings on this contact
+
+
+class FindOut(BaseModel):
+    domain: str | None
+    domain_source: str | None
+    steps: list[WaterfallStep]
+    candidates: list[WaterfallCandidate]  # the top 3 by your ranking
+    found_by: str | None
+    from_cache: bool
+    credits: float
+    usd: float
+    view: GetContactView
+
+
+class UseIn(BaseModel):
+    contact_id: int

@@ -12,6 +12,8 @@ os.environ["SCHEDULER_ENABLED"] = "false"
 os.environ["SEND_WORKER_ENABLED"] = "false"
 os.environ["SMTP_APP_PASSWORD"] = ""
 os.environ["HUNTER_API_KEY"] = ""  # .env may hold a real key: tests never use it
+for _name in ("HUNTER_API_KEYS", "PROSPEO_API_KEYS", "APOLLO_API_KEYS", "APIFY_TOKEN"):
+    os.environ[_name] = ""
 
 # Rendered CVs, letters and uploads go to the throwaway folder too, never into data/.
 from app.services import cover_letter as _cover_letter  # noqa: E402

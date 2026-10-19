@@ -15,6 +15,8 @@ from app.providers.registry import hunter as hunter_provider
 from app.schemas.get_contact import (
     ContactEdit,
     ContactSearchIn,
+    FindIn,
+    FindOut,
     FoundIn,
     GetContactView,
     HunterCredits,
@@ -26,9 +28,10 @@ from app.schemas.get_contact import (
     PasteOut,
     ToGetItem,
     ToGetQueue,
+    UseIn,
     VerifyIn,
 )
-from app.services import contact_paste, contacts, get_contact
+from app.services import contact_paste, contact_waterfall, contacts, get_contact
 from app.services.pipeline import stage_label
 from app.services.views import fit_brief, latest_fits
 
@@ -225,3 +228,37 @@ def hunter_verify(body: HunterVerifyIn, session: SessionDep,
     session.commit()
     return HunterVerifyOut(email=v.email, result=v.result, status=v.status, score=v.score,
                            credits=_credits(workspace))
+
+
+@router.post("/applications/{app_id}/contact/find", response_model=FindOut)
+def find_contact(app_id: int, body: FindIn, session: SessionDep,
+                 workspace: WorkspaceDep) -> FindOut:
+    """The contact waterfall: cache, Hunter, Prospeo, Apollo, Apify, local pattern. One click; it
+    stops at the first verified email and shows the top 3. Saves the verified people on the
+    company (with provenance) but does not pick one for the job: that is "Use"."""
+    app = get_or_404(session, Application, app_id, "Application")
+    try:
+        out = contact_waterfall.run(session, app, requery=body.requery, domain=body.domain,
+                                    mock=True if workspace == "demo" else None)
+    except contact_waterfall.WaterfallError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    session.refresh(app)
+    return FindOut(domain=out.domain, domain_source=out.domain_source,
+                   steps=[s.__dict__ for s in out.steps], candidates=out.candidates,
+                   found_by=out.found_by, from_cache=out.from_cache, credits=out.credits,
+                   usd=out.usd, view=_view(session, app))
+
+
+@router.post("/applications/{app_id}/contact/use", response_model=GetContactView)
+def use_contact(app_id: int, body: UseIn, session: SessionDep) -> GetContactView:
+    """Pick one of the waterfall's contacts for this job (it still asks "still there?")."""
+    app = get_or_404(session, Application, app_id, "Application")
+    contact = get_or_404(session, Contact, body.contact_id, "Contact")
+    job = session.get(Job, app.job_id)
+    if contact.company_id != job.company_id or contact.left_at is not None:
+        raise HTTPException(422, "That contact isn't available for this job")
+    contacts.set_contact(session, app, contact)
+    session.commit()
+    session.refresh(app)
+    return _view(session, app)

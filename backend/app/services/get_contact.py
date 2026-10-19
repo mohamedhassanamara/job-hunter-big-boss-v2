@@ -101,6 +101,13 @@ def provenance(s: Session, contact: Contact) -> dict[str, Any]:
             return {"kind": "import", "label": run.filename, "at": run.started_at}
         return {"kind": "import", "label": contact.imported_batch or "an import",
                 "at": contact.created_at}
+    if contact.found_by_provider:
+        who = {"pattern": "the company's email pattern, verified"}.get(
+            contact.found_by_provider, contact.found_by_provider.capitalize())
+        where = f" ({contact.found_by_actor or contact.found_by_key})" \
+            if contact.found_by_actor or contact.found_by_key else ""
+        return {"kind": str(contact.source), "label": f"{who}{where}",
+                "at": contact.found_at or contact.created_at}
     label = {ContactSource.found: "you, with the Apollo extension",
              ContactSource.hunter: "Hunter (you confirmed it)",
              ContactSource.manual: "you, by hand"}.get(ContactSource(contact.source), "you")

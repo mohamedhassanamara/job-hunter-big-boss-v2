@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSaveSetting } from '@/lib/queries/library'
 import type { RoleGroup, SettingsView } from '@/lib/types'
+import { ProvidersCard } from './ProvidersCard'
 import { Card, Field, SaveBar } from './sections'
 
 const SMALL_DEFAULT = ['CTO', 'Founder / CEO', 'VP / Head of Engineering', 'Head of Data / AI / ML', 'Engineering Manager', 'Tech Lead', 'HR / Talent']
@@ -111,6 +112,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
   }
 
   return (
+    <div className="space-y-6">
     <Card
       title="Contacts"
       description="The order decides who each job's email goes to: the first group with someone at the company wins, in the order for its size. Keywords match whole words in the title, ignoring accents and case."
@@ -177,5 +179,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
         </div>
       </Field>
     </Card>
+    <ProvidersCard settings={settings} />
+    </div>
   )
 }

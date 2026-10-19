@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     smtp_app_password: str = ""
     # Hunter.io (optional "Try Hunter" in the Get contact step; never called automatically).
     hunter_api_key: str = ""
+    # Contact providers (Phase 12). Keys are comma-separated and tried in order; only the Get
+    # contact waterfall (one click) uses them, never discovery or the scheduler.
+    hunter_api_keys: str = ""
+    prospeo_api_keys: str = ""
+    apollo_api_keys: str = ""
+    apify_token: str = ""
     # The send queue worker (real workspace only; tests turn it off).
     send_worker_enabled: bool = True
 

@@ -24,6 +24,7 @@ export const keys = {
   toGet: ['to-get'] as const,
   getContact: (appId: number) => ['get-contact', appId] as const,
   hunterCredits: ['hunter-credits'] as const,
+  providers: ['providers'] as const,
   settings: ['settings'] as const,
   searchProfile: ['search-profile'] as const,
   search: (q: string) => ['search', q] as const,

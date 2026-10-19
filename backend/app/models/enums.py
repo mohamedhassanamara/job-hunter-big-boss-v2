@@ -66,6 +66,10 @@ class ContactSource(StrEnum):
     found = "found"  # you found them (Apollo extension) in the Get contact step
     manual = "manual"  # added by hand from Change contact
     hunter = "hunter"  # Try Hunter found the email (you confirmed it)
+    prospeo = "prospeo"  # the contact waterfall (Phase 12): see contact.found_by_*
+    apollo = "apollo"
+    apify = "apify"
+    pattern = "pattern"  # email built from the company's pattern, then verified
     linkedin = "linkedin"  # someone to message on LinkedIn (hiring team, alumni…): no email needed
 
 

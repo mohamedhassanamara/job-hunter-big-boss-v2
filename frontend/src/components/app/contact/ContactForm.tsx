@@ -25,6 +25,7 @@ export function ContactForm({
   onCancel,
   withPaste = true,
   withHunter = true,
+  quiet = false,
   pasteRef,
 }: {
   appId: number
@@ -36,6 +37,8 @@ export function ContactForm({
   onCancel?: () => void
   withPaste?: boolean
   withHunter?: boolean
+  /** Another button on the screen is the primary one. */
+  quiet?: boolean
   pasteRef?: Ref<HTMLTextAreaElement>
 }) {
   const [fields, setFields] = useState<ContactFields>({ ...EMPTY, ...initial })
@@ -136,9 +139,9 @@ export function ContactForm({
         <Input value={fields.linkedin_url} onChange={(e) => set('linkedin_url', e.target.value)} placeholder="LinkedIn profile URL" aria-label="LinkedIn URL" autoComplete="off" />
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit" size="sm" variant="default" disabled={!valid || pending}>
+        <Button type="submit" size="sm" variant={quiet ? 'outline' : 'default'} disabled={!valid || pending}>
           {pending ? 'Saving…' : submitLabel}
-          <Kbd className="border-transparent bg-primary-hover text-primary-fg">⌘↵</Kbd>
+          <Kbd className={quiet ? undefined : 'border-transparent bg-primary-hover text-primary-fg'}>⌘↵</Kbd>
         </Button>
         {onCancel && (
           <Button type="button" size="sm" variant="ghost" onClick={onCancel}>

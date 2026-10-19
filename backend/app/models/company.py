@@ -31,6 +31,14 @@ class Company(TableBase, table=True):
     contact_search: ContactSearch = enum_field(ContactSearch.none)
     contact_search_at: datetime | None = dt_field()
     contact_search_notes: str = Field(default="", sa_type=Text)
+    # Phase 12 company cache: what the contact waterfall learned (the providers already queried and
+    # when are in `company_provider_run`; people are the company's `contact` rows with provenance).
+    domain_source: str | None = None  # manual | pdl | listing | provider
+    industry: str | None = None
+    email_pattern: str | None = None  # "{first}.{last}" (Hunter's notation)
+    pattern_confidence: int | None = None  # 0-100
+    pattern_evidence: dict[str, Any] = json_field(dict)  # {"source": ..., "samples": [...]}
+    last_enriched_at: datetime | None = dt_field()
 
 
 class CompanyAlias(TableBase, table=True):
@@ -83,6 +91,12 @@ class Contact(TableBase, table=True):
     verified_how: str | None = None  # entered | still_there | hunter
     left_at: datetime | None = dt_field()
     left_reason: str | None = None  # left | wrong_person
+    # Provenance of a contact a provider found (Phase 12), and the deliverability of its email.
+    found_by_provider: str | None = None  # hunter | prospeo | apollo | apify | pattern
+    found_by_key: str | None = None  # key label ("prospeo#2"), never the key itself
+    found_by_actor: str | None = None  # the Apify Actor
+    found_at: datetime | None = dt_field()
+    verification_status: str | None = None  # valid | accept_all | unknown | invalid
 
 
 class ContactImport(TableBase, table=True):

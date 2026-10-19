@@ -99,7 +99,7 @@ export default function SettingsPage() {
             ) : section === 'schedule' ? (
               <ScheduleSection key={JSON.stringify(settings.data.values.schedule)} settings={settings.data} />
             ) : section === 'contacts' ? (
-              <ContactsSection key={JSON.stringify([settings.data.values.contacts, settings.data.values.lookup])} settings={settings.data} />
+              <ContactsSection key={JSON.stringify([settings.data.values.contacts, settings.data.values.lookup, settings.data.values.providers])} settings={settings.data} />
             ) : section === 'tracking' ? (
               <TrackingSection key={JSON.stringify(settings.data.values.tracking)} settings={settings.data} />
             ) : section === 'models' ? (

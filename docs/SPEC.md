@@ -545,3 +545,16 @@ Apollo CSV import (mock preview), and the Get contact step (a job to get, one to
 
 Not in phase 0: real API clients, Ollama/Claude calls, LaTeX compile, SMTP, and scheduler jobs.
 
+
+## Find contact (Phase 12)
+
+In Get contact, with no contact for the job, the top of the panel is **Find contact** (the screen's one
+primary button; the manual Apollo-extension flow and its Save contact stay below as the last resort).
+One click runs the waterfall in docs/CONTACT_SOURCES.md and shows, in order: each step with its status,
+key and cost; "This click: N credits · $X"; and the top 3 people by your ranking with title, source
+(provider · Actor · key), email status (verified / catch-all: not used / unverified / not revealed) and any
+"may have left" finding. **Use** sets a verified person on the job (it still asks "still there?").
+States: loading ("Looking…"), result, nobody verified (points to the extension), no domain (a domain field
+appears; no provider is called), error (toast). "Ask the providers again" re-queries a cached company.
+Settings → Contacts → Contact providers: credits left per key, disabled keys (Enable again), Sync, cache
+age, Apollo monthly credits, last calls. Today → Contacts to get shows the credits left this month.

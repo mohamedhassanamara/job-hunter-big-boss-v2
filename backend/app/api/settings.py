@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
-    "motivation",
+    "motivation", "providers",
 }
 
 
@@ -166,6 +166,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
             raise HTTPException(422, "ghost_after_days must be between 1 and 365")
     if key == "contacts":
         _check_contacts(body.value)
+    if key == "providers":
+        _check_providers(body.value)
     if key == "outreach":
         _check_outreach(body.value)
     if key == "cover_letter":
@@ -402,3 +404,18 @@ def erase_workspace(body: EraseIn) -> None:
     if is_running():
         raise HTTPException(409, "A discovery run is in progress")
     seed(engine, empty=True)
+
+
+def _check_providers(value: dict) -> None:
+    days = value.get("max_age_days")
+    if days is not None and (not isinstance(days, int) or not 1 <= days <= 730):
+        raise HTTPException(422, "max_age_days must be between 1 and 730")
+    reveals = value.get("max_reveals")
+    if reveals is not None and (not isinstance(reveals, int) or not 0 <= reveals <= 5):
+        raise HTTPException(422, "max_reveals must be between 0 and 5")
+    limits = value.get("limits")
+    if limits is not None:
+        if not isinstance(limits, dict) or set(limits) - {"hunter", "prospeo", "apollo", "apify"}:
+            raise HTTPException(422, "limits must map hunter/prospeo/apollo/apify to numbers")
+        if not all(isinstance(v, (int, float)) and 0 <= v <= 100_000 for v in limits.values()):
+            raise HTTPException(422, "A monthly limit is a number between 0 and 100000")

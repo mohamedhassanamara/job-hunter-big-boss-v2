@@ -165,6 +165,26 @@ def hunter(*, mock: bool | None = None):  # noqa: ANN201
     return HunterClient(get_settings().hunter_api_key)
 
 
+def contact_finders(*, mock: bool | None = None) -> dict:
+    """Hunter, Prospeo, Apollo and Apify, in waterfall order. Only the Get contact waterfall
+    (one click) calls them. The sandbox and tests: the mock, which makes no request."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        from app.providers.contact_finders.mock import MockFinder
+
+        return {"hunter": MockFinder("hunter"),
+                "prospeo": MockFinder("prospeo", needs_reveal=True, finds=True),
+                "apollo": MockFinder("apollo", needs_reveal=True),
+                "apify": MockFinder("apify", "usd")}
+    from app.providers.contact_finders.apify import ApifyFinder
+    from app.providers.contact_finders.apollo import ApolloFinder
+    from app.providers.contact_finders.hunter import HunterFinder
+    from app.providers.contact_finders.prospeo import ProspeoFinder
+
+    return {"hunter": HunterFinder(), "prospeo": ProspeoFinder(), "apollo": ApolloFinder(),
+            "apify": ApifyFinder()}
+
+
 _mock_mailer = MockMailer()
 
 
