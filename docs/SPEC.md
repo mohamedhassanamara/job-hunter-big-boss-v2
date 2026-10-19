@@ -586,3 +586,11 @@ The job detail shows up to three amber hints read in code from the listing: no s
 descriptions only), hype wording (rockstar, ninja, guru, "like a family"…), a posting older than 90 days. They never
 change the fit score or hide a job. Contacts → ranking: titles containing a word of "Never match titles containing"
 (Settings → Contacts) match no role group. Find contact is also offered in the Verify state.
+
+## Domain accuracy (Phase 12c)
+
+Find contact shows the domain it asks about ("at sekoia.io (website sekoia.com)"). **Not the right domain?**
+opens the picker: every known domain with its source, whether it receives email (green "receives email" / red
+"no MX") and a **Use this one** button, plus a field for the website's domain. When a provider finds nobody at a
+domain the card stops with an amber question: "Hunter found nobody at sekoia.com. No other provider was paid for
+it", with one button per domain that receives email ("Look at sekoia.io"). A domain with no MX is never searched.

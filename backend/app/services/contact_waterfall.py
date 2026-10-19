@@ -12,12 +12,13 @@ Unverified, catch-all (accept_all) and guessed addresses are shown, never used s
 - Called only from api/get_contact.py (tests/test_waterfall.py guards that).
 """
 
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, or_, select
 
 from app.models import Application, Company, CompanyProviderRun, Contact, Job
 from app.models.base import utcnow
@@ -32,7 +33,15 @@ from app.providers.contact_finders import (
     RateLimited,
     Search,
 )
-from app.services import company_resolve, contact_check, email_pattern, listing, provider_quota
+from app.services import (
+    company_resolve,
+    contact_check,
+    dns_check,
+    domains,
+    email_pattern,
+    listing,
+    provider_quota,
+)
 from app.services import contacts as contacts_svc
 from app.services.contacts import UNRANKED, rank, ranking_settings
 
@@ -69,6 +78,11 @@ class Outcome:
     candidates: list[dict[str, Any]] = field(default_factory=list)
     found_by: str | None = None
     from_cache: bool = False
+    lookup_domain: str | None = None  # the domain the providers were asked about
+    email_domain: str | None = None  # the company's stored email domain after this run
+    # A question for you instead of another paid call: {reason, domain, alternatives:[{domain,
+    # source, mx}]} (domains that receive email), answered by running again with email_domain.
+    choice: dict[str, Any] | None = None
 
     @property
     def credits(self) -> float:
@@ -98,11 +112,13 @@ def _position(title: str | None, ranking: Any, order: list[int]) -> tuple[int, s
     return (order.index(idx) if idx in order else UNRANKED), label
 
 
-def _fresh_run(s: Session, company_id: int, provider: str,
-               max_age_days: int) -> CompanyProviderRun | None:
+def _fresh_run(s: Session, company_id: int, provider: str, max_age_days: int,
+               domain: str | None = None) -> CompanyProviderRun | None:
+    """A recent run for this company and domain (runs from before domains were recorded match)."""
     cutoff = utcnow() - timedelta(days=max_age_days)
     return s.exec(select(CompanyProviderRun).where(
         CompanyProviderRun.company_id == company_id, CompanyProviderRun.provider == provider,
+        or_(col(CompanyProviderRun.domain).is_(None), CompanyProviderRun.domain == domain),
         CompanyProviderRun.status.in_(["ok", "empty"]),  # type: ignore[attr-defined]
         CompanyProviderRun.queried_at >= cutoff)
         .order_by(col(CompanyProviderRun.queried_at).desc())).first()
@@ -195,17 +211,26 @@ def _known_samples(s: Session, company: Company, domain: str) -> list[tuple[str,
 
 
 def run(s: Session, app: Application, *, requery: bool = False, domain: str | None = None,
-        mock: bool | None = None, finders: dict[str, Any] | None = None) -> Outcome:
+        email_domain: str | None = None, mock: bool | None = None,
+        finders: dict[str, Any] | None = None, mx_lookup: dns_check.Lookup | None = None,
+        site_fetcher: Callable[[str], str | None] | None = None) -> Outcome:
     job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id)
     use_mock = (mock if mock is not None else registry.get_settings().job_sources == "mock")
     resolved = company_resolve.resolve(
         s, company, domain=domain, fetcher=None if use_mock else listing.company_url_of)
     out = Outcome(resolved.domain, resolved.source)
-    if not resolved.domain:
+    if not resolved.domain and not email_domain and not company.email_domain:
         out.steps.append(Step("manual", "skipped", "no domain for this company: enter it, or use "
                               "the Apollo extension"))
         return out
+    # The domain providers are asked about: one you just chose, else the stored email domain, else
+    # the website's.
+    lookup = domains.clean_domain(email_domain) or domains.lookup_domain(company) \
+        or resolved.domain
+    out.lookup_domain = lookup
+    if use_mock and mx_lookup is None:  # the sandbox never touches DNS: only this domain has MX
+        mx_lookup = lambda d, _own=lookup: ["mx.sandbox.test"] if d == _own else []  # noqa: E731
     cfg = provider_quota.settings(s)
     ranking, order, titles = _order_titles(s, company, job)
     finders = finders or registry.contact_finders(mock=use_mock)
@@ -236,12 +261,36 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
                     p.full_name == cand.full_name for p in pool):
                 pool.append(cand)
 
+    # Free first: does the domain receive email at all? If not, another known domain does (PDL's
+    # other companies, the listing, the apply link, the website's contact page); only if none
+    # does, stop and ask, before a credit is spent.
+    # (a domain you just picked is always checked afresh, whatever was cached)
+    if domains.mx(company, lookup, mx_lookup, force=bool(email_domain)) is False:
+        for d in domains.site_domains(company.website or resolved.domain,
+                                      None if use_mock else site_fetcher or listing.fetch_text):
+            domains.register(company, d, "website contact page")
+        known_mx = domains.alternatives(company, lookup, mx_lookup)
+        if known_mx:
+            use = known_mx[0]
+            out.steps.append(Step("manual", "skipped", f"{lookup} receives no email (no MX): "
+                                  f"using {use['domain']} instead ({use['source']})"))
+            lookup = out.lookup_domain = known_mx[0]["domain"]
+        else:
+            guesses = domains.alternatives(company, lookup, mx_lookup, guess=True)
+            out.steps.append(Step("manual", "no_mx", f"{lookup} receives no email (no MX "
+                                  "records) and no other known domain does: nothing was spent"))
+            out.choice = {"reason": f"{lookup} receives no email", "domain": lookup,
+                          "alternatives": guesses}
+            _finish(s, out, [], pool, ranking, order, company)
+            return out
+    tried = {lookup}
     if not use_mock:  # about to spend: start from the providers' real balances (free calls)
         for warning in provider_quota.sync_remote(s):
             out.steps.append(Step("manual", "skipped", warning))
     for provider in WATERFALL:
         finder, step = finders[provider], Step(provider, "empty")
-        prior = None if requery else _fresh_run(s, company.id, provider, cfg["max_age_days"])
+        prior = None if requery else _fresh_run(s, company.id, provider, cfg["max_age_days"],
+                                                lookup)
         if prior is not None:
             step.status = "cached"
             step.detail = (f"already queried {prior.queried_at:%Y-%m-%d} "
@@ -253,7 +302,7 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
         try:
             search: Search = _call(
                 s, provider, NEED[provider],
-                lambda key, f=finder: _timed(f.search(key, resolved.domain, titles)),
+                lambda key, f=finder: _timed(f.search(key, lookup, titles)),
                 keys=keys_of(provider), company_id=company.id, step=step)
         except _Stop:
             out.steps.append(step)
@@ -265,18 +314,26 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
                            if _position(c.title, ranking, order)[0] != UNRANKED),
                           key=lambda c: (_position(c.title, ranking, order)[0], c.email is None))
         s.add(CompanyProviderRun(company_id=company.id, provider=provider, key_label=label,
-                                 status="ok" if search.candidates else "empty",
+                                 domain=lookup, status="ok" if search.candidates else "empty",
                                  credits=step.credits, cost_usd=step.usd,
                                  candidates=[c.as_dict() for c in search.candidates]))
         if search.pattern and not company.email_pattern:
             company.email_pattern, company.pattern_confidence = search.pattern, 70
-            company.pattern_evidence = {"source": provider, "domain": resolved.domain}
+            company.pattern_evidence = {"source": provider, "domain": lookup}
         company.last_enriched_at = utcnow()
         for k, v in (("industry", search.organization.get("industry")),
                      ("linkedin_url", search.organization.get("linkedin_url"))):
             if v and not getattr(company, k):
                 setattr(company, k, v)
         s.add(company)
+        if not search.candidates:  # nobody at all: is it the right domain? (free check) then ask
+            others = domains.alternatives(company, lookup, mx_lookup, guess=True, skip=tried)
+            if others:
+                step.detail = f"found nobody at {lookup}"
+                out.steps.append(step)
+                out.choice = {"reason": f"{provider.capitalize()} found nobody at {lookup}",
+                              "domain": lookup, "alternatives": others}
+                break
         good = [c for c in ranked_c if c.verified]
         # Reveal (paid) the best-ranked people who have an email, up to max_reveals.
         reveals = 0
@@ -301,6 +358,7 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
                 verified.append((cand, _persist(s, company, cand, ContactSource(provider),
                                                 ranking)))
             out.found_by = provider
+            _remember_email_domain(company, [c for c, _ in verified], lookup, out)
             add_pool([c for c in ranked_c if not c.verified])
             break
         step.detail = step.detail or (f"{len(ranked_c)} relevant people, no verified email"
@@ -309,14 +367,36 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
         out.steps.append(step)
 
     # 6. Local pattern: build the address from the company's pattern, verify it before use.
-    if not verified and pool:
-        _pattern_step(s, out, company, resolved.domain, pool, finders, keys_of, cfg, ranking,
+    if not verified and pool and out.choice is None:
+        _pattern_step(s, out, company, lookup, pool, finders, keys_of, cfg, ranking,
                       order, verified)
-    if not verified:
+        if verified:
+            _remember_email_domain(company, [c for c, _ in verified], lookup, out)
+    if not verified and out.choice is None:
         out.steps.append(Step("manual", "skipped", "no verified email found: use the Apollo "
                               "extension (Get contact panel)"))
     _finish(s, out, [(c, ct) for c, ct in verified], pool, ranking, order, company)
     return out
+
+
+def _remember_email_domain(company: Company, found: list[Candidate], lookup: str,
+                           out: Outcome) -> None:
+    """Verified emails prove which domain mail goes to: store it beside the website's, and use
+    it next time (sekoia.com's people are all @sekoia.io)."""
+    common = Counter((c.email or "").rsplit("@", 1)[-1].lower() for c in found if c.email)
+    if not common:
+        return
+    domain = common.most_common(1)[0][0]
+    company.email_domain = domain
+    domains.register(company, domain, "verified email")
+    known = dict(company.domains)
+    known[domain] = {**known[domain], "mx": True, "checked_at": utcnow().isoformat()}
+    company.domains = known
+    out.email_domain = domain
+    if company.domain and domain != company.domain:
+        out.steps.append(Step("manual", "found", f"verified emails are at @{domain} but the "
+                              f"website is {company.domain}: both are stored, @{domain} is used "
+                              "next time"))
 
 
 def _timed(search: Search) -> tuple[Search, Cost, str]:

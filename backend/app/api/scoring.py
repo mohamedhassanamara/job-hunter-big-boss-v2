@@ -153,6 +153,9 @@ def fetch_full(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> Ful
     if listing.company_url and company is not None and not company.website:
         company.website = listing.company_url  # captured: used to find the company's domain
         session.add(company)
+    if listing.linkedin_url and company is not None and not company.linkedin_url:
+        company.linkedin_url = listing.linkedin_url  # evidence for picking the right PDL company
+        session.add(company)
     if listing.apply_url and not job.apply_url and listing.apply_url != job.url:
         job.apply_url = listing.apply_url
         session.add(job)

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
+import type { CompanyDomains, ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
 
 /** Contacts to get: jobs past New that need a contact or a verification, best fit first. */
@@ -51,8 +51,8 @@ export function useFoundContact() {
 export function useFindContact() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ appId, requery = false, domain }: { appId: number; requery?: boolean; domain?: string }) =>
-      api.post<FindContactResult>(`/applications/${appId}/contact/find`, { requery, domain: domain || null }),
+    mutationFn: ({ appId, requery = false, domain, emailDomain }: { appId: number; requery?: boolean; domain?: string; emailDomain?: string }) =>
+      api.post<FindContactResult>(`/applications/${appId}/contact/find`, { requery, domain: domain || null, email_domain: emailDomain || null }),
     onSuccess: (res) => qc.setQueryData(keys.getContact(res.view.application_id), res.view),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: keys.providers })
@@ -109,5 +109,20 @@ export function useHunterVerify() {
   return useMutation({
     mutationFn: (email: string) => api.post<HunterVerified>('/hunter/verify', { email }),
     onSuccess: (r) => qc.setQueryData(keys.hunterCredits, r.credits),
+  })
+}
+
+/** Every domain known for a company and whether it receives email (a free DNS lookup). */
+export function useCompanyDomains(companyId: number, enabled: boolean) {
+  return useQuery({ queryKey: keys.companyDomains(companyId), queryFn: () => api.get<CompanyDomains>(`/companies/${companyId}/domains`), enabled })
+}
+
+/** Ask the providers about this domain from now on (null: back to the website's). */
+export function useSetEmailDomain() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ companyId, emailDomain }: { companyId: number; emailDomain: string | null }) =>
+      api.put<CompanyDomains>(`/companies/${companyId}/domains`, { email_domain: emailDomain }),
+    onSuccess: (data) => qc.setQueryData(keys.companyDomains(data.company_id), data),
   })
 }

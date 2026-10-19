@@ -16,6 +16,7 @@ class CompanyProviderRun(TableBase, table=True):
     company_id: int = Field(foreign_key="company.id", index=True)
     provider: str = Field(index=True)  # hunter | prospeo | apollo | apify
     key_label: str | None = None
+    domain: str | None = None  # the domain searched (a run for another domain is not a cache hit)
     queried_at: datetime = dt_field(default_factory=utcnow)
     status: str = "ok"  # ok | empty | error
     credits: float = 0

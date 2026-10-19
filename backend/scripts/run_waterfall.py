@@ -31,8 +31,10 @@ class Skipped:
 ap = argparse.ArgumentParser()
 ap.add_argument("application_id", type=int)
 ap.add_argument("--domain")
+ap.add_argument("--email-domain", help="look at this domain (one the last run offered)")
 ap.add_argument("--requery", action="store_true")
-ap.add_argument("--skip", default="", help="providers to leave out, e.g. hunter,prospeo (tests the later steps)")
+ap.add_argument("--skip", default="",
+                help="providers to leave out, e.g. hunter,prospeo (tests the later steps)")
 args = ap.parse_args()
 
 with Session(engine) as s:
@@ -42,12 +44,17 @@ with Session(engine) as s:
     fs = registry.contact_finders(mock=False)
     for name in filter(None, args.skip.split(",")):
         fs[name] = Skipped(name, fs[name].unit)
-    out = contact_waterfall.run(s, app, requery=args.requery, domain=args.domain, mock=False,
-                                finders=fs)
+    out = contact_waterfall.run(s, app, requery=args.requery, domain=args.domain,
+                                email_domain=args.email_domain, mock=False, finders=fs)
     s.commit()
     print(f"# application {app.id}: {job.title} @ {company.name}")
-    print(f"domain: {out.domain} ({out.domain_source}); found_by: {out.found_by}; "
+    print(f"website: {out.domain} ({out.domain_source}); asked about: {out.lookup_domain}; "
+          f"email domain stored: {out.email_domain}; found_by: {out.found_by}; "
           f"from_cache: {out.from_cache}")
+    if out.choice:
+        print(f"ASK: {out.choice['reason']}. Domains that receive email: "
+              f"{[(a['domain'], a['source']) for a in out.choice['alternatives']]}"
+              "  -> rerun with --email-domain <domain>")
     for st in out.steps:
         spent = f"  [{st.credits:g} credits, ${st.usd:.3f}]" if st.credits or st.usd else ""
         print(f"  - {st.provider:8} {st.status:12} {st.key_label or '':11} {st.detail}{spent}")
@@ -56,5 +63,6 @@ with Session(engine) as s:
         flag = "VERIFIED" if c["verified"] else "not used"
         print(f"  * {c['full_name']} | {c['title']} | {c['email'] or '-'} | {flag} "
               f"| via {c['provider']} {c['key_label'] or ''} | {c['note']} {c['alerts'] or ''}")
-    print("keys now:", [(k.label, f"{k.remaining:g} {k.unit} left", "DISABLED" if k.disabled else "")
+    print("keys now:", [(k.label, f"{k.remaining:g} {k.unit} left",
+                         "DISABLED" if k.disabled else "")
                         for k in provider_quota.status(s)])

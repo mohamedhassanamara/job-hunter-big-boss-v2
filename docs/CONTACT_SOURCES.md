@@ -28,6 +28,27 @@ order) are shown with title, source (provider, key label, Actor) and verificatio
 "may have left" check (`contact_check.scan`) runs on every verified contact shown. A found contact
 is saved on the company with `verified_at` empty: you still confirm "still there?" before drafting.
 
+## Domain accuracy before any credit (Phase 12c)
+
+1. **PDL by evidence.** When PDL has several companies with the same name, the winner is picked by:
+   the company's LinkedIn page captured from the job (the LinkedIn bookmark, or the listing's
+   `hiringOrganization.sameAs`), then a country the job is in, then the largest. The others are kept
+   as alternatives on the company (`company.domains`) and shown in "Not the right domain?".
+2. **Free MX check.** Before any provider is called, the lookup domain must receive email (an MX
+   lookup, DNS only; unknown answers don't block). If it doesn't, the company's other known domains
+   are tried first (PDL's other companies, the listing, the apply link, the addresses on the website's
+   home and contact pages); only when none receives email does it stop, having spent nothing, and
+   ask.
+3. **Nobody found = ask, not pay.** When a provider returns nobody at all for a domain, the next paid
+   provider is NOT asked about that same domain. The app lists the other domains that receive email
+   (known ones, then the same name under other common endings such as .io/.com) and asks which is
+   the company's; picking one runs the waterfall for that domain. With no alternative to offer it
+   goes on to the next provider as before.
+4. **Two domains stored.** Verified emails prove where mail goes: `company.email_domain` is set from
+   them (sekoia.io) beside the website's `company.domain` (sekoia.com) and is the domain used next
+   time. Provider runs record the domain they searched, so a run for one domain never hides the
+   need to search another. Guessed endings are only ever offered to you, never used on their own.
+
 ## Quotas and keys
 
 - Per-key monthly counters (`provider_usage`, period `YYYY-MM`, so a new month starts at zero);

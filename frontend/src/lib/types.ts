@@ -1012,9 +1012,41 @@ export interface WaterfallCandidate {
   alerts: string[] // "may have left" findings
 }
 
+export interface DomainChoice {
+  domain: string
+  source: string // pdl | listing | apply link | website contact page | verified email | guess…
+  mx: boolean | null
+}
+
+export interface FindChoice {
+  reason: string
+  domain: string
+  alternatives: DomainChoice[] // domains that receive email: which one is the company's?
+}
+
+export interface CompanyDomain {
+  domain: string
+  source: string
+  note: string
+  mx: boolean | null // receives email (MX records); null = couldn't tell
+  is_website: boolean
+  in_use: boolean // providers are asked about this one
+}
+
+export interface CompanyDomains {
+  company_id: number
+  website: string | null
+  email: string | null
+  in_use: string | null
+  domains: CompanyDomain[]
+}
+
 export interface FindContactResult {
   domain: string | null
   domain_source: string | null
+  lookup_domain: string | null
+  email_domain: string | null
+  choice: FindChoice | null
   steps: WaterfallStep[]
   candidates: WaterfallCandidate[]
   found_by: string | null

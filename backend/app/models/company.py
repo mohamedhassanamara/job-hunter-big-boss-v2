@@ -39,6 +39,11 @@ class Company(TableBase, table=True):
     pattern_confidence: int | None = None  # 0-100
     pattern_evidence: dict[str, Any] = json_field(dict)  # {"source": ..., "samples": [...]}
     last_enriched_at: datetime | None = dt_field()
+    # The domain mail and provider lookups use when it isn't the website's (sekoia.com vs
+    # sekoia.io): set from verified emails or by you. `domain` stays the website's.
+    email_domain: str | None = None
+    # Every known domain: {domain: {source, mx, checked_at, note}} (services/domains.py)
+    domains: dict[str, Any] = json_field(dict)
 
 
 class CompanyAlias(TableBase, table=True):

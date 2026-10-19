@@ -29,6 +29,7 @@ class FullListing:
     description: str
     location_requirements: str | None = None
     company_url: str | None = None  # hiringOrganization.sameAs / url: the company's own website
+    linkedin_url: str | None = None  # the company's LinkedIn page, when the listing gives it
     apply_url: str | None = None  # the posting's own url when it points away from the page read
 
 
@@ -54,14 +55,29 @@ def _requirements(posting: dict[str, Any]) -> str | None:
     return ", ".join(names) or None
 
 
-def _org_url(posting: dict[str, Any]) -> str | None:
+def _org_links(posting: dict[str, Any]) -> list[str]:
     org = posting.get("hiringOrganization")
-    for candidate in ((org.get("sameAs"), org.get("url")) if isinstance(org, dict) else ()):
-        values = candidate if isinstance(candidate, list) else [candidate]
-        for v in values:
-            if isinstance(v, str) and v.startswith("http"):
-                return v
-    return None
+    if not isinstance(org, dict):
+        return []
+    out: list[str] = []
+    for candidate in (org.get("sameAs"), org.get("url")):
+        for v in candidate if isinstance(candidate, list) else [candidate]:
+            if isinstance(v, str) and v.startswith("http") and v not in out:
+                out.append(v)
+    return out
+
+
+def _is_linkedin(url: str) -> bool:
+    return "linkedin.com/" in url.lower()
+
+
+def _org_url(posting: dict[str, Any]) -> str | None:
+    """The company's own website (never a LinkedIn page)."""
+    return next((u for u in _org_links(posting) if not _is_linkedin(u)), None)
+
+
+def _org_linkedin(posting: dict[str, Any]) -> str | None:
+    return next((u for u in _org_links(posting) if "linkedin.com/company" in u.lower()), None)
 
 
 def extract_job_posting(html: str) -> FullListing | None:
@@ -80,6 +96,7 @@ def extract_job_posting(html: str) -> FullListing | None:
             url = posting.get("url")
             return FullListing(description=text, location_requirements=_requirements(posting),
                                company_url=_org_url(posting),
+                               linkedin_url=_org_linkedin(posting),
                                apply_url=url if isinstance(url, str) and url.startswith("http")
                                else None)
     return None
@@ -125,3 +142,18 @@ def with_location_requirements(listing: FullListing) -> str:
             f"{listing.location_requirements}"
         )
     return listing.description
+
+
+def fetch_text(url: str, client: PoliteClient | None = None) -> str | None:
+    """A page's text for reading addresses from (the company's own site), or None when it can't be
+    fetched. One polite request, honest User-Agent; a block (403, 429) is just None."""
+    own = client is None
+    client = client or PoliteClient("Website", min_interval=0, retries=0, timeout=10,
+                                    headers={"Accept": "text/html,application/xhtml+xml"})
+    try:
+        return client.request("GET", url).text[:400_000]
+    except SourceError:
+        return None
+    finally:
+        if own:
+            client.close()

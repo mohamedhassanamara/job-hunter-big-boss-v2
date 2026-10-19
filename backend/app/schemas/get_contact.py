@@ -147,7 +147,8 @@ class HunterVerifyOut(BaseModel):
 
 class FindIn(BaseModel):
     requery: bool = False  # ask the providers again even though the company is cached
-    domain: str | None = None  # the company's domain, when none could be resolved
+    domain: str | None = None  # the company's website domain (typed): replaces what was learned
+    email_domain: str | None = None  # look here instead (one of the offered domains)
 
 
 class WaterfallStep(BaseModel):
@@ -175,9 +176,26 @@ class WaterfallCandidate(BaseModel):
     alerts: list[str]  # "may have left" findings on this contact
 
 
+class DomainChoice(BaseModel):
+    domain: str
+    source: str  # pdl | listing | apply link | website contact page | verified email | guess…
+    mx: bool | None = True
+
+
+class FindChoice(BaseModel):
+    """Instead of another paid call: these domains receive email, which one is it?"""
+
+    reason: str
+    domain: str
+    alternatives: list[DomainChoice]
+
+
 class FindOut(BaseModel):
     domain: str | None
     domain_source: str | None
+    lookup_domain: str | None
+    email_domain: str | None
+    choice: FindChoice | None
     steps: list[WaterfallStep]
     candidates: list[WaterfallCandidate]  # the top 3 by your ranking
     found_by: str | None
@@ -189,3 +207,24 @@ class FindOut(BaseModel):
 
 class UseIn(BaseModel):
     contact_id: int
+
+
+class DomainOut(BaseModel):
+    domain: str
+    source: str
+    note: str
+    mx: bool | None  # receives email (MX records); None = couldn't tell
+    is_website: bool
+    in_use: bool  # providers are asked about this one
+
+
+class CompanyDomains(BaseModel):
+    company_id: int
+    website: str | None
+    email: str | None
+    in_use: str | None
+    domains: list[DomainOut]
+
+
+class EmailDomainIn(BaseModel):
+    email_domain: str | None = None  # None: back to the website's domain

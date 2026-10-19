@@ -17,15 +17,15 @@ Steps 1-3 make no network request.
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from urllib.parse import urlsplit
+from typing import Any
 
 from sqlmodel import Session, select
 
 from app.config import DATA_DIR
 from app.models import Company, Job
-from app.services import geo, research
+from app.services import domains, geo, research
 from app.services.dedupe import _LEGAL_SUFFIXES, normalize_company
 
 PDL_PATH = DATA_DIR / "pdl" / "companies.parquet"
@@ -51,6 +51,8 @@ class Resolved:
     industry: str | None = None
     employees_max: int | None = None
     note: str = ""
+    evidence: str = ""  # why this match won: linkedin | country | size | only
+    alternatives: list[dict[str, Any]] = field(default_factory=list)  # the other PDL companies
 
 
 def name_key_sql(column: str = "name") -> str:
@@ -66,48 +68,66 @@ def name_key_sql(column: str = "name") -> str:
             f"lower(trim({column})))")
 
 
-def clean_domain(value: str | None) -> str | None:
-    if not value or not value.strip():
-        return None
-    v = value.strip().lower()
-    host = urlsplit(v if "//" in v else f"//{v}").netloc or v
-    host = host.split("@")[-1].split(":")[0]
-    host = re.sub(r"^www\.", "", host)
-    return host if "." in host and " " not in host else None
+clean_domain = domains.clean_domain
 
 
-def pdl_lookup(name: str, countries: list[str] | None = None,
-               path: Path | None = None) -> Resolved | None:
-    """Best match for the company name in the local PDL file (exact name, folded). Several
-    companies with the same name: the one in a country the job is in, else the largest."""
+def linkedin_slug(url: str | None) -> str | None:
+    """linkedin.com/company/sekoia/ -> sekoia (the company page's slug)."""
+    m = re.search(r"linkedin\.com/(?:company|school)/([^/?#\s]+)", (url or "").lower())
+    return m.group(1) if m else None
+
+
+def pdl_lookup(name: str, countries: list[str] | None = None, path: Path | None = None,
+               linkedin_url: str | None = None) -> Resolved | None:
+    """The PDL company for a name, chosen by evidence: the company's LinkedIn page captured from
+    the job (bookmark or listing) first, then a country the job is in, then the largest. The
+    other companies with that name are returned as `alternatives` (for the domain picker)."""
     path = path or PDL_PATH
     if not path.exists():
         return None
     import duckdb
 
-    key = normalize_company(name)
     con = duckdb.connect()
     try:
         rows = con.execute(
             "SELECT name, website, linkedin_url, size, industry, country FROM read_parquet(?) "
-            "WHERE name_key = ? LIMIT 25", [str(path), key]).fetchall()
+            "WHERE name_key = ? LIMIT 25", [str(path), normalize_company(name)]).fetchall()
     finally:
         con.close()
     rows = [r for r in rows if clean_domain(r[1])]
     if not rows:
         return None
     order = list(SIZE_MAX)
+    slug = linkedin_slug(linkedin_url)
+    wanted = set(countries or [])
 
-    def score(r: tuple) -> tuple[int, int]:
-        in_country = int(geo.country_from_text(r[5]) in (countries or []))
-        return in_country, order.index(r[3]) if r[3] in order else -1
+    def score(r: tuple) -> tuple[int, int, int]:
+        return (int(bool(slug) and linkedin_slug(r[2]) == slug),
+                int(geo.country_from_text(r[5]) in wanted),
+                order.index(r[3]) if r[3] in order else -1)
 
-    best = max(rows, key=score)
-    ambiguous = len(rows) > 1
-    return Resolved(clean_domain(best[1]), "pdl", linkedin_url=best[2], industry=best[4],
-                    employees_max=SIZE_MAX.get(best[3]),
-                    note=f"{len(rows)} companies named like this in PDL: picked by country/size"
-                    if ambiguous else "")
+    ranked = sorted(rows, key=score, reverse=True)
+    seen: set[str] = set()
+    distinct = []
+    for r in ranked:  # one entry per domain, best first
+        d = clean_domain(r[1])
+        if d not in seen:
+            seen.add(d)
+            distinct.append(r)
+    best, top = distinct[0], score(distinct[0])
+    evidence = "linkedin" if top[0] else "country" if top[1] else "size" if len(distinct) > 1 \
+        else "only"
+    why = {"linkedin": "its LinkedIn page is the one captured from the listing",
+           "country": "it is in a country the job is in",
+           "size": "the largest of them: no LinkedIn page or country to tell them apart"}.get(
+               evidence, "")
+    alternatives = [{"domain": clean_domain(r[1]), "linkedin_url": r[2], "country": r[5],
+                     "size": r[3], "industry": r[4]} for r in distinct[1:]]
+    return Resolved(
+        clean_domain(best[1]), "pdl", linkedin_url=best[2], industry=best[4],
+        employees_max=SIZE_MAX.get(best[3]), evidence=evidence, alternatives=alternatives,
+        note=(f"{len(distinct)} companies named like this in PDL: picked {clean_domain(best[1])}, "
+              f"{why}") if len(distinct) > 1 else "")
 
 
 _SECOND_LEVEL = {"co", "com", "org", "net", "gov", "ac", "ltd"}
@@ -152,17 +172,20 @@ def resolve(s: Session, company: Company, *, domain: str | None = None,
     `fetcher(listing_url)` reads the company website from the listing page (last resort)."""
     if domain and clean_domain(domain):
         company.domain, company.domain_source = clean_domain(domain), "manual"
+        company.email_domain = None  # a domain you typed replaces what was learned before
+        domains.register(company, company.domain, "manual")
         s.add(company)
         return Resolved(company.domain, "manual")
     if company.domain:
         return Resolved(company.domain, company.domain_source or "manual")
     if captured := clean_domain(company.website):  # the listing's own company website
         company.domain, company.domain_source = registered_domain(captured), "listing"
+        domains.register(company, company.domain, "website", "the company website from its listing")
         s.add(company)
         return Resolved(company.domain, "listing", note="the company website from its listing")
     countries = [c for c in s.exec(select(Job.country).where(
         Job.company_id == company.id).distinct()).all() if c]
-    hit = pdl_lookup(company.name, countries, path)
+    hit = pdl_lookup(company.name, countries, path, company.linkedin_url)
     if hit is None:
         site, how = from_listing(s, company)
         if site is None and fetcher is not None:
@@ -173,6 +196,11 @@ def resolve(s: Session, company: Company, *, domain: str | None = None,
         hit = Resolved(site, "listing", note=f"from {how}") if site \
             else Resolved(None, None, note="no domain found")
     if hit.domain:
+        domains.register(company, hit.domain, hit.source or "listing", hit.note)
+        for alt in hit.alternatives:
+            domains.register(company, alt["domain"], "pdl",
+                             f"another company named {company.name}: {alt['country'] or '?'}, "
+                             f"{alt['size'] or '?'} employees")
         company.domain, company.domain_source = hit.domain, hit.source
         if hit.linkedin_url and not company.linkedin_url:
             company.linkedin_url = hit.linkedin_url
@@ -182,3 +210,20 @@ def resolve(s: Session, company: Company, *, domain: str | None = None,
             company.employees_max, company.size_source = hit.employees_max, "pdl"
         s.add(company)
     return hit
+
+
+def refresh_alternatives(s: Session, company: Company, path: Path | None = None) -> int:
+    """Register every PDL company with this name as a known domain (local and free), so the
+    "Not the right domain?" picker can offer them; the chosen domain doesn't change."""
+    countries = [x for x in s.exec(select(Job.country).where(
+        Job.company_id == company.id).distinct()).all() if x]
+    hit = pdl_lookup(company.name, countries, path, company.linkedin_url)
+    if hit is None or not hit.domain:
+        return 0
+    before = len(company.domains or {})
+    for d, note in [(hit.domain, hit.note), *[
+            (a["domain"], f"another company named {company.name}: {a['country'] or '?'}, "
+                          f"{a['size'] or '?'} employees") for a in hit.alternatives]]:
+        domains.register(company, d, "pdl", note)
+    s.add(company)
+    return len(company.domains or {}) - before

@@ -258,6 +258,11 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   summary and letter prompts and the verifier's facts. Any prompt edit still needs a version bump (cv_generate 10,
   cover_letter 7, verify 4, interview_prep 1).
 - Listing flags (`services/listing_flags.py`): code only, hints on `JobDetail.listing_flags`, never a score or filter.
+- Domains (`services/domains.py`, `dns_check.py`): `company.domain` = website, `company.email_domain` = mail/lookup domain
+  (set from verified emails), `company.domains` = every known domain + cached MX. The waterfall checks MX (free) before any paid
+  call, tries other known domains, and on "provider found nobody at this domain" stops with `Outcome.choice` instead of paying
+  the next provider (rerun with `email_domain`). `CompanyProviderRun.domain` keeps a run for one domain from standing in for another.
+  PDL picks by LinkedIn page, then country, then size. Guessed endings are only offered, never used on their own.
 - Contact ranking: `contacts.exclude_keywords` (default business development, sales, account) is injected into every
   group by `with_exclude`, so `rank()` skips titles containing them.
 

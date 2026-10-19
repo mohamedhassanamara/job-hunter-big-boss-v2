@@ -13,8 +13,11 @@ from app.models.base import utcnow
 from app.models.enums import ContactSearch, ContactSource
 from app.providers.registry import hunter as hunter_provider
 from app.schemas.get_contact import (
+    CompanyDomains,
     ContactEdit,
     ContactSearchIn,
+    DomainOut,
+    EmailDomainIn,
     FindIn,
     FindOut,
     FoundIn,
@@ -31,7 +34,8 @@ from app.schemas.get_contact import (
     UseIn,
     VerifyIn,
 )
-from app.services import contact_paste, contact_waterfall, contacts, get_contact
+from app.services import company_resolve, contact_paste, contact_waterfall, contacts, get_contact
+from app.services import domains as domains_svc
 from app.services.pipeline import stage_label
 from app.services.views import fit_brief, latest_fits
 
@@ -239,12 +243,15 @@ def find_contact(app_id: int, body: FindIn, session: SessionDep,
     app = get_or_404(session, Application, app_id, "Application")
     try:
         out = contact_waterfall.run(session, app, requery=body.requery, domain=body.domain,
+                                    email_domain=body.email_domain,
                                     mock=True if workspace == "demo" else None)
     except contact_waterfall.WaterfallError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.commit()
     session.refresh(app)
     return FindOut(domain=out.domain, domain_source=out.domain_source,
+                   lookup_domain=out.lookup_domain, email_domain=out.email_domain,
+                   choice=out.choice,
                    steps=[s.__dict__ for s in out.steps], candidates=out.candidates,
                    found_by=out.found_by, from_cache=out.from_cache, credits=out.credits,
                    usd=out.usd, view=_view(session, app))
@@ -262,3 +269,50 @@ def use_contact(app_id: int, body: UseIn, session: SessionDep) -> GetContactView
     session.commit()
     session.refresh(app)
     return _view(session, app)
+
+
+def _domains_out(s: Session, company: Company, lookup=None) -> CompanyDomains:  # noqa: ANN001
+    now_in_use = domains_svc.lookup_domain(company)
+    rows = []
+    for d in domains_svc.known(company)[:12]:
+        entry = (company.domains or {}).get(d) or {}
+        rows.append(DomainOut(
+            domain=d, source="website" if d == company.domain else entry.get("source") or "known",
+            note=entry.get("note") or "", mx=domains_svc.mx(company, d, lookup),
+            is_website=d == company.domain, in_use=d == now_in_use))
+    return CompanyDomains(company_id=company.id, website=company.domain,
+                          email=company.email_domain, in_use=now_in_use, domains=rows)
+
+
+@router.get("/companies/{company_id}/domains", response_model=CompanyDomains)
+def company_domains(company_id: int, session: SessionDep,
+                    workspace: WorkspaceDep) -> CompanyDomains:
+    """Every domain known for the company and whether it receives email (a free DNS lookup),
+    for the "Not the right domain?" picker."""
+    company = get_or_404(session, Company, company_id, "Company")
+    own = domains_svc.lookup_domain(company)
+    lookup = (lambda d: ["mx.sandbox.test"] if d == own else []) if workspace == "demo" else None
+    if workspace != "demo":
+        company_resolve.refresh_alternatives(session, company)  # PDL's other companies, local
+    out = _domains_out(session, company, lookup)
+    session.commit()  # the MX answers are cached on the company
+    return out
+
+
+@router.put("/companies/{company_id}/domains", response_model=CompanyDomains)
+def set_email_domain(company_id: int, body: EmailDomainIn, session: SessionDep,
+                     workspace: WorkspaceDep) -> CompanyDomains:
+    """Ask the providers about this domain from now on (None: back to the website's)."""
+    company = get_or_404(session, Company, company_id, "Company")
+    chosen = domains_svc.clean_domain(body.email_domain)
+    if body.email_domain and not chosen:
+        raise HTTPException(422, "That isn't a domain (e.g. acme.com)")
+    company.email_domain = chosen
+    if chosen:
+        domains_svc.register(company, chosen, "you")
+    session.add(company)
+    own = domains_svc.lookup_domain(company)
+    lookup = (lambda d: ["mx.sandbox.test"] if d == own else []) if workspace == "demo" else None
+    out = _domains_out(session, company, lookup)
+    session.commit()
+    return out
