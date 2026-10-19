@@ -168,6 +168,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_contacts(body.value)
     if key == "providers":
         _check_providers(body.value)
+    if key == "profile":
+        _check_profile(body.value)
     if key == "outreach":
         _check_outreach(body.value)
     if key == "cover_letter":
@@ -423,3 +425,25 @@ def _check_providers(value: dict) -> None:
             raise HTTPException(422, "limits must map hunter/prospeo/apollo/apify to numbers")
         if not all(isinstance(v, (int, float)) and 0 <= v <= 100_000 for v in limits.values()):
             raise HTTPException(422, "A monthly limit is a number between 0 and 100000")
+
+
+def _check_profile(value: dict) -> None:
+    from app.services import glossary
+
+    entries = value.get("glossary")
+    if entries is None:
+        return
+    if not isinstance(entries, list) or len(entries) > glossary.MAX_ENTRIES:
+        raise HTTPException(422, f"The glossary is a list of at most {glossary.MAX_ENTRIES} terms")
+    seen: set[str] = set()
+    for i, e in enumerate(entries, 1):
+        src = " ".join(str((e or {}).get("from") or "").split()) if isinstance(e, dict) else ""
+        dst = " ".join(str(e.get("to") or "").split()) if isinstance(e, dict) else ""
+        if not src or not dst:
+            raise HTTPException(422, f"Glossary term {i} needs both words")
+        if len(src) > glossary.MAX_TERM or len(dst) > glossary.MAX_TERM \
+                or len(str(e.get("note") or "")) > glossary.MAX_NOTE:
+            raise HTTPException(422, f"Glossary term {i} is too long")
+        if src.lower() == dst.lower() or src.lower() in seen:
+            raise HTTPException(422, f"Glossary term {i} repeats a word or a term already there")
+        seen.add(src.lower())

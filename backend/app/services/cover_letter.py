@@ -34,7 +34,7 @@ from app.models import (
 from app.models.base import utcnow
 from app.models.enums import CVStatus, EventKind
 from app.providers.base import CoverLetterPlan, DraftFailed, LetterDrafter, LetterRequest
-from app.services import honesty, pipeline
+from app.services import glossary, honesty, pipeline
 from app.services import letter_check as lc
 from app.services.cv_check import violation
 from app.services.cv_claims import exact_statement
@@ -260,6 +260,7 @@ def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, langu
                    "years": facts, "years_statement": english,
                    "years_statement_fr": french,
                    **honesty.prompt_facts(ctx_words.honesty or honesty.rules(s)),
+                   **glossary.prompt_facts(profile),
                    "current_role": {"id": role.id, "title": role.title, "org": role.org}
                    if role else None},
         pool=cv_pool_subset(pool, cv),

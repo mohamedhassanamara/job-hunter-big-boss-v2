@@ -13,6 +13,7 @@ from typing import Any
 from sqlmodel import Session, col, select
 
 from app.models import AppSetting, ExperienceItem
+from app.services import glossary
 from app.services.cv_render import CVLink, CVProfile
 
 
@@ -53,7 +54,8 @@ class Pool:
         parts = []
         for item in self.items.values():
             parts += [item.title, item.org or "", item.summary or "", *item.bullets, *item.tags]
-        return "\n".join(p for p in parts if p)
+        text = "\n".join(p for p in parts if p)
+        return glossary.expand(text, self.profile)  # your own glossary terms count as known
 
     def vocabulary(self) -> set[str]:
         return {norm(t) for t in re.findall(r"[A-Za-z][A-Za-z0-9+#.\-/]*", self.all_text())}

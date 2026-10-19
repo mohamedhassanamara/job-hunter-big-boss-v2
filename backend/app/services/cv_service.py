@@ -19,7 +19,7 @@ from app.providers.base import (
     CVRequest,
     SummarySentence,
 )
-from app.services import bullet_tailor, cv_rules, pipeline
+from app.services import bullet_tailor, cv_rules, glossary, pipeline
 from app.services.cv_build import FitState, Layout, fit_to_page, layout
 from app.services.cv_check import (
     canonicalize,
@@ -93,7 +93,7 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
         pool=prompt_pool(pool),
         emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
         facts={"years": summary_years(years_facts(pool, _tracks(s)), track or ""),
-               **honesty_facts(_tracks(s))},
+               **honesty_facts(_tracks(s)), **glossary.prompt_facts(pool.profile)},
         guide=cv_rules.guide(cv_settings(s)) + (
             "\nNever use these phrases: " + "; ".join(cv_rules.banned(cv_settings(s)))
             if cv_rules.banned(cv_settings(s)) else ""),

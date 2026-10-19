@@ -558,3 +558,31 @@ States: loading ("Looking…"), result, nobody verified (points to the extension
 appears; no provider is called), error (toast). "Ask the providers again" re-queries a cached company.
 Settings → Contacts → Contact providers: credits left per key, disabled keys (Enable again), Sync, cache
 age, Apollo monthly credits, last calls. Today → Contacts to get shows the credits left this month.
+
+
+## Interview prep (Phase 12b)
+
+Job page → **Interview prep** (jobs past New) opens `/jobs/:id/interview`. One click writes, from the whole
+experience pool only: a "tell me about yourself" pitch, 3-4 STAR stories (each from a different item, chosen for
+what the listing asks), 6-8 likely questions (each pointing at its best story) and questions to ask them.
+Every sentence about you cites the pool items it comes from (chips show them); code checks it like a cover letter's
+(numbers, tools and scope as written, your exact years wording, the honesty rules), a story whose items state no
+result shows "no result stated" and none is invented. Errors block **Approve**; approving also needs the Claude
+claim verifier to pass every sentence, and any edit (autosaved, re-checked) makes the check stale. States: skeleton,
+empty (Write interview prep, or Open Experience when the pool is empty, plus "See how it works"), error with retry,
+populated. Regenerating supersedes the draft.
+
+## Glossary (Phase 12b)
+
+Settings → Candidate → **Glossary**: terms you write ("in my experience: offline sync" → "in the field:
+incremental data synchronisation", optional note). The CV summary and the cover letters may use the right-hand term
+only for experience that contains the left-hand words, in a sentence that cites it; the checks and the claim
+verifier treat it as known for that item. It adds a name only: never a tool, number, scale or years, and the
+honesty rules still apply. Empty state: a line plus "See how it works".
+
+## Listing red flags (Phase 12b)
+
+The job detail shows up to three amber hints read in code from the listing: no salary or pay range (full
+descriptions only), hype wording (rockstar, ninja, guru, "like a family"…), a posting older than 90 days. They never
+change the fit score or hide a job. Contacts → ranking: titles containing a word of "Never match titles containing"
+(Settings → Contacts) match no role group. Find contact is also offered in the Verify state.

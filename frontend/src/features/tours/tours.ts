@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { JobDetail, JobList, PipelineCard, ReadyItem, Today, ToGetQueue } from '@/lib/types'
+import type { InterviewStudio, JobDetail, JobList, PipelineCard, ReadyItem, Today, ToGetQueue } from '@/lib/types'
 
 /**
  * Guided tours, one per feature. They run in the sandbox workspace (sample data only).
@@ -22,6 +22,9 @@ export type TourId =
   | 'job'
   | 'cv'
   | 'letter'
+  | 'interview'
+  | 'glossary'
+  | 'listing-flags'
   | 'questions'
   | 'copilot'
   | 'signals'
@@ -146,6 +149,54 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'cv-preview', title: 'The real PDF', body: 'Rendered from a style-only LaTeX template and fitted to exactly one full page: low-value bullets are dropped when it overflows, more are added when it is short.', placement: 'left' },
       { target: 'cv-versions', title: 'Versions and templates', body: 'Regenerate makes a new draft; older versions are kept. With several templates you can switch style per CV.' },
       { target: 'cv-approve', title: 'Approve', body: 'Approving offers the next step: draft the email when there is a contact, otherwise the job moves to Ready to apply. Download uses your filename pattern.' },
+    ],
+  },
+  'listing-flags': {
+    id: 'listing-flags',
+    title: 'Listing red flags',
+    description: 'No pay range, hype wording, a posting that has been up for months',
+    resolveRoute: async () => {
+      const cards = await api.get<PipelineCard[]>('/applications')
+      for (const c of cards.filter((c) => c.stage !== 'closed')) {
+        const job = await api.get<JobDetail>(`/jobs/${c.job_id}`)
+        if (job.listing_flags?.length) return `/jobs/${c.job_id}`
+      }
+      return '/pipeline'
+    },
+    steps: [
+      { target: 'listing-flags', title: 'Read in code, no model', body: 'Three hints from the listing itself: no salary or pay range anywhere in the text, hype wording that stands in for the work (rockstar, ninja, "like a family"), and a posting older than 90 days (it may be filled, or an evergreen ad). A truncated listing can never prove a missing salary, so that flag waits for the full description.', placement: 'left' },
+      { target: 'listing-flags', title: 'Hints, not verdicts', body: 'They never change the fit score and never hide a job: a missing salary is normal in some countries, and an old ad may still be open. They are there so you ask the right question before you spend an application on it.', placement: 'left' },
+    ],
+  },
+  glossary: {
+    id: 'glossary',
+    title: 'Glossary',
+    description: 'Your own words for moving from mobile to data',
+    resolveRoute: async () => '/settings?section=candidate',
+    steps: [
+      { target: 'settings-glossary', title: 'Your words, nobody else\'s', body: 'Write how your experience says something (left) and the term the field you are moving into uses for it (right). Nothing is suggested or invented: the generators only use a term you wrote.', placement: 'left' },
+      { target: 'settings-glossary', title: 'Where it is used', body: 'The CV summary and the cover letters may use the right-hand term only for work whose Experience item contains the left-hand words, in a sentence that cites it. A term adds a name, never a tool, a number or years; the honesty rules still apply and the claim check reads your glossary.', placement: 'left' },
+    ],
+  },
+  interview: {
+    id: 'interview',
+    title: 'Interview prep',
+    description: 'A pitch and STAR stories from your experience, every claim checked',
+    resolveRoute: async () => {
+      const cards = (await api.get<PipelineCard[]>('/applications')).filter((c) => c.stage !== 'closed' && c.stage !== 'new')
+      for (const c of cards) {
+        const studio = await api.get<InterviewStudio>(`/applications/${c.application_id}/interview-prep`)
+        if (studio.prep) return `/jobs/${c.job_id}/interview`
+      }
+      return cards[0] ? `/jobs/${cards[0].job_id}/interview` : '/pipeline'
+    },
+    steps: [
+      { target: 'interview-checks', title: 'Checked before you see it', body: 'Every sentence about you cites your Experience and may only say what those items say: tools, numbers and scope as written, your exact years wording, and the honesty rules for project-based tracks. A story whose items state no result simply has none: an outcome is never invented. Errors block approval.', placement: 'bottom' },
+      { target: 'interview-pitch', title: 'Tell me about yourself', body: 'Three or four sentences that lead from your current role to this one. Edit any sentence: it autosaves and is re-checked, with no new Claude call.', placement: 'right' },
+      { target: 'interview-story', title: 'STAR stories', body: 'Situation, task, action and result, each from a different item of your Experience and chosen for what the listing asks for. The chips show which items every sentence comes from.', placement: 'left' },
+      { target: 'interview-questions', title: 'Likely questions', body: 'Taken from this listing, each pointing at the story that answers it best, plus questions you can ask them.', placement: 'right' },
+      { target: 'claim-check', title: 'The claim check', body: 'Before you can approve, the Claude claim verifier judges every sentence against your Experience, facts and the listing. A text you edit afterwards must pass again.', placement: 'top' },
+      { target: 'interview-approve', title: 'Approve', body: 'Approving marks this version as the one to practise with. Regenerating writes a new draft and keeps the old one superseded.', placement: 'bottom' },
     ],
   },
   letter: {

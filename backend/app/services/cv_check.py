@@ -17,6 +17,7 @@ import re
 from typing import Any
 
 from app.providers.base import CVPlan, PlanBullet, PlanEntry, SummarySentence
+from app.services import glossary
 from app.services.cv_claims import (
     Canon,
     Vocabulary,
@@ -170,7 +171,7 @@ def cited_text(pool: Pool, ids: list[int]) -> str:
         item = pool.get(i)
         if item:
             parts += [item.title, item.org or "", item.summary or "", *item.bullets, *item.tags]
-    return "\n".join(p for p in parts if p)
+    return glossary.expand("\n".join(p for p in parts if p), pool.profile)
 
 
 def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[int],

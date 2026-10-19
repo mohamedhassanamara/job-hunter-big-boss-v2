@@ -194,6 +194,8 @@ class EventKind(StrEnum):
     draft_created = "draft_created"
     draft_approved = "draft_approved"
     letter_generated = "letter_generated"
+    interview_prep_generated = "interview_prep_generated"
+    interview_prep_approved = "interview_prep_approved"
     letter_approved = "letter_approved"
     sent = "sent"
     applied = "applied"

@@ -37,6 +37,7 @@ from app.models import (
 from app.models.base import utcnow
 from app.models.enums import CVStatus
 from app.providers.base import DraftFailed, VerifyClaim
+from app.services import glossary
 from app.services.cv_pool import Pool, load_pool
 
 BLOCKING = {"unsupported", "exaggerated", "merged", "causal"}
@@ -131,6 +132,8 @@ def candidate_sources(s: Session, pool: Pool, cv: CVVersion | None) -> dict[str,
     lines += [f"Track {t['track']}: experience is {t['experience']}"
               + (f" ({t['how']})" if t.get("how") else "")
               for t in facts["experience_by_track"]]
+    if words := glossary.verifier_lines(pool.profile):
+        lines.append(words)
     out = {"facts": "\n".join(lines)}
     out |= {f"pool:{item.id}": _item_text(item) for item in pool.items.values()
             if item.kind != "summary"}  # your own summary snippets aren't evidence
@@ -357,6 +360,36 @@ def require_letter(s: Session, letter: CoverLetter, verifier: Any) -> dict[str, 
     if is_current(record, letter_text(s, letter)):
         return record
     record = verify_letter(s, letter, verifier)
+    if record["status"] != "passed":
+        raise VerifyError(problem(record))
+    return record
+
+
+def interview_text(prep: Any) -> str:
+    from app.services.interview_prep import plain_text
+
+    return plain_text(prep.content or {})
+
+
+def verify_interview_prep(s: Session, prep: Any, verifier: Any) -> dict[str, Any]:
+    """Everything the candidate would say aloud (pitch and STAR parts) against the pool, the facts
+    and the listing, sentence by sentence."""
+    app = s.get(Application, prep.application_id)
+    job = s.get(Job, app.job_id)
+    sources = candidate_sources(s, load_pool(s), _approved_cv(s, app.id)) \
+        | {"listing": f"{job.title}\n{job.description or ''}"}
+    record = run(verifier, "interview preparation (what the candidate would say aloud)",
+                 interview_text(prep), sources)
+    prep.verification = record
+    s.add(prep)
+    return record
+
+
+def require_interview_prep(s: Session, prep: Any, verifier: Any) -> dict[str, Any]:
+    record = prep.verification
+    if is_current(record, interview_text(prep)):
+        return record
+    record = verify_interview_prep(s, prep, verifier)
     if record["status"] != "passed":
         raise VerifyError(problem(record))
     return record

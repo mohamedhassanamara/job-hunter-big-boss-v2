@@ -17,6 +17,7 @@ from app.models.company import (
 )
 from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceHistory, ExperienceItem
+from app.models.interview import InterviewPrep
 from app.models.job import FitScore, Job
 from app.models.linkedin import CVFit, LinkedInLinkOpen, LinkedInOutreach
 from app.models.motivation import (
@@ -48,6 +49,7 @@ from app.models.settings import AppSetting
 from app.models.tracking import ApplicationResponse, Interview, ReminderAction
 
 __all__ = [
+    "InterviewPrep",
     "CompanyProviderRun",
     "ProviderCall",
     "ProviderKeyState",

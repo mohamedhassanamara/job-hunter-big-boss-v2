@@ -469,3 +469,18 @@ A single row in v2 (the global queue).
   (provider, key_label, period `YYYY-MM`, credits, cost_usd, calls: unique per month) and `provider_call`
   (the log). Keys themselves are never stored.
 - `app_setting.providers`: `{max_age_days: 90, max_reveals: 2, limits: {hunter, prospeo, apollo, apify}}`.
+
+
+## Phase 12b: interview prep, glossary, listing flags, apply link
+
+- `interview_prep` (migration 0025): `application_id`, `version`, `status` (draft | approved | superseded),
+  `language`, `content` JSON (`pitch`, `stories` [{requirement, title, situation, task, action, result}: each a
+  list of `{text, citations, about_job, about_candidate}`], `questions` [{question, probes, story}], `ask_them`),
+  `violations` (code checks; errors block approval), `verification` (the claim verifier's record, tied to the
+  exact text), `generator_model`, `prompt_version`, `plan` (what the model returned + attempts), `duration_ms`.
+- `job.apply_url` (migration 0024): where the listing says to apply (ATS boards, listing JSON-LD) when it is not
+  the listing page itself; used with `company.website` to find the company's domain.
+- `app_setting.profile.glossary`: `[{from, to, note}]` written by you in Settings → Candidate (at most 60 terms).
+  `app_setting.contacts.exclude_keywords`: words a title may not contain to match a role group (default business
+  development, sales, account).
+- Listing red flags are not stored: `services/listing_flags.scan(job)` runs on every job detail.
