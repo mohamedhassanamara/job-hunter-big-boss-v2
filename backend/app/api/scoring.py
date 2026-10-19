@@ -3,7 +3,7 @@ from sqlmodel import select
 
 from app.api.deps import SessionDep, WorkspaceDep, get_or_404
 from app.config import get_settings
-from app.models import Job
+from app.models import Company, Job
 from app.models.base import utcnow
 from app.models.enums import DescriptionLevel
 from app.providers.ollama import OllamaFitScorer
@@ -149,6 +149,14 @@ def fetch_full(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> Ful
         return FullListingOut(ok=False, message=str(exc), can_paste=exc.can_paste)
     text = with_location_requirements(listing)
     _store_full_description(session, job, text, workspace)
+    company = session.get(Company, job.company_id)
+    if listing.company_url and company is not None and not company.website:
+        company.website = listing.company_url  # captured: used to find the company's domain
+        session.add(company)
+    if listing.apply_url and not job.apply_url and listing.apply_url != job.url:
+        job.apply_url = listing.apply_url
+        session.add(job)
+    session.commit()
     return FullListingOut(ok=True, message="Full listing fetched; rescoring.",
                           characters=len(text))
 

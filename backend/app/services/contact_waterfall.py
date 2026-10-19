@@ -32,7 +32,7 @@ from app.providers.contact_finders import (
     RateLimited,
     Search,
 )
-from app.services import company_resolve, contact_check, email_pattern, provider_quota
+from app.services import company_resolve, contact_check, email_pattern, listing, provider_quota
 from app.services import contacts as contacts_svc
 from app.services.contacts import UNRANKED, rank, ranking_settings
 
@@ -198,9 +198,10 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
         mock: bool | None = None, finders: dict[str, Any] | None = None) -> Outcome:
     job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id)
-    resolved = company_resolve.resolve(s, company, domain=domain)
-    out = Outcome(resolved.domain, resolved.source)
     use_mock = (mock if mock is not None else registry.get_settings().job_sources == "mock")
+    resolved = company_resolve.resolve(
+        s, company, domain=domain, fetcher=None if use_mock else listing.company_url_of)
+    out = Outcome(resolved.domain, resolved.source)
     if not resolved.domain:
         out.steps.append(Step("manual", "skipped", "no domain for this company: enter it, or use "
                               "the Apollo extension"))

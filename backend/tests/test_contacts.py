@@ -568,3 +568,26 @@ def test_merge_and_size_endpoints(client) -> None:  # noqa: ANN001
     bad = client.put("/api/settings/contacts", json={"value": {
         "role_ranking": DEFAULT_ROLE_RANKING, "small_order": ["Nope"]}})
     assert bad.status_code == 422
+
+
+def test_excluded_words_keep_business_titles_out_of_every_group() -> None:
+    groups = contacts.with_exclude(DEFAULT_ROLE_RANKING, None)
+    for title in ("Business Development Manager", "Sales Engineering Manager", "Account Manager"):
+        assert rank(title, groups)[0] == UNRANKED, title
+    assert rank("Engineering Manager", groups)[1] == "Engineering Manager"
+    assert rank("Head of Data", groups)[1] == "Head of Data / AI / ML"
+    assert rank("Software Development Manager", groups)[0] == UNRANKED  # not engineering
+    no_excl = contacts.with_exclude(DEFAULT_ROLE_RANKING, [])
+    assert rank("Business Development Manager", no_excl)[0] == UNRANKED  # not even by keyword
+    # Your own list replaces the default
+    only_sales = contacts.with_exclude(DEFAULT_ROLE_RANKING, ["sales"])
+    assert rank("Account Engineering Manager", only_sales)[1] == "Engineering Manager"
+
+
+def test_exclusion_list_is_saved_and_validated(client) -> None:  # noqa: ANN001
+    base = client.get("/api/settings").json()["values"]["contacts"]
+    put = client.put
+    r = put("/api/settings/contacts", json={"value": {**base, "exclude_keywords": ["sales"]}})
+    assert r.status_code == 200 and r.json()["values"]["contacts"]["exclude_keywords"] == ["sales"]
+    bad = put("/api/settings/contacts", json={"value": {**base, "exclude_keywords": "sales"}})
+    assert bad.status_code == 422

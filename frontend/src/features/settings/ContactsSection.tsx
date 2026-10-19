@@ -9,6 +9,7 @@ import type { RoleGroup, SettingsView } from '@/lib/types'
 import { ProvidersCard } from './ProvidersCard'
 import { Card, Field, SaveBar } from './sections'
 
+const EXCLUDE_DEFAULT = ['business development', 'sales', 'account']
 const SMALL_DEFAULT = ['CTO', 'Founder / CEO', 'VP / Head of Engineering', 'Head of Data / AI / ML', 'Engineering Manager', 'Tech Lead', 'HR / Talent']
 const LARGE_DEFAULT = ['HR / Talent', 'Engineering Manager', 'CTO', 'VP / Head of Engineering', 'Head of Data / AI / ML', 'Tech Lead', 'Founder / CEO']
 
@@ -55,15 +56,17 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
   const initialThreshold = Number(saved.small_company_threshold ?? 200)
   const initialCap = Number(settings.values.lookup?.daily_cap ?? 10)
   const initialVerify = Number(saved.verify_days ?? 30)
+  const initialExclude = (saved.exclude_keywords as string[] | undefined) ?? EXCLUDE_DEFAULT
   const [ranking, setRanking] = useState<RoleGroup[]>(initialRanking)
   const [small, setSmall] = useState(initialSmall)
   const [large, setLarge] = useState(initialLarge)
   const [threshold, setThreshold] = useState(initialThreshold)
   const [cap, setCap] = useState(initialCap)
   const [verifyDays, setVerifyDays] = useState(initialVerify)
+  const [exclude, setExclude] = useState(initialExclude)
   const save = useSaveSetting()
   const rankingDirty =
-    JSON.stringify([ranking, small, large, threshold, verifyDays]) !== JSON.stringify([initialRanking, initialSmall, initialLarge, initialThreshold, initialVerify])
+    JSON.stringify([ranking, small, large, threshold, verifyDays, exclude]) !== JSON.stringify([initialRanking, initialSmall, initialLarge, initialThreshold, initialVerify, initialExclude])
   const capDirty = cap !== initialCap
   const invalid = ranking.length === 0 || ranking.some((g) => !g.label.trim() || g.keywords.length === 0)
 
@@ -102,6 +105,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
             large_order: normalizeOrder(large, ranking, LARGE_DEFAULT),
             small_company_threshold: threshold,
             verify_days: verifyDays,
+            exclude_keywords: exclude,
           },
         })
       if (capDirty) await save.mutateAsync({ key: 'lookup', value: { daily_cap: cap } })
@@ -125,6 +129,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
             setSmall(initialSmall)
             setLarge(initialLarge)
             setThreshold(initialThreshold)
+            setExclude(initialExclude)
             setCap(initialCap)
           }}
           onSave={() => void onSave()}
@@ -158,6 +163,11 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
         </Button>
         <p className="text-xs text-fg-subtle">Titles matching no group rank last. Ties: someone with an email, then the most recently imported.</p>
       </div>
+      <Field label="Never match titles containing" hint="Whole words or phrases, in every group: “Business Development Manager” is not an engineering manager">
+        <div data-tour="settings-contacts-exclude">
+          <TagInput tags={exclude} onChange={setExclude} placeholder="business development, sales, account… (Enter to add)" />
+        </div>
+      </Field>
       <Field label="Small company" hint="Uses the small-company order">
         <div className="flex items-center gap-2 text-sm">
           Up to

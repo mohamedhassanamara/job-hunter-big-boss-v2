@@ -31,6 +31,7 @@ class RawJob(BaseModel):
     source: Source
     external_id: str
     url: str
+    apply_url: str | None = None
     title: str
     company: str
     location: str = ""
