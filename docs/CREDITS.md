@@ -39,3 +39,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## ResumeSkills and resume-career-toolkit, MIT
+
+Ideas (structure only, no text or code) adapted from **ResumeSkills** by Resume Skills,
+<https://github.com/Paramchoudhary/ResumeSkills> (read at commit 74ae19e), and
+**resume-career-toolkit** by Jirawat Pattanayutanachot,
+<https://github.com/jirawatp/resume-career-toolkit> (read at commit 85189e6). Both are MIT-licensed
+("Copyright (c) 2026 Resume Skills" and "Copyright (c) 2026 Jirawat Pattanayutanachot"); their
+license notices are in those repositories.
+
+| Here | Adapted from | What |
+|---|---|---|
+| `backend/app/services/interview_prep.py`, `prompts/interview_prep.md` | `interview-prep-generator`, `interview-coach` | The shape of an interview preparation: a "tell me about yourself" pitch, STAR stories chosen for the listing's requirements, likely questions pointing at the story that answers them, and questions to ask. Here every sentence is cited to your experience, a story with no stated result has none, and the claim verifier gates approval; their sample answers and generic weakness scripts are not used |
+| `backend/app/services/glossary.py` | `career-changer-translator`, `career-pivot-guide` | A target-vocabulary table for a career change. Here it is written only by you, adds a name and never a tool, number or years, and their invented example figures are not used |
+| `backend/app/services/listing_flags.py` | `job-posting-evaluator` | The red-flag scan of a listing: no salary range, hype wording, a posting that has been up for months. Done in code, as hints only |
+
+Deliberately not adopted: `resume-quantifier`, `metrics-finder`'s derived math and the invented
+figures in the career-changer examples (they would estimate numbers, which this app never does).

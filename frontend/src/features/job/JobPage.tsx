@@ -54,6 +54,7 @@ import { CopilotSheet } from './CopilotSheet'
 import { LinkedInTrackSection } from '@/components/app/linkedin/LinkedInTrackSection'
 import { SignalsPanel } from '@/components/app/research/SignalsPanel'
 import { CoverLetterSection } from './CoverLetterSection'
+import { InterviewPrepSection } from './InterviewPrepSection'
 import { OutreachSection } from './OutreachSection'
 import { QuestionsSection } from './QuestionsSection'
 import { Timeline } from './Timeline'
@@ -419,6 +420,7 @@ export default function JobPage() {
           </div>
           <CVSection job={job} />
           <CoverLetterSection job={job} />
+          <InterviewPrepSection job={job} />
           <QuestionsSection job={job} />
           <NotesCard key={`notes-${job.id}`} job={job} />
           <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>

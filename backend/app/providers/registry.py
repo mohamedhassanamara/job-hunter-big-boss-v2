@@ -165,6 +165,19 @@ def hunter(*, mock: bool | None = None):  # noqa: ANN201
     return HunterClient(get_settings().hunter_api_key)
 
 
+def interview_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
+    """Interview preparation. Real workspace: Claude Code headless (subscription only). Tests and
+    the sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        from app.providers.mock import MockInterviewDrafter
+
+        return MockInterviewDrafter()
+    from app.providers.claude_interview import ClaudeInterviewDrafter
+
+    return ClaudeInterviewDrafter(model)
+
+
 def contact_finders(*, mock: bool | None = None) -> dict:
     """Hunter, Prospeo, Apollo and Apify, in waterfall order. Only the Get contact waterfall
     (one click) calls them. The sandbox and tests: the mock, which makes no request."""

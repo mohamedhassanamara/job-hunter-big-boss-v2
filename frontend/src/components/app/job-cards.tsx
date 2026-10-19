@@ -23,7 +23,7 @@ import {
 import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { relativeTime } from '@/lib/format'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
-import type { JobDetail, JobListItem } from '@/lib/types'
+import type { JobDetail, JobListItem, ListingFlag } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ContactAlertBanner } from './ContactAlertBanner'
 import { ContactTierBadge, ToneBadge } from './badges'
@@ -214,7 +214,7 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
 }
 
 /** Duplicate / already-contacted callouts. */
-export function JobFlags({ job, compact }: { job: JobListItem & { agency?: string[] }; compact?: boolean }) {
+export function JobFlags({ job, compact }: { job: JobListItem & { agency?: string[]; listing_flags?: ListingFlag[] }; compact?: boolean }) {
   const flags: { key: string; text: React.ReactNode; action?: React.ReactNode }[] = []
   const agency = useAgencyAction()
   if (job.agency?.length) {
@@ -256,12 +256,14 @@ export function JobFlags({ job, compact }: { job: JobListItem & { agency?: strin
       ),
     })
   }
+  for (const f of job.listing_flags ?? []) flags.push({ key: `listing-${f.kind}`, text: f.text })
   if (!flags.length) return null
   return (
     <div className={cn('space-y-1.5', compact && 'text-xs')}>
       {flags.map((f) => (
         <div
           key={f.key}
+          data-tour={f.key.startsWith('listing-') ? 'listing-flags' : undefined}
           className="flex gap-2 rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2 text-sm text-warning-fg"
         >
           <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />

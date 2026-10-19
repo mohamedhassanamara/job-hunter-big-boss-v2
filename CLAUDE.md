@@ -247,6 +247,20 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `app/prompts/eval_log.json` (tested). Examples set structure and tone only: never put their wording in prompts.
 - The sandbox uses `SampleFetcher` + `MockResearcher`: it never fetches the web.
 
+## Interview prep, glossary, listing flags (Phase 12b)
+
+- Interview prep (`services/interview_prep.py`, `providers/claude_interview.py`, `prompts/interview_prep.md`, table
+  `interview_prep`): from the whole pool only, every sentence cited and checked with `cv_check.sentence_problems` + the honesty
+  rules; a story with no stated result has none. Approval = code errors fixed + `verifier.require_interview_prep` (kind
+  "interview preparation"). `MockInterviewDrafter` in tests and the sandbox. Edit = new check, stale verification.
+- Glossary (`services/glossary.py`, `profile.glossary`): the user's own words only; code never writes entries. `Pool.all_text` and
+  `cv_check.cited_text` add the "to" terms of entries whose "from" the text contains; FACTS.glossary reaches the CV
+  summary and letter prompts and the verifier's facts. Any prompt edit still needs a version bump (cv_generate 10,
+  cover_letter 7, verify 4, interview_prep 1).
+- Listing flags (`services/listing_flags.py`): code only, hints on `JobDetail.listing_flags`, never a score or filter.
+- Contact ranking: `contacts.exclude_keywords` (default business development, sales, account) is injected into every
+  group by `with_exclude`, so `rank()` skips titles containing them.
+
 ## Honesty and LinkedIn readers
 
 - `search_profile.tracks[].experience` is `professional` | `projects`. `services/honesty.py` flags years attached to a

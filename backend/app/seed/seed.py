@@ -445,6 +445,7 @@ def seed(engine: Engine, *, empty: bool = False) -> None:
             marea.web_method = ApplyMethod.company_site
             s.add(marea)
         _seed_letters(s, apps)
+        _seed_interview_prep(s, apps)
         _seed_signals(s, apps)
         _seed_contact_alert(s, apps)
         _seed_linkedin(s, apps)
@@ -648,6 +649,34 @@ def _seed_linkedin(s: Session, apps: dict[str, Application]) -> None:
     alum.note = lt._draft(MockLinkedInDrafter(), request, ctx)
     lt.set_status(s, alum, LinkedInStatus.sent)
     s.add_all([hire, alum])
+
+
+def _seed_interview_prep(s: Session, apps: dict[str, Application]) -> None:
+    """A draft interview preparation on the first job past New (Interview prep tour), built from
+    the sample pool by the mock; the tour never calls a model."""
+    from app.models import InterviewPrep
+    from app.providers.mock import MockInterviewDrafter
+    from app.services import cover_letter as cl
+    from app.services import interview_prep as ip
+
+    s.flush()
+    open_apps = [a for a in apps.values() if Stage(a.stage) in (Stage.cv_ready, Stage.ready,
+                                                                  Stage.shortlisted)]
+    if not open_apps:
+        return
+    app = open_apps[0]
+    job = s.get(Job, app.job_id)
+    pool, drafter = load_pool(s), MockInterviewDrafter()
+    language = cl.resolve_language(s, app, job)
+    plan = drafter.prepare(ip.build_request(s, app, pool, language))
+    content = ip.content_from_plan(plan)
+    s.add(InterviewPrep(application_id=app.id, version=1, language=language, content=content,
+                        violations=ip.check(s, content, pool),
+                        generator_model="claude-sonnet-5 (mock)",
+                        prompt_version=drafter.prompt_version))
+    s.add(ApplicationEvent(application_id=app.id, kind=EventKind.interview_prep_generated,
+                           message=f"Interview preparation v1 ({language}) written",
+                           at=app.stage_changed_at + timedelta(minutes=40)))
 
 
 def _seed_letters(s: Session, apps: dict[str, Application]) -> None:

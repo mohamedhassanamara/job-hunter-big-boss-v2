@@ -33,7 +33,7 @@ from app.schemas.jobs import (
     TracksOut,
 )
 from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
-from app.services import tracking
+from app.services import listing_flags, tracking
 from app.services import tracks as track_service
 from app.services.pipeline import ALLOWED, stage_label
 
@@ -351,6 +351,7 @@ def job_detail(session: Session, job: Job) -> JobDetail:
         contact=contact_out(contact, _ranking(session)) if contact else None,
         contact_search=company.contact_search,
         agency=agency_signals(company, j),
+        listing_flags=[{"kind": f.kind, "text": f.text} for f in listing_flags.scan(j)],
         contact_state=get_contact.state_of(contact, company, get_contact.verify_days(session)),
         **contact_alert_fields(session, app, contact),
         company_contacts=contact_count,

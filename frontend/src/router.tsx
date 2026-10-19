@@ -10,6 +10,7 @@ import ImportPage from '@/features/import/ImportPage'
 import JobPage from '@/features/job/JobPage'
 import LinkedInPage from '@/features/linkedin/LinkedInPage'
 import MotivCenterPage from '@/features/motivation/MotivCenterPage'
+import InterviewPrepPage from '@/features/interview/InterviewPrepPage'
 import LetterStudioPage from '@/features/letter-studio/LetterStudioPage'
 import NotFoundPage from '@/features/NotFoundPage'
 import OutreachPage from '@/features/outreach/OutreachPage'
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'jobs/:id', element: <JobPage /> },
       { path: 'jobs/:id/cv', element: <CVStudioPage /> },
       { path: 'jobs/:id/letter', element: <LetterStudioPage /> },
+      { path: 'jobs/:id/interview', element: <InterviewPrepPage /> },
       { path: 'outreach', element: <OutreachPage /> },
       { path: 'linkedin', element: <LinkedInPage /> },
       { path: 'copilot', element: <CopilotPage /> },

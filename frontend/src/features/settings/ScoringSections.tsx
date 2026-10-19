@@ -2,6 +2,7 @@ import { CircleAlert, CircleCheck, Copy, FlaskConical, Plus, RefreshCw, Trash2 }
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,6 +48,12 @@ interface CandidateLink {
   url: string
 }
 
+interface GlossaryEntry {
+  from: string
+  to: string
+  note: string
+}
+
 interface Candidate {
   full_name: string
   email: string
@@ -60,6 +67,7 @@ interface Candidate {
   total_years_override?: number | null
   experience_statement?: string
   headline: string
+  glossary?: GlossaryEntry[]
   is_placeholder?: boolean
 }
 
@@ -71,7 +79,7 @@ const LEVELS = [
 
 export function CandidateSection({ settings }: { settings: SettingsView }) {
   const stored = settings.values.profile as unknown as Candidate
-  const initial: Candidate = { ...stored, languages: stored.languages ?? [], links: stored.links ?? [], phone: stored.phone ?? '' }
+  const initial: Candidate = { ...stored, languages: stored.languages ?? [], links: stored.links ?? [], phone: stored.phone ?? '', glossary: stored.glossary ?? [] }
   const [c, setC] = useState<Candidate>(initial)
   const save = useSaveSetting()
   const dirty = JSON.stringify(c) !== JSON.stringify(initial)
@@ -86,16 +94,21 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
           dirty={dirty}
           saving={save.isPending}
           onReset={() => setC(initial)}
-          onSave={() =>
+          onSave={() => {
+            const glossary = (c.glossary ?? []).filter((g) => g.from.trim() || g.to.trim())
+            if (glossary.some((g) => !g.from.trim() || !g.to.trim())) {
+              toast.error('Every glossary term needs both words: how your experience says it, and the term for the field')
+              return
+            }
             save.mutate(
               // Once you edit the test profile, it's yours.
-              { key: 'profile', value: { ...c, is_placeholder: false } as unknown as Record<string, unknown> },
+              { key: 'profile', value: { ...c, glossary, is_placeholder: false } as unknown as Record<string, unknown> },
               {
                 onSuccess: () => toast.success("Candidate profile saved", { description: "Header fields only change your CVs. Location, languages, authorization and headline also mark scores stale." }),
                 onError: (e) => toast.error(e.message),
               },
             )
-          }
+          }}
         />
       }
     >
@@ -188,6 +201,37 @@ export function CandidateSection({ settings }: { settings: SettingsView }) {
             <Plus />
             Add language
           </Button>
+        </div>
+      </Field>
+      <Field label="Glossary" hint="Your own words for moving between fields (e.g. mobile to data). Used by the CV summary and the cover letters; never invented for you">
+        <div className="space-y-2" data-tour="settings-glossary">
+          {(c.glossary ?? []).length === 0 && (
+            <p className="flex flex-wrap items-center gap-2 text-sm text-fg-muted">
+              No terms yet. Add how your experience says something and the word the field you are moving into uses for it.
+              <TourButton tour="glossary" />
+            </p>
+          )}
+          {(c.glossary ?? []).map((g, i) => {
+            const update = (patch: Partial<GlossaryEntry>) => set({ glossary: (c.glossary ?? []).map((x, j) => (j === i ? { ...x, ...patch } : x)) })
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <Input value={g.from} onChange={(e) => update({ from: e.target.value })} placeholder="In my experience: offline-first sync" className="w-64" maxLength={80} aria-label={`Glossary term ${i + 1}: in my experience`} />
+                <span className="text-fg-subtle">→</span>
+                <Input value={g.to} onChange={(e) => update({ to: e.target.value })} placeholder="In the field: incremental data sync" className="w-64" maxLength={80} aria-label={`Glossary term ${i + 1}: in the field`} />
+                <Input value={g.note} onChange={(e) => update({ note: e.target.value })} placeholder="Note (optional)" className="w-44" maxLength={200} aria-label={`Glossary term ${i + 1}: note`} />
+                <Button size="icon-sm" variant="ghost" aria-label="Remove term" onClick={() => set({ glossary: (c.glossary ?? []).filter((_, j) => j !== i) })}>
+                  <Trash2 />
+                </Button>
+              </div>
+            )
+          })}
+          <div className="flex items-center gap-2">
+            <Button size="xs" variant="ghost" onClick={() => set({ glossary: [...(c.glossary ?? []), { from: '', to: '', note: '' }] })}>
+              <Plus /> Add term
+            </Button>
+            {(c.glossary ?? []).length > 0 && <TourButton tour="glossary" />}
+          </div>
+          <p className="text-xs text-fg-subtle">A term only names the same work: it never adds a tool, a number or years, and the generators use it only for experience that contains your first words.</p>
         </div>
       </Field>
       <Field label="Years of experience" hint="What the fit scorer reads">

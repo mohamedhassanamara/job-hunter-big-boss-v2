@@ -158,6 +158,11 @@ class DraftBrief(BaseModel):
     updated_at: datetime
 
 
+class ListingFlagOut(BaseModel):
+    kind: str  # no_salary | hype | stale
+    text: str
+
+
 class JobDetail(JobListItem):
     description: str
     fit_detail: FitDetail | None
@@ -175,6 +180,7 @@ class JobDetail(JobListItem):
     contact_search: str = "none"  # the company's Get contact state: none | not_found | never
     contact_state: str = "get"  # this job's: get | verify | ready | never
     agency: list[str] = []  # why it looks like a recruiting agency (employer not named)
+    listing_flags: list[ListingFlagOut] = []  # code-only red flags in the listing text and age
     # Signs the contact left (active ones block the email's approval) and who to write to instead
     contact_alerts: list[ContactAlertOut] = []
     next_contact: ContactOut | None = None

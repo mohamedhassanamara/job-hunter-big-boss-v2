@@ -419,3 +419,52 @@ class MockCritic:
             issues.append(CritiqueIssue(where="evidence", issue=f"Your {t} experience is left out.",
                                         why="The listing asks for it and you have it."))
         return CritiquePlan(issues=issues)
+
+
+class MockInterviewDrafter:
+    """Interview preparation built from the request's pool, using the pool's own sentences (the
+    sandbox and tests; no model call)."""
+
+    model = "mock-interview"
+    prompt_version = "interview_prep/mock"
+
+    @staticmethod
+    def _items(pool: dict, limit: int = 3) -> list[dict]:
+        return [i for k in ("roles", "projects") for i in pool.get(k, [])
+                if i.get("facts")][:limit]
+
+    def prepare(self, request, feedback: str = ""):  # noqa: ANN001, ANN201
+        from app.providers.base import InterviewPrepPlan, PrepQuestion, StarStory
+
+        items = self._items(request.pool)
+        title = request.job.get("title") or "this role"
+
+        def s(text: str, item: dict) -> EmailSentence:
+            return EmailSentence(text=text, citations=[item["id"]])
+
+        stories = []
+        for item in items:
+            facts = [str(f) for f in item["facts"].values()]
+            digit = next((f for f in facts if any(c.isdigit() for c in f)), None)
+            stories.append(StarStory(
+                requirement=(item.get("tags") or [title])[0], title=item.get("title") or "",
+                situation=[s(f"I worked as {item.get('title')} at {item.get('org')}.", item)],
+                task=[s(facts[0], item)], action=[s(facts[-1], item)],
+                result=[s(digit, item)] if digit and digit not in (facts[0], facts[-1]) else []))
+        pitch = []
+        if items:
+            first = items[0]
+            pitch = [s(f"I am {first.get('title')} at {first.get('org')}.", first)]
+            if first.get("tags"):
+                pitch.append(s(f"My work covers {', '.join(first['tags'][:3])}.", first))
+        questions = [PrepQuestion(question=f"Walk me through how you would approach the {title} "
+                                           "role in your first months.",
+                                  probes="how you prioritise", story=0 if stories else -1)]
+        for i, st in enumerate(stories):
+            questions.append(PrepQuestion(
+                question=f"Tell me about a time you worked on {st.requirement}.",
+                probes="depth of experience", story=i))
+        return InterviewPrepPlan(
+            pitch=pitch, stories=stories, questions=questions,
+            ask_them=[f"What does success look like in the first months of the {title} role?",
+                      "How does the team decide what to build next?"])

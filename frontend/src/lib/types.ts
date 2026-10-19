@@ -212,6 +212,7 @@ export interface JobDetail extends JobListItem {
   contact_search: ContactSearch // the company's Get contact state
   contact_state: ContactState // this job's
   agency: string[] // why it looks like a recruiting agency (employer not named)
+  listing_flags: ListingFlag[] // code-only red flags in the listing text and age
   contact_alerts: ContactAlert[] // active signs the contact left (they block the email's approval)
   next_contact: Contact | null // the next contact by the ranking rule, when there are alerts
 }
@@ -979,6 +980,11 @@ export interface HunterVerified {
   status: string
   score: number | null
   credits: HunterCredits
+}
+
+export interface ListingFlag {
+  kind: 'no_salary' | 'hype' | 'stale'
+  text: string
 }
 
 export interface WaterfallStep {
@@ -1752,3 +1758,59 @@ export interface Verification {
 }
 
 export type VerificationState = 'passed' | 'failed' | 'error' | 'stale' | 'none'
+
+
+export interface PrepSentence {
+  text: string
+  citations: number[]
+  about_job: boolean
+  about_candidate: boolean
+}
+
+export interface StarStory {
+  requirement: string
+  title: string
+  situation: PrepSentence[]
+  task: PrepSentence[]
+  action: PrepSentence[]
+  result: PrepSentence[]
+}
+
+export interface PrepQuestion {
+  question: string
+  probes: string
+  story: number // index of the story that answers it, -1 for none
+}
+
+export interface InterviewContent {
+  pitch: PrepSentence[]
+  stories: StarStory[]
+  questions: PrepQuestion[]
+  ask_them: string[]
+}
+
+export interface InterviewPrep {
+  id: number
+  application_id: number
+  version: number
+  status: 'draft' | 'approved' | 'superseded'
+  language: 'fr' | 'en'
+  content: InterviewContent
+  sources: Record<string, string> // pool id -> "title · org"
+  violations: Violation[]
+  verification: Verification
+  verification_state: VerificationState
+  generator_model: string | null
+  prompt_version: string | null
+  created_at: string
+}
+
+export interface InterviewStudio {
+  application_id: number
+  job_title: string
+  company_name: string
+  prep: InterviewPrep | null
+  versions: number
+  language: 'fr' | 'en'
+  has_experience: boolean
+}

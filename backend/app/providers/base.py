@@ -471,6 +471,50 @@ class LetterDrafter(Protocol):
     def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan: ...
 
 
+class StarStory(BaseModel):
+    requirement: str = Field(description=(
+        "The requirement or theme from the JOB listing this story answers, in a few words"))
+    title: str = Field(description="What the story is, in a few words, from the pool item")
+    situation: list[EmailSentence] = Field(description="The context, only what the cited items say")
+    task: list[EmailSentence] = Field(description="What the candidate had to do, from the items")
+    action: list[EmailSentence] = Field(description="What the candidate did, tools as written")
+    result: list[EmailSentence] = Field(default_factory=list, description=(
+        "What came of it, ONLY when the cited items say so (numbers exactly as written). Leave "
+        "empty when they don't: never invent an outcome"))
+
+
+class PrepQuestion(BaseModel):
+    question: str = Field(description="A question this interviewer is likely to ask for this job")
+    probes: str = Field(description="What the question is really checking, in a few words")
+    story: int = Field(default=-1, description="Index of the story to answer with, -1 for none")
+
+
+class InterviewPrepPlan(BaseModel):
+    """Interview preparation for one job, from the experience pool only. Every sentence about the
+    candidate cites pool ids; questions are about the job and carry no claims."""
+
+    pitch: list[EmailSentence] = Field(description=(
+        "3-4 sentences for 'tell me about yourself', linking the current role to this one"))
+    stories: list[StarStory] = Field(description="3-4 STAR stories, each from a different item")
+    questions: list[PrepQuestion] = Field(description="6-8 likely questions, from the listing")
+    ask_them: list[str] = Field(description=(
+        "3-4 questions to ask the interviewer, from the listing"))
+
+
+class InterviewRequest(BaseModel):
+    job: dict[str, Any]
+    candidate: dict[str, Any]
+    pool: dict[str, Any]  # the experience pool with ids
+    rules: dict[str, Any] = Field(default_factory=dict)
+
+
+class InterviewDrafter(Protocol):
+    model: str
+    prompt_version: str
+
+    def prepare(self, request: InterviewRequest, feedback: str = "") -> InterviewPrepPlan: ...
+
+
 class SendFailed(RuntimeError):
     """A send attempt failed. `fatal` (auth/config) pauses the queue; otherwise only this item
     fails and can be retried."""

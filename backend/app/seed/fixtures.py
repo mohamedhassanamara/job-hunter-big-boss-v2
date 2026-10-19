@@ -172,6 +172,7 @@ JOBS: list[JobFx] = [
         mission="processes card payments for 30k small merchants across Iberia",
         stack=["dbt", "BigQuery", "Looker", "Fivetran", "Python"],
         tier="imported", contact=0,
+        extra={"good_to_know": "We want a rockstar analyst: we work like a family."},
     ),
     JobFx(
         key="veloce-mle", source="adzuna", title="Machine Learning Engineer",
@@ -588,6 +589,10 @@ SETTINGS: dict[str, dict] = {
 SANDBOX_CANDIDATE = {
     "full_name": "Alex Sample", "based_in": "Lisbon, Portugal", "phone": "+351 000 000 000",
     "email": "alex.sample@example.com",
+    "glossary": [  # a sample of what you would write yourself (Settings → Candidate)
+        {"from": "offline sync", "to": "incremental data synchronisation", "note": ""},
+        {"from": "analytics events", "to": "event tracking pipelines", "note": "from the mobile app"},
+    ],
     "links": [{"type": "linkedin", "label": "", "url": "https://linkedin.com/in/alex-sample"},
               {"type": "github", "label": "", "url": "https://github.com/alex-sample"}],
 }
