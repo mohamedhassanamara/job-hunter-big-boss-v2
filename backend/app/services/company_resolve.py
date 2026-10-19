@@ -1,17 +1,22 @@
 """Company resolution, local and free (Phase 12): a company name -> canonical domain, LinkedIn URL
 and size, before any provider is called.
 
-1. The company's own data (you entered the domain; a previous lookup).
+1. The company's own data: the domain you entered, a previous lookup, or the website captured from
+   a listing (`company.website`: a fetched full listing's hiringOrganization.sameAs).
 2. People Data Labs' free company dataset, read locally with DuckDB (CC BY 4.0, quarterly):
    `data/pdl/companies.parquet`, made once from the downloaded file with
    `scripts/pdl_to_parquet.py`. Missing file = this step is skipped.
-3. The listing or the company's website: the contacts' work-email domain, or the job's own
-   URL when it is the company's site (never a job board).
+3. The listing: the work-email domain of the company's contacts, the job's apply link
+   (`job.apply_url`) or its own URL when that is the company's site (never a job board or ATS;
+   the host must contain the company's name).
+4. Only when nothing else worked and a `fetcher` is given: one polite request to the listing page
+   for its JSON-LD company website (honest User-Agent; a site that blocks us gives nothing).
 
-Nothing here makes a network request.
+Steps 1-3 make no network request.
 """
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -26,6 +31,9 @@ from app.services.dedupe import _LEGAL_SUFFIXES, normalize_company
 PDL_PATH = DATA_DIR / "pdl" / "companies.parquet"
 # Hosts that are job boards or applicant systems, never a company's own domain.
 BOARD_HOSTS = (
+    "ashbyhq.", "lever.co", "greenhouse.io", "workable.com", "smartrecruiters.", "recruitee.",
+    "icims.", "jobvite.", "applytojob.", "pinpointhq.", "hire.", "teamtailor.", "workday",
+    "oraclecloud.", "successfactors.", "taleo.", "careerpuck.", "rippling.", "dover.",
     "linkedin.", "indeed.", "glassdoor.", "welcometothejungle.", "wttj.", "adzuna.", "bayt.",
     "greenhouse.io", "lever.co", "ashbyhq.", "workable.", "smartrecruiters.", "recruitee.",
     "personio.", "teamtailor.", "join.com", "jobs.", "free-work.", "jobgether.", "remote",
@@ -102,35 +110,68 @@ def pdl_lookup(name: str, countries: list[str] | None = None,
                     if ambiguous else "")
 
 
-def from_listing(s: Session, company: Company) -> str | None:
-    site = research.company_site(s, company)  # website, domain, or the contacts' email domain
-    if site:
-        return clean_domain(site)
-    token = normalize_company(company.name).split(" ")[0]
-    for url in s.exec(select(Job.url).where(Job.company_id == company.id)).all():
-        host = clean_domain(url)
-        if host and token and token in host.replace("-", "") \
-                and not any(b in host for b in BOARD_HOSTS):
-            return host
-    return None
+_SECOND_LEVEL = {"co", "com", "org", "net", "gov", "ac", "ltd"}
+
+
+def registered_domain(host: str) -> str:
+    """careers.acme.co.uk -> acme.co.uk; jobs.acme.com -> acme.com (no public-suffix list: the
+    usual two-part endings are enough for a company name check)."""
+    labels = host.split(".")
+    keep = 3 if len(labels) >= 3 and labels[-2] in _SECOND_LEVEL and len(labels[-1]) == 2 else 2
+    return ".".join(labels[-keep:])
+
+
+def company_host(url: str | None, company_name: str) -> str | None:
+    """The registered domain of a listing/apply URL when it is the company's own site: not a job
+    board or ATS, and the host carries the company's name."""
+    host = clean_domain(url)
+    token = normalize_company(company_name).split(" ")[0]
+    if not host or not token or any(b in host for b in BOARD_HOSTS):
+        return None
+    return registered_domain(host) if token in host.replace("-", "") else None
+
+
+def from_listing(s: Session, company: Company) -> tuple[str | None, str]:
+    """(domain, where it came from): the contacts' work-email domain, the apply link, or the
+    listing's own host."""
+    domains = research.company_site(s, company)  # website, domain, or the contacts' email domain
+    if domains:
+        return clean_domain(domains), "listing"
+    for url, apply in s.exec(select(Job.url, Job.apply_url).where(Job.company_id == company.id)):
+        for candidate, how in ((apply, "apply link"), (url, "listing")):
+            if host := company_host(candidate, company.name):
+                return host, how
+    return None, ""
 
 
 def resolve(s: Session, company: Company, *, domain: str | None = None,
-            path: Path | None = None) -> Resolved:
+            path: Path | None = None,
+            fetcher: Callable[[str], str | None] | None = None) -> Resolved:
     """Fill the company's domain / LinkedIn / size from the cheapest source. Writes the company
-    only for fields that were empty; an explicit `domain` (you typed it) always wins."""
+    only for fields that were empty; an explicit `domain` (you typed it) always wins.
+    `fetcher(listing_url)` reads the company website from the listing page (last resort)."""
     if domain and clean_domain(domain):
         company.domain, company.domain_source = clean_domain(domain), "manual"
         s.add(company)
         return Resolved(company.domain, "manual")
     if company.domain:
         return Resolved(company.domain, company.domain_source or "manual")
+    if captured := clean_domain(company.website):  # the listing's own company website
+        company.domain, company.domain_source = registered_domain(captured), "listing"
+        s.add(company)
+        return Resolved(company.domain, "listing", note="the company website from its listing")
     countries = [c for c in s.exec(select(Job.country).where(
         Job.company_id == company.id).distinct()).all() if c]
     hit = pdl_lookup(company.name, countries, path)
     if hit is None:
-        site = from_listing(s, company)
-        hit = Resolved(site, "listing") if site else Resolved(None, None, note="no domain found")
+        site, how = from_listing(s, company)
+        if site is None and fetcher is not None:
+            for url in s.exec(select(Job.url).where(Job.company_id == company.id).limit(2)):
+                if page_site := clean_domain(fetcher(url)):
+                    site, how = registered_domain(page_site), "the listing page"
+                    break
+        hit = Resolved(site, "listing", note=f"from {how}") if site \
+            else Resolved(None, None, note="no domain found")
     if hit.domain:
         company.domain, company.domain_source = hit.domain, hit.source
         if hit.linkedin_url and not company.linkedin_url:

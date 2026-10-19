@@ -16,6 +16,8 @@ class Job(TableBase, table=True):
     external_id: str
     source_run_id: int | None = Field(default=None, foreign_key="source_run.id")
     url: str
+    # Where the listing says to apply, when it isn't the listing page itself (ATS boards, JSON-LD).
+    apply_url: str | None = None
     title: str
     company_id: int = Field(foreign_key="company.id", index=True)
     location: str = ""

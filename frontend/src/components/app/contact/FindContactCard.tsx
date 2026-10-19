@@ -35,7 +35,7 @@ function Step({ s }: { s: WaterfallStep }) {
   )
 }
 
-function Candidate({ c, appId, onUsed }: { c: WaterfallCandidate; appId: number; onUsed?: () => void }) {
+function Candidate({ c, appId, onUsed, current }: { c: WaterfallCandidate; appId: number; onUsed?: () => void; current: boolean }) {
   const use = useUseFoundContact()
   const source = [PROVIDER[c.provider] ?? c.provider, c.actor, c.key_label].filter(Boolean).join(' · ')
   return (
@@ -53,6 +53,7 @@ function Candidate({ c, appId, onUsed }: { c: WaterfallCandidate; appId: number;
             {c.verified ? 'verified email' : c.email_status === 'accept_all' ? 'catch-all: not used' : c.email ? 'unverified: not used' : 'not revealed'}
           </ToneBadge>
           {c.note && !c.verified && <span>{c.note}</span>}
+          {current && <ToneBadge tone="blue" dot={false}>current contact</ToneBadge>}
         </p>
         {c.alerts.map((a) => (
           <p key={a} className="flex items-center gap-1 text-xs text-warning-fg">
@@ -61,7 +62,7 @@ function Candidate({ c, appId, onUsed }: { c: WaterfallCandidate; appId: number;
           </p>
         ))}
       </div>
-      {c.verified && c.contact_id !== null && (
+      {c.verified && c.contact_id !== null && !current && (
         <Button
           size="sm"
           variant="outline"
@@ -83,7 +84,7 @@ function Candidate({ c, appId, onUsed }: { c: WaterfallCandidate; appId: number;
 
 /** One click: the cache, then Hunter, Prospeo, Apollo, Apify and the email pattern, stopping at
  * the first verified email. Shows the steps with their cost and the top 3 by your ranking. */
-export function FindContactCard({ appId, domain, onUsed }: { appId: number; domain: string | null; onUsed?: () => void }) {
+export function FindContactCard({ appId, domain, onUsed, quiet = false, currentContactId = null }: { appId: number; domain: string | null; onUsed?: () => void; quiet?: boolean; currentContactId?: number | null }) {
   const find = useFindContact()
   const [typed, setTyped] = useState('')
   const [changing, setChanging] = useState(false)
@@ -104,7 +105,7 @@ export function FindContactCard({ appId, domain, onUsed }: { appId: number; doma
   return (
     <div className="space-y-3" data-tour="find-contact">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="default" onClick={() => run(false)} disabled={find.isPending}>
+        <Button size="sm" variant={quiet ? 'outline' : 'default'} onClick={() => run(false)} disabled={find.isPending}>
           <Sparkles />
           {find.isPending ? 'Looking…' : result ? 'Find again' : 'Find contact'}
         </Button>
@@ -144,7 +145,7 @@ export function FindContactCard({ appId, domain, onUsed }: { appId: number; doma
           {result.candidates.length > 0 ? (
             <ul className="space-y-2">
               {result.candidates.map((c, i) => (
-                <Candidate key={`${c.full_name}-${i}`} c={c} appId={appId} onUsed={onUsed} />
+                <Candidate key={`${c.full_name}-${i}`} c={c} appId={appId} onUsed={onUsed} current={currentContactId !== null && c.contact_id === currentContactId} />
               ))}
             </ul>
           ) : (

@@ -314,6 +314,10 @@ def _check_contacts(value: dict) -> None:
         unknown = [x for x in order if x not in labels]
         if unknown:
             raise HTTPException(422, f"{key}: unknown group {', '.join(unknown)}")
+    exclude = value.get("exclude_keywords")
+    if exclude is not None and (not isinstance(exclude, list)
+                                or not all(isinstance(x, str) and x.strip() for x in exclude)):
+        raise HTTPException(422, "exclude_keywords must be a list of words")
     days = value.get("verify_days")
     if days is not None and (not isinstance(days, int) or not 1 <= days <= 365):
         raise HTTPException(422, "verify_days must be between 1 and 365")

@@ -28,6 +28,8 @@ class ListingUnavailable(RuntimeError):
 class FullListing:
     description: str
     location_requirements: str | None = None
+    company_url: str | None = None  # hiringOrganization.sameAs / url: the company's own website
+    apply_url: str | None = None  # the posting's own url when it points away from the page read
 
 
 def _postings(node: Any) -> list[dict[str, Any]]:
@@ -52,6 +54,16 @@ def _requirements(posting: dict[str, Any]) -> str | None:
     return ", ".join(names) or None
 
 
+def _org_url(posting: dict[str, Any]) -> str | None:
+    org = posting.get("hiringOrganization")
+    for candidate in ((org.get("sameAs"), org.get("url")) if isinstance(org, dict) else ()):
+        values = candidate if isinstance(candidate, list) else [candidate]
+        for v in values:
+            if isinstance(v, str) and v.startswith("http"):
+                return v
+    return None
+
+
 def extract_job_posting(html: str) -> FullListing | None:
     for raw in _LD.findall(html):
         try:
@@ -65,8 +77,21 @@ def extract_job_posting(html: str) -> FullListing | None:
             quals = posting.get("qualifications")
             if isinstance(quals, str) and quals.strip() and quals[:80] not in text:
                 text += "\n\n## Qualifications\n\n" + html_to_text(quals)
-            return FullListing(description=text, location_requirements=_requirements(posting))
+            url = posting.get("url")
+            return FullListing(description=text, location_requirements=_requirements(posting),
+                               company_url=_org_url(posting),
+                               apply_url=url if isinstance(url, str) and url.startswith("http")
+                               else None)
     return None
+
+
+def company_url_of(url: str, client: PoliteClient | None = None) -> str | None:
+    """The company's own website from one listing page (one polite request, honest User-Agent).
+    A site that refuses automated access (WTTJ answers 403) just returns None: we never disguise."""
+    try:
+        return fetch_full_listing(url, client).company_url
+    except ListingUnavailable:
+        return None
 
 
 def fetch_full_listing(url: str, client: PoliteClient | None = None) -> FullListing:

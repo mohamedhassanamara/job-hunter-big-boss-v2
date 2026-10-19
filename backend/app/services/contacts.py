@@ -49,7 +49,7 @@ DEFAULT_ROLE_RANKING: list[dict[str, Any]] = [
         "head of analytics", "directeur data", "responsable data", "director de datos",
         "head of mobile", "head of platform"]},
     {"label": "Engineering Manager", "keywords": [
-        "engineering manager", "software engineering manager", "development manager",
+        "engineering manager", "software engineering manager",
         "manager engineering", "manager ingenierie", "responsable technique",
         "responsable developpement", "jefe de desarrollo"]},
     {"label": "Tech Lead", "keywords": [
@@ -70,6 +70,9 @@ DEFAULT_SMALL_ORDER = ["CTO", "Founder / CEO", "VP / Head of Engineering", "Head
                        "Engineering Manager", "Tech Lead", "HR / Talent"]
 DEFAULT_LARGE_ORDER = ["HR / Talent", "Engineering Manager", "CTO", "VP / Head of Engineering",
                        "Head of Data / AI / ML", "Tech Lead", "Founder / CEO"]
+# A title containing any of these never matches a group ("Business Development Manager" is not an
+# engineering manager). Editable in Settings → Contacts.
+DEFAULT_EXCLUDE = ["business development", "sales", "account"]
 DEFAULT_SMALL_THRESHOLD = 200  # employees; "under 200" (Apollo lists) counts as small
 DEFAULT_LOOKUP = {"daily_cap": 10}
 UNRANKED = 999
@@ -103,6 +106,8 @@ def rank(title: str | None, ranking: list[dict[str, Any]]) -> tuple[int, str | N
     """(position of the first matching group, its label); (UNRANKED, None) when nothing matches."""
     words = fold(title)
     for i, group in enumerate(ranking):
+        if any(_contains(words, fold(x)) for x in group.get("exclude") or []):
+            continue
         if any(_contains(words, fold(k)) for k in group.get("keywords") or []):
             return i, group.get("label")
     return UNRANKED, None
@@ -113,9 +118,16 @@ def _setting(s: Session, key: str, default: Any) -> Any:
     return row.value if row else default
 
 
+def with_exclude(groups: list[dict[str, Any]], exclude: list[str] | None) -> list[dict[str, Any]]:
+    """The groups with the words no matching title may contain (applied by `rank`)."""
+    words = DEFAULT_EXCLUDE if exclude is None else exclude
+    return [{**g, "exclude": words} for g in groups]
+
+
 def role_ranking(s: Session) -> list[dict[str, Any]]:
-    value = _setting(s, "contacts", {})
-    return (value or {}).get("role_ranking") or DEFAULT_ROLE_RANKING
+    value = _setting(s, "contacts", {}) or {}
+    return with_exclude(value.get("role_ranking") or DEFAULT_ROLE_RANKING,
+                        value.get("exclude_keywords"))
 
 
 @dataclass
@@ -155,7 +167,8 @@ def _order(labels: list[str] | None, groups: list[dict[str, Any]],
 
 def ranking_settings(s: Session) -> Ranking:
     value = _setting(s, "contacts", {}) or {}
-    groups = value.get("role_ranking") or DEFAULT_ROLE_RANKING
+    groups = with_exclude(value.get("role_ranking") or DEFAULT_ROLE_RANKING,
+                          value.get("exclude_keywords"))
     return Ranking(groups, _order(value.get("small_order"), groups, DEFAULT_SMALL_ORDER),
                    _order(value.get("large_order"), groups, DEFAULT_LARGE_ORDER),
                    int(value.get("small_company_threshold") or DEFAULT_SMALL_THRESHOLD))

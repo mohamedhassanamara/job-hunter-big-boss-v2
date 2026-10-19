@@ -265,3 +265,71 @@ def test_sql_name_key_equals_the_python_rule() -> None:
     rows = con.execute(f"SELECT name, {company_resolve.name_key_sql('name')} FROM t").fetchall()
     for name, key in rows:
         assert key == company_resolve.normalize_company(name), name
+
+
+# ------------------------------------------------- domains from the listing (Phase 12b)
+
+
+def test_company_host_accepts_only_the_companys_own_site() -> None:
+    host = company_resolve.company_host
+    assert host("https://careers.acme.co.uk/jobs/42", "Acme Ltd") == "acme.co.uk"
+    assert host("https://www.acme.com/careers", "ACME SAS") == "acme.com"
+    assert host("https://jobs.lever.co/acme/123", "Acme") is None  # an ATS
+    assert host("https://boards.greenhouse.io/acme/jobs/1", "Acme") is None
+    assert host("https://www.welcometothejungle.com/en/companies/acme", "Acme") is None
+    assert host("https://other.example.org/x", "Acme") is None  # the name isn't in the host
+    assert host(None, "Acme") is None
+
+
+def test_listing_json_ld_gives_the_company_website_and_apply_link() -> None:
+    from app.services.listing import extract_job_posting
+
+    html = (Path(__file__).parent / "fixtures/sources/wttj_job_page.html").read_text()
+    listing = extract_job_posting(html)
+    assert listing.company_url == "https://www.yubo.live"
+
+
+def test_ats_mappers_keep_the_apply_link() -> None:
+    from app.providers.sources import boards
+
+    root = Path(__file__).parent / "fixtures/sources"
+    board = boards.Board("lever", "acme")
+    jobs = boards.parse_lever(json.loads((root / "boards_lever.json").read_text()), board)
+    assert jobs and all(j.apply_url and j.apply_url.startswith("http") for j in jobs)
+
+
+def test_resolve_order_stored_website_then_pdl_then_listing(seeded: None, pdl: Path) -> None:
+    from app.models import Job
+
+    with Session(engine) as s:
+        sek = Company(name="Sekoia", normalized_name="sekoia-ord")
+        site = Company(name="Yubo", normalized_name="yubo-ord", website="https://www.yubo.live/")
+        apply_co = Company(name="Zorro", normalized_name="zorro-ord")
+        none_co = Company(name="Nobody Known", normalized_name="nobody-ord")
+        s.add_all([sek, site, apply_co, none_co])
+        s.flush()
+        s.add(Job(source="adzuna", external_id="ord-1", url="https://job-board.test/1", title="x",
+                  company_id=apply_co.id, dedupe_key="ord-1",
+                  apply_url="https://careers.zorro.io/apply/1"))
+        s.add(Job(source="adzuna", external_id="ord-2", url="https://job-board.test/2", title="x",
+                  company_id=none_co.id, dedupe_key="ord-2"))
+        s.flush()
+        assert company_resolve.resolve(s, site, path=pdl).source == "listing"
+        assert site.domain == "yubo.live"  # the captured website beats a name lookup
+        assert company_resolve.resolve(s, sek, path=pdl).source == "pdl"
+        r = company_resolve.resolve(s, apply_co, path=tmp_missing(pdl))
+        assert (r.domain, r.note) == ("zorro.io", "from apply link")
+        calls: list[str] = []
+
+        def fetcher(url: str) -> str | None:
+            calls.append(url)
+            return "https://www.nobody-known.fr/about"
+
+        r = company_resolve.resolve(s, none_co, path=tmp_missing(pdl), fetcher=fetcher)
+        assert r.domain == "nobody-known.fr" and calls == ["https://job-board.test/2"]
+        blocked = Company(name="Blocked Co", normalized_name="blocked-ord")
+        s.add(blocked)
+        s.flush()
+        assert company_resolve.resolve(s, blocked, path=tmp_missing(pdl),
+                                       fetcher=lambda u: None).domain is None
+        s.rollback()
