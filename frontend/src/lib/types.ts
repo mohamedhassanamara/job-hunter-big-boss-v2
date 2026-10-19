@@ -981,6 +981,74 @@ export interface HunterVerified {
   credits: HunterCredits
 }
 
+export interface WaterfallStep {
+  provider: 'cache' | 'hunter' | 'prospeo' | 'apollo' | 'apify' | 'pattern' | 'manual'
+  status: string // found | empty | cached | skipped | no_key | exhausted | rate_limited | error
+  detail: string
+  key_label: string | null
+  credits: number
+  usd: number
+}
+
+export interface WaterfallCandidate {
+  contact_id: number | null // set when saved on the company (verified email)
+  full_name: string
+  title: string | null
+  email: string | null
+  email_status: string | null // valid | accept_all | unknown | invalid
+  verified: boolean
+  rank_label: string | null
+  provider: string
+  key_label: string | null
+  actor: string | null
+  found_at: string | null
+  note: string
+  alerts: string[] // "may have left" findings
+}
+
+export interface FindContactResult {
+  domain: string | null
+  domain_source: string | null
+  steps: WaterfallStep[]
+  candidates: WaterfallCandidate[]
+  found_by: string | null
+  from_cache: boolean
+  credits: number
+  usd: number
+  view: GetContactView
+}
+
+export interface ProviderKey {
+  provider: 'hunter' | 'prospeo' | 'apollo' | 'apify'
+  label: string
+  unit: 'credits' | 'usd'
+  used: number
+  limit: number
+  remaining: number
+  calls: number
+  disabled: boolean
+  disabled_reason: string | null
+}
+
+export interface ProviderCall {
+  provider: string
+  key_label: string | null
+  endpoint: string
+  credits: number
+  cost_usd: number
+  ok: boolean
+  result: string
+  created_at: string
+}
+
+export interface ProvidersStatus {
+  keys: ProviderKey[]
+  recent_calls: ProviderCall[]
+  max_age_days: number
+  spend_usd: number
+  warnings: string[]
+}
+
 export interface SearchHit {
   kind: 'job' | 'company' | 'contact'
   id: number

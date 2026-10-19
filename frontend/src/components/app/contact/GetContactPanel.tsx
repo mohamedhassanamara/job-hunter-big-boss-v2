@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ContactAlertBanner } from '@/components/app/ContactAlertBanner'
 import { ContactForm } from '@/components/app/contact/ContactForm'
+import { FindContactCard } from '@/components/app/contact/FindContactCard'
 import { ErrorState } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -181,7 +182,9 @@ function WhoToLookFor({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: bool
           </span>
         </div>
       )}
-      <div className="space-y-2">
+      <FindContactCard key={`find-${v.application_id}`} appId={v.application_id} domain={v.company.domain} onUsed={onDone} />
+      <div className="space-y-2 border-t border-border pt-3">
+        <p className="text-xs font-medium text-fg-subtle">Or by hand, with the Apollo extension</p>
         <p className="text-sm">{v.who.reason}</p>
         <ol className="space-y-1 text-sm">
           {v.who.roles.map((r, i) => (
@@ -236,6 +239,7 @@ function WhoToLookFor({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: bool
         appId={v.application_id}
         companyName={v.company.name}
         submitLabel="Save contact"
+        quiet
         pending={found.isPending}
         pasteRef={pasteRef}
         onSubmit={(fields, via) =>

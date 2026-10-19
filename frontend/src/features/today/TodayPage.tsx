@@ -25,6 +25,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, SourceBadge, ToneBadge } from '@/components/app/badges'
 import { FoundCounter } from '@/components/app/contact/FoundCounter'
+import { ProviderCredits } from '@/components/app/contact/ProviderCredits'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
 import { ChestSummary, StreakSummary } from '@/components/app/motivation/MotivationCards'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
@@ -558,6 +559,7 @@ export default function TodayPage() {
             >
               <div className="px-4 pt-1 pb-2">
                 <FoundCounter found={data.contacts_to_get.found_today} limit={data.contacts_to_get.daily_limit} />
+                <ProviderCredits className="mt-1" />
               </div>
               {data.contacts_to_get.items.map((i) => (
                 <RowLink key={`cg-${i.application_id}`} to={`/outreach?tab=contacts&app=${i.application_id}`}>

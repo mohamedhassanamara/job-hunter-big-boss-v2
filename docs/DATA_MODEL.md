@@ -453,3 +453,19 @@ A single row in v2 (the global queue).
 | key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`: the Apollo extension daily limit), `contacts` (`{role_ranking: [{label, keywords[]}], small_order, large_order, small_company_threshold, verify_days}`), `hunter_log` (Try Hunter uses), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |
 
+
+## Phase 12: contact providers and the company cache
+
+- `company` (added): `domain_source` (manual | pdl | listing | provider), `industry`, `email_pattern`
+  (`{first}.{last}` notation), `pattern_confidence`, `pattern_evidence` (JSON: source + sample emails),
+  `last_enriched_at`. `domain`, `linkedin_url`, `employees(_max)` already existed.
+- `contact` (added): `found_by_provider` (hunter | prospeo | apollo | apify | pattern), `found_by_key` (a
+  label like `prospeo#2`), `found_by_actor`, `found_at`, `verification_status` (valid | accept_all | unknown |
+  invalid: the email's deliverability; different from `verified_at`, which is you confirming the person).
+  `ContactSource` gained prospeo, apollo, apify, pattern.
+- `company_provider_run`: which provider was queried for which company and when (`status` ok | empty | error,
+  credits, cost_usd, the people it listed in `candidates`). This is the cache: a fresh run is not repeated.
+- `provider_key_state` (provider, key_label, `disabled_at/reason`, `monthly_limit`), `provider_usage`
+  (provider, key_label, period `YYYY-MM`, credits, cost_usd, calls: unique per month) and `provider_call`
+  (the log). Keys themselves are never stored.
+- `app_setting.providers`: `{max_age_days: 90, max_reveals: 2, limits: {hunter, prospeo, apollo, apify}}`.

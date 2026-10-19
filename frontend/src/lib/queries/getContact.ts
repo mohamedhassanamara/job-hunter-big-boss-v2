@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { ContactFields, ContactSearch, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
+import type { ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
 
 /** Contacts to get: jobs past New that need a contact or a verification, best fit first. */
@@ -44,6 +44,27 @@ export function useFoundContact() {
       linkedin_url: fields.linkedin_url || null,
       via,
     }),
+  )
+}
+
+/** The contact waterfall: cache, then Hunter, Prospeo, Apollo, Apify, local pattern. One click. */
+export function useFindContact() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ appId, requery = false, domain }: { appId: number; requery?: boolean; domain?: string }) =>
+      api.post<FindContactResult>(`/applications/${appId}/contact/find`, { requery, domain: domain || null }),
+    onSuccess: (res) => qc.setQueryData(keys.getContact(res.view.application_id), res.view),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: keys.providers })
+      invalidateWork(qc)
+    },
+  })
+}
+
+/** Pick one of the waterfall's saved contacts for this job (it still asks "still there?"). */
+export function useUseFoundContact() {
+  return useViewMutation(({ appId, contactId }: { appId: number; contactId: number }) =>
+    api.post<GetContactView>(`/applications/${appId}/contact/use`, { contact_id: contactId }),
   )
 }
 

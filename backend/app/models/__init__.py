@@ -29,6 +29,12 @@ from app.models.motivation import (
     Woop,
 )
 from app.models.profile import DiscoveryRun, SearchProfile, SourceRun
+from app.models.provider import (
+    CompanyProviderRun,
+    ProviderCall,
+    ProviderKeyState,
+    ProviderUsage,
+)
 from app.models.queue import SendLog, SendQueue, SendQueueItem
 from app.models.research import (
     CompanyPage,
@@ -42,6 +48,10 @@ from app.models.settings import AppSetting
 from app.models.tracking import ApplicationResponse, Interview, ReminderAction
 
 __all__ = [
+    "CompanyProviderRun",
+    "ProviderCall",
+    "ProviderKeyState",
+    "ProviderUsage",
     "ChestOpen",
     "GoalTile",
     "Purchase",

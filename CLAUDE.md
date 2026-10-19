@@ -179,6 +179,15 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `contacts.verify_days`. Contacts to get = jobs past New, best fit first. Paste parsing is `services/contact_paste.py`.
   Hunter (`providers/hunter.py`, `HUNTER_API_KEY`) is called only from the Try Hunter endpoints (tested); paid calls
   are never retried.
+- **Find contact waterfall (Phase 12, docs/CONTACT_SOURCES.md)**: `services/contact_waterfall.py` is started only by
+  `POST /applications/{id}/contact/find` (one click; `tests/test_waterfall.py` guards it): company cache → Hunter →
+  Prospeo → Apollo → Apify (`microworlds/leads-finder`) → local email pattern + verifier → the Apollo extension. It stops at the
+  first VERIFIED email (`valid` only: catch-all/unknown are never used) and the contact keeps its provenance
+  (`found_by_*`, `verification_status`; `verified_at` stays empty until you confirm). Finders are in
+  `providers/contact_finders/` (pure `parse_*` mappers, `retries=0` on paid calls, keys passed per call). Credits are per key
+  (`services/provider_quota.py`: monthly counters, real balances synced before a paid call, a refused key is disabled and never
+  retried). Keys come from `.env` (`*_API_KEYS` comma-separated, `APIFY_TOKEN`); tests blank them. Never call a finder from
+  discovery or the scheduler. Company domain/size: `services/company_resolve.py` (typed → PDL via DuckDB → listing).
 - Matching runs after discovery (`discovery.after_discovery`), after each import, and via `POST /contacts/match`.
 - Import dedupe: email (case-folded) → company (`normalize_company`) + folded name → create. Fill-only updates.
   The DB is backed up before imports (`contacts_import.backup_db`, sqlite online backup; never `cp` a WAL DB).
