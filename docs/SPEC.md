@@ -145,11 +145,12 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
     "LocalStack (S3)", "Linux/Bash"), nothing repeated across groups, tools spelled as usual;
   - summary: at most 2 sentences, ~45 words, no numbers from the bullets, no certifications, no internships, no
     tool lists; checked in code and regenerated once, then flagged if still off.
-- **Generate / Regenerate:** one Claude call per job (never in bulk). It returns a plan (pool ids, reworded and ranked bullets, skill order, summary). Code then checks it (nothing invented, numbers exact, every role kept) and fits it to exactly one full page (≤ 4 compile passes, no further model call). About a minute.
+- **Generate / Regenerate:** one Claude call per job (never in bulk). It returns a plan (pool ids, ranked bullets that are your text or a light adaptation of it, skill order selected from your skill groups verbatim, summary). Code then checks it (every number, tool and product of the original kept, nothing added, length ±15%, then the Claude verifier on each adapted bullet; any failure puts your original back; every role kept) and fits it to exactly one full page (≤ 4 compile passes, no further model call). About a minute.
 - **Left, "From your experience pool":**
   - readiness warnings (e.g. no full name blocks generation; no education or summary snippet warns)
   - the checks that failed or are worth a look
   - summary (editable, plus the short version used on tight pages)
+  - bullets: an adapted bullet shows its word diff against your pool original with **Revert to original**; the switch **Use original bullets only** makes this CV use your bullets exactly as written
   - every role with its bullets, projects and certifications. The eye toggles force an item in or out; text edits inline. Each change re-fits and recompiles without calling Claude, and every role keeps at least one bullet.
 - **Right:** the real PDF (iframe), with a fit badge ("1 page · 97% full", passes and template in the tooltip).
 - **Toolbar:**
@@ -455,7 +456,8 @@ redirects to Outreach → Contacts to get).
 - Grouped by kind (Work, Projects, Volunteering & leadership, Skills, Education, Certifications; volunteering matters most for juniors with little paid experience) with a count per group. Tag filter chips appear at the top.
 - Each item row shows the title, org, dates, tags, and bullet count. Rows can be dragged to reorder within a group (with ↑/↓ buttons as a keyboard-accessible alternative), and an active toggle is available.
 - **Add / Edit** opens a side sheet with fields matching the kind: title, org, location, dates (with a "present" toggle), summary, bullets (add/remove/reorder), and tags (token input).
-- Delete offers Undo in the toast.
+- Delete offers Undo in the toast. An item's sheet has **History**: every change to its text (yours, the master import, an undo) with Undo. Nothing else ever edits this text.
+- "Dates as written" prints exactly on the CV (e.g. "Sep 2020 – June 2025").
 - *Empty:* "Add your experience. Every tailored CV is built from it", with "Add first item".
 
 ### 3.9 Settings (`/settings`)
@@ -542,3 +544,4 @@ CV generation, PDF rendering (preview placeholder), email drafting, sending (not
 Apollo CSV import (mock preview), and the Get contact step (a job to get, one to verify, one verified).
 
 Not in phase 0: real API clients, Ollama/Claude calls, LaTeX compile, SMTP, and scheduler jobs.
+

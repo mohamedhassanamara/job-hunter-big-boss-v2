@@ -20,7 +20,7 @@ from app.schemas.cv import (
     TemplateIn,
     TemplateOut,
 )
-from app.services import cv_fit, cv_service, cv_templates, pipeline
+from app.services import cv_fit, cv_service, cv_templates, pipeline, verifier
 from app.services.cv_pool import load_pool, readiness
 
 router = APIRouter(tags=["cv"])
@@ -81,7 +81,8 @@ def generate_cv(
     get_or_404(session, Application, app_id, "Application")
     generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
     try:
-        version = cv_service.generate(engine, app_id, generator, body.template)
+        version = cv_service.generate(engine, app_id, generator, body.template,
+                                      verifier=verifier.for_workspace(session, workspace))
     except cv_service.CVError as exc:
         raise HTTPException(422, str(exc)) from exc
     return _out(version)
@@ -97,7 +98,7 @@ def patch_cv(cv_id: int, body: CVPatch, session: SessionDep, engine: EngineDep) 
     """Force items in/out, edit text or switch template, then re-fit (no generator call)."""
     v = get_or_404(session, CVVersion, cv_id, "CV version")
     overrides = dict(v.overrides or {})
-    for key in ("force_in", "force_out", "text"):
+    for key in ("force_in", "force_out", "text", "revert", "original_only"):
         value = getattr(body, key)
         if value is not None:
             overrides[key] = value

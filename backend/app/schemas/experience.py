@@ -16,6 +16,7 @@ class ExperienceIn(BaseModel):
     is_active: bool = True
     url: str | None = None
     credential_id: str | None = None
+    date_label: str | None = None
 
 
 class ExperiencePatch(BaseModel):
@@ -31,6 +32,7 @@ class ExperiencePatch(BaseModel):
     is_active: bool | None = None
     url: str | None = None
     credential_id: str | None = None
+    date_label: str | None = None
 
 
 class ExperienceOut(ExperienceIn):
@@ -43,3 +45,14 @@ class ExperienceOut(ExperienceIn):
 class ReorderIn(BaseModel):
     kind: str
     ids: list[int]
+
+
+class HistoryOut(BaseModel):
+    id: int
+    item_id: int
+    action: str
+    source: str
+    before: dict
+    after: dict
+    note: str | None = None
+    created_at: datetime

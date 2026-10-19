@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import Text
+from sqlalchemy import JSON, Text
 from sqlmodel import Field
 
 from app.models.base import TableBase, enum_field, json_field
@@ -25,3 +25,21 @@ class ExperienceItem(TableBase, table=True):
     is_placeholder: bool = False
     url: str | None = None  # certifications (verification link), projects (repo/demo)
     credential_id: str | None = None  # certifications
+    # The dates exactly as written ("Sep 2020 – June 2025", "07/2023 – 05/2024", "2020"). When set,
+    # CVs print it as is; start_date/end_date stay for the years arithmetic.
+    date_label: str | None = None
+
+
+class ExperienceHistory(TableBase, table=True):
+    """One row per change of a pool item's text (`services/experience_write.py` is the only
+    writer): the item as it was, so any change can be undone. `source` says who made it: `user`
+    (the Experience screen), `master_import`, `undo`."""
+
+    __tablename__ = "experience_history"
+
+    item_id: int = Field(index=True)
+    action: str  # created | edited | archived | restored | deleted | undo
+    source: str = "user"
+    before: dict = Field(default_factory=dict, sa_type=JSON)  # TEXT_FIELDS before the change
+    after: dict = Field(default_factory=dict, sa_type=JSON)
+    note: str | None = None

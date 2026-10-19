@@ -56,7 +56,7 @@ function Row({
     id: item.id,
     disabled: dragDisabled,
   })
-  const range = formatRange(item.start_date, item.end_date)
+  const range = item.date_label || formatRange(item.start_date, item.end_date)
   return (
     <div
       ref={setNodeRef}

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
+import { useExperienceHistory, useUndoExperience } from '@/lib/queries/library'
 import type { ExperienceInput, ExperienceItem, ExperienceKind } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { KINDS, KIND_META } from './kinds'
@@ -183,6 +184,18 @@ export function ExperienceSheet({
               </div>
             </div>
           )}
+          {datesApply && (
+            <div className="space-y-1.5">
+              <Label htmlFor="date-label">Dates as written (optional)</Label>
+              <Input
+                id="date-label"
+                value={form.date_label ?? ''}
+                onChange={(e) => set({ date_label: e.target.value || null })}
+                placeholder="Sep 2020 – June 2025"
+              />
+              <p className="text-xs text-fg-subtle">When set, CVs print exactly this; the months above still count for years of experience.</p>
+            </div>
+          )}
           {k !== 'skill' && (
             <div className="space-y-1.5">
               <Label htmlFor="summary">{k === 'summary' ? 'Snippet' : 'Summary'}</Label>
@@ -266,7 +279,41 @@ export function ExperienceSheet({
             <TagInput tags={form.tags} onChange={(tags) => set({ tags })} lowercase={k !== 'skill' && k !== 'project'} />
           </div>
         </form>
+        {item && <History itemId={item.id} />}
       </SheetContent>
     </Sheet>
+  )
+}
+
+const FIELD_LABEL: Record<string, string> = {
+  title: 'Title', org: 'Organisation', location: 'Location', start_date: 'Start', end_date: 'End', date_label: 'Dates as written',
+  summary: 'Summary', bullets: 'Bullets', tags: 'Tags', url: 'Link', credential_id: 'Credential ID', is_active: 'In use', kind: 'Type',
+}
+
+/** What changed in this item's text, newest first. Every change can be undone; Undo is itself recorded. */
+function History({ itemId }: { itemId: number }) {
+  const { data = [] } = useExperienceHistory(itemId)
+  const undo = useUndoExperience()
+  if (!data.length) return null
+  const changed = (e: (typeof data)[number]) =>
+    Object.keys(e.after).filter((k) => JSON.stringify(e.before[k]) !== JSON.stringify(e.after[k])).map((k) => FIELD_LABEL[k] ?? k)
+  return (
+    <section className="mt-6 space-y-2 border-t border-border pt-4" data-tour="experience-history">
+      <h3 className="text-xs font-semibold tracking-wide text-fg-muted uppercase">History</h3>
+      <ul className="space-y-1.5">
+        {data.map((e) => (
+          <li key={e.id} className="flex items-start gap-2 text-xs">
+            <span className="min-w-0 flex-1">
+              <span className="font-medium">{e.action}</span>
+              <span className="text-fg-muted"> · {e.source === 'master_import' ? 'master document import' : e.source} · {new Date(e.created_at).toLocaleString()}</span>
+              {changed(e).length > 0 && <span className="block text-fg-subtle">{changed(e).join(', ')}</span>}
+            </span>
+            <Button type="button" size="xs" variant="ghost" disabled={undo.isPending} onClick={() => undo.mutate(e.id)}>
+              Undo
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

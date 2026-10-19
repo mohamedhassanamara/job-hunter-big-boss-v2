@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { api, qs } from '@/lib/api'
 import type {
   CompanyDetail,
@@ -7,6 +8,7 @@ import type {
   ContactAlert,
   ContactCheck,
   Country,
+  ExperienceHistoryEntry,
   ExperienceInput,
   ExperienceItem,
   ExperienceKind,
@@ -39,6 +41,27 @@ export function useSaveExperience() {
         ? api.patch<ExperienceItem>(`/experience/${id}`, data)
         : api.post<ExperienceItem>('/experience', data),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.experience }),
+  })
+}
+
+/** Every change to one item's text (newest first), each undoable. */
+export function useExperienceHistory(id: number | undefined) {
+  return useQuery({
+    queryKey: [...keys.experience, 'history', id],
+    queryFn: () => api.get<ExperienceHistoryEntry[]>(`/experience/${id}/history`),
+    enabled: id !== undefined,
+  })
+}
+
+export function useUndoExperience() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (historyId: number) => api.post<ExperienceItem>(`/experience/history/${historyId}/undo`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.experience })
+      toast.success('Change undone')
+    },
+    onError: (e: Error) => toast.error(e.message),
   })
 }
 

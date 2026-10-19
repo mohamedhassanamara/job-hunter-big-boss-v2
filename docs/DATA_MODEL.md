@@ -153,7 +153,19 @@ The master experience that CVs are generated from.
 | tags | JSON list[str] | "spark", "llm", "gcp", "leadership"… |
 | position | int | Manual order within a kind |
 | is_active | bool | Inactive items are never used in CVs or scoring |
+| date_label | str? | The dates exactly as written ("Sep 2020 – June 2025", "2020"); CVs print it as is (migration 0022) |
 | is_placeholder | bool | Test-CV data. Warned about in the UI and removable in one click. Editing an item makes it yours |
+
+### experience_history (migration 0022)
+One row per change of an item's text, written only by `services/experience_write.py`.
+| Column | Type | Notes |
+|---|---|---|
+| item_id | int | The experience item (kept after the item is deleted) |
+| action | str | created, edited, archived, undo, deleted |
+| source | str | user (Experience screen), master_import, undo |
+| before / after | JSON | The text fields (kind, title, org, location, dates, date_label, summary, bullets, tags, url, credential_id, is_active) |
+| note | str? | e.g. "not in the master document" |
+Undo restores `before` (and is itself a row).
 
 ### scoring_run / scoring_task (persistent queue)
 | Table | Columns | Notes |
@@ -247,7 +259,7 @@ Timeline and stage history.
 | application_id | FK | |
 | version | int | 1, 2, 3… per application |
 | content | JSON | The rendered CVDocument: `{summary, skills[{category, items}], roles[], projects[], certifications[], education[], volunteering[]}` (see docs/CV_TEMPLATES.md) |
-| plan | JSON | `{plan: CVPlan (pool ids, ranked reworded bullets), fit: {counts, short_summary}, history, prompt_version, cost_usd, generation_ms}` |
+| plan | JSON | `{plan: CVPlan (pool ids, ranked bullets: each the pool fact or a checked light adaptation, with `adapted`/`fallback`), tailoring: {adapted, original, fallbacks, verifier}, fit: {counts, short_summary}, history, prompt_version, cost_usd, generation_ms}` |
 | overrides | JSON | `{force_in[], force_out[], text{key: edited}}`; keys like `role:12:0`, `project:7`, `cert:3`, `summary` |
 | template | str | Template used (templates/ or data/templates/) |
 | tex | text? | Rendered LaTeX |
@@ -440,3 +452,4 @@ A single row in v2 (the global queue).
 |---|---|---|
 | key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`: the Apollo extension daily limit), `contacts` (`{role_ranking: [{label, keywords[]}], small_order, large_order, small_company_threshold, verify_days}`), `hunter_log` (Try Hunter uses), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |
+
