@@ -132,7 +132,7 @@ function VerifyFirst({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: boole
       {!editing && (
         <div className="space-y-2 border-t border-border pt-3" data-tour="find-replacement">
           <p className="text-xs font-medium text-fg-subtle">Or look for someone else, without marking {c.full_name} as left</p>
-          <FindContactCard key={`find-${v.application_id}`} appId={v.application_id} domain={v.company.domain} onUsed={onDone} quiet currentContactId={c.id} />
+          <FindContactCard key={`find-${v.application_id}`} appId={v.application_id} companyId={v.company.id} domain={v.company.domain} onUsed={onDone} quiet currentContactId={c.id} />
         </div>
       )}
     </div>
@@ -188,7 +188,7 @@ function WhoToLookFor({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: bool
           </span>
         </div>
       )}
-      <FindContactCard key={`find-${v.application_id}`} appId={v.application_id} domain={v.company.domain} onUsed={onDone} />
+      <FindContactCard key={`find-${v.application_id}`} appId={v.application_id} companyId={v.company.id} domain={v.company.domain} onUsed={onDone} />
       <div className="space-y-2 border-t border-border pt-3">
         <p className="text-xs font-medium text-fg-subtle">Or by hand, with the Apollo extension</p>
         <p className="text-sm">{v.who.reason}</p>

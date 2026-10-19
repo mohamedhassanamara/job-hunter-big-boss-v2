@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useFindContact, useUseFoundContact } from '@/lib/queries/getContact'
 import type { FindContactResult, WaterfallCandidate, WaterfallStep } from '@/lib/types'
+import { DomainPicker } from './DomainPicker'
 import { cn } from '@/lib/utils'
 
 const PROVIDER: Record<string, string> = { cache: 'Cache', hunter: 'Hunter', prospeo: 'Prospeo', apollo: 'Apollo', apify: 'Apify', pattern: 'Email pattern', manual: 'Apollo extension' }
 
-const STEP_TONE: Record<string, Tone> = { found: 'green', empty: 'gray', cached: 'blue', skipped: 'gray', no_key: 'amber', exhausted: 'amber', rate_limited: 'amber', error: 'red' }
-const STEP_LABEL: Record<string, string> = { found: 'found', empty: 'nobody', cached: 'already queried', skipped: 'skipped', no_key: 'no key', exhausted: 'no credits', rate_limited: 'rate limited', error: 'error' }
+const STEP_TONE: Record<string, Tone> = { found: 'green', empty: 'gray', cached: 'blue', skipped: 'gray', no_key: 'amber', exhausted: 'amber', rate_limited: 'amber', no_mx: 'amber', error: 'red' }
+const STEP_LABEL: Record<string, string> = { found: 'found', empty: 'nobody', cached: 'already queried', skipped: 'skipped', no_key: 'no key', exhausted: 'no credits', rate_limited: 'rate limited', no_mx: 'no email', error: 'error' }
 
 const spent = (c: number, usd: number) => [c ? `${c} credit${c === 1 ? '' : 's'}` : '', usd ? `$${usd.toFixed(3)}` : ''].filter(Boolean).join(' · ') || '0 credits'
 
@@ -84,18 +85,19 @@ function Candidate({ c, appId, onUsed, current }: { c: WaterfallCandidate; appId
 
 /** One click: the cache, then Hunter, Prospeo, Apollo, Apify and the email pattern, stopping at
  * the first verified email. Shows the steps with their cost and the top 3 by your ranking. */
-export function FindContactCard({ appId, domain, onUsed, quiet = false, currentContactId = null }: { appId: number; domain: string | null; onUsed?: () => void; quiet?: boolean; currentContactId?: number | null }) {
+export function FindContactCard({ appId, companyId, domain, onUsed, quiet = false, currentContactId = null }: { appId: number; companyId: number; domain: string | null; onUsed?: () => void; quiet?: boolean; currentContactId?: number | null }) {
   const find = useFindContact()
   const [typed, setTyped] = useState('')
   const [changing, setChanging] = useState(false)
   const [result, setResult] = useState<FindContactResult | null>(null)
-  const run = (requery: boolean) =>
+  const run = (requery: boolean, emailDomain?: string) =>
     find.mutate(
-      { appId, requery, domain: typed.trim() || undefined },
+      { appId, requery, domain: typed.trim() || undefined, emailDomain },
       {
         onSuccess: (r) => {
           setResult(r)
-          if (r.from_cache) toast.success('Already known: 0 credits spent')
+          if (r.choice) toast(r.choice.reason, { description: 'Pick the right domain below.' })
+          else if (r.from_cache) toast.success('Already known: 0 credits spent')
           else if (r.found_by) toast.success(`Found with ${PROVIDER[r.found_by]}`, { description: spent(r.credits, r.usd) })
         },
         onError: (e) => toast.error(e.message),
@@ -121,15 +123,42 @@ export function FindContactCard({ appId, domain, onUsed, quiet = false, currentC
             Re-query this company
           </Button>
         )}
-        <span className="text-xs text-fg-subtle">{domain ? `at ${domain}` : 'Cache first, then your providers, stopping at the first verified email.'}</span>
+        <span className="text-xs text-fg-subtle">
+          {result?.lookup_domain ?? domain ? `at ${result?.lookup_domain ?? domain}` : 'Cache first, then your providers, stopping at the first verified email.'}
+          {result?.lookup_domain && domain && result.lookup_domain !== domain && ` (website ${domain})`}
+        </span>
         {domain && (
           <Button size="xs" variant="ghost" onClick={() => setChanging((c) => !c)}>
             Not the right domain?
           </Button>
         )}
       </div>
+      {changing && domain && <DomainPicker companyId={companyId} />}
       {(needsDomain || changing || (!domain && result === null)) && (
-        <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Company domain, if it isn't found (e.g. acme.com)" aria-label="Company domain" className="max-w-sm" />
+        <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={changing ? "Or type the company's website domain (e.g. acme.com)" : "Company domain, if it isn't found (e.g. acme.com)"} aria-label="Company domain" className="max-w-sm" />
+      )}
+      {result?.choice && (
+        <div className="space-y-2 rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2 text-sm text-warning-fg" data-tour="find-choice">
+          <p className="flex items-center gap-2 font-medium">
+            <TriangleAlert className="size-4" />
+            {result.choice.reason}. No other provider was paid for it.
+          </p>
+          {result.choice.alternatives.length > 0 ? (
+            <>
+              <p className="text-xs">These domains receive email. Is one of them the company's mail domain?</p>
+              <div className="flex flex-wrap gap-2">
+                {result.choice.alternatives.map((a) => (
+                  <Button key={a.domain} size="sm" variant="outline" disabled={find.isPending} onClick={() => run(false, a.domain)}>
+                    Look at {a.domain}
+                    <span className="font-normal text-fg-subtle">({a.source === 'guess' ? 'a guess: same name' : a.source})</span>
+                  </Button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs">Type the company's domain above, or use the Apollo extension below.</p>
+          )}
+        </div>
       )}
       {result && (
         <div className="space-y-3">
@@ -149,7 +178,7 @@ export function FindContactCard({ appId, domain, onUsed, quiet = false, currentC
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-warning-fg">Nobody verified: use the Apollo extension below (paste what it shows).</p>
+            !result.choice && <p className="text-xs text-warning-fg">Nobody verified: use the Apollo extension below (paste what it shows).</p>
           )}
         </div>
       )}

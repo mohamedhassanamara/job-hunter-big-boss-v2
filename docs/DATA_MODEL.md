@@ -484,3 +484,11 @@ A single row in v2 (the global queue).
   `app_setting.contacts.exclude_keywords`: words a title may not contain to match a role group (default business
   development, sales, account).
 - Listing red flags are not stored: `services/listing_flags.scan(job)` runs on every job detail.
+
+## Phase 12c: company domains
+
+- `company.email_domain` (migration 0026): the domain mail and provider lookups use when it differs from
+  `company.domain` (the website's); set from verified emails or by you ("Use this one").
+- `company.domains` JSON: `{domain: {source, mx, checked_at, note}}`, every known domain (pdl, listing, apply link,
+  website, website contact page, verified email, guess, you) with its MX answer cached for 30 days.
+- `company_provider_run.domain`: the domain a run searched (NULL on runs from before: they match any domain).
