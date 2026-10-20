@@ -1,0 +1,136 @@
+{
+ "config": "gemma-4-31b-it default",
+ "model": "gemma-4-31b-it",
+ "thinking_config": null,
+ "job": "2418",
+ "retries": 4,
+ "retry_reasons": [
+  500,
+  500,
+  503,
+  503
+ ],
+ "errors": [],
+ "secs": 85.1,
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 5,\n      \"reason\": \"Mixed role requiring both mobile and backend engineering, which the candidate possesses.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 7,\n      \"reason\": \"Strong overlap in Flutter, Python, architecture, and CI/CD; lacks healthcare domain knowledge.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"Job asks for 'Senior' and 'several years'; candidate has 3 years experience.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"Hybrid role in Germany, which is a target country for the candidate.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has professional English; German is listed as an advantage, not a requirement.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Flutter development\",\n      \"Clean Architecture\",\n      \"Python and FastAPI\"\n    ],\n    \"gaps\": [\n      \"Healthcare interoperability standards\",\n      \"Agentic AI coding tools\",\n      \"Senior-level professional experience\"\n    ],\n    \"summary\": \"Mobile engineer with strong Flutter and backend skills, though lacking healthcare domain experience and senior seniority.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5907,
+  "output": 519,
+  "thinking": 1094
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Mixed role requiring both mobile and backend engineering, which the candidate possesses.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong overlap in Flutter, Python, architecture, and CI/CD; lacks healthcare domain knowledge.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for 'Senior' and 'several years'; candidate has 3 years experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Hybrid role in Germany, which is a target country for the candidate.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate has professional English; German is listed as an advantage, not a requirement.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Clean Architecture",
+   "Python and FastAPI"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Agentic AI coding tools",
+   "Senior-level professional experience"
+  ],
+  "summary": "Mobile engineer with strong Flutter and backend skills, though lacking healthcare domain experience and senior seniority."
+ },
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Mixed role requiring both mobile and backend engineering, which the candidate possesses.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong overlap in Flutter, Python, architecture, and CI/CD; lacks healthcare domain knowledge.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for 'Senior' and 'several years'; candidate has 3 years experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Hybrid role in Germany, which is a target country for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate has professional English; German is listed as an advantage, not a requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Clean Architecture",
+   "Python and FastAPI"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Agentic AI coding tools",
+   "Senior-level professional experience"
+  ],
+  "summary": "Mobile engineer with strong Flutter and backend skills, though lacking healthcare domain experience and senior seniority.",
+  "confidence": "high"
+ }
+}

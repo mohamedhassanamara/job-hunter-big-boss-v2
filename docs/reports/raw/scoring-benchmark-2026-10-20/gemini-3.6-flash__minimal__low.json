@@ -1,0 +1,13 @@
+{
+ "model": "gemini-3.6-flash",
+ "mode": "minimal",
+ "job": "low",
+ "job_id": 3950,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [
+  "skipped: attempt cap 18 reached (RPD guard)"
+ ],
+ "thinking_config": null
+}

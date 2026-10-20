@@ -1,0 +1,177 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 794,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 83.4,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a Data Analytics Engineer, which falls directly within the candidate's target Data/AI track and matched role of Data Engineer.\",\n      \"evidence\": \"Data Analytics Engineer (They/She/He)\"\n    },\n    \"skills_match\": {\n      \"score\": 8,\n      \"reason\": \"The candidate possesses the core required skills: SQL, Python, Git, and significant experience with LLMs. They also have hands-on project experience with dbt and Airflow, which are central to analytics engineering, although they lack experience with Looker and GCP.\",\n      \"evidence\": \"Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"The job asks for 2-3 years of experience in a technical data role; the candidate has 1 year of experience specifically in the Data/AI track.\",\n      \"evidence\": \"2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.\"\n    },\n    \"location_eligibility\": {\n      \"score\": 5,\n      \"reason\": \"The job is hybrid in Barcelona, Spain (one of the candidate's target countries), but the listing does not mention visa sponsorship or work authorization requirements.\",\n      \"evidence\": \"Location: Barcelona, Spain (ES)\\nWork mode: hybrid\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job requires English proficiency, which the candidate possesses at a full professional level.\",\n      \"evidence\": \"English proficiency: Good communication in English\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python and SQL proficiency\",\n      \"Extensive LLM and AI implementation experience\",\n      \"Hands-on with dbt and Apache Airflow\"\n    ],\n    \"gaps\": [\n      \"Professional experience with Looker\",\n      \"Experience with Google Cloud Platform (GCP)\",\n      \"Professional years of experience in Analytics Engineering\"\n    ],\n    \"summary\": \"The candidate is a strong technical match with the required SQL, Python, and LLM skills, though they are slightly under the requested years of professional data experience and will require visa sponsorship for Spain.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5802,
+  "output": 719,
+  "thinking": 1355
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 79,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Analytics Engineer, which falls directly within the candidate's target Data/AI track and matched role of Data Engineer.",
+    "evidence": "Data Analytics Engineer (They/She/He)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "The candidate possesses the core required skills: SQL, Python, Git, and significant experience with LLMs. They also have hands-on project experience with dbt and Airflow, which are central to analytics engineering, although they lack experience with Looker and GCP.",
+    "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 2-3 years of experience in a technical data role; the candidate has 1 year of experience specifically in the Data/AI track.",
+    "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is hybrid in Barcelona, Spain (one of the candidate's target countries), but the listing does not mention visa sponsorship or work authorization requirements.",
+    "evidence": "Location: Barcelona, Spain (ES)\nWork mode: hybrid",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+    "evidence": "English proficiency: Good communication in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Extensive LLM and AI implementation experience",
+   "Hands-on with dbt and Apache Airflow"
+  ],
+  "gaps": [
+   "Professional experience with Looker",
+   "Experience with Google Cloud Platform (GCP)",
+   "Professional years of experience in Analytics Engineering"
+  ],
+  "summary": "The candidate is a strong technical match with the required SQL, Python, and LLM skills, though they are slightly under the requested years of professional data experience and will require visa sponsorship for Spain.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Analytics Engineer, which falls directly within the candidate's target Data/AI track and matched role of Data Engineer.",
+   "evidence": "Data Analytics Engineer (They/She/He)"
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "The candidate possesses the core required skills: SQL, Python, Git, and significant experience with LLMs. They also have hands-on project experience with dbt and Airflow, which are central to analytics engineering, although they lack experience with Looker and GCP.",
+   "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 2-3 years of experience in a technical data role; the candidate has 1 year of experience specifically in the Data/AI track.",
+   "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role."
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is hybrid in Barcelona, Spain (one of the candidate's target countries), but the listing does not mention visa sponsorship or work authorization requirements.",
+   "evidence": "Location: Barcelona, Spain (ES)\nWork mode: hybrid"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+   "evidence": "English proficiency: Good communication in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Extensive LLM and AI implementation experience",
+   "Hands-on with dbt and Apache Airflow"
+  ],
+  "gaps": [
+   "Professional experience with Looker",
+   "Experience with Google Cloud Platform (GCP)",
+   "Professional years of experience in Analytics Engineering"
+  ],
+  "summary": "The candidate is a strong technical match with the required SQL, Python, and LLM skills, though they are slightly under the requested years of professional data experience and will require visa sponsorship for Spain."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Data Analytics Engineer (They/She/He)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Barcelona, Spain (ES)\nWork mode: hybrid",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "English proficiency: Good communication in English",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

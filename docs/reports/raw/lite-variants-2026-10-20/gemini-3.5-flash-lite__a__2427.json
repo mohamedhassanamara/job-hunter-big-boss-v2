@@ -1,0 +1,135 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 2427,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 8.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role focuses on aerospace propulsion systems engineering, not data engineering or AI.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"The candidate has software, data and AI skills, lacking aerospace propulsion and fluidic modeling.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate's 3 years of experience meet the entry-level requirement of 3+ years.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers relocation assistance and visa sponsorship.\",\n    \"evidence\": \"Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"python\",\n    \"data analysis\"\n  ],\n  \"gaps\": [\n    \"aerospace engineering\",\n    \"propulsion systems\",\n    \"fluidic modeling\"\n  ],\n  \"summary\": \"This is an aerospace propulsion engineering role requiring domain-specific physics and modeling expertise that does not align with the candidate's software and data track.\"\n}",
+ "tokens": {
+  "input": 5161,
+  "output": 519,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 40,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role focuses on aerospace propulsion systems engineering, not data engineering or AI.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The candidate has software, data and AI skills, lacking aerospace propulsion and fluidic modeling.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate's 3 years of experience meet the entry-level requirement of 3+ years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+    "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "python",
+   "data analysis"
+  ],
+  "gaps": [
+   "aerospace engineering",
+   "propulsion systems",
+   "fluidic modeling"
+  ],
+  "summary": "This is an aerospace propulsion engineering role requiring domain-specific physics and modeling expertise that does not align with the candidate's software and data track.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role focuses on aerospace propulsion systems engineering, not data engineering or AI.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The candidate has software, data and AI skills, lacking aerospace propulsion and fluidic modeling.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate's 3 years of experience meet the entry-level requirement of 3+ years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+   "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "python",
+   "data analysis"
+  ],
+  "gaps": [
+   "aerospace engineering",
+   "propulsion systems",
+   "fluidic modeling"
+  ],
+  "summary": "This is an aerospace propulsion engineering role requiring domain-specific physics and modeling expertise that does not align with the candidate's software and data track."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

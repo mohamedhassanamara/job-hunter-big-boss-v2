@@ -1,0 +1,19 @@
+{
+ "model": "gemini-3.6-flash",
+ "mode": "default",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 5,
+ "retry_reasons": [
+  503,
+  503,
+  503,
+  503,
+  503
+ ],
+ "adaptations": [],
+ "errors": [
+  "gave up after 5 retries: HTTP 503"
+ ],
+ "thinking_config": null
+}

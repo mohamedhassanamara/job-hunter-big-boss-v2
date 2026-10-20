@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 2441,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 27.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role directly matches the Data Engineer track.\",\n    \"evidence\": \"Wir suchen Dich als Data Engineer Kubernetes (m/w/d)\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has Python, SQL, Airflow, and S3, but lacks Kubernetes infrastructure and streaming tools.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Job asks for multiple years of experience with Kubernetes, exceeding candidate's 1 year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site/hybrid in Germany, and the posting does not explicitly state work authorization requirements.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"Job requires very good spoken and written German, which the candidate does not speak.\",\n    \"evidence\": \"F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Apache Airflow\",\n    \"S3\"\n  ],\n  \"gaps\": [\n    \"Kubernetes infrastructure\",\n    \"German language\",\n    \"streaming data tools\"\n  ],\n  \"summary\": \"This Data Engineer role requires extensive Kubernetes experience and fluent German, both of which the candidate lacks.\"\n}",
+ "tokens": {
+  "input": 4949,
+  "output": 575,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role directly matches the Data Engineer track.",
+    "evidence": "Wir suchen Dich als Data Engineer Kubernetes (m/w/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has Python, SQL, Airflow, and S3, but lacks Kubernetes infrastructure and streaming tools.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for multiple years of experience with Kubernetes, exceeding candidate's 1 year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site/hybrid in Germany, and the posting does not explicitly state work authorization requirements.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "Job requires very good spoken and written German, which the candidate does not speak.",
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires a language: F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "Apache Airflow",
+   "S3"
+  ],
+  "gaps": [
+   "Kubernetes infrastructure",
+   "German language",
+   "streaming data tools"
+  ],
+  "summary": "This Data Engineer role requires extensive Kubernetes experience and fluent German, both of which the candidate lacks.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role directly matches the Data Engineer track.",
+   "evidence": "Wir suchen Dich als Data Engineer Kubernetes (m/w/d)"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has Python, SQL, Airflow, and S3, but lacks Kubernetes infrastructure and streaming tools.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for multiple years of experience with Kubernetes, exceeding candidate's 1 year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site/hybrid in Germany, and the posting does not explicitly state work authorization requirements.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "Job requires very good spoken and written German, which the candidate does not speak.",
+   "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich"
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Apache Airflow",
+   "S3"
+  ],
+  "gaps": [
+   "Kubernetes infrastructure",
+   "German language",
+   "streaming data tools"
+  ],
+  "summary": "This Data Engineer role requires extensive Kubernetes experience and fluent German, both of which the candidate lacks."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

@@ -1,0 +1,139 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "b",
+ "prompt": "v4",
+ "thinking_config": {
+  "thinkingBudget": 1024
+ },
+ "job_id": 1913,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 10.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title and core responsibilities directly match the candidate's target backend track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has strong backend experience in Python and Java, but lacks Go and AWS distributed systems.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The role requires large-scale system design experience beyond the candidate's one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in France (a target country) and the posting does not mention visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires professional English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and Java backend\",\n    \"API design\",\n    \"FastAPI and Spring Boot\"\n  ],\n  \"gaps\": [\n    \"Go programming language\",\n    \"Distributed systems\",\n    \"AWS stack\"\n  ],\n  \"summary\": \"The candidate matches the backend engineering role and speaks English, but lacks Go and distributed systems experience required for this Paris position.\"\n}",
+ "tokens": {
+  "input": 4789,
+  "output": 515,
+  "thinking": 940
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 74,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and core responsibilities directly match the candidate's target backend track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has strong backend experience in Python and Java, but lacks Go and AWS distributed systems.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The role requires large-scale system design experience beyond the candidate's one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in France (a target country) and the posting does not mention visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires professional English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and Java backend",
+   "API design",
+   "FastAPI and Spring Boot"
+  ],
+  "gaps": [
+   "Go programming language",
+   "Distributed systems",
+   "AWS stack"
+  ],
+  "summary": "The candidate matches the backend engineering role and speaks English, but lacks Go and distributed systems experience required for this Paris position.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and core responsibilities directly match the candidate's target backend track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has strong backend experience in Python and Java, but lacks Go and AWS distributed systems.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The role requires large-scale system design experience beyond the candidate's one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in France (a target country) and the posting does not mention visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires professional English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and Java backend",
+   "API design",
+   "FastAPI and Spring Boot"
+  ],
+  "gaps": [
+   "Go programming language",
+   "Distributed systems",
+   "AWS stack"
+  ],
+  "summary": "The candidate matches the backend engineering role and speaks English, but lacks Go and distributed systems experience required for this Paris position."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

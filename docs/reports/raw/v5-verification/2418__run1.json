@@ -1,0 +1,154 @@
+{
+ "job": 2418,
+ "run": 1,
+ "retries": 0,
+ "secs": 99.2,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"Mixed role combining mobile and fullstack backend work, overlapping with the candidate's track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Has Flutter and backend Python experience, but lacks Go, .NET, Rust and healthcare standards.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Asks for 'Several years of professional experience' for a senior role while candidate has 3 years.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site job in Germany, which is a target country, but does not state visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires professional English communication, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Mobile development\",\n      \"evidence\": \"bringing our clinical mobile app to Android\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Backend development\",\n      \"evidence\": \"Our backend is built with Python, Go, .NET and Rust\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter\",\n    \"Python\",\n    \"Clean Architecture\"\n  ],\n  \"gaps\": [\n    \"Go / Rust / .NET experience\",\n    \"Senior experience level\",\n    \"Healthcare standards like FHIR\"\n  ],\n  \"summary\": \"This senior fullstack role requires broader backend experience than the candidate's 3 years, though mobile skills fit well.\"\n}",
+ "tokens": {
+  "input": 5351,
+  "output": 608,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Mixed role combining mobile and fullstack backend work, overlapping with the candidate's track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Has Flutter and backend Python experience, but lacks Go, .NET, Rust and healthcare standards.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Asks for 'Several years of professional experience' for a senior role while candidate has 3 years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site job in Germany, which is a target country, but does not state visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires professional English communication, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "missing": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "Our backend is built with Python, Go, .NET and Rust",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Flutter",
+   "Python",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "Go / Rust / .NET experience",
+   "Senior experience level",
+   "Healthcare standards like FHIR"
+  ],
+  "summary": "This senior fullstack role requires broader backend experience than the candidate's 3 years, though mobile skills fit well."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Mixed role combining mobile and fullstack backend work, overlapping with the candidate's track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Has Flutter and backend Python experience, but lacks Go, .NET, Rust and healthcare standards.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Asks for 'Several years of professional experience' for a senior role while candidate has 3 years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site job in Germany, which is a target country, but does not state visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires professional English communication, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "Our backend is built with Python, Go, .NET and Rust",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Flutter",
+   "Python",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "Go / Rust / .NET experience",
+   "Senior experience level",
+   "Healthcare standards like FHIR"
+  ],
+  "summary": "This senior fullstack role requires broader backend experience than the candidate's 3 years, though mobile skills fit well.",
+  "confidence": "high"
+ }
+}

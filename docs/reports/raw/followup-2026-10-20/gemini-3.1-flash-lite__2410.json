@@ -1,0 +1,177 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2410,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 16.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title is Data Engineer and the responsibilities focus on building and maintaining data pipelines, which aligns perfectly with the candidate's target role.\",\n    \"evidence\": \"We are looking for a Data Engineer who enjoys building reliable data pipelines.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong Python and SQL skills and experience with data pipelines (Airflow, dbt), but lacks professional production experience with the specific AWS stack required.\",\n    \"evidence\": \"You are comfortable working with Python, SQL and AWS\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, and the candidate has 3 years of total experience, which is generally sufficient for a standard Data Engineer role.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job requires being based in or near Vienna for office weeks, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.\",\n    \"evidence\": \"A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate is fluent in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Data pipeline experience (Airflow, dbt)\",\n    \"Cloud and DevOps familiarity\"\n  ],\n  \"gaps\": [\n    \"Professional AWS experience\",\n    \"Medallion architecture experience\",\n    \"Local residency in Europe\"\n  ],\n  \"summary\": \"While the candidate has strong technical skills relevant to data engineering, the requirement for quarterly office visits in Vienna combined with the candidate's need for visa sponsorship makes this role ineligible.\"\n}",
+ "tokens": {
+  "input": 4240,
+  "output": 645,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title is Data Engineer and the responsibilities focus on building and maintaining data pipelines, which aligns perfectly with the candidate's target role.",
+    "evidence": "We are looking for a Data Engineer who enjoys building reliable data pipelines.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python and SQL skills and experience with data pipelines (Airflow, dbt), but lacks professional production experience with the specific AWS stack required.",
+    "evidence": "You are comfortable working with Python, SQL and AWS",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, and the candidate has 3 years of total experience, which is generally sufficient for a standard Data Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job requires being based in or near Vienna for office weeks, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.",
+    "evidence": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate is fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna",
+    "evidence": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline experience (Airflow, dbt)",
+   "Cloud and DevOps familiarity"
+  ],
+  "gaps": [
+   "Professional AWS experience",
+   "Medallion architecture experience",
+   "Local residency in Europe"
+  ],
+  "summary": "While the candidate has strong technical skills relevant to data engineering, the requirement for quarterly office visits in Vienna combined with the candidate's need for visa sponsorship makes this role ineligible.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title is Data Engineer and the responsibilities focus on building and maintaining data pipelines, which aligns perfectly with the candidate's target role.",
+   "evidence": "We are looking for a Data Engineer who enjoys building reliable data pipelines."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python and SQL skills and experience with data pipelines (Airflow, dbt), but lacks professional production experience with the specific AWS stack required.",
+   "evidence": "You are comfortable working with Python, SQL and AWS"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, and the candidate has 3 years of total experience, which is generally sufficient for a standard Data Engineer role.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job requires being based in or near Vienna for office weeks, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.",
+   "evidence": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate is fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline experience (Airflow, dbt)",
+   "Cloud and DevOps familiarity"
+  ],
+  "gaps": [
+   "Professional AWS experience",
+   "Medallion architecture experience",
+   "Local residency in Europe"
+  ],
+  "summary": "While the candidate has strong technical skills relevant to data engineering, the requirement for quarterly office visits in Vienna combined with the candidate's need for visa sponsorship makes this role ineligible."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a Data Engineer who enjoys building reliable data pipelines.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "You are comfortable working with Python, SQL and AWS",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "A workplace in the heart of Vienna or remote options with quarterly office weeks in Vienna",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

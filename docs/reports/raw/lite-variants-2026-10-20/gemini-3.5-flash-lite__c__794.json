@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 794,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 2.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is Data Analytics Engineer, matching the candidate's target Data Engineer track.\",\n    \"evidence\": \"Data Analytics Engineer (They/She/He)\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong Python, SQL, Git, and LLM experience, though lacking direct Looker/BI experience.\",\n    \"evidence\": \"Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 7,\n    \"reason\": \"Asks for 2-3 years; candidate has 1 year in track and 3 years total.\",\n    \"evidence\": \"2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site/hybrid in Spain, one of candidate's target countries, with no explicit sponsorship mention.\",\n    \"evidence\": \"Barcelona, Spain (ES)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires English proficiency, which candidate possesses at full professional level.\",\n    \"evidence\": \"English proficiency: Good communication in English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python proficiency\",\n    \"SQL foundations\",\n    \"LLM and automation experience\"\n  ],\n  \"gaps\": [\n    \"Looker or BI tool experience\",\n    \"Google Cloud Platform exposure\",\n    \"Direct analytics engineering experience\"\n  ],\n  \"summary\": \"Good match for a Data Analytics Engineer role with strong Python and LLM skills, though slightly short on exact years in track and BI tool experience.\"\n}",
+ "tokens": {
+  "input": 5332,
+  "output": 600,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 84,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is Data Analytics Engineer, matching the candidate's target Data Engineer track.",
+    "evidence": "Data Analytics Engineer (They/She/He)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong Python, SQL, Git, and LLM experience, though lacking direct Looker/BI experience.",
+    "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 7,
+    "reason": "Asks for 2-3 years; candidate has 1 year in track and 3 years total.",
+    "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site/hybrid in Spain, one of candidate's target countries, with no explicit sponsorship mention.",
+    "evidence": "Barcelona, Spain (ES)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires English proficiency, which candidate possesses at full professional level.",
+    "evidence": "English proficiency: Good communication in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "SQL foundations",
+   "LLM and automation experience"
+  ],
+  "gaps": [
+   "Looker or BI tool experience",
+   "Google Cloud Platform exposure",
+   "Direct analytics engineering experience"
+  ],
+  "summary": "Good match for a Data Analytics Engineer role with strong Python and LLM skills, though slightly short on exact years in track and BI tool experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is Data Analytics Engineer, matching the candidate's target Data Engineer track.",
+   "evidence": "Data Analytics Engineer (They/She/He)"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong Python, SQL, Git, and LLM experience, though lacking direct Looker/BI experience.",
+   "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries."
+  },
+  "seniority_fit": {
+   "score": 7,
+   "reason": "Asks for 2-3 years; candidate has 1 year in track and 3 years total.",
+   "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role."
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site/hybrid in Spain, one of candidate's target countries, with no explicit sponsorship mention.",
+   "evidence": "Barcelona, Spain (ES)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires English proficiency, which candidate possesses at full professional level.",
+   "evidence": "English proficiency: Good communication in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "SQL foundations",
+   "LLM and automation experience"
+  ],
+  "gaps": [
+   "Looker or BI tool experience",
+   "Google Cloud Platform exposure",
+   "Direct analytics engineering experience"
+  ],
+  "summary": "Good match for a Data Analytics Engineer role with strong Python and LLM skills, though slightly short on exact years in track and BI tool experience."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5
+ }
+}

@@ -1,0 +1,210 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3921,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 70.4,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The job is for a Technical Program Manager (TPM), which is a management and coordination role focused on strategy and delivery. This is not one of the candidate's target engineering roles in the Data/AI track.\",\n    \"evidence\": \"Sr. Technical Program Manager (TPM) - AI Programs\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"The candidate has the required software engineering background and familiarity with LLMs, but completely lacks the core required skill: significant experience in technical program or project management.\",\n    \"evidence\": \"Significant senior-level experience in technical program or project management\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The role requires significant senior-level experience in TPM, whereas the candidate is a junior/mid-level engineer with only 3 years of total experience and no management track record.\",\n    \"evidence\": \"Significant senior-level experience in technical program or project management\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is hybrid in Berlin, which is in the candidate's target countries, but the listing does not mention visa sponsorship.\",\n    \"evidence\": \"Berlin (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, and the candidate has full professional proficiency.\",\n    \"evidence\": \"Find more English Speaking Jobs in Germany\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Berlin (DE)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Significant senior-level experience in technical program or project management\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Software engineering experience\",\n    \"Hands-on LLM and AI project work\",\n    \"FastAPI and Python proficiency\"\n  ],\n  \"gaps\": [\n    \"No Technical Program Management experience\",\n    \"Lacks senior-level leadership/strategy experience\",\n    \"No track record of owning cross-functional programs\"\n  ],\n  \"summary\": \"The candidate is a junior software engineer with AI skills, making them entirely unqualified for this senior-level Technical Program Management role.\"\n}\n```",
+ "tokens": {
+  "input": 5908,
+  "output": 671,
+  "thinking": 1046
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 24,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is for a Technical Program Manager (TPM), which is a management and coordination role focused on strategy and delivery. This is not one of the candidate's target engineering roles in the Data/AI track.",
+    "evidence": "Sr. Technical Program Manager (TPM) - AI Programs",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "The candidate has the required software engineering background and familiarity with LLMs, but completely lacks the core required skill: significant experience in technical program or project management.",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The role requires significant senior-level experience in TPM, whereas the candidate is a junior/mid-level engineer with only 3 years of total experience and no management track record.",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is hybrid in Berlin, which is in the candidate's target countries, but the listing does not mention visa sponsorship.",
+    "evidence": "Berlin (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, and the candidate has full professional proficiency.",
+    "evidence": "Find more English Speaking Jobs in Germany",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Berlin (DE)",
+    "evidence": "Berlin (DE)",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Significant senior-level experience in technical program or project management",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Software engineering experience",
+   "Hands-on LLM and AI project work",
+   "FastAPI and Python proficiency"
+  ],
+  "gaps": [
+   "No Technical Program Management experience",
+   "Lacks senior-level leadership/strategy experience",
+   "No track record of owning cross-functional programs"
+  ],
+  "summary": "The candidate is a junior software engineer with AI skills, making them entirely unqualified for this senior-level Technical Program Management role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is for a Technical Program Manager (TPM), which is a management and coordination role focused on strategy and delivery. This is not one of the candidate's target engineering roles in the Data/AI track.",
+   "evidence": "Sr. Technical Program Manager (TPM) - AI Programs"
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "The candidate has the required software engineering background and familiarity with LLMs, but completely lacks the core required skill: significant experience in technical program or project management.",
+   "evidence": "Significant senior-level experience in technical program or project management"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The role requires significant senior-level experience in TPM, whereas the candidate is a junior/mid-level engineer with only 3 years of total experience and no management track record.",
+   "evidence": "Significant senior-level experience in technical program or project management"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is hybrid in Berlin, which is in the candidate's target countries, but the listing does not mention visa sponsorship.",
+   "evidence": "Berlin (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, and the candidate has full professional proficiency.",
+   "evidence": "Find more English Speaking Jobs in Germany"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Berlin (DE)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Significant senior-level experience in technical program or project management"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Software engineering experience",
+   "Hands-on LLM and AI project work",
+   "FastAPI and Python proficiency"
+  ],
+  "gaps": [
+   "No Technical Program Management experience",
+   "Lacks senior-level leadership/strategy experience",
+   "No track record of owning cross-functional programs"
+  ],
+  "summary": "The candidate is a junior software engineer with AI skills, making them entirely unqualified for this senior-level Technical Program Management role."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 5,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Sr. Technical Program Manager (TPM) - AI Programs",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Significant senior-level experience in technical program or project management",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Significant senior-level experience in technical program or project management",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in Germany",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Significant senior-level experience in technical program or project management",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

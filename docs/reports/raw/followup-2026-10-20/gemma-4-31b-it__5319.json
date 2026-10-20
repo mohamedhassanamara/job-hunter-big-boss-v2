@@ -1,0 +1,207 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 5319,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 93.0,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an ML Backend Engineer focusing on search and recommendations, which aligns directly with the candidate's target role of ML Engineer and their experience in AI/Data.\",\n    \"evidence\": \"You'll own the online systems that take a catalogue change to a ranked result in front of a shopper: search, retrieval and recommendation serving\"\n  },\n  \"skills_match\": {\n    \"score\": 3,\n    \"reason\": \"The candidate has strong Python and AI/LLM skills, but lacks the core production requirements: 2+ years of production search engine experience (Elasticsearch/OpenSearch), streaming ingestion (Kafka/Debezium), and TypeScript.\",\n    \"evidence\": \"2+ years operating a production search engine (Elasticsearch, OpenSearch, Solr, Typesense, Vespa or similar)\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 5+ years of production backend/platform experience; the candidate has only 3 years of total experience, much of which was in mobile development.\",\n    \"evidence\": \"5+ years building backend or platform systems in production.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The role is remote, but Saudi Arabia is not listed in the candidate's target countries, and the listing does not specify if the remote option is global or regional.\",\n    \"evidence\": \"Work mode: remote\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The candidate is a native Arabic speaker and fluent in English, which is ideal for a MENA-based company building 'Arabic-first' systems.\",\n    \"evidence\": \"Arabic-first query understanding\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"5+ years building backend or platform systems in production.\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Candidate has 3 years total experience vs 5+ years production backend required.\",\n      \"evidence\": \"5+ years building backend or platform systems in production.\"\n    }\n  ],\n  \"strengths\": [\n    \"Strong Python skills\",\n    \"Experience with LLMs and RAG\",\n    \"Native Arabic speaker\"\n  ],\n  \"gaps\": [\n    \"Production search engine experience (Elasticsearch/OpenSearch)\",\n    \"Streaming data experience (Kafka/Debezium)\",\n    \"5+ years production backend experience\"\n  ],\n  \"summary\": \"The candidate has the right theoretical and project-based AI background, but lacks the extensive production backend and search-platform seniority required for this role.\"\n}\n```",
+ "tokens": {
+  "input": 5195,
+  "output": 784,
+  "thinking": 1415
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 56,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an ML Backend Engineer focusing on search and recommendations, which aligns directly with the candidate's target role of ML Engineer and their experience in AI/Data.",
+    "evidence": "You'll own the online systems that take a catalogue change to a ranked result in front of a shopper: search, retrieval and recommendation serving",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 3,
+    "reason": "The candidate has strong Python and AI/LLM skills, but lacks the core production requirements: 2+ years of production search engine experience (Elasticsearch/OpenSearch), streaming ingestion (Kafka/Debezium), and TypeScript.",
+    "evidence": "2+ years operating a production search engine (Elasticsearch, OpenSearch, Solr, Typesense, Vespa or similar)",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 5+ years of production backend/platform experience; the candidate has only 3 years of total experience, much of which was in mobile development.",
+    "evidence": "5+ years building backend or platform systems in production.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The role is remote, but Saudi Arabia is not listed in the candidate's target countries, and the listing does not specify if the remote option is global or regional.",
+    "evidence": "Work mode: remote",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The candidate is a native Arabic speaker and fluent in English, which is ideal for a MENA-based company building 'Arabic-first' systems.",
+    "evidence": "Arabic-first query understanding",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 3 years total experience vs 5+ years production backend required.",
+    "evidence": "5+ years building backend or platform systems in production.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Strong Python skills",
+   "Experience with LLMs and RAG",
+   "Native Arabic speaker"
+  ],
+  "gaps": [
+   "Production search engine experience (Elasticsearch/OpenSearch)",
+   "Streaming data experience (Kafka/Debezium)",
+   "5+ years production backend experience"
+  ],
+  "summary": "The candidate has the right theoretical and project-based AI background, but lacks the extensive production backend and search-platform seniority required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an ML Backend Engineer focusing on search and recommendations, which aligns directly with the candidate's target role of ML Engineer and their experience in AI/Data.",
+   "evidence": "You'll own the online systems that take a catalogue change to a ranked result in front of a shopper: search, retrieval and recommendation serving"
+  },
+  "skills_match": {
+   "score": 3,
+   "reason": "The candidate has strong Python and AI/LLM skills, but lacks the core production requirements: 2+ years of production search engine experience (Elasticsearch/OpenSearch), streaming ingestion (Kafka/Debezium), and TypeScript.",
+   "evidence": "2+ years operating a production search engine (Elasticsearch, OpenSearch, Solr, Typesense, Vespa or similar)"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 5+ years of production backend/platform experience; the candidate has only 3 years of total experience, much of which was in mobile development.",
+   "evidence": "5+ years building backend or platform systems in production."
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The role is remote, but Saudi Arabia is not listed in the candidate's target countries, and the listing does not specify if the remote option is global or regional.",
+   "evidence": "Work mode: remote"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The candidate is a native Arabic speaker and fluent in English, which is ideal for a MENA-based company building 'Arabic-first' systems.",
+   "evidence": "Arabic-first query understanding"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "5+ years building backend or platform systems in production."
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 3 years total experience vs 5+ years production backend required.",
+    "evidence": "5+ years building backend or platform systems in production."
+   }
+  ],
+  "strengths": [
+   "Strong Python skills",
+   "Experience with LLMs and RAG",
+   "Native Arabic speaker"
+  ],
+  "gaps": [
+   "Production search engine experience (Elasticsearch/OpenSearch)",
+   "Streaming data experience (Kafka/Debezium)",
+   "5+ years production backend experience"
+  ],
+  "summary": "The candidate has the right theoretical and project-based AI background, but lacks the extensive production backend and search-platform seniority required for this role."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 6,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "You'll own the online systems that take a catalogue change to a ranked result in front of a shopper: search, retrieval and recommendation serving",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "2+ years operating a production search engine (Elasticsearch, OpenSearch, Solr, Typesense, Vespa or similar)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Work mode: remote",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Arabic-first query understanding",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

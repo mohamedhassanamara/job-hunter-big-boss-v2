@@ -1,0 +1,131 @@
+{
+ "config": "3.5-lite dynamic",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "1914",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 15.6,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The core responsibilities match the candidate's target Data Engineer track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong overlap in dbt, DuckDB, Python, and SQL data engineering skills.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Job seeks a highly skilled engineer, exceeding the candidate's one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"Role is based in Paris and explicitly provides visa sponsorship and relocation assistance.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Position is in English, which the candidate speaks at professional working level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt and DuckDB\",\n    \"Python data pipelines\",\n    \"SQL expertise\"\n  ],\n  \"gaps\": [\n    \"Limited professional data experience\",\n    \"No Spark or BigQuery background\"\n  ],\n  \"summary\": \"This Paris-based Data Engineer role offers visa sponsorship and matches the candidate's data skills well.\"\n}",
+ "tokens": {
+  "input": 5406,
+  "output": 500,
+  "thinking": 2095
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities match the candidate's target Data Engineer track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong overlap in dbt, DuckDB, Python, and SQL data engineering skills.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job seeks a highly skilled engineer, exceeding the candidate's one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "Role is based in Paris and explicitly provides visa sponsorship and relocation assistance.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Position is in English, which the candidate speaks at professional working level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and DuckDB",
+   "Python data pipelines",
+   "SQL expertise"
+  ],
+  "gaps": [
+   "Limited professional data experience",
+   "No Spark or BigQuery background"
+  ],
+  "summary": "This Paris-based Data Engineer role offers visa sponsorship and matches the candidate's data skills well."
+ },
+ "record": {
+  "score": 86,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities match the candidate's target Data Engineer track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong overlap in dbt, DuckDB, Python, and SQL data engineering skills.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job seeks a highly skilled engineer, exceeding the candidate's one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "Role is based in Paris and explicitly provides visa sponsorship and relocation assistance.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Position is in English, which the candidate speaks at professional working level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and DuckDB",
+   "Python data pipelines",
+   "SQL expertise"
+  ],
+  "gaps": [
+   "Limited professional data experience",
+   "No Spark or BigQuery background"
+  ],
+  "summary": "This Paris-based Data Engineer role offers visa sponsorship and matches the candidate's data skills well.",
+  "confidence": "high"
+ }
+}

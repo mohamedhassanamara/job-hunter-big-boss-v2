@@ -1,0 +1,133 @@
+{
+ "config": "3.1-lite dynamic",
+ "model": "gemini-3.1-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "765",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 28.5,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title and responsibilities align perfectly with the candidate's target AI Engineer role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong overlap in LLMs, RAG, and Python, though specific cloud provider experience is limited.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 8,\n    \"reason\": \"The candidate's 3 years of experience align well with the multi-year requirement.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in a target country and does not explicitly exclude visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job does not explicitly require German, and English is likely sufficient.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG implementation\",\n    \"Fullstack development experience\",\n    \"Clean Architecture proficiency\"\n  ],\n  \"gaps\": [\n    \"Professional cloud provider experience\",\n    \"Limited production AI experience\",\n    \"German language skills\"\n  ],\n  \"summary\": \"A strong candidate with relevant AI project experience, well-suited for this mid-level AI engineering role.\"\n}",
+ "tokens": {
+  "input": 5633,
+  "output": 516,
+  "thinking": 2137
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and responsibilities align perfectly with the candidate's target AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong overlap in LLMs, RAG, and Python, though specific cloud provider experience is limited.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 8,
+   "reason": "The candidate's 3 years of experience align well with the multi-year requirement.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in a target country and does not explicitly exclude visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job does not explicitly require German, and English is likely sufficient.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG implementation",
+   "Fullstack development experience",
+   "Clean Architecture proficiency"
+  ],
+  "gaps": [
+   "Professional cloud provider experience",
+   "Limited production AI experience",
+   "German language skills"
+  ],
+  "summary": "A strong candidate with relevant AI project experience, well-suited for this mid-level AI engineering role."
+ },
+ "record": {
+  "score": 88,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and responsibilities align perfectly with the candidate's target AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong overlap in LLMs, RAG, and Python, though specific cloud provider experience is limited.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 8,
+    "reason": "The candidate's 3 years of experience align well with the multi-year requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in a target country and does not explicitly exclude visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job does not explicitly require German, and English is likely sufficient.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG implementation",
+   "Fullstack development experience",
+   "Clean Architecture proficiency"
+  ],
+  "gaps": [
+   "Professional cloud provider experience",
+   "Limited production AI experience",
+   "German language skills"
+  ],
+  "summary": "A strong candidate with relevant AI project experience, well-suited for this mid-level AI engineering role.",
+  "confidence": "high"
+ }
+}

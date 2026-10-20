@@ -1,0 +1,250 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2441,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 12.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title and core responsibilities are directly aligned with the Data Engineer role in the track.\",\n    \"evidence\": \"Wir suchen Dich als Data Engineer Kubernetes (m/w/d)\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has experience with Python, SQL, Airflow, and S3, but lacks the required multi-year professional experience with on-premise Kubernetes and specific streaming tools like Kafka or Flink.\",\n    \"evidence\": \"Mit vielen dieser Tools und Technologien hast Du schon gearbeitet : S3, Apache Iceberg, Kafka/RedPanda, NATS.io, Dagster, Spark, Flink und Airflow\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 'mehrj\u00e4hrige Erfahrung' (multi-year experience) with Kubernetes and infrastructure, while the candidate has only 1 year of experience in the Data/AI track.\",\n    \"evidence\": \"Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is based in Dresden, Germany, and the candidate requires visa sponsorship, which is not offered. The role is also not remote.\",\n    \"evidence\": \"am Standort Dresden (hybrid)\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The job requires a very good level of German, which the candidate does not speak.\",\n    \"evidence\": \"F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"am Standort Dresden (hybrid)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"language_required\",\n      \"text\": \"German language requirement\",\n      \"evidence\": \"F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"On-site/hybrid in Dresden\",\n      \"evidence\": \"am Standort Dresden (hybrid)\"\n    }\n  ],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Experience with Airflow and S3\",\n    \"Hands-on AI/ML project experience\"\n  ],\n  \"gaps\": [\n    \"No professional German language skills\",\n    \"Lacks multi-year Kubernetes experience\",\n    \"Requires visa sponsorship\"\n  ],\n  \"summary\": \"The candidate is not a fit for this role due to the requirement for professional German, on-site presence in Germany, and a lack of the requested multi-year experience in Kubernetes infrastructure.\"\n}",
+ "tokens": {
+  "input": 4751,
+  "output": 881,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and core responsibilities are directly aligned with the Data Engineer role in the track.",
+    "evidence": "Wir suchen Dich als Data Engineer Kubernetes (m/w/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with Python, SQL, Airflow, and S3, but lacks the required multi-year professional experience with on-premise Kubernetes and specific streaming tools like Kafka or Flink.",
+    "evidence": "Mit vielen dieser Tools und Technologien hast Du schon gearbeitet : S3, Apache Iceberg, Kafka/RedPanda, NATS.io, Dagster, Spark, Flink und Airflow",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 'mehrj\u00e4hrige Erfahrung' (multi-year experience) with Kubernetes and infrastructure, while the candidate has only 1 year of experience in the Data/AI track.",
+    "evidence": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is based in Dresden, Germany, and the candidate requires visa sponsorship, which is not offered. The role is also not remote.",
+    "evidence": "am Standort Dresden (hybrid)",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires a very good level of German, which the candidate does not speak.",
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "German language requirement",
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "On-site/hybrid in Dresden",
+    "evidence": "am Standort Dresden (hybrid)",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.",
+    "evidence": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with Airflow and S3",
+   "Hands-on AI/ML project experience"
+  ],
+  "gaps": [
+   "No professional German language skills",
+   "Lacks multi-year Kubernetes experience",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is not a fit for this role due to the requirement for professional German, on-site presence in Germany, and a lack of the requested multi-year experience in Kubernetes infrastructure.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and core responsibilities are directly aligned with the Data Engineer role in the track.",
+   "evidence": "Wir suchen Dich als Data Engineer Kubernetes (m/w/d)"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with Python, SQL, Airflow, and S3, but lacks the required multi-year professional experience with on-premise Kubernetes and specific streaming tools like Kafka or Flink.",
+   "evidence": "Mit vielen dieser Tools und Technologien hast Du schon gearbeitet : S3, Apache Iceberg, Kafka/RedPanda, NATS.io, Dagster, Spark, Flink und Airflow"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 'mehrj\u00e4hrige Erfahrung' (multi-year experience) with Kubernetes and infrastructure, while the candidate has only 1 year of experience in the Data/AI track.",
+   "evidence": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit."
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is based in Dresden, Germany, and the candidate requires visa sponsorship, which is not offered. The role is also not remote.",
+   "evidence": "am Standort Dresden (hybrid)"
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires a very good level of German, which the candidate does not speak.",
+   "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "am Standort Dresden (hybrid)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit."
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "German language requirement",
+    "evidence": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "On-site/hybrid in Dresden",
+    "evidence": "am Standort Dresden (hybrid)"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with Airflow and S3",
+   "Hands-on AI/ML project experience"
+  ],
+  "gaps": [
+   "No professional German language skills",
+   "Lacks multi-year Kubernetes experience",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is not a fit for this role due to the requirement for professional German, on-site presence in Germany, and a lack of the requested multi-year experience in Kubernetes infrastructure."
+ },
+ "evidence": {
+  "checked": 10,
+  "ok": 10,
+  "in_job": 10,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Wir suchen Dich als Data Engineer Kubernetes (m/w/d)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Mit vielen dieser Tools und Technologien hast Du schon gearbeitet : S3, Apache Iceberg, Kafka/RedPanda, NATS.io, Dagster, Spark, Flink und Airflow",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "am Standort Dresden (hybrid)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "am Standort Dresden (hybrid)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:language_required",
+    "quote": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Du bringst mehrj\u00e4hrige Erfahrung mit Kubernetes und Kubernetes-Infrastruktur sowie mit Linux-Betriebssystemen mit.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:language_required",
+    "quote": "F\u00fcr die effektive Kommunikation im Projektumfeld sowie mit unseren deutschsprachigen Kunden ist ein sehr gutes m\u00fcndliches und schriftliches Deutsch erforderlich",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "am Standort Dresden (hybrid)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

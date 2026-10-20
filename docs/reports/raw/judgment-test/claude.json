@@ -1,0 +1,833 @@
+{
+ "model": "claude-sonnet-5-5",
+ "how": "claude -p, subscription login, no tools, empty temp dir; v5 draft system prompt + the app's rendered user prompt; inline FitAssessment schema (same as the other models)",
+ "prompt_v5_system_sha256": "bfe000e974d115bb",
+ "jobs": {
+  "765": {
+   "title": "AI Engineer (m/w/d)",
+   "company": "Nerdware",
+   "rating_secs": 7.0,
+   "auth_source": "none",
+   "notional_cost_usd": 0.054374,
+   "assessment": {
+    "role_match": {
+     "score": 10,
+     "reason": "AI Engineer building LLM applications, RAG and agents.",
+     "evidence": ""
+    },
+    "skills_match": {
+     "score": 6,
+     "reason": "Strong LLM, RAG, FastAPI, Docker; lacks AWS/Azure and agent frameworks.",
+     "evidence": ""
+    },
+    "seniority_fit": {
+     "score": 7,
+     "reason": "Asks 'mehrjährige Erfahrung' (several years); candidate has 3 years software, 1 in AI.",
+     "evidence": ""
+    },
+    "location_eligibility": {
+     "score": 8,
+     "reason": "Onsite in Germany, a target country; no sponsorship or authorization restrictions stated.",
+     "evidence": ""
+    },
+    "language_requirements": {
+     "score": 5,
+     "reason": "Posting written in German; no explicit level stated, candidate lacks German.",
+     "evidence": ""
+    },
+    "flag_checks": {
+     "no_visa_sponsorship": {
+      "present": false,
+      "evidence": ""
+     },
+     "work_authorization_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "must_be_based_in": {
+      "present": false,
+      "evidence": ""
+     },
+     "nationality_restricted": {
+      "present": false,
+      "evidence": ""
+     },
+     "language_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "seniority_mismatch": {
+      "present": false,
+      "evidence": ""
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "LLM and RAG projects",
+     "FastAPI and Docker backend",
+     "Clean architecture, testing"
+    ],
+    "gaps": [
+     "No AWS/Azure cloud experience",
+     "No agentic engineering evidence",
+     "German likely needed"
+    ],
+    "summary": "Good AI Engineer role match with LLM/RAG experience, but cloud and German-language gaps."
+   },
+   "record": {
+    "score": 76,
+    "sub_scores": {
+     "role_match": {
+      "score": 10,
+      "reason": "AI Engineer building LLM applications, RAG and agents.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "skills_match": {
+      "score": 6,
+      "reason": "Strong LLM, RAG, FastAPI, Docker; lacks AWS/Azure and agent frameworks.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "seniority_fit": {
+      "score": 7,
+      "reason": "Asks 'mehrjährige Erfahrung' (several years); candidate has 3 years software, 1 in AI.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "location_eligibility": {
+      "score": 8,
+      "reason": "Onsite in Germany, a target country; no sponsorship or authorization restrictions stated.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "language_requirements": {
+      "score": 5,
+      "reason": "Posting written in German; no explicit level stated, candidate lacks German.",
+      "evidence": "",
+      "evidence_verified": false
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "LLM and RAG projects",
+     "FastAPI and Docker backend",
+     "Clean architecture, testing"
+    ],
+    "gaps": [
+     "No AWS/Azure cloud experience",
+     "No agentic engineering evidence",
+     "German likely needed"
+    ],
+    "summary": "Good AI Engineer role match with LLM/RAG experience, but cloud and German-language gaps.",
+    "confidence": "high"
+   },
+   "verdict_secs": 12.6,
+   "claude_p_verdict": {
+    "advice": "maybe",
+    "seniority": "Role wants experienced \"mehrjährige\" engineers; the candidate has 3 years total but about 1 year in AI, so this is a stretch but plausible.",
+    "skills": "Good match on LLMs, RAG, FastAPI, Docker and Spring Boot, but there is no AWS/Azure cloud, agentic-framework or production-agent experience.",
+    "location_visa": "Onsite in Nürnberg, so it needs relocation and employer visa sponsorship, which the listing does not mention. Germany is a target country.",
+    "language": "The listing is written in German with no stated language requirement, and the candidate has no German, though English and French are strong. German may be needed for client work.",
+    "why": "Skills partly match, but missing cloud and agentic experience, no German, and unconfirmed sponsorship for an onsite role make it a stretch. Worth a try only if a quick, low-effort application is acceptable."
+   },
+   "full_description": {
+    "rating_secs": 6.9,
+    "assessment": {
+     "role_match": {
+      "score": 9,
+      "reason": "AI Engineer role building LLM, RAG and agentic applications.",
+      "evidence": ""
+     },
+     "skills_match": {
+      "score": 5,
+      "reason": "LLM, RAG, FastAPI, Docker match; lacks AWS/Azure, agents, production experience.",
+      "evidence": ""
+     },
+     "seniority_fit": {
+      "score": 3,
+      "reason": "Senior level with multi-year experience; candidate has 1 year in track.",
+      "evidence": ""
+     },
+     "location_eligibility": {
+      "score": 8,
+      "reason": "Onsite in Germany, a target country; no sponsorship restriction stated.",
+      "evidence": ""
+     },
+     "language_requirements": {
+      "score": 0,
+      "reason": "Requires C1 German; candidate has no German.",
+      "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse"
+     },
+     "flag_checks": {
+      "no_visa_sponsorship": {
+       "present": false,
+       "evidence": ""
+      },
+      "work_authorization_required": {
+       "present": false,
+       "evidence": ""
+      },
+      "must_be_based_in": {
+       "present": false,
+       "evidence": ""
+      },
+      "nationality_restricted": {
+       "present": false,
+       "evidence": ""
+      },
+      "language_required": {
+       "present": true,
+       "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse"
+      },
+      "seniority_mismatch": {
+       "present": false,
+       "evidence": ""
+      }
+     },
+     "red_flags": [],
+     "strengths": [
+      "RAG with FAISS",
+      "Local LLM deployment",
+      "FastAPI and Docker backend"
+     ],
+     "gaps": [
+      "No German",
+      "No AWS/Azure cloud",
+      "Junior versus senior level"
+     ],
+     "summary": "Relevant AI skills, but German C1 is required and the role is senior."
+    },
+    "record": {
+     "score": 35,
+     "sub_scores": {
+      "role_match": {
+       "score": 9,
+       "reason": "AI Engineer role building LLM, RAG and agentic applications.",
+       "evidence": "",
+       "evidence_verified": false
+      },
+      "skills_match": {
+       "score": 5,
+       "reason": "LLM, RAG, FastAPI, Docker match; lacks AWS/Azure, agents, production experience.",
+       "evidence": "",
+       "evidence_verified": false
+      },
+      "seniority_fit": {
+       "score": 3,
+       "reason": "Senior level with multi-year experience; candidate has 1 year in track.",
+       "evidence": "",
+       "evidence_verified": false
+      },
+      "location_eligibility": {
+       "score": 8,
+       "reason": "Onsite in Germany, a target country; no sponsorship restriction stated.",
+       "evidence": "",
+       "evidence_verified": false
+      },
+      "language_requirements": {
+       "score": 0,
+       "reason": "Requires C1 German; candidate has no German.",
+       "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+       "evidence_verified": true
+      }
+     },
+     "red_flags": [
+      {
+       "type": "language_required",
+       "text": "Requires a language: Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+       "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+       "evidence_verified": true,
+       "severity": "hard"
+      }
+     ],
+     "strengths": [
+      "RAG with FAISS",
+      "Local LLM deployment",
+      "FastAPI and Docker backend"
+     ],
+     "gaps": [
+      "No German",
+      "No AWS/Azure cloud",
+      "Junior versus senior level"
+     ],
+     "summary": "Relevant AI skills, but German C1 is required and the role is senior.",
+     "confidence": "high"
+    },
+    "auth_source": "none",
+    "claude_p_verdict": {
+     "advice": "skip",
+     "seniority": "Role is Senior with multi-year experience required; candidate has about 3 years total and 1 in AI, so it's too senior.",
+     "skills": "Partial match: LLM, RAG, FastAPI, Docker and Terraform fit, but there is no AWS/Azure, agentic production work or full-stack depth.",
+     "location_visa": "Onsite in Nürnberg, Germany, and the candidate needs visa sponsorship from Tunisia; the listing offers no relocation or sponsorship.",
+     "language": "Requires German C1; the candidate has no German (Arabic, English, French, limited Spanish), so this is not met.",
+     "why": "Deciding factor is the missing German C1 for an onsite Senior role in Germany. Seniority, visa sponsorship and cloud/agentic gaps compound it."
+    },
+    "verdict_secs": 5.4
+   }
+  },
+  "2418": {
+   "title": "Senior Fullstack Engineer — Mobile Healthcare Platform",
+   "company": "Snke",
+   "rating_secs": 6.5,
+   "auth_source": "none",
+   "notional_cost_usd": 0.0323245,
+   "assessment": {
+    "role_match": {
+     "score": 6,
+     "reason": "Fullstack role with mobile/Flutter component; mixed adjacent role.",
+     "evidence": ""
+    },
+    "skills_match": {
+     "score": 6,
+     "reason": "Flutter, Python, CI/CD, Docker, testing match; no Go/.NET/FHIR experience.",
+     "evidence": ""
+    },
+    "seniority_fit": {
+     "score": 6,
+     "reason": "Senior, 'several years' unspecified; candidate has 3 years.",
+     "evidence": ""
+    },
+    "location_eligibility": {
+     "score": 8,
+     "reason": "Onsite in Germany, a target country; no sponsorship or authorization statements.",
+     "evidence": ""
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "English required; German only a strong advantage, not required.",
+     "evidence": ""
+    },
+    "flag_checks": {
+     "no_visa_sponsorship": {
+      "present": false,
+      "evidence": ""
+     },
+     "work_authorization_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "must_be_based_in": {
+      "present": false,
+      "evidence": ""
+     },
+     "nationality_restricted": {
+      "present": false,
+      "evidence": ""
+     },
+     "language_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "seniority_mismatch": {
+      "present": false,
+      "evidence": ""
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Flutter production experience",
+     "Spring Boot and Python backends",
+     "Docker, CI/CD, testing"
+    ],
+    "gaps": [
+     "No healthcare FHIR/HL7 experience",
+     "No Go, .NET, Rust",
+     "Senior level expectations"
+    ],
+    "summary": "Flutter and backend skills fit this senior fullstack role in Germany reasonably, though seniority and healthcare experience lag."
+   },
+   "record": {
+    "score": 67,
+    "sub_scores": {
+     "role_match": {
+      "score": 6,
+      "reason": "Fullstack role with mobile/Flutter component; mixed adjacent role.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "skills_match": {
+      "score": 6,
+      "reason": "Flutter, Python, CI/CD, Docker, testing match; no Go/.NET/FHIR experience.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "seniority_fit": {
+      "score": 6,
+      "reason": "Senior, 'several years' unspecified; candidate has 3 years.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "location_eligibility": {
+      "score": 8,
+      "reason": "Onsite in Germany, a target country; no sponsorship or authorization statements.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "language_requirements": {
+      "score": 10,
+      "reason": "English required; German only a strong advantage, not required.",
+      "evidence": "",
+      "evidence_verified": false
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Flutter production experience",
+     "Spring Boot and Python backends",
+     "Docker, CI/CD, testing"
+    ],
+    "gaps": [
+     "No healthcare FHIR/HL7 experience",
+     "No Go, .NET, Rust",
+     "Senior level expectations"
+    ],
+    "summary": "Flutter and backend skills fit this senior fullstack role in Germany reasonably, though seniority and healthcare experience lag.",
+    "confidence": "high"
+   },
+   "verdict_secs": 6.1,
+   "claude_p_verdict": {
+    "advice": "maybe",
+    "seniority": "Senior title with \"several years\" required; the candidate has 3 years, so this is a stretch but their full-stack range helps.",
+    "skills": "Strong Flutter, Spring Boot, Docker, CI/CD and testing; Android Flutter port fits, but no Go, .NET, Rust, FHIR or regulated-software experience.",
+    "location_visa": "Onsite/hybrid in Munich, and the candidate needs visa sponsorship from Tunisia; startups may hesitate, though the Blue Card route is plausible.",
+    "language": "English is sufficient; German is only a plus.",
+    "why": "Mobile and backend skills fit well and English is enough. The senior level and sponsorship from Tunisia are the risks, but the Flutter Android need makes it worth a low-cost try."
+   }
+  },
+  "1914": {
+   "title": "Location Data engineer",
+   "company": "Amo",
+   "rating_secs": 10.7,
+   "auth_source": "none",
+   "notional_cost_usd": 0.0458339,
+   "assessment": {
+    "role_match": {
+     "score": 10,
+     "reason": "Core work is building data pipelines as a Data Engineer.",
+     "evidence": ""
+    },
+    "skills_match": {
+     "score": 7,
+     "reason": "dbt, DuckDB, Airflow, SQL, Python match; lacks Spark, BigQuery, ClickHouse.",
+     "evidence": ""
+    },
+    "seniority_fit": {
+     "score": 9,
+     "reason": "No years stated; mid-level wording, candidate has 1 year in track.",
+     "evidence": ""
+    },
+    "location_eligibility": {
+     "score": 10,
+     "reason": "Job explicitly offers sponsored visa and relocation to Paris.",
+     "evidence": "Help and sponsored visa process."
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "Posting in English; no other language required.",
+     "evidence": ""
+    },
+    "flag_checks": {
+     "no_visa_sponsorship": {
+      "present": false,
+      "evidence": ""
+     },
+     "work_authorization_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "must_be_based_in": {
+      "present": false,
+      "evidence": ""
+     },
+     "nationality_restricted": {
+      "present": false,
+      "evidence": ""
+     },
+     "language_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "seniority_mismatch": {
+      "present": false,
+      "evidence": ""
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "dbt and DuckDB pipelines",
+     "Airflow orchestration",
+     "Python and SQL"
+    ],
+    "gaps": [
+     "No Spark or BigQuery",
+     "Limited production data experience",
+     "No dashboards or visualization"
+    ],
+    "summary": "Strong fit: data engineer role with visa sponsorship and relevant dbt/DuckDB skills, though production data experience is thin."
+   },
+   "record": {
+    "score": 90,
+    "sub_scores": {
+     "role_match": {
+      "score": 10,
+      "reason": "Core work is building data pipelines as a Data Engineer.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "skills_match": {
+      "score": 7,
+      "reason": "dbt, DuckDB, Airflow, SQL, Python match; lacks Spark, BigQuery, ClickHouse.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "seniority_fit": {
+      "score": 9,
+      "reason": "No years stated; mid-level wording, candidate has 1 year in track.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "location_eligibility": {
+      "score": 10,
+      "reason": "Job explicitly offers sponsored visa and relocation to Paris.",
+      "evidence": "Help and sponsored visa process.",
+      "evidence_verified": true
+     },
+     "language_requirements": {
+      "score": 10,
+      "reason": "Posting in English; no other language required.",
+      "evidence": "",
+      "evidence_verified": false
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "dbt and DuckDB pipelines",
+     "Airflow orchestration",
+     "Python and SQL"
+    ],
+    "gaps": [
+     "No Spark or BigQuery",
+     "Limited production data experience",
+     "No dashboards or visualization"
+    ],
+    "summary": "Strong fit: data engineer role with visa sponsorship and relevant dbt/DuckDB skills, though production data experience is thin.",
+    "confidence": "high"
+   },
+   "verdict_secs": 6.5,
+   "claude_p_verdict": {
+    "advice": "apply",
+    "seniority": "No years are stated and the role reads mid-level; 3 years total with 1 in data is a slight stretch but plausible.",
+    "skills": "Good match on dbt, DuckDB, Airflow, Python, SQL and ML; gaps in Spark, BigQuery, ClickHouse and large-scale or geospatial data.",
+    "location_visa": "Onsite in Paris, and the company explicitly offers a sponsored visa and relocation help, which fits a Tunisia-based candidate.",
+    "language": "English is the working language (the listing is in English and the team is 68% international), and the candidate also has professional French.",
+    "why": "Visa sponsorship is offered and the stack overlaps well (dbt, DuckDB, orchestration, ML). Scale experience and seniority are modest gaps, but the fit is strong enough to apply."
+   }
+  },
+  "3923": {
+   "title": "Python Engineer – Web Crawling & Data Extraction (m/f/d)",
+   "company": "Certivity",
+   "rating_secs": 6.2,
+   "auth_source": "none",
+   "notional_cost_usd": 0.030588499999999998,
+   "assessment": {
+    "role_match": {
+     "score": 4,
+     "reason": "Web crawling Python engineer with data pipelines; adjacent to Data Engineer.",
+     "evidence": ""
+    },
+    "skills_match": {
+     "score": 5,
+     "reason": "Python, Docker, LLMs, pipelines match; no scraping, anti-bot, async, or production cloud.",
+     "evidence": ""
+    },
+    "seniority_fit": {
+     "score": 8,
+     "reason": "Asks 3+ years software development; candidate has 3 total.",
+     "evidence": ""
+    },
+    "location_eligibility": {
+     "score": 8,
+     "reason": "Onsite in Germany, a target country; no sponsorship or authorization statements.",
+     "evidence": ""
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "Posting in English; no other language required.",
+     "evidence": ""
+    },
+    "flag_checks": {
+     "no_visa_sponsorship": {
+      "present": false,
+      "evidence": ""
+     },
+     "work_authorization_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "must_be_based_in": {
+      "present": false,
+      "evidence": ""
+     },
+     "nationality_restricted": {
+      "present": false,
+      "evidence": ""
+     },
+     "language_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "seniority_mismatch": {
+      "present": false,
+      "evidence": ""
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Python and Docker",
+     "LLM and pipelines experience",
+     "Spring Boot and Terraform"
+    ],
+    "gaps": [
+     "No web scraping experience",
+     "No anti-bot defenses",
+     "No production cloud experience"
+    ],
+    "summary": "Adjacent crawling role in Germany; candidate has Python, Docker and LLM skills but lacks scraping experience."
+   },
+   "record": {
+    "score": 61,
+    "sub_scores": {
+     "role_match": {
+      "score": 4,
+      "reason": "Web crawling Python engineer with data pipelines; adjacent to Data Engineer.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "skills_match": {
+      "score": 5,
+      "reason": "Python, Docker, LLMs, pipelines match; no scraping, anti-bot, async, or production cloud.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "seniority_fit": {
+      "score": 8,
+      "reason": "Asks 3+ years software development; candidate has 3 total.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "location_eligibility": {
+      "score": 8,
+      "reason": "Onsite in Germany, a target country; no sponsorship or authorization statements.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "language_requirements": {
+      "score": 10,
+      "reason": "Posting in English; no other language required.",
+      "evidence": "",
+      "evidence_verified": false
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Python and Docker",
+     "LLM and pipelines experience",
+     "Spring Boot and Terraform"
+    ],
+    "gaps": [
+     "No web scraping experience",
+     "No anti-bot defenses",
+     "No production cloud experience"
+    ],
+    "summary": "Adjacent crawling role in Germany; candidate has Python, Docker and LLM skills but lacks scraping experience.",
+    "confidence": "high"
+   },
+   "verdict_secs": 5.7,
+   "claude_p_verdict": {
+    "advice": "maybe",
+    "seniority": "Role asks for 3+ years of professional development, which matches the candidate's 3 years, though most of that is Flutter rather than Python.",
+    "skills": "Python, Docker, FastAPI, Airflow, LLM work and Spring Boot match, but there is no web scraping or anti-bot experience and no production cloud (GCP/Azure) work, and those are the core requirements.",
+    "location_visa": "Onsite in Munich (up to 60% remote) and the candidate needs visa sponsorship; the listing doesn't mention sponsorship, so relocation is uncertain.",
+    "language": "English is the working language (the listing is in English) and the candidate's full professional English meets it.",
+    "why": "The core requirement is large-scale scraping with anti-bot experience, which the candidate lacks. Visa sponsorship for an onsite Munich job is also unclear. The Python, Docker and LLM extraction overlap makes it a stretch application."
+   }
+  },
+  "1913": {
+   "title": "Backend Engineer (Go)",
+   "company": "Prelude",
+   "rating_secs": 6.4,
+   "auth_source": "none",
+   "notional_cost_usd": 0.0313105,
+   "assessment": {
+    "role_match": {
+     "score": 8,
+     "reason": "Backend engineer role, though Go-focused distributed systems.",
+     "evidence": ""
+    },
+    "skills_match": {
+     "score": 3,
+     "reason": "No Go, DynamoDB, SQS or large-scale systems; only general backend overlap.",
+     "evidence": ""
+    },
+    "seniority_fit": {
+     "score": 6,
+     "reason": "No years stated, but large-scale systems experience implied; candidate has 1 year.",
+     "evidence": ""
+    },
+    "location_eligibility": {
+     "score": 8,
+     "reason": "Onsite hybrid in France, a target country; no sponsorship statement.",
+     "evidence": ""
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "Only fluent English required; candidate is full professional.",
+     "evidence": ""
+    },
+    "flag_checks": {
+     "no_visa_sponsorship": {
+      "present": false,
+      "evidence": ""
+     },
+     "work_authorization_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "must_be_based_in": {
+      "present": false,
+      "evidence": ""
+     },
+     "nationality_restricted": {
+      "present": false,
+      "evidence": ""
+     },
+     "language_required": {
+      "present": false,
+      "evidence": ""
+     },
+     "seniority_mismatch": {
+      "present": false,
+      "evidence": ""
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Spring Boot BFF endpoints",
+     "FastAPI and Python backends",
+     "Docker and CI/CD"
+    ],
+    "gaps": [
+     "No Go experience",
+     "No AWS DynamoDB/SQS/Lambda",
+     "No large-scale systems experience"
+    ],
+    "summary": "Backend role in Paris needing Go and large-scale systems; candidate has Spring Boot/Python but little Go."
+   },
+   "record": {
+    "score": 64,
+    "sub_scores": {
+     "role_match": {
+      "score": 8,
+      "reason": "Backend engineer role, though Go-focused distributed systems.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "skills_match": {
+      "score": 3,
+      "reason": "No Go, DynamoDB, SQS or large-scale systems; only general backend overlap.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "seniority_fit": {
+      "score": 6,
+      "reason": "No years stated, but large-scale systems experience implied; candidate has 1 year.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "location_eligibility": {
+      "score": 8,
+      "reason": "Onsite hybrid in France, a target country; no sponsorship statement.",
+      "evidence": "",
+      "evidence_verified": false
+     },
+     "language_requirements": {
+      "score": 10,
+      "reason": "Only fluent English required; candidate is full professional.",
+      "evidence": "",
+      "evidence_verified": false
+     }
+    },
+    "red_flags": [],
+    "strengths": [
+     "Spring Boot BFF endpoints",
+     "FastAPI and Python backends",
+     "Docker and CI/CD"
+    ],
+    "gaps": [
+     "No Go experience",
+     "No AWS DynamoDB/SQS/Lambda",
+     "No large-scale systems experience"
+    ],
+    "summary": "Backend role in Paris needing Go and large-scale systems; candidate has Spring Boot/Python but little Go.",
+    "confidence": "high"
+   },
+   "verdict_secs": 5.2,
+   "claude_p_verdict": {
+    "advice": "skip",
+    "seniority": "The role implies experience designing large-scale systems, and the candidate has only about 1 year of backend experience.",
+    "skills": "The role needs strong Go plus DynamoDB, SQS, Lambda and gRPC, and the candidate has none of these (Spring Boot, FastAPI and Python instead).",
+    "location_visa": "The job is onsite in Paris, 3 days a week, and the listing doesn't mention visa sponsorship, which the candidate needs from Tunis.",
+    "language": "English is required and the candidate has full professional English, so this is met.",
+    "why": "The candidate has no Go or AWS serverless experience and about 1 year of backend work. The role wants large-scale systems experience and is onsite in Paris with no stated sponsorship, so the fit is weak."
+   }
+  }
+ },
+ "note_765": "The app truncates descriptions above 6000 chars (head 70%, tail 30%). #765's C1 line is at char 4410 and is cut, so `jobs.765` (as the app renders it) never contained the requirement; `jobs.765.full_description` is the same prompt with the whole listing.",
+ "assistant_verdict": {
+  "written_by": "Claude (the assistant in this session), after reading the candidate profile and the five full listings, and after the claude -p ratings above were saved; before any other model was run in this test.",
+  "blindness_disclosure": "I cannot erase what I saw earlier in this conversation: the previous benchmark reports showed several models' scores for these same jobs. I did not reopen any model's output for these five jobs while writing this, and the claude -p ratings were produced in a fresh isolated process that saw only the prompt. The verdicts below come from the listings and the profile.",
+  "jobs": {
+   "765": {
+    "advice": "skip",
+    "seniority": "Senior level with 'mehrjährige Erfahrung'; you have 3 years in total and about 1 in AI, so it is a stretch.",
+    "skills": "LLM, RAG, FastAPI and Docker fit; AWS/Azure cloud work and agent frameworks in production are missing.",
+    "location_visa": "Onsite in Nürnberg (remote only within Germany); no sponsorship or relocation is mentioned, which you would need from Tunis.",
+    "language": "The listing states 'Sehr gute Deutschkenntnisse (C1) in Wort und Schrift'. You have no German, so this alone rules it out.",
+    "why": "The stated C1 German requirement disqualifies it before seniority, cloud gaps or visa questions even matter."
+   },
+   "2418": {
+    "advice": "maybe (lean apply)",
+    "seniority": "'Several years' and a Senior title against your 3 years is the main risk, but the mix of mobile and backend work is what you have actually done.",
+    "skills": "They need Flutter for the Android app and Python/backend work; you have 3 years of Flutter plus Spring Boot BFF and FastAPI. Go/.NET/Rust, FHIR and regulated-software experience are missing, and the listing says fundamentals matter more than stack.",
+    "location_visa": "Hybrid in Munich; sponsorship is not mentioned. A degree-holding engineer can plausibly go through a Blue Card, but expect that question early.",
+    "language": "English is enough; German is only 'a strong advantage'.",
+    "why": "The concrete Flutter-to-Android need is a real match and the language bar is low. Seniority and sponsorship are the risks, so apply with a tailored application but don't expect it to be easy."
+   },
+   "1914": {
+    "advice": "apply",
+    "seniority": "No years are stated and the duties read mid-level; you have about 1 year in data plus projects, a modest stretch.",
+    "skills": "dbt, DuckDB, Airflow, SQL and Python match the stack and the 'or equivalent tools' wording; Spark, BigQuery, ClickHouse and large-scale or geospatial data are gaps.",
+    "location_visa": "Onsite in Paris 5 days a week, with 'Help and sponsored visa process', a month of Airbnb and a relocation agency, which is what you need.",
+    "language": "English works (team is 68% international); your French is a bonus.",
+    "why": "This is the one listing that offers visa sponsorship and relocation explicitly for a role squarely in your Data Engineer track, so apply."
+   },
+   "3923": {
+    "advice": "skip",
+    "seniority": "Asks 3+ years of professional development; you have 3, but mostly Flutter, with Python mainly in an internship and projects.",
+    "skills": "The core is hands-on large-scale web scraping against anti-bot defences, async Python and a cloud stack (GCP/Azure); you have none of that, only LLM-based extraction as a nice-to-have.",
+    "location_visa": "Onsite in Munich with up to 60% remote; sponsorship is not mentioned.",
+    "language": "English listing, English is enough.",
+    "why": "The must-have is firsthand anti-bot scraping experience, which you lack; a stretch application would likely be filtered out."
+   },
+   "1913": {
+    "advice": "skip",
+    "seniority": "They want experience designing large-scale systems and on-call ownership; you have about 1 year of backend work.",
+    "skills": "Strong Go plus DynamoDB, SQS, Lambda, Redshift and gRPC; you have Spring Boot, FastAPI and Python, but no Go or AWS serverless.",
+    "location_visa": "Hybrid in Paris (3 days in the office); sponsorship is not mentioned.",
+    "language": "Fluent professional English, which you meet.",
+    "why": "The gap is the stack and the scale of systems experience, so it is a poor use of an application."
+   }
+  }
+ }
+}

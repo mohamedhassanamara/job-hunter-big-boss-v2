@@ -1,0 +1,147 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2431,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 43.8,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an AI Engineer, which matches the candidate's target role.\",\n    \"evidence\": \"Senior AI Engineer, Agents and Platform\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.\",\n    \"evidence\": \"Eight or more years building and running production software\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 8+ years of experience, while the candidate has 3 years total.\",\n    \"evidence\": \"Eight or more years building and running production software\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany, a target country, and does not explicitly restrict applicants.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses.\",\n    \"evidence\": \"Professional English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Eight or more years building and running production software\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG experience\",\n    \"FastAPI and Python proficiency\",\n    \"Clean Architecture knowledge\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of senior-level production experience\",\n    \"Needs visa sponsorship\"\n  ],\n  \"summary\": \"The candidate is a junior engineer with strong AI project experience but lacks the required seniority.\"\n}",
+ "tokens": {
+  "input": 4936,
+  "output": 556,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an AI Engineer, which matches the candidate's target role.",
+    "evidence": "Senior AI Engineer, Agents and Platform",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 8+ years of experience, while the candidate has 3 years total.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany, a target country, and does not explicitly restrict applicants.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses.",
+    "evidence": "Professional English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Eight or more years building and running production software",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG experience",
+   "FastAPI and Python proficiency",
+   "Clean Architecture knowledge"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level production experience",
+   "Needs visa sponsorship"
+  ],
+  "summary": "The candidate is a junior engineer with strong AI project experience but lacks the required seniority.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an AI Engineer, which matches the candidate's target role.",
+   "evidence": "Senior AI Engineer, Agents and Platform"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.",
+   "evidence": "Eight or more years building and running production software"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 8+ years of experience, while the candidate has 3 years total.",
+   "evidence": "Eight or more years building and running production software"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany, a target country, and does not explicitly restrict applicants.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses.",
+   "evidence": "Professional English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Eight or more years building and running production software"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG experience",
+   "FastAPI and Python proficiency",
+   "Clean Architecture knowledge"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level production experience",
+   "Needs visa sponsorship"
+  ],
+  "summary": "The candidate is a junior engineer with strong AI project experience but lacks the required seniority."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5
+ }
+}

@@ -1,0 +1,7 @@
+v4b = the v4 system prompt with this one sentence replaced.
+
+v4:
+Score each dimension as an integer from 0 to 10 using these anchors:
+
+v4b:
+Score each dimension as an integer from 0 to 10. ANY integer from 0 to 10 is allowed: the anchors below describe typical levels and are examples, not the only allowed values. Use the values in between (1-4, 6-7, 9) when the job sits between two anchors, for example 7 when most but not all of what the 10 anchor asks for is met, or 2 when only a little of what the 5 anchor describes is present. Anchors:

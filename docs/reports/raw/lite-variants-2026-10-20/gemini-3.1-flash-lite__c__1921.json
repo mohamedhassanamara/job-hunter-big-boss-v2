@@ -1,0 +1,147 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 1921,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 8.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Data Engineer, which is a core role in the track.\",\n    \"evidence\": \"Construct and manage robust data pipelines\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has experience with dbt, Airflow, Terraform, and Python, matching the core stack.\",\n    \"evidence\": \"dbt, Apache Airflow, DuckDB, LocalStack (S3), Docker, Terraform\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires a Senior Data Engineer, but the candidate has only 1 year experience.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in France, a target country, and does not explicitly restrict sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No specific language requirement is stated; English is sufficient for the role.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Data Engineer\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt and Airflow experience\",\n    \"Python data pipeline development\",\n    \"Infrastructure as Code (Terraform)\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of senior-level scaling experience\",\n    \"No production GCP experience\"\n  ],\n  \"summary\": \"The candidate is a strong junior data engineer but lacks the seniority required for this role.\"\n}",
+ "tokens": {
+  "input": 4713,
+  "output": 551,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 73,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is a core role in the track.",
+    "evidence": "Construct and manage robust data pipelines",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has experience with dbt, Airflow, Terraform, and Python, matching the core stack.",
+    "evidence": "dbt, Apache Airflow, DuckDB, LocalStack (S3), Docker, Terraform",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires a Senior Data Engineer, but the candidate has only 1 year experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in France, a target country, and does not explicitly restrict sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No specific language requirement is stated; English is sufficient for the role.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Senior Data Engineer",
+    "evidence": "Senior Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "dbt and Airflow experience",
+   "Python data pipeline development",
+   "Infrastructure as Code (Terraform)"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level scaling experience",
+   "No production GCP experience"
+  ],
+  "summary": "The candidate is a strong junior data engineer but lacks the seniority required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is a core role in the track.",
+   "evidence": "Construct and manage robust data pipelines"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has experience with dbt, Airflow, Terraform, and Python, matching the core stack.",
+   "evidence": "dbt, Apache Airflow, DuckDB, LocalStack (S3), Docker, Terraform"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires a Senior Data Engineer, but the candidate has only 1 year experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in France, a target country, and does not explicitly restrict sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No specific language requirement is stated; English is sufficient for the role.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Data Engineer"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and Airflow experience",
+   "Python data pipeline development",
+   "Infrastructure as Code (Terraform)"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level scaling experience",
+   "No production GCP experience"
+  ],
+  "summary": "The candidate is a strong junior data engineer but lacks the seniority required for this role."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

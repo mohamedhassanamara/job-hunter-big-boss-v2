@@ -1,0 +1,157 @@
+{
+ "config": "gemma-4-31b-it default",
+ "model": "gemma-4-31b-it",
+ "thinking_config": null,
+ "job": "765full",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 133.7,
+ "raw_text": "{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"Core responsibilities are exactly the AI Engineer role.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 7,\n      \"reason\": \"Strong LLM and full-stack skills, but lacks AWS/Azure experience.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job is senior level; candidate has 1 year in track.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"On-site in Germany, which is a target country.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 0,\n      \"reason\": \"Candidate does not speak German.\",\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": true,\n        \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"language_required\",\n        \"text\": \"C1 German required\",\n        \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n      },\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Senior level required\",\n        \"evidence\": \"\"\n      }\n    ],\n    \"strengths\": [\n      \"LLMs and RAG\",\n      \"Full-stack development\",\n      \"Clean Architecture\"\n    ],\n    \"gaps\": [\n      \"German C1\",\n      \"AWS/Azure\",\n      \"Senior experience\"\n    ],\n    \"summary\": \"Strong AI skills but lacks required C1 German and senior-level experience.\"\n  }\n}",
+ "tokens": {
+  "input": 6600,
+  "output": 597,
+  "thinking": 2719
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "Core responsibilities are exactly the AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong LLM and full-stack skills, but lacks AWS/Azure experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job is senior level; candidate has 1 year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, which is a target country.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "Candidate does not speak German.",
+   "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "C1 German required",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Senior level required",
+    "evidence": ""
+   }
+  ],
+  "strengths": [
+   "LLMs and RAG",
+   "Full-stack development",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "German C1",
+   "AWS/Azure",
+   "Senior experience"
+  ],
+  "summary": "Strong AI skills but lacks required C1 German and senior-level experience."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "Core responsibilities are exactly the AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong LLM and full-stack skills, but lacks AWS/Azure experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job is senior level; candidate has 1 year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, which is a target country.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "Candidate does not speak German.",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "C1 German required",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Senior level required",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLMs and RAG",
+   "Full-stack development",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "German C1",
+   "AWS/Azure",
+   "Senior experience"
+  ],
+  "summary": "Strong AI skills but lacks required C1 German and senior-level experience.",
+  "confidence": "high"
+ }
+}

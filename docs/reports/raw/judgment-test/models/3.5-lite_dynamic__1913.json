@@ -1,0 +1,133 @@
+{
+ "config": "3.5-lite dynamic",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "1913",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 29.9,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a backend engineering position matching the target track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 3,\n    \"reason\": \"Lacks required Go experience and specific cloud stack.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Requires system design experience beyond the candidate's one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Onsite role in a target country without explicit sponsorship details.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Candidate meets the English language requirement.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python backend development\",\n    \"Spring Boot experience\",\n    \"English proficiency\"\n  ],\n  \"gaps\": [\n    \"No Go language experience\",\n    \"Limited backend experience\",\n    \"Lack of AWS serverless stack\"\n  ],\n  \"summary\": \"This backend role matches the target track but requires Go and more experience.\"\n}",
+ "tokens": {
+  "input": 4979,
+  "output": 477,
+  "thinking": 1932
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a backend engineering position matching the target track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 3,
+   "reason": "Lacks required Go experience and specific cloud stack.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Requires system design experience beyond the candidate's one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Onsite role in a target country without explicit sponsorship details.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate meets the English language requirement.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python backend development",
+   "Spring Boot experience",
+   "English proficiency"
+  ],
+  "gaps": [
+   "No Go language experience",
+   "Limited backend experience",
+   "Lack of AWS serverless stack"
+  ],
+  "summary": "This backend role matches the target track but requires Go and more experience."
+ },
+ "record": {
+  "score": 68,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a backend engineering position matching the target track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 3,
+    "reason": "Lacks required Go experience and specific cloud stack.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Requires system design experience beyond the candidate's one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Onsite role in a target country without explicit sponsorship details.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate meets the English language requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python backend development",
+   "Spring Boot experience",
+   "English proficiency"
+  ],
+  "gaps": [
+   "No Go language experience",
+   "Limited backend experience",
+   "Lack of AWS serverless stack"
+  ],
+  "summary": "This backend role matches the target track but requires Go and more experience.",
+  "confidence": "high"
+ }
+}

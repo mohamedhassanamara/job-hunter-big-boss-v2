@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 3923,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 10.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role focuses on web scraping and data extraction pipelines, adjacent to data engineering.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate brings strong Python and Docker skills, but lacks professional web scraping experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job requires 3+ years of professional development, matching the candidate's total experience.\",\n    \"evidence\": \"3+ years of professional software development\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Onsite or hybrid in Germany with no explicit work authorization restriction stated.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Only English is required as the job listing is in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Docker\",\n    \"LLM-assisted extraction\"\n  ],\n  \"gaps\": [\n    \"Web scraping at scale\",\n    \"Cloud GCP/Azure experience\",\n    \"MongoDB\"\n  ],\n  \"summary\": \"This Python extraction engineer role aligns with the candidate's Python and data pipeline skills, though web scraping experience is missing.\"\n}",
+ "tokens": {
+  "input": 4697,
+  "output": 510,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role focuses on web scraping and data extraction pipelines, adjacent to data engineering.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate brings strong Python and Docker skills, but lacks professional web scraping experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job requires 3+ years of professional development, matching the candidate's total experience.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Onsite or hybrid in Germany with no explicit work authorization restriction stated.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Only English is required as the job listing is in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM-assisted extraction"
+  ],
+  "gaps": [
+   "Web scraping at scale",
+   "Cloud GCP/Azure experience",
+   "MongoDB"
+  ],
+  "summary": "This Python extraction engineer role aligns with the candidate's Python and data pipeline skills, though web scraping experience is missing.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role focuses on web scraping and data extraction pipelines, adjacent to data engineering.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate brings strong Python and Docker skills, but lacks professional web scraping experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job requires 3+ years of professional development, matching the candidate's total experience.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Onsite or hybrid in Germany with no explicit work authorization restriction stated.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Only English is required as the job listing is in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM-assisted extraction"
+  ],
+  "gaps": [
+   "Web scraping at scale",
+   "Cloud GCP/Azure experience",
+   "MongoDB"
+  ],
+  "summary": "This Python extraction engineer role aligns with the candidate's Python and data pipeline skills, though web scraping experience is missing."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

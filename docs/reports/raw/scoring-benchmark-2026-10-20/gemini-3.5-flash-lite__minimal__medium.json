@@ -1,0 +1,201 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "mode": "minimal",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": {
+  "thinkingLevel": "minimal"
+ },
+ "secs": 2.7,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4883,
+  "output": 608,
+  "thinking": 0,
+  "total": 5491
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is a Data Engineer role, which directly matches the track role of Data Engineer.\",\n    \"evidence\": \"Senior Data Engineer - Real time analytics\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has experience with Python, SQL, and Apache Airflow, but lacks the required 5+ years of programming experience and AWS real-time stack like Kafka and Flink.\",\n    \"evidence\": \"Python / sql / Apache Airflow\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires a Senior level with 5+ years of experience in a modern programming language and 3+ years in near real-time analytics, while the candidate has only 1 year in the track and 3 years total experience.\",\n    \"evidence\": \"Senior Data Engineer - Real time analytics\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is onsite in Paris, France, and the posting does not mention visa sponsorship.\",\n    \"evidence\": \"Paris Office (FR)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate has full professional English proficiency.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Paris Office (FR)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Data Engineer\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"SQL\",\n    \"Apache Airflow\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"Kafka and real-time streaming stack\",\n    \"5+ years programming experience\"\n  ],\n  \"summary\": \"The candidate matches the Data Engineer role conceptually, but is too junior for this senior position and requires relocation/visa for an onsite role in Paris.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is a Data Engineer role, which directly matches the track role of Data Engineer.",
+   "evidence": "Senior Data Engineer - Real time analytics"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with Python, SQL, and Apache Airflow, but lacks the required 5+ years of programming experience and AWS real-time stack like Kafka and Flink.",
+   "evidence": "Python / sql / Apache Airflow"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires a Senior level with 5+ years of experience in a modern programming language and 3+ years in near real-time analytics, while the candidate has only 1 year in the track and 3 years total experience.",
+   "evidence": "Senior Data Engineer - Real time analytics"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite in Paris, France, and the posting does not mention visa sponsorship.",
+   "evidence": "Paris Office (FR)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate has full professional English proficiency.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Paris Office (FR)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Data Engineer"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Kafka and real-time streaming stack",
+   "5+ years programming experience"
+  ],
+  "summary": "The candidate matches the Data Engineer role conceptually, but is too junior for this senior position and requires relocation/visa for an onsite role in Paris."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is a Data Engineer role, which directly matches the track role of Data Engineer.",
+    "evidence": "Senior Data Engineer - Real time analytics",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with Python, SQL, and Apache Airflow, but lacks the required 5+ years of programming experience and AWS real-time stack like Kafka and Flink.",
+    "evidence": "Python / sql / Apache Airflow",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires a Senior level with 5+ years of experience in a modern programming language and 3+ years in near real-time analytics, while the candidate has only 1 year in the track and 3 years total experience.",
+    "evidence": "Senior Data Engineer - Real time analytics",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Paris, France, and the posting does not mention visa sponsorship.",
+    "evidence": "Paris Office (FR)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate has full professional English proficiency.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Paris Office (FR)",
+    "evidence": "Paris Office (FR)",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Senior Data Engineer",
+    "evidence": "Senior Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Kafka and real-time streaming stack",
+   "5+ years programming experience"
+  ],
+  "summary": "The candidate matches the Data Engineer role conceptually, but is too junior for this senior position and requires relocation/visa for an onsite role in Paris.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Senior Data Engineer - Real time analytics",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Python / sql / Apache Airflow",
+    "in_job": true,
+    "in_experience": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Senior Data Engineer - Real time analytics",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "flag_check:must_be_based_in",
+    "quote": "Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "flag_check:seniority_mismatch",
+    "quote": "Senior Data Engineer",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 6,
+  "ok": 4,
+  "in_job": 4
+ }
+}

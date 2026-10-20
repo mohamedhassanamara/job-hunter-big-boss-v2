@@ -1,0 +1,144 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 1921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 69.5,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities align exactly with the candidate's target role of Data Engineer.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"Overlap in dbt, Airflow, and Terraform, but lacks professional experience with GCP and scale.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job is for a senior level; candidate has only 1 year in track.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"On-site in France, which is one of the candidate's target countries.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate is fluent in English and French, suitable for a Paris-based role.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"dbt\",\n      \"Apache Airflow\",\n      \"Terraform\"\n    ],\n    \"gaps\": [\n      \"Professional data engineering experience\",\n      \"Scaling massive datasets\",\n      \"GCP and BigQuery\"\n    ],\n    \"summary\": \"Candidate has the required toolset via projects but lacks the professional seniority and scale experience required.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5381,
+  "output": 523,
+  "thinking": 929
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities align exactly with the candidate's target role of Data Engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Overlap in dbt, Airflow, and Terraform, but lacks professional experience with GCP and scale.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job is for a senior level; candidate has only 1 year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in France, which is one of the candidate's target countries.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate is fluent in English and French, suitable for a Paris-based role.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "dbt",
+   "Apache Airflow",
+   "Terraform"
+  ],
+  "gaps": [
+   "Professional data engineering experience",
+   "Scaling massive datasets",
+   "GCP and BigQuery"
+  ],
+  "summary": "Candidate has the required toolset via projects but lacks the professional seniority and scale experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities align exactly with the candidate's target role of Data Engineer.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Overlap in dbt, Airflow, and Terraform, but lacks professional experience with GCP and scale.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job is for a senior level; candidate has only 1 year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in France, which is one of the candidate's target countries.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate is fluent in English and French, suitable for a Paris-based role.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt",
+   "Apache Airflow",
+   "Terraform"
+  ],
+  "gaps": [
+   "Professional data engineering experience",
+   "Scaling massive datasets",
+   "GCP and BigQuery"
+  ],
+  "summary": "Candidate has the required toolset via projects but lacks the professional seniority and scale experience required."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0,
+  "in_job": 0,
+  "quotes": []
+ }
+}

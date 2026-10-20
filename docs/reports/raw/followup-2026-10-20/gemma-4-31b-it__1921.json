@@ -1,0 +1,215 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 1921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 100.0,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a Data Engineer, which is exactly the candidate's matched role in the Data/AI track.\",\n      \"evidence\": \"Construct and manage robust data pipelines\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"The candidate has experience with dbt, Airflow, and Terraform, which are core to the stack, but lacks the specific GCP/BigQuery experience and experience with data at scale.\",\n      \"evidence\": \"GCP\\n\\nBigQuery\\n\\nDBT\\n\\nCompose (airflow)\\n\\nTerraform\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"The job asks for a 'Senior' profile with 'extensive experience', while the candidate has 1 year of experience in the data track. According to anchors, 'senior' with no number is a 5.\",\n      \"evidence\": \"Extensive experience as a Data Engineer\"\n    },\n    \"location_eligibility\": {\n      \"score\": 0,\n      \"reason\": \"The job is onsite in Paris, and the candidate is based in Tunisia and requires visa sponsorship, which is not mentioned as being provided.\",\n      \"evidence\": \"onsite\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job is in English and located in France; the candidate is fluent in both English and French.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": true,\n        \"evidence\": \"onsite\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"Senior Data Engineer\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"must_be_based_in\",\n        \"text\": \"The role is onsite in Paris, France, while the candidate is in Tunisia.\",\n        \"evidence\": \"onsite\"\n      }\n    ],\n    \"strengths\": [\n      \"dbt\",\n      \"Apache Airflow\",\n      \"Terraform\"\n    ],\n    \"gaps\": [\n      \"GCP/BigQuery experience\",\n      \"Experience with data at scale\",\n      \"Senior-level professional experience\"\n    ],\n    \"summary\": \"The candidate possesses the core technical tools (dbt, Airflow, Terraform) but lacks the required seniority, experience with massive scale, and the legal right to work onsite in Paris.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5183,
+  "output": 718,
+  "thinking": 1502
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 70,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is exactly the candidate's matched role in the Data/AI track.",
+    "evidence": "Construct and manage robust data pipelines",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with dbt, Airflow, and Terraform, which are core to the stack, but lacks the specific GCP/BigQuery experience and experience with data at scale.",
+    "evidence": "GCP\n\nBigQuery\n\nDBT\n\nCompose (airflow)\n\nTerraform",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a 'Senior' profile with 'extensive experience', while the candidate has 1 year of experience in the data track. According to anchors, 'senior' with no number is a 5.",
+    "evidence": "Extensive experience as a Data Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Paris, and the candidate is based in Tunisia and requires visa sponsorship, which is not mentioned as being provided. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "onsite",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and located in France; the candidate is fluent in both English and French.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Paris, France, while the candidate is in Tunisia.",
+    "evidence": "onsite",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Senior Data Engineer",
+    "evidence": "Senior Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "dbt",
+   "Apache Airflow",
+   "Terraform"
+  ],
+  "gaps": [
+   "GCP/BigQuery experience",
+   "Experience with data at scale",
+   "Senior-level professional experience"
+  ],
+  "summary": "The candidate possesses the core technical tools (dbt, Airflow, Terraform) but lacks the required seniority, experience with massive scale, and the legal right to work onsite in Paris.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is exactly the candidate's matched role in the Data/AI track.",
+   "evidence": "Construct and manage robust data pipelines"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with dbt, Airflow, and Terraform, which are core to the stack, but lacks the specific GCP/BigQuery experience and experience with data at scale.",
+   "evidence": "GCP\n\nBigQuery\n\nDBT\n\nCompose (airflow)\n\nTerraform"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a 'Senior' profile with 'extensive experience', while the candidate has 1 year of experience in the data track. According to anchors, 'senior' with no number is a 5.",
+   "evidence": "Extensive experience as a Data Engineer"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Paris, and the candidate is based in Tunisia and requires visa sponsorship, which is not mentioned as being provided.",
+   "evidence": "onsite"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and located in France; the candidate is fluent in both English and French.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "onsite"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Data Engineer"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Paris, France, while the candidate is in Tunisia.",
+    "evidence": "onsite"
+   }
+  ],
+  "strengths": [
+   "dbt",
+   "Apache Airflow",
+   "Terraform"
+  ],
+  "gaps": [
+   "GCP/BigQuery experience",
+   "Experience with data at scale",
+   "Senior-level professional experience"
+  ],
+  "summary": "The candidate possesses the core technical tools (dbt, Airflow, Terraform) but lacks the required seniority, experience with massive scale, and the legal right to work onsite in Paris."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Construct and manage robust data pipelines",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "GCP\n\nBigQuery\n\nDBT\n\nCompose (airflow)\n\nTerraform",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Extensive experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Senior Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

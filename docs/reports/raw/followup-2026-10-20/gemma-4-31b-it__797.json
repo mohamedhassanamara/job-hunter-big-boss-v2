@@ -1,0 +1,177 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 797,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 85.6,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is a hybrid of Senior QA Automation and AI Engineering. While the candidate is an AI Engineer, the core objective of the job is quality assurance and test automation.\",\n    \"evidence\": \"We are seeking a highly skilled Senior Automation Testing Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has the required programming languages (Python, Java) and strong LLM/RAG experience. However, they lack the specific QA automation tools (Playwright, Appium, Maestro) and professional experience building AI evaluation systems.\",\n    \"evidence\": \"Strong Python; comfortable in at least one of .NET, Java, or TypeScript.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for a 'Senior' level. The candidate has 3 years of total experience and 1 year in the AI track, which is typically below the threshold for a Senior role but fits the 'senior with no number' anchor.\",\n    \"evidence\": \"Senior AI Quality Engineer\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is remote in Cairo, Egypt. The candidate is in Tunisia and targets remote work, but the listing does not explicitly state if it is open to candidates outside of Egypt or provides sponsorship.\",\n    \"evidence\": \"Location: Cairo, Egypt (EG) Work mode: remote\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English and mentions Arabic behavior evaluation; the candidate is native in Arabic and full professional in English.\",\n    \"evidence\": \"Arabic and English behaviour\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM implementation (Mistral, LLaMA)\",\n    \"RAG and FAISS\",\n    \"Python and Java proficiency\"\n  ],\n  \"gaps\": [\n    \"QA automation tools (Playwright, Appium, Maestro)\",\n    \"Agentic AI orchestration\",\n    \"AI evaluation system design\"\n  ],\n  \"summary\": \"The candidate possesses strong AI and software engineering skills, but lacks the specific senior-level QA automation expertise and agentic AI experience required for this role.\"\n}\n```",
+ "tokens": {
+  "input": 5865,
+  "output": 700,
+  "thinking": 1527
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 55,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a hybrid of Senior QA Automation and AI Engineering. While the candidate is an AI Engineer, the core objective of the job is quality assurance and test automation.",
+    "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has the required programming languages (Python, Java) and strong LLM/RAG experience. However, they lack the specific QA automation tools (Playwright, Appium, Maestro) and professional experience building AI evaluation systems.",
+    "evidence": "Strong Python; comfortable in at least one of .NET, Java, or TypeScript.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a 'Senior' level. The candidate has 3 years of total experience and 1 year in the AI track, which is typically below the threshold for a Senior role but fits the 'senior with no number' anchor.",
+    "evidence": "Senior AI Quality Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is remote in Cairo, Egypt. The candidate is in Tunisia and targets remote work, but the listing does not explicitly state if it is open to candidates outside of Egypt or provides sponsorship.",
+    "evidence": "Location: Cairo, Egypt (EG) Work mode: remote",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English and mentions Arabic behavior evaluation; the candidate is native in Arabic and full professional in English.",
+    "evidence": "Arabic and English behaviour",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM implementation (Mistral, LLaMA)",
+   "RAG and FAISS",
+   "Python and Java proficiency"
+  ],
+  "gaps": [
+   "QA automation tools (Playwright, Appium, Maestro)",
+   "Agentic AI orchestration",
+   "AI evaluation system design"
+  ],
+  "summary": "The candidate possesses strong AI and software engineering skills, but lacks the specific senior-level QA automation expertise and agentic AI experience required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a hybrid of Senior QA Automation and AI Engineering. While the candidate is an AI Engineer, the core objective of the job is quality assurance and test automation.",
+   "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has the required programming languages (Python, Java) and strong LLM/RAG experience. However, they lack the specific QA automation tools (Playwright, Appium, Maestro) and professional experience building AI evaluation systems.",
+   "evidence": "Strong Python; comfortable in at least one of .NET, Java, or TypeScript."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a 'Senior' level. The candidate has 3 years of total experience and 1 year in the AI track, which is typically below the threshold for a Senior role but fits the 'senior with no number' anchor.",
+   "evidence": "Senior AI Quality Engineer"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is remote in Cairo, Egypt. The candidate is in Tunisia and targets remote work, but the listing does not explicitly state if it is open to candidates outside of Egypt or provides sponsorship.",
+   "evidence": "Location: Cairo, Egypt (EG) Work mode: remote"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English and mentions Arabic behavior evaluation; the candidate is native in Arabic and full professional in English.",
+   "evidence": "Arabic and English behaviour"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM implementation (Mistral, LLaMA)",
+   "RAG and FAISS",
+   "Python and Java proficiency"
+  ],
+  "gaps": [
+   "QA automation tools (Playwright, Appium, Maestro)",
+   "Agentic AI orchestration",
+   "AI evaluation system design"
+  ],
+  "summary": "The candidate possesses strong AI and software engineering skills, but lacks the specific senior-level QA automation expertise and agentic AI experience required for this role."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are seeking a highly skilled Senior Automation Testing Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong Python; comfortable in at least one of .NET, Java, or TypeScript.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Senior AI Quality Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Cairo, Egypt (EG) Work mode: remote",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Arabic and English behaviour",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

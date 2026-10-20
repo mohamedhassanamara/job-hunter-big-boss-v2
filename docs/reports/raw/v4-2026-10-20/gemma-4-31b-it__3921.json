@@ -1,0 +1,144 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 96.0,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 0,\n      \"reason\": \"The job is for a Technical Program Manager, not an AI Engineer.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 2,\n      \"reason\": \"Has AI and SE skills, but lacks all required program management experience.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Requires significant senior-level TPM experience; candidate is a junior/mid software engineer.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"Hybrid role in Germany, which is a target country for the candidate.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate speaks English at a full professional level.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Software engineering\",\n      \"LLM workflows\",\n      \"FastAPI\"\n    ],\n    \"gaps\": [\n      \"Technical program management\",\n      \"Cross-functional leadership\",\n      \"Senior-level experience\"\n    ],\n    \"summary\": \"The candidate is a software engineer and lacks the senior technical program management experience required.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 6106,
+  "output": 501,
+  "thinking": 975
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 28,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is for a Technical Program Manager, not an AI Engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Has AI and SE skills, but lacks all required program management experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Requires significant senior-level TPM experience; candidate is a junior/mid software engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Hybrid role in Germany, which is a target country for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate speaks English at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Software engineering",
+   "LLM workflows",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Technical program management",
+   "Cross-functional leadership",
+   "Senior-level experience"
+  ],
+  "summary": "The candidate is a software engineer and lacks the senior technical program management experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is for a Technical Program Manager, not an AI Engineer.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Has AI and SE skills, but lacks all required program management experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Requires significant senior-level TPM experience; candidate is a junior/mid software engineer.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Hybrid role in Germany, which is a target country for the candidate.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate speaks English at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Software engineering",
+   "LLM workflows",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Technical program management",
+   "Cross-functional leadership",
+   "Senior-level experience"
+  ],
+  "summary": "The candidate is a software engineer and lacks the senior technical program management experience required."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0,
+  "in_job": 0,
+  "quotes": []
+ }
+}

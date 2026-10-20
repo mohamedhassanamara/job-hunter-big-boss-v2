@@ -1,0 +1,143 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 1914,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 15.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Data Engineer, which is a core role in the track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong overlap in Python, SQL, dbt, and DuckDB, though lacks Spark/BigQuery experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, making it suitable for a junior candidate.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers visa sponsorship and relocation assistance to Paris.\",\n    \"evidence\": \"We of course support relocation to Paris with: Help and sponsored visa process.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate is fluent in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"dbt and DuckDB experience\",\n    \"Data pipeline orchestration\"\n  ],\n  \"gaps\": [\n    \"No professional Spark experience\",\n    \"Limited production data engineering tenure\"\n  ],\n  \"summary\": \"A strong candidate with relevant technical skills and projects who fits the role and relocation requirements perfectly.\"\n}",
+ "tokens": {
+  "input": 5216,
+  "output": 520,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 94,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is a core role in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong overlap in Python, SQL, dbt, and DuckDB, though lacks Spark/BigQuery experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, making it suitable for a junior candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers visa sponsorship and relocation assistance to Paris.",
+    "evidence": "We of course support relocation to Paris with: Help and sponsored visa process.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate is fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and DuckDB experience",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "No professional Spark experience",
+   "Limited production data engineering tenure"
+  ],
+  "summary": "A strong candidate with relevant technical skills and projects who fits the role and relocation requirements perfectly.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is a core role in the track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong overlap in Python, SQL, dbt, and DuckDB, though lacks Spark/BigQuery experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, making it suitable for a junior candidate.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers visa sponsorship and relocation assistance to Paris.",
+   "evidence": "We of course support relocation to Paris with: Help and sponsored visa process."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate is fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and DuckDB experience",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "No professional Spark experience",
+   "Limited production data engineering tenure"
+  ],
+  "summary": "A strong candidate with relevant technical skills and projects who fits the role and relocation requirements perfectly."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "location_eligibility",
+    "quote": "We of course support relocation to Paris with: Help and sponsored visa process.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

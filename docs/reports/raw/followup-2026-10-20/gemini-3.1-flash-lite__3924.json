@@ -1,0 +1,208 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 3924,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 9.4,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Data Engineer, which is one of the core roles in the candidate's target track.\",\n    \"evidence\": \"We are looking for a Senior Data Engineer into our engineering team at Doctolib.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has experience with Python, SQL, and dbt, but lacks the 7+ years of experience and specific enterprise-level experience with BigQuery and Tableau required for a senior role.\",\n    \"evidence\": \"You are proficient in Python, SQL, and DBT for building data pipelines\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 7+ years of experience, while the candidate has 3 years total and 1 year in the data track.\",\n    \"evidence\": \"You have at least 7+ years of experience as a Data Engineer, or a similar role\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is based in Paris and requires onsite/hybrid presence. While relocation support is mentioned, the candidate requires visa sponsorship and the job does not explicitly state it is open to international candidates needing sponsorship.\",\n    \"evidence\": \"Relocation support in case of international mobility\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"You are fluent in English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Paris\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"You have at least 7+ years of experience as a Data Engineer\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Experience with dbt\",\n    \"Hands-on data pipeline projects\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of enterprise BigQuery/Tableau experience\",\n    \"Requires visa sponsorship\"\n  ],\n  \"summary\": \"The candidate is a junior engineer with relevant skills but does not meet the senior-level experience requirements for this role.\"\n}",
+ "tokens": {
+  "input": 4950,
+  "output": 666,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is one of the core roles in the candidate's target track.",
+    "evidence": "We are looking for a Senior Data Engineer into our engineering team at Doctolib.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with Python, SQL, and dbt, but lacks the 7+ years of experience and specific enterprise-level experience with BigQuery and Tableau required for a senior role.",
+    "evidence": "You are proficient in Python, SQL, and DBT for building data pipelines",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 7+ years of experience, while the candidate has 3 years total and 1 year in the data track.",
+    "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is based in Paris and requires onsite/hybrid presence. While relocation support is mentioned, the candidate requires visa sponsorship and the job does not explicitly state it is open to international candidates needing sponsorship.",
+    "evidence": "Relocation support in case of international mobility",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "You are fluent in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Paris",
+    "evidence": "Paris",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: You have at least 7+ years of experience as a Data Engineer",
+    "evidence": "You have at least 7+ years of experience as a Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with dbt",
+   "Hands-on data pipeline projects"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of enterprise BigQuery/Tableau experience",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is a junior engineer with relevant skills but does not meet the senior-level experience requirements for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is one of the core roles in the candidate's target track.",
+   "evidence": "We are looking for a Senior Data Engineer into our engineering team at Doctolib."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with Python, SQL, and dbt, but lacks the 7+ years of experience and specific enterprise-level experience with BigQuery and Tableau required for a senior role.",
+   "evidence": "You are proficient in Python, SQL, and DBT for building data pipelines"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 7+ years of experience, while the candidate has 3 years total and 1 year in the data track.",
+   "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is based in Paris and requires onsite/hybrid presence. While relocation support is mentioned, the candidate requires visa sponsorship and the job does not explicitly state it is open to international candidates needing sponsorship.",
+   "evidence": "Relocation support in case of international mobility"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": "You are fluent in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Paris"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "You have at least 7+ years of experience as a Data Engineer"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with dbt",
+   "Hands-on data pipeline projects"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of enterprise BigQuery/Tableau experience",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is a junior engineer with relevant skills but does not meet the senior-level experience requirements for this role."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 7,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a Senior Data Engineer into our engineering team at Doctolib.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "You are proficient in Python, SQL, and DBT for building data pipelines",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Relocation support in case of international mobility",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "You are fluent in English",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "You have at least 7+ years of experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

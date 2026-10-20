@@ -1,0 +1,240 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2409,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 67.1,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 5,\n      \"reason\": \"The role is a specialized backend/systems engineering position for a database platform.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 2,\n      \"reason\": \"Candidate has C++ and SQL but lacks database internals and distributed systems expertise.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job requires 12 years; candidate has 3 years.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 0,\n      \"reason\": \"Job is restricted to US-based candidates and offers no sponsorship.\",\n      \"evidence\": \"Remote - US based candidates only, no visa sponsorship available\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate speaks English at a full professional level.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": true,\n        \"evidence\": \"no visa sponsorship available\"\n      },\n      \"work_authorization_required\": {\n        \"present\": true,\n        \"evidence\": \"US based candidates only\"\n      },\n      \"must_be_based_in\": {\n        \"present\": true,\n        \"evidence\": \"US based candidates only\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"no_visa_sponsorship\",\n        \"text\": \"No visa sponsorship available\",\n        \"evidence\": \"no visa sponsorship available\"\n      },\n      {\n        \"type\": \"must_be_based_in\",\n        \"text\": \"Must be US based\",\n        \"evidence\": \"US based candidates only\"\n      },\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Requires 12 years experience\",\n        \"evidence\": \"Minimum 12 years of software engineering experience\"\n      }\n    ],\n    \"strengths\": [\n      \"C++\",\n      \"SQL\",\n      \"Algorithms\"\n    ],\n    \"gaps\": [\n      \"Database engine internals\",\n      \"Distributed systems\",\n      \"12+ years experience\"\n    ],\n    \"summary\": \"Candidate is ineligible due to location, lack of sponsorship, and significant seniority gap.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5332,
+  "output": 654,
+  "thinking": 1099
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 31,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a specialized backend/systems engineering position for a database platform.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Candidate has C++ and SQL but lacks database internals and distributed systems expertise.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job requires 12 years; candidate has 3 years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "Job is restricted to US-based candidates and offers no sponsorship.",
+    "evidence": "Remote - US based candidates only, no visa sponsorship available",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate speaks English at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "No visa sponsorship available",
+    "evidence": "no visa sponsorship available",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Must be US based",
+    "evidence": "US based candidates only",
+    "evidence_verified": true,
+    "severity": "soft",
+    "severity_note": "The quote doesn't state the requirement (it mentions a place, mode or perk)."
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Requires 12 years experience",
+    "evidence": "Minimum 12 years of software engineering experience",
+    "evidence_verified": true,
+    "severity": "soft"
+   },
+   {
+    "type": "work_authorization_required",
+    "text": "Requires existing work authorization: US based candidates only",
+    "evidence": "US based candidates only",
+    "evidence_verified": true,
+    "severity": "soft",
+    "severity_note": "The quote doesn't state the requirement (it mentions a place, mode or perk)."
+   }
+  ],
+  "strengths": [
+   "C++",
+   "SQL",
+   "Algorithms"
+  ],
+  "gaps": [
+   "Database engine internals",
+   "Distributed systems",
+   "12+ years experience"
+  ],
+  "summary": "Candidate is ineligible due to location, lack of sponsorship, and significant seniority gap.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a specialized backend/systems engineering position for a database platform.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Candidate has C++ and SQL but lacks database internals and distributed systems expertise.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job requires 12 years; candidate has 3 years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "Job is restricted to US-based candidates and offers no sponsorship.",
+   "evidence": "Remote - US based candidates only, no visa sponsorship available"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate speaks English at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": true,
+    "evidence": "no visa sponsorship available"
+   },
+   "work_authorization_required": {
+    "present": true,
+    "evidence": "US based candidates only"
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "US based candidates only"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "No visa sponsorship available",
+    "evidence": "no visa sponsorship available"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Must be US based",
+    "evidence": "US based candidates only"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Requires 12 years experience",
+    "evidence": "Minimum 12 years of software engineering experience"
+   }
+  ],
+  "strengths": [
+   "C++",
+   "SQL",
+   "Algorithms"
+  ],
+  "gaps": [
+   "Database engine internals",
+   "Distributed systems",
+   "12+ years experience"
+  ],
+  "summary": "Candidate is ineligible due to location, lack of sponsorship, and significant seniority gap."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 7,
+  "quotes": [
+   {
+    "where": "location_eligibility",
+    "quote": "Remote - US based candidates only, no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:work_authorization_required",
+    "quote": "US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Minimum 12 years of software engineering experience",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

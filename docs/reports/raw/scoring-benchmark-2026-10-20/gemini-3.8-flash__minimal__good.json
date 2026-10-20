@@ -1,0 +1,188 @@
+{
+ "model": "gemini-3.8-flash",
+ "mode": "minimal",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 4,
+ "retry_reasons": [
+  503,
+  503,
+  503,
+  "transport"
+ ],
+ "adaptations": [
+  "thinkingLevel rejected -> thinkingBudget 0"
+ ],
+ "errors": [
+  "transport: ReadTimeout: The read operation timed out"
+ ],
+ "thinking_config": {
+  "thinkingBudget": 0
+ },
+ "secs": 179.0,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4899,
+  "output": 707,
+  "thinking": 0,
+  "total": 5606
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a backend-leaning engineering role focusing heavily on backend systems and agent infrastructure, fitting the Backend track.\",\n    \"evidence\": \"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has built agent/LLM pipelines and APIs, but lacks deep experience operating large-scale production distributed systems, WebSockets, and asynchronous worker infrastructure.\",\n    \"evidence\": \"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job does not state a specific number of years, but expects exceptional engineering with autonomous end-to-end ownership of complex distributed systems, which is mid-to-senior level compared to candidate's 1 year in backend.\",\n    \"evidence\": \"Evidence of independent, end-to-end ownership and confidence working across the stack, including frontend delivery when needed.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The company states a global team and that they prioritize talent over location, with a fully remote work mode and remote stipends.\",\n    \"evidence\": \"Global team: We prioritize your talent, not your location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The posting is in English and requires clear communication; the candidate speaks full professional English.\",\n    \"evidence\": \"Good product judgement, clear communication and enthusiasm for creative agents.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Hands-on experience with LLMs and AI agent integrations\",\n    \"API development with FastAPI and Spring Boot\",\n    \"Full-stack delivery experience across mobile and backend\"\n  ],\n  \"gaps\": [\n    \"Operating production systems at scale with asynchronous workers\",\n    \"WebSockets and real-time streaming protocols\",\n    \"Deep professional backend experience beyond 1 year\"\n  ],\n  \"summary\": \"Globally open remote role with a solid agent/backend match, though the engineering rigor and scale demanded may stretch the candidate's backend seniority.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a backend-leaning engineering role focusing heavily on backend systems and agent infrastructure, fitting the Backend track.",
+   "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has built agent/LLM pipelines and APIs, but lacks deep experience operating large-scale production distributed systems, WebSockets, and asynchronous worker infrastructure.",
+   "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job does not state a specific number of years, but expects exceptional engineering with autonomous end-to-end ownership of complex distributed systems, which is mid-to-senior level compared to candidate's 1 year in backend.",
+   "evidence": "Evidence of independent, end-to-end ownership and confidence working across the stack, including frontend delivery when needed."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The company states a global team and that they prioritize talent over location, with a fully remote work mode and remote stipends.",
+   "evidence": "Global team: We prioritize your talent, not your location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The posting is in English and requires clear communication; the candidate speaks full professional English.",
+   "evidence": "Good product judgement, clear communication and enthusiasm for creative agents."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Hands-on experience with LLMs and AI agent integrations",
+   "API development with FastAPI and Spring Boot",
+   "Full-stack delivery experience across mobile and backend"
+  ],
+  "gaps": [
+   "Operating production systems at scale with asynchronous workers",
+   "WebSockets and real-time streaming protocols",
+   "Deep professional backend experience beyond 1 year"
+  ],
+  "summary": "Globally open remote role with a solid agent/backend match, though the engineering rigor and scale demanded may stretch the candidate's backend seniority."
+ },
+ "record": {
+  "score": 78,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a backend-leaning engineering role focusing heavily on backend systems and agent infrastructure, fitting the Backend track.",
+    "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has built agent/LLM pipelines and APIs, but lacks deep experience operating large-scale production distributed systems, WebSockets, and asynchronous worker infrastructure.",
+    "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job does not state a specific number of years, but expects exceptional engineering with autonomous end-to-end ownership of complex distributed systems, which is mid-to-senior level compared to candidate's 1 year in backend.",
+    "evidence": "Evidence of independent, end-to-end ownership and confidence working across the stack, including frontend delivery when needed.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The company states a global team and that they prioritize talent over location, with a fully remote work mode and remote stipends.",
+    "evidence": "Global team: We prioritize your talent, not your location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The posting is in English and requires clear communication; the candidate speaks full professional English.",
+    "evidence": "Good product judgement, clear communication and enthusiasm for creative agents.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Hands-on experience with LLMs and AI agent integrations",
+   "API development with FastAPI and Spring Boot",
+   "Full-stack delivery experience across mobile and backend"
+  ],
+  "gaps": [
+   "Operating production systems at scale with asynchronous workers",
+   "WebSockets and real-time streaming protocols",
+   "Deep professional backend experience beyond 1 year"
+  ],
+  "summary": "Globally open remote role with a solid agent/backend match, though the engineering rigor and scale demanded may stretch the candidate's backend seniority.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Evidence of independent, end-to-end ownership and confidence working across the stack, including frontend delivery when needed.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Global team: We prioritize your talent, not your location.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Good product judgement, clear communication and enthusiasm for creative agents.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 5,
+  "ok": 5,
+  "in_job": 5
+ }
+}

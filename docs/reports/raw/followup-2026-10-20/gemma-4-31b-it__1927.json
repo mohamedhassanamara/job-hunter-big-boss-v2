@@ -1,0 +1,225 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 1927,
+ "retries": 2,
+ "retry_reasons": [
+  500,
+  500
+ ],
+ "errors": [],
+ "secs": 76.9,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a Senior Backend Engineer, which aligns perfectly with the candidate's target role of Backend Developer.\",\n      \"evidence\": \"Senior Backend Engineer - Scoring & Computation Engine (m/f/d)\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"The candidate has the core stack (Python, FastAPI, Airflow) mentioned in the nice-to-haves, but lacks evidence of the 'deep expertise' in graph algorithms, ASTs, and deterministic system design required as must-haves.\",\n      \"evidence\": \"Deep expertise in modeling and evaluating expression trees and dependency graphs (e.g., ASTs, DAGs, cycle detection, topological sorting, memoization, and selective recomputation).\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"The job requires 5+ years of experience in backend software engineering for computation engines, while the candidate has only 1 year in the backend track (3 years total experience).\",\n      \"evidence\": \"Experience: 5+ years in backend software engineering building computation engines, rules platforms, or complex data-intensive backend systems\"\n    },\n    \"location_eligibility\": {\n      \"score\": 5,\n      \"reason\": \"The job is onsite/hybrid in Germany (a target country), and the listing does not explicitly state whether visa sponsorship is provided or denied.\",\n      \"evidence\": \"Location: Hamburg or Berlin (DE)\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job requires fluent English, which the candidate possesses. German is only listed as a plus.\",\n      \"evidence\": \"Languages: Fluent in English, German is a plus.\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": true,\n        \"evidence\": \"Location: Hamburg or Berlin (DE)\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"Experience: 5+ years in backend software engineering building computation engines\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Candidate has 1 year in track, job requires 5+ years.\",\n        \"evidence\": \"Experience: 5+ years in backend software engineering building computation engines\"\n      }\n    ],\n    \"strengths\": [\n      \"Python\",\n      \"FastAPI\",\n      \"Apache Airflow\"\n    ],\n    \"gaps\": [\n      \"5+ years backend experience\",\n      \"Graph algorithms/AST expertise\",\n      \"Deterministic system design\"\n    ],\n    \"summary\": \"The candidate possesses the basic technical stack but is significantly under-qualified in terms of seniority and the specialized algorithmic expertise required for this engine-building role.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5687,
+  "output": 785,
+  "thinking": 1082
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Senior Backend Engineer, which aligns perfectly with the candidate's target role of Backend Developer.",
+    "evidence": "Senior Backend Engineer - Scoring & Computation Engine (m/f/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has the core stack (Python, FastAPI, Airflow) mentioned in the nice-to-haves, but lacks evidence of the 'deep expertise' in graph algorithms, ASTs, and deterministic system design required as must-haves.",
+    "evidence": "Deep expertise in modeling and evaluating expression trees and dependency graphs (e.g., ASTs, DAGs, cycle detection, topological sorting, memoization, and selective recomputation).",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 5+ years of experience in backend software engineering for computation engines, while the candidate has only 1 year in the backend track (3 years total experience).",
+    "evidence": "Experience: 5+ years in backend software engineering building computation engines, rules platforms, or complex data-intensive backend systems",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite/hybrid in Germany (a target country), and the listing does not explicitly state whether visa sponsorship is provided or denied.",
+    "evidence": "Location: Hamburg or Berlin (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires fluent English, which the candidate possesses. German is only listed as a plus.",
+    "evidence": "Languages: Fluent in English, German is a plus.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 1 year in track, job requires 5+ years.",
+    "evidence": "Experience: 5+ years in backend software engineering building computation engines",
+    "evidence_verified": true,
+    "severity": "soft"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Location: Hamburg or Berlin (DE)",
+    "evidence": "Location: Hamburg or Berlin (DE)",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "FastAPI",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "5+ years backend experience",
+   "Graph algorithms/AST expertise",
+   "Deterministic system design"
+  ],
+  "summary": "The candidate possesses the basic technical stack but is significantly under-qualified in terms of seniority and the specialized algorithmic expertise required for this engine-building role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Senior Backend Engineer, which aligns perfectly with the candidate's target role of Backend Developer.",
+   "evidence": "Senior Backend Engineer - Scoring & Computation Engine (m/f/d)"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has the core stack (Python, FastAPI, Airflow) mentioned in the nice-to-haves, but lacks evidence of the 'deep expertise' in graph algorithms, ASTs, and deterministic system design required as must-haves.",
+   "evidence": "Deep expertise in modeling and evaluating expression trees and dependency graphs (e.g., ASTs, DAGs, cycle detection, topological sorting, memoization, and selective recomputation)."
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 5+ years of experience in backend software engineering for computation engines, while the candidate has only 1 year in the backend track (3 years total experience).",
+   "evidence": "Experience: 5+ years in backend software engineering building computation engines, rules platforms, or complex data-intensive backend systems"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite/hybrid in Germany (a target country), and the listing does not explicitly state whether visa sponsorship is provided or denied.",
+   "evidence": "Location: Hamburg or Berlin (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires fluent English, which the candidate possesses. German is only listed as a plus.",
+   "evidence": "Languages: Fluent in English, German is a plus."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Location: Hamburg or Berlin (DE)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Experience: 5+ years in backend software engineering building computation engines"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 1 year in track, job requires 5+ years.",
+    "evidence": "Experience: 5+ years in backend software engineering building computation engines"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "FastAPI",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "5+ years backend experience",
+   "Graph algorithms/AST expertise",
+   "Deterministic system design"
+  ],
+  "summary": "The candidate possesses the basic technical stack but is significantly under-qualified in terms of seniority and the specialized algorithmic expertise required for this engine-building role."
+ },
+ "evidence": {
+  "checked": 8,
+  "ok": 8,
+  "in_job": 6,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Senior Backend Engineer - Scoring & Computation Engine (m/f/d)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Deep expertise in modeling and evaluating expression trees and dependency graphs (e.g., ASTs, DAGs, cycle detection, topological sorting, memoization, and selective recomputation).",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Experience: 5+ years in backend software engineering building computation engines, rules platforms, or complex data-intensive backend systems",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Hamburg or Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Languages: Fluent in English, German is a plus.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Location: Hamburg or Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Experience: 5+ years in backend software engineering building computation engines",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Experience: 5+ years in backend software engineering building computation engines",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

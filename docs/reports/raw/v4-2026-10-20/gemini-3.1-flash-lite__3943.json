@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 3943,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 25.1,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is an O&M Data Engineer, which is a hybrid of data and operations.\",\n    \"evidence\": \"Data Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has strong Python/SQL/API skills but lacks specific industrial SCADA/EMS/BESS domain experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The role does not specify a seniority level, fitting the candidate's 3 years of experience.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany, a target country, and does not explicitly forbid visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The candidate is fluent in English, which is the only required language.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Data pipeline development\",\n    \"REST API integration\"\n  ],\n  \"gaps\": [\n    \"No SCADA experience\",\n    \"No EMS/BESS domain knowledge\",\n    \"No industrial telemetry experience\"\n  ],\n  \"summary\": \"The candidate has strong general data engineering skills but lacks the specific industrial energy sector experience required.\"\n}",
+ "tokens": {
+  "input": 4529,
+  "output": 526,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is an O&M Data Engineer, which is a hybrid of data and operations.",
+    "evidence": "Data Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has strong Python/SQL/API skills but lacks specific industrial SCADA/EMS/BESS domain experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The role does not specify a seniority level, fitting the candidate's 3 years of experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany, a target country, and does not explicitly forbid visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The candidate is fluent in English, which is the only required language.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline development",
+   "REST API integration"
+  ],
+  "gaps": [
+   "No SCADA experience",
+   "No EMS/BESS domain knowledge",
+   "No industrial telemetry experience"
+  ],
+  "summary": "The candidate has strong general data engineering skills but lacks the specific industrial energy sector experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is an O&M Data Engineer, which is a hybrid of data and operations.",
+   "evidence": "Data Engineer"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has strong Python/SQL/API skills but lacks specific industrial SCADA/EMS/BESS domain experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The role does not specify a seniority level, fitting the candidate's 3 years of experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany, a target country, and does not explicitly forbid visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The candidate is fluent in English, which is the only required language.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline development",
+   "REST API integration"
+  ],
+  "gaps": [
+   "No SCADA experience",
+   "No EMS/BESS domain knowledge",
+   "No industrial telemetry experience"
+  ],
+  "summary": "The candidate has strong general data engineering skills but lacks the specific industrial energy sector experience required."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Data Engineer",
+    "in_job": true,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

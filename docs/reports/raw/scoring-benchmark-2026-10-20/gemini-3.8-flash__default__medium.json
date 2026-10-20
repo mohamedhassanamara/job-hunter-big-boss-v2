@@ -1,0 +1,192 @@
+{
+ "model": "gemini-3.8-flash",
+ "mode": "default",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 94.9,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4883,
+  "output": 756,
+  "thinking": 1228,
+  "total": 6867
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is specifically for a Data Engineer focusing on real-time analytics, perfectly matching the candidate's Data/AI track.\",\n    \"evidence\": \"We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has Python, SQL, Airflow, and data modeling experience, but lacks exposure to near real-time streaming technologies like Flink, Kafka, Pinot, and production AWS services.\",\n    \"evidence\": \"AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The position is a Senior role requiring 5+ years of programming experience and 3+ years in real-time analytics, which exceeds the candidate's 1.0 year in this track by at least 4 years.\",\n    \"evidence\": \"5+ years experience with a modern programming language such as Scala, Python, Go, Typescript\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The role is on-site in France (a target country), but the listing does not state whether visa sponsorship is provided or if existing work authorization is required.\",\n    \"evidence\": \"Paris Office (FR)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job description is in English and mentions being an English-speaking job in France; the candidate is fluent in both English and French.\",\n    \"evidence\": \"Find more English Speaking Jobs in France on Arbeitnow\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"5+ years experience with a modern programming language such as Scala, Python, Go, Typescript\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Data pipeline orchestration with Airflow\",\n    \"Dimensional modeling and star schema experience\"\n  ],\n  \"gaps\": [\n    \"Near real-time streaming tools (Kafka, Flink, Pinot)\",\n    \"Senior-level production experience (requires 5+ years)\",\n    \"AWS big data ecosystem (Redshift, Glue, EMR)\"\n  ],\n  \"summary\": \"While the role fits the candidate's target Data Engineer track and language profile, it is a senior position requiring 5+ years of experience and real-time streaming expertise that the candidate currently lacks.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is specifically for a Data Engineer focusing on real-time analytics, perfectly matching the candidate's Data/AI track.",
+   "evidence": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has Python, SQL, Airflow, and data modeling experience, but lacks exposure to near real-time streaming technologies like Flink, Kafka, Pinot, and production AWS services.",
+   "evidence": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow."
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The position is a Senior role requiring 5+ years of programming experience and 3+ years in real-time analytics, which exceeds the candidate's 1.0 year in this track by at least 4 years.",
+   "evidence": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The role is on-site in France (a target country), but the listing does not state whether visa sponsorship is provided or if existing work authorization is required.",
+   "evidence": "Paris Office (FR)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job description is in English and mentions being an English-speaking job in France; the candidate is fluent in both English and French.",
+   "evidence": "Find more English Speaking Jobs in France on Arbeitnow"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline orchestration with Airflow",
+   "Dimensional modeling and star schema experience"
+  ],
+  "gaps": [
+   "Near real-time streaming tools (Kafka, Flink, Pinot)",
+   "Senior-level production experience (requires 5+ years)",
+   "AWS big data ecosystem (Redshift, Glue, EMR)"
+  ],
+  "summary": "While the role fits the candidate's target Data Engineer track and language profile, it is a senior position requiring 5+ years of experience and real-time streaming expertise that the candidate currently lacks."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is specifically for a Data Engineer focusing on real-time analytics, perfectly matching the candidate's Data/AI track.",
+    "evidence": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has Python, SQL, Airflow, and data modeling experience, but lacks exposure to near real-time streaming technologies like Flink, Kafka, Pinot, and production AWS services.",
+    "evidence": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The position is a Senior role requiring 5+ years of programming experience and 3+ years in real-time analytics, which exceeds the candidate's 1.0 year in this track by at least 4 years.",
+    "evidence": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The role is on-site in France (a target country), but the listing does not state whether visa sponsorship is provided or if existing work authorization is required.",
+    "evidence": "Paris Office (FR)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job description is in English and mentions being an English-speaking job in France; the candidate is fluent in both English and French.",
+    "evidence": "Find more English Speaking Jobs in France on Arbeitnow",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: 5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+    "evidence": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline orchestration with Airflow",
+   "Dimensional modeling and star schema experience"
+  ],
+  "gaps": [
+   "Near real-time streaming tools (Kafka, Flink, Pinot)",
+   "Senior-level production experience (requires 5+ years)",
+   "AWS big data ecosystem (Redshift, Glue, EMR)"
+  ],
+  "summary": "While the role fits the candidate's target Data Engineer track and language profile, it is a senior position requiring 5+ years of experience and real-time streaming expertise that the candidate currently lacks.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in France on Arbeitnow",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:seniority_mismatch",
+    "quote": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 6,
+  "ok": 5,
+  "in_job": 5
+ }
+}

@@ -1,0 +1,154 @@
+{
+ "job": 2418,
+ "run": 2,
+ "retries": 1,
+ "secs": 32.2,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"Mixed role spanning mobile and backend engineering, matching the candidate's track partially.\",\n    \"evidence\": \"Move across the stack as priorities shift: mobile UI, backend services, APIs, hospital integrations, platform and deployment work\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong mobile and backend background, though lacks Go, Rust, or .NET and healthcare domain experience.\",\n    \"evidence\": \"Our backend is built with Python, Go, .NET and Rust; our mobile app is native iOS today, with Android coming next, likely in Flutter\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Job asks for several years of professional experience (senior level implied), while candidate has 3 years.\",\n    \"evidence\": \"Several years of professional experience building and operating software in production\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site or hybrid in Munich, Germany, and listing mentions no explicit visa restrictions.\",\n    \"evidence\": \"Location: München (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and spoken at full professional level; German is only an advantage.\",\n    \"evidence\": \"Professional English communication skills; German is a strong advantage\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Mobile development\",\n      \"evidence\": \"Mobile development experience, ideally Android or Flutter, including app lifecycle, background execution and offline behaviour\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Backend and frontend spanning experience\",\n      \"evidence\": \"Several years of professional experience building and operating software in production, spanning both frontend or mobile and backend work\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter and mobile expertise\",\n    \"Python backend experience\",\n    \"CI/CD and testing knowledge\"\n  ],\n  \"gaps\": [\n    \"Go, .NET or Rust\",\n    \"Healthcare interoperability standards\",\n    \"Senior-level production experience\"\n  ],\n  \"summary\": \"Candidate brings solid Flutter and Python experience for this mixed mobile-backend role, though seniority and stack requirements are partially misaligned.\"\n}",
+ "tokens": {
+  "input": 5351,
+  "output": 720,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Mixed role spanning mobile and backend engineering, matching the candidate's track partially.",
+   "evidence": "Move across the stack as priorities shift: mobile UI, backend services, APIs, hospital integrations, platform and deployment work"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong mobile and backend background, though lacks Go, Rust, or .NET and healthcare domain experience.",
+   "evidence": "Our backend is built with Python, Go, .NET and Rust; our mobile app is native iOS today, with Android coming next, likely in Flutter"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for several years of professional experience (senior level implied), while candidate has 3 years.",
+   "evidence": "Several years of professional experience building and operating software in production"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site or hybrid in Munich, Germany, and listing mentions no explicit visa restrictions.",
+   "evidence": "Location: München (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and spoken at full professional level; German is only an advantage.",
+   "evidence": "Professional English communication skills; German is a strong advantage"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "Mobile development experience, ideally Android or Flutter, including app lifecycle, background execution and offline behaviour",
+    "missing": false
+   },
+   {
+    "requirement": "Backend and frontend spanning experience",
+    "evidence": "Several years of professional experience building and operating software in production, spanning both frontend or mobile and backend work",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Flutter and mobile expertise",
+   "Python backend experience",
+   "CI/CD and testing knowledge"
+  ],
+  "gaps": [
+   "Go, .NET or Rust",
+   "Healthcare interoperability standards",
+   "Senior-level production experience"
+  ],
+  "summary": "Candidate brings solid Flutter and Python experience for this mixed mobile-backend role, though seniority and stack requirements are partially misaligned."
+ },
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Mixed role spanning mobile and backend engineering, matching the candidate's track partially.",
+    "evidence": "Move across the stack as priorities shift: mobile UI, backend services, APIs, hospital integrations, platform and deployment work",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong mobile and backend background, though lacks Go, Rust, or .NET and healthcare domain experience.",
+    "evidence": "Our backend is built with Python, Go, .NET and Rust; our mobile app is native iOS today, with Android coming next, likely in Flutter",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for several years of professional experience (senior level implied), while candidate has 3 years.",
+    "evidence": "Several years of professional experience building and operating software in production",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site or hybrid in Munich, Germany, and listing mentions no explicit visa restrictions.",
+    "evidence": "Location: München (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and spoken at full professional level; German is only an advantage.",
+    "evidence": "Professional English communication skills; German is a strong advantage",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "Mobile development experience, ideally Android or Flutter, including app lifecycle, background execution and offline behaviour",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   },
+   {
+    "requirement": "Backend and frontend spanning experience",
+    "evidence": "Several years of professional experience building and operating software in production, spanning both frontend or mobile and backend work",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Flutter and mobile expertise",
+   "Python backend experience",
+   "CI/CD and testing knowledge"
+  ],
+  "gaps": [
+   "Go, .NET or Rust",
+   "Healthcare interoperability standards",
+   "Senior-level production experience"
+  ],
+  "summary": "Candidate brings solid Flutter and Python experience for this mixed mobile-backend role, though seniority and stack requirements are partially misaligned.",
+  "confidence": "high"
+ }
+}

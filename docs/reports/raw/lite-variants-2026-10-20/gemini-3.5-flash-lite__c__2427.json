@@ -1,0 +1,135 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2427,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.7,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"Aerospace propulsion systems engineering is unrelated to data engineering.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"Lacks aerospace engineering, thermodynamics, fluid dynamics, and propulsion domain expertise.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"Role requires complex fluid systems experience and aerospace background not held by candidate.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"Job provides relocation assistance and visa sponsorship in France.\",\n    \"evidence\": \"Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and candidate has full professional English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python proficiency\",\n    \"Data analysis background\"\n  ],\n  \"gaps\": [\n    \"Aerospace engineering degree\",\n    \"Propulsion systems experience\",\n    \"Fluid dynamics expertise\"\n  ],\n  \"summary\": \"Candidate lacks the aerospace, propulsion, and fluid dynamics background required for this propulsion systems engineering role.\"\n}",
+ "tokens": {
+  "input": 5253,
+  "output": 493,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 25,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "Aerospace propulsion systems engineering is unrelated to data engineering.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "Lacks aerospace engineering, thermodynamics, fluid dynamics, and propulsion domain expertise.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Role requires complex fluid systems experience and aerospace background not held by candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "Job provides relocation assistance and visa sponsorship in France.",
+    "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and candidate has full professional English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Data analysis background"
+  ],
+  "gaps": [
+   "Aerospace engineering degree",
+   "Propulsion systems experience",
+   "Fluid dynamics expertise"
+  ],
+  "summary": "Candidate lacks the aerospace, propulsion, and fluid dynamics background required for this propulsion systems engineering role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "Aerospace propulsion systems engineering is unrelated to data engineering.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "Lacks aerospace engineering, thermodynamics, fluid dynamics, and propulsion domain expertise.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Role requires complex fluid systems experience and aerospace background not held by candidate.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "Job provides relocation assistance and visa sponsorship in France.",
+   "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and candidate has full professional English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Data analysis background"
+  ],
+  "gaps": [
+   "Aerospace engineering degree",
+   "Propulsion systems experience",
+   "Fluid dynamics expertise"
+  ],
+  "summary": "Candidate lacks the aerospace, propulsion, and fluid dynamics background required for this propulsion systems engineering role."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

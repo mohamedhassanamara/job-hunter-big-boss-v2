@@ -1,0 +1,270 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2409,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 5.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The job is for a Senior Principal Software Engineer focusing on core database engine architecture, which is outside the candidate's target roles.\",\n    \"evidence\": \"This role will shape the technical direction of a mission-critical database platform, with a strong focus on core engine architecture\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"The candidate lacks the required 12 years of experience and deep expertise in C++ systems programming and database engine internals.\",\n    \"evidence\": \"Proficiency in C++ and performance-oriented systems programming\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 12 years of experience and is a Senior Principal level role, while the candidate has 3 years of experience.\",\n    \"evidence\": \"Minimum 12 years of software engineering experience\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is restricted to US-based candidates and explicitly states no visa sponsorship.\",\n    \"evidence\": \"Remote - US based candidates only, no visa sponsorship available\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, which the candidate speaks at a professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": true,\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    \"work_authorization_required\": {\n      \"present\": true,\n      \"evidence\": \"US based candidates only\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Remote - US based candidates only\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Minimum 12 years of software engineering experience\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"no_visa_sponsorship\",\n      \"text\": \"no visa sponsorship available\",\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"US based candidates only\",\n      \"evidence\": \"Remote - US based candidates only\"\n    },\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Minimum 12 years of software engineering experience\",\n      \"evidence\": \"Minimum 12 years of software engineering experience\"\n    }\n  ],\n  \"strengths\": [\n    \"Flutter development\",\n    \"Python data pipelines\",\n    \"LLM integration\"\n  ],\n  \"gaps\": [\n    \"12+ years of experience\",\n    \"C++ systems programming\",\n    \"Database engine internals\"\n  ],\n  \"summary\": \"The candidate is a junior-level mobile and software engineer, whereas this role is a Senior Principal position requiring extensive experience in database engine architecture and C++.\"\n}",
+ "tokens": {
+  "input": 4374,
+  "output": 768,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 10,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is for a Senior Principal Software Engineer focusing on core database engine architecture, which is outside the candidate's target roles.",
+    "evidence": "This role will shape the technical direction of a mission-critical database platform, with a strong focus on core engine architecture",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The candidate lacks the required 12 years of experience and deep expertise in C++ systems programming and database engine internals.",
+    "evidence": "Proficiency in C++ and performance-oriented systems programming",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 12 years of experience and is a Senior Principal level role, while the candidate has 3 years of experience.",
+    "evidence": "Minimum 12 years of software engineering experience",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is restricted to US-based candidates and explicitly states no visa sponsorship.",
+    "evidence": "Remote - US based candidates only, no visa sponsorship available",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, which the candidate speaks at a professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "no visa sponsorship available",
+    "evidence": "no visa sponsorship available",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "US based candidates only",
+    "evidence": "Remote - US based candidates only",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Minimum 12 years of software engineering experience",
+    "evidence": "Minimum 12 years of software engineering experience",
+    "evidence_verified": true,
+    "severity": "soft"
+   },
+   {
+    "type": "work_authorization_required",
+    "text": "Requires existing work authorization: US based candidates only",
+    "evidence": "US based candidates only",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Flutter development",
+   "Python data pipelines",
+   "LLM integration"
+  ],
+  "gaps": [
+   "12+ years of experience",
+   "C++ systems programming",
+   "Database engine internals"
+  ],
+  "summary": "The candidate is a junior-level mobile and software engineer, whereas this role is a Senior Principal position requiring extensive experience in database engine architecture and C++.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is for a Senior Principal Software Engineer focusing on core database engine architecture, which is outside the candidate's target roles.",
+   "evidence": "This role will shape the technical direction of a mission-critical database platform, with a strong focus on core engine architecture"
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The candidate lacks the required 12 years of experience and deep expertise in C++ systems programming and database engine internals.",
+   "evidence": "Proficiency in C++ and performance-oriented systems programming"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 12 years of experience and is a Senior Principal level role, while the candidate has 3 years of experience.",
+   "evidence": "Minimum 12 years of software engineering experience"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is restricted to US-based candidates and explicitly states no visa sponsorship.",
+   "evidence": "Remote - US based candidates only, no visa sponsorship available"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, which the candidate speaks at a professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": true,
+    "evidence": "no visa sponsorship available"
+   },
+   "work_authorization_required": {
+    "present": true,
+    "evidence": "US based candidates only"
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Remote - US based candidates only"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Minimum 12 years of software engineering experience"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "no visa sponsorship available",
+    "evidence": "no visa sponsorship available"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "US based candidates only",
+    "evidence": "Remote - US based candidates only"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Minimum 12 years of software engineering experience",
+    "evidence": "Minimum 12 years of software engineering experience"
+   }
+  ],
+  "strengths": [
+   "Flutter development",
+   "Python data pipelines",
+   "LLM integration"
+  ],
+  "gaps": [
+   "12+ years of experience",
+   "C++ systems programming",
+   "Database engine internals"
+  ],
+  "summary": "The candidate is a junior-level mobile and software engineer, whereas this role is a Senior Principal position requiring extensive experience in database engine architecture and C++."
+ },
+ "evidence": {
+  "checked": 11,
+  "ok": 11,
+  "in_job": 11,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "This role will shape the technical direction of a mission-critical database platform, with a strong focus on core engine architecture",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Proficiency in C++ and performance-oriented systems programming",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Minimum 12 years of software engineering experience",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Remote - US based candidates only, no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:work_authorization_required",
+    "quote": "US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Remote - US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Minimum 12 years of software engineering experience",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "Remote - US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Minimum 12 years of software engineering experience",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

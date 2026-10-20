@@ -1,0 +1,184 @@
+{
+ "model": "gemini-3.6-flash",
+ "mode": "minimal",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 4,
+ "retry_reasons": [
+  503,
+  503,
+  503,
+  503
+ ],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": {
+  "thinkingLevel": "minimal"
+ },
+ "secs": 4.2,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4899,
+  "output": 505,
+  "thinking": 0,
+  "total": 5404
+ },
+ "structured_native": true,
+ "raw_text": "{\"role_match\":{\"score\":10,\"reason\":\"The job is for a backend-leaning full-stack engineer building production agents and backend systems, which aligns with the candidate's target track roles.\",\"evidence\":\"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents\"},\"skills_match\":{\"score\":5,\"reason\":\"The candidate has strong backend (Spring Boot, Python, FastAPI) and AI/Agent/LLM experience (RAG, Mistral, prompts, orchestration), but lacks explicit exposure to multimodal media production tools or WebSockets.\",\"evidence\":\"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"},\"seniority_fit\":{\"score\":10,\"reason\":\"The role specifies no required years of experience, focusing instead on evidence of shipped products and engineering ability. Candidate's 1 year in track and 3 years overall fit mid-level expectations.\",\"evidence\":\"We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.\"},\"location_eligibility\":{\"score\":10,\"reason\":\"The position is fully remote with no geographic restrictions stated, explicitly emphasizing prioritizing talent over location.\",\"evidence\":\"Global team: We prioritize your talent, not your location.\"},\"language_requirements\":{\"score\":10,\"reason\":\"The job text is in English and requires clear communication in English, which the candidate speaks at a full professional level.\",\"evidence\":\"Good product judgement, clear communication and enthusiasm for creative agents.\"},\"flag_checks\":{\"no_visa_sponsorship\":{\"present\":false,\"evidence\":\"\"},\"work_authorization_required\":{\"present\":false,\"evidence\":\"\"},\"must_be_based_in\":{\"present\":false,\"evidence\":\"\"},\"nationality_restricted\":{\"present\":false,\"evidence\":\"\"},\"language_required\":{\"present\":false,\"evidence\":\"\"},\"seniority_mismatch\":{\"present\":false,\"evidence\":\"\"}},\"red_flags\":[],\"strengths\":[\"Python and FastAPI backend skills\",\"Agent and LLM orchestration experience\",\"End-to-end full-stack shipping experience\"],\"gaps\":[\"Limited experience with WebSockets and async workers\",\"No direct experience with Model Context Protocol (MCP)\",\"No explicit multimodal generation background\"],\"summary\":\"The candidate is a strong fit for this fully remote backend-leaning role, bringing solid backend and agent/LLM development experience.\"}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a backend-leaning full-stack engineer building production agents and backend systems, which aligns with the candidate's target track roles.",
+   "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong backend (Spring Boot, Python, FastAPI) and AI/Agent/LLM experience (RAG, Mistral, prompts, orchestration), but lacks explicit exposure to multimodal media production tools or WebSockets.",
+   "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The role specifies no required years of experience, focusing instead on evidence of shipped products and engineering ability. Candidate's 1 year in track and 3 years overall fit mid-level expectations.",
+   "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The position is fully remote with no geographic restrictions stated, explicitly emphasizing prioritizing talent over location.",
+   "evidence": "Global team: We prioritize your talent, not your location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job text is in English and requires clear communication in English, which the candidate speaks at a full professional level.",
+   "evidence": "Good product judgement, clear communication and enthusiasm for creative agents."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and FastAPI backend skills",
+   "Agent and LLM orchestration experience",
+   "End-to-end full-stack shipping experience"
+  ],
+  "gaps": [
+   "Limited experience with WebSockets and async workers",
+   "No direct experience with Model Context Protocol (MCP)",
+   "No explicit multimodal generation background"
+  ],
+  "summary": "The candidate is a strong fit for this fully remote backend-leaning role, bringing solid backend and agent/LLM development experience."
+ },
+ "record": {
+  "score": 85,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a backend-leaning full-stack engineer building production agents and backend systems, which aligns with the candidate's target track roles.",
+    "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong backend (Spring Boot, Python, FastAPI) and AI/Agent/LLM experience (RAG, Mistral, prompts, orchestration), but lacks explicit exposure to multimodal media production tools or WebSockets.",
+    "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The role specifies no required years of experience, focusing instead on evidence of shipped products and engineering ability. Candidate's 1 year in track and 3 years overall fit mid-level expectations.",
+    "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The position is fully remote with no geographic restrictions stated, explicitly emphasizing prioritizing talent over location.",
+    "evidence": "Global team: We prioritize your talent, not your location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job text is in English and requires clear communication in English, which the candidate speaks at a full professional level.",
+    "evidence": "Good product judgement, clear communication and enthusiasm for creative agents.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and FastAPI backend skills",
+   "Agent and LLM orchestration experience",
+   "End-to-end full-stack shipping experience"
+  ],
+  "gaps": [
+   "Limited experience with WebSockets and async workers",
+   "No direct experience with Model Context Protocol (MCP)",
+   "No explicit multimodal generation background"
+  ],
+  "summary": "The candidate is a strong fit for this fully remote backend-leaning role, bringing solid backend and agent/LLM development experience.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Global team: We prioritize your talent, not your location.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Good product judgement, clear communication and enthusiasm for creative agents.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 5,
+  "ok": 5,
+  "in_job": 5
+ }
+}

@@ -1,0 +1,164 @@
+{
+ "job": 1914,
+ "run": 1,
+ "retries": 0,
+ "secs": 23.1,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role focuses heavily on data pipelines, data modeling, and features as a Data Engineer.\",\n    \"evidence\": \"Location Data engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has solid experience with dbt and DuckDB, and general SQL and Python skills, though missing Spark and BigQuery.\",\n    \"evidence\": \"Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job has no specific seniority requirement, making it accessible for mid-level applicants.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The company explicitly provides visa sponsorship and relocation support for international hires.\",\n    \"evidence\": \"Help and sponsored visa process.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is posted in English and requires no other specific local language.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"SQL and large-scale datasets\",\n      \"evidence\": \"Very comfortable with SQL and manipulating large datasets.\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Modern data technologies (DBT, DuckDB, Spark)\",\n      \"evidence\": \"Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools depending on the problem at hand.\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Data pipelines\",\n      \"evidence\": \"Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt and DuckDB experience\",\n    \"Python pipeline building\",\n    \"Strong software engineering background\"\n  ],\n  \"gaps\": [\n    \"No enterprise Spark experience\",\n    \"Limited professional data engineering tenure\"\n  ],\n  \"summary\": \"This is a strong data engineering match offering visa sponsorship, aligning well with the candidate's dbt and Python pipeline experience despite a junior profile in data engineering tracks specifically.\"\n}",
+ "tokens": {
+  "input": 5610,
+  "output": 724,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role focuses heavily on data pipelines, data modeling, and features as a Data Engineer.",
+   "evidence": "Location Data engineer"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has solid experience with dbt and DuckDB, and general SQL and Python skills, though missing Spark and BigQuery.",
+   "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job has no specific seniority requirement, making it accessible for mid-level applicants.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The company explicitly provides visa sponsorship and relocation support for international hires.",
+   "evidence": "Help and sponsored visa process."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is posted in English and requires no other specific local language.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "SQL and large-scale datasets",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "missing": false
+   },
+   {
+    "requirement": "Modern data technologies (DBT, DuckDB, Spark)",
+    "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools depending on the problem at hand.",
+    "missing": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "dbt and DuckDB experience",
+   "Python pipeline building",
+   "Strong software engineering background"
+  ],
+  "gaps": [
+   "No enterprise Spark experience",
+   "Limited professional data engineering tenure"
+  ],
+  "summary": "This is a strong data engineering match offering visa sponsorship, aligning well with the candidate's dbt and Python pipeline experience despite a junior profile in data engineering tracks specifically."
+ },
+ "record": {
+  "score": 91,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role focuses heavily on data pipelines, data modeling, and features as a Data Engineer.",
+    "evidence": "Location Data engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has solid experience with dbt and DuckDB, and general SQL and Python skills, though missing Spark and BigQuery.",
+    "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job has no specific seniority requirement, making it accessible for mid-level applicants.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The company explicitly provides visa sponsorship and relocation support for international hires.",
+    "evidence": "Help and sponsored visa process.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is posted in English and requires no other specific local language.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "SQL and large-scale datasets",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   },
+   {
+    "requirement": "Modern data technologies (DBT, DuckDB, Spark)",
+    "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools depending on the problem at hand.",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "dbt and DuckDB experience",
+   "Python pipeline building",
+   "Strong software engineering background"
+  ],
+  "gaps": [
+   "No enterprise Spark experience",
+   "Limited professional data engineering tenure"
+  ],
+  "summary": "This is a strong data engineering match offering visa sponsorship, aligning well with the candidate's dbt and Python pipeline experience despite a junior profile in data engineering tracks specifically.",
+  "confidence": "high"
+ }
+}

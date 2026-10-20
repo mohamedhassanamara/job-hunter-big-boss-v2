@@ -1,0 +1,133 @@
+{
+ "config": "3.5-lite high",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingLevel": "high"
+ },
+ "job": "1913",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 13.8,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"Role matches backend engineer track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 3,\n    \"reason\": \"Lacks Go and required cloud stack.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Seniority level is unspecified in listing.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Onsite in France with no sponsorship details.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Candidate meets the English language requirement.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Backend development\",\n    \"Python and Java\",\n    \"RESTful APIs\"\n  ],\n  \"gaps\": [\n    \"Go programming language\",\n    \"AWS cloud services\",\n    \"Distributed systems experience\"\n  ],\n  \"summary\": \"Candidate matches backend engineering and Paris location, but lacks Go and required cloud stack.\"\n}",
+ "tokens": {
+  "input": 4979,
+  "output": 457,
+  "thinking": 1716
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "Role matches backend engineer track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 3,
+   "reason": "Lacks Go and required cloud stack.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Seniority level is unspecified in listing.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Onsite in France with no sponsorship details.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate meets the English language requirement.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development",
+   "Python and Java",
+   "RESTful APIs"
+  ],
+  "gaps": [
+   "Go programming language",
+   "AWS cloud services",
+   "Distributed systems experience"
+  ],
+  "summary": "Candidate matches backend engineering and Paris location, but lacks Go and required cloud stack."
+ },
+ "record": {
+  "score": 68,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "Role matches backend engineer track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 3,
+    "reason": "Lacks Go and required cloud stack.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Seniority level is unspecified in listing.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Onsite in France with no sponsorship details.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate meets the English language requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development",
+   "Python and Java",
+   "RESTful APIs"
+  ],
+  "gaps": [
+   "Go programming language",
+   "AWS cloud services",
+   "Distributed systems experience"
+  ],
+  "summary": "Candidate matches backend engineering and Paris location, but lacks Go and required cloud stack.",
+  "confidence": "high"
+ }
+}

@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "b",
+ "prompt": "v4",
+ "thinking_config": {
+  "thinkingBudget": 1024
+ },
+ "job_id": 5316,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 8.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The core responsibilities directly match the target analytics engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has Python and SQL skills but lacks the required extensive dbt experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The role requires three plus years of experience, exceeding the candidate's one year.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in a target country and does not mention sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and the candidate speaks it at full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"SQL\",\n    \"dbt\"\n  ],\n  \"gaps\": [\n    \"extensive dbt experience\",\n    \"cloud data warehouse experience\"\n  ],\n  \"summary\": \"The candidate targets an analytics engineering role with relevant technical skills, but lacks the required years of dbt experience.\"\n}",
+ "tokens": {
+  "input": 4621,
+  "output": 487,
+  "thinking": 1164
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 74,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities directly match the target analytics engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has Python and SQL skills but lacks the required extensive dbt experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The role requires three plus years of experience, exceeding the candidate's one year.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in a target country and does not mention sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and the candidate speaks it at full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL",
+   "dbt"
+  ],
+  "gaps": [
+   "extensive dbt experience",
+   "cloud data warehouse experience"
+  ],
+  "summary": "The candidate targets an analytics engineering role with relevant technical skills, but lacks the required years of dbt experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities directly match the target analytics engineering role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has Python and SQL skills but lacks the required extensive dbt experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The role requires three plus years of experience, exceeding the candidate's one year.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in a target country and does not mention sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and the candidate speaks it at full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL",
+   "dbt"
+  ],
+  "gaps": [
+   "extensive dbt experience",
+   "cloud data warehouse experience"
+  ],
+  "summary": "The candidate targets an analytics engineering role with relevant technical skills, but lacks the required years of dbt experience."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

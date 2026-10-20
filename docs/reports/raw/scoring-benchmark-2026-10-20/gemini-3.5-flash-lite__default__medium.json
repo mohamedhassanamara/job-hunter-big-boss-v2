@@ -1,0 +1,192 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "mode": "default",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 2.6,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4883,
+  "output": 654,
+  "thinking": 0,
+  "total": 5537
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a Senior Data Engineer, which directly aligns with the Data Engineer track role.\",\n    \"evidence\": \"We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has experience with Python, SQL, and Airflow, but lacks the requested 5+ years of programming experience, Scala, AWS streaming/big data tools, and Kafka production background.\",\n    \"evidence\": \"Write clean scalable code using Scala / python / SQL and test and deploy applications and systems\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job asks for a Senior Data Engineer with 5+ years of experience with a modern programming language and 3+ years in near real-time analytics, whereas the candidate has only 1 year of experience in the track.\",\n    \"evidence\": \"Senior Data Engineer - Real time analytics\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is located in the Paris Office (FR), and while France is in the candidate's target countries, the listing does not explicitly state visa sponsorship.\",\n    \"evidence\": \"Location: Paris Office (FR)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and requires no specific local language that the candidate does not speak.\",\n    \"evidence\": \"Find more English Speaking Jobs in France on Arbeitnow\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Data Engineer\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"SQL\",\n    \"Apache Airflow\"\n  ],\n  \"gaps\": [\n    \"Scala\",\n    \"AWS big data stack\",\n    \"Seniority level (5+ years experience required)\"\n  ],\n  \"summary\": \"This is a senior-level data engineering role requiring extensive big data and streaming experience that exceeds the candidate's current 1 year of track experience.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a Senior Data Engineer, which directly aligns with the Data Engineer track role.",
+   "evidence": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with Python, SQL, and Airflow, but lacks the requested 5+ years of programming experience, Scala, AWS streaming/big data tools, and Kafka production background.",
+   "evidence": "Write clean scalable code using Scala / python / SQL and test and deploy applications and systems"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job asks for a Senior Data Engineer with 5+ years of experience with a modern programming language and 3+ years in near real-time analytics, whereas the candidate has only 1 year of experience in the track.",
+   "evidence": "Senior Data Engineer - Real time analytics"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is located in the Paris Office (FR), and while France is in the candidate's target countries, the listing does not explicitly state visa sponsorship.",
+   "evidence": "Location: Paris Office (FR)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and requires no specific local language that the candidate does not speak.",
+   "evidence": "Find more English Speaking Jobs in France on Arbeitnow"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Data Engineer"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Scala",
+   "AWS big data stack",
+   "Seniority level (5+ years experience required)"
+  ],
+  "summary": "This is a senior-level data engineering role requiring extensive big data and streaming experience that exceeds the candidate's current 1 year of track experience."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a Senior Data Engineer, which directly aligns with the Data Engineer track role.",
+    "evidence": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with Python, SQL, and Airflow, but lacks the requested 5+ years of programming experience, Scala, AWS streaming/big data tools, and Kafka production background.",
+    "evidence": "Write clean scalable code using Scala / python / SQL and test and deploy applications and systems",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job asks for a Senior Data Engineer with 5+ years of experience with a modern programming language and 3+ years in near real-time analytics, whereas the candidate has only 1 year of experience in the track.",
+    "evidence": "Senior Data Engineer - Real time analytics",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is located in the Paris Office (FR), and while France is in the candidate's target countries, the listing does not explicitly state visa sponsorship.",
+    "evidence": "Location: Paris Office (FR)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and requires no specific local language that the candidate does not speak.",
+    "evidence": "Find more English Speaking Jobs in France on Arbeitnow",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Senior Data Engineer",
+    "evidence": "Senior Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Scala",
+   "AWS big data stack",
+   "Seniority level (5+ years experience required)"
+  ],
+  "summary": "This is a senior-level data engineering role requiring extensive big data and streaming experience that exceeds the candidate's current 1 year of track experience.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for an engaged and passionate Senior Data Engineer to join our growing Engineering Team.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Write clean scalable code using Scala / python / SQL and test and deploy applications and systems",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Senior Data Engineer - Real time analytics",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in France on Arbeitnow",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:seniority_mismatch",
+    "quote": "Senior Data Engineer",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 6,
+  "ok": 5,
+  "in_job": 5
+ }
+}

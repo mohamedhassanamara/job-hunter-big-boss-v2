@@ -1,0 +1,129 @@
+{
+ "config": "gemma-4-31b-it default",
+ "model": "gemma-4-31b-it",
+ "thinking_config": null,
+ "job": "765",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 145.5,
+ "raw_text": "{\"properties\":{\"role_match\":{\"score\":10,\"reason\":\"Core responsibilities match the AI Engineer role.\",\"evidence\":\"\"},\"skills_match\":{\"score\":8,\"reason\":\"Strong LLM and software skills; lacks specific agentic framework experience.\",\"evidence\":\"\"},\"seniority_fit\":{\"score\":5,\"reason\":\"Asks for experienced AI engineers; candidate has one year in track.\",\"evidence\":\"\"},\"location_eligibility\":{\"score\":8,\"reason\":\"On-site in Germany, a target country.\",\"evidence\":\"\"},\"language_requirements\":{\"score\":0,\"reason\":\"Job is written in German; candidate does not speak it.\",\"evidence\":\"Wir suchen erfahrene AI Engineers\"},\"flag_checks\":{\"no_visa_sponsorship\":{\"present\":false,\"evidence\":\"\"},\"work_authorization_required\":{\"present\":false,\"evidence\":\"\"},\"must_be_based_in\":{\"present\":false,\"evidence\":\"\"},\"nationality_restricted\":{\"present\":false,\"evidence\":\"\"},\"language_required\":{\"present\":false,\"evidence\":\"\"},\"seniority_mismatch\":{\"present\":false,\"evidence\":\"\"}},\"red_flags\":[],\"strengths\":[\"LLMs and RAG\",\"Full-stack development\",\"Cloud and DevOps\"],\"gaps\":[\"German language\",\"Agentic Engineering frameworks\"],\"summary\":\"Strong technical fit for AI Engineering, but lacks the required German language skills.\"}}",
+ "tokens": {
+  "input": 6393,
+  "output": 287,
+  "thinking": 4264
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "Core responsibilities match the AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong LLM and software skills; lacks specific agentic framework experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Asks for experienced AI engineers; candidate has one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, a target country.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "Job is written in German; candidate does not speak it.",
+   "evidence": "Wir suchen erfahrene AI Engineers"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLMs and RAG",
+   "Full-stack development",
+   "Cloud and DevOps"
+  ],
+  "gaps": [
+   "German language",
+   "Agentic Engineering frameworks"
+  ],
+  "summary": "Strong technical fit for AI Engineering, but lacks the required German language skills."
+ },
+ "record": {
+  "score": 74,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "Core responsibilities match the AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong LLM and software skills; lacks specific agentic framework experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Asks for experienced AI engineers; candidate has one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, a target country.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "Job is written in German; candidate does not speak it.",
+    "evidence": "Wir suchen erfahrene AI Engineers",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLMs and RAG",
+   "Full-stack development",
+   "Cloud and DevOps"
+  ],
+  "gaps": [
+   "German language",
+   "Agentic Engineering frameworks"
+  ],
+  "summary": "Strong technical fit for AI Engineering, but lacks the required German language skills.",
+  "confidence": "high"
+ }
+}

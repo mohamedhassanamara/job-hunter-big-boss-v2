@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 5139,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 13.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is for a software engineer, which is the candidate's primary professional background.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Candidate has strong Python, Docker, Git, and testing skills required for the role.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 3 years of professional experience, meeting the 2+ years requirement.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job is remote and open to any location.\",\n    \"evidence\": \"Remote, any location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python proficiency\",\n    \"Automated testing experience\",\n    \"Docker and Git expertise\"\n  ],\n  \"gaps\": [\n    \"Open-source contribution history\",\n    \"Experience evaluating AI models\"\n  ],\n  \"summary\": \"The candidate is a strong fit for this remote engineering role, possessing the required technical stack and professional experience.\"\n}",
+ "tokens": {
+  "input": 4721,
+  "output": 506,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 79,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is for a software engineer, which is the candidate's primary professional background.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Candidate has strong Python, Docker, Git, and testing skills required for the role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of professional experience, meeting the 2+ years requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is remote and open to any location.",
+    "evidence": "Remote, any location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Automated testing experience",
+   "Docker and Git expertise"
+  ],
+  "gaps": [
+   "Open-source contribution history",
+   "Experience evaluating AI models"
+  ],
+  "summary": "The candidate is a strong fit for this remote engineering role, possessing the required technical stack and professional experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is for a software engineer, which is the candidate's primary professional background.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Candidate has strong Python, Docker, Git, and testing skills required for the role.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of professional experience, meeting the 2+ years requirement.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is remote and open to any location.",
+   "evidence": "Remote, any location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Automated testing experience",
+   "Docker and Git expertise"
+  ],
+  "gaps": [
+   "Open-source contribution history",
+   "Experience evaluating AI models"
+  ],
+  "summary": "The candidate is a strong fit for this remote engineering role, possessing the required technical stack and professional experience."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

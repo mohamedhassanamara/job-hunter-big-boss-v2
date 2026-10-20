@@ -1,0 +1,153 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 3921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.3,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role is a Technical Program Manager, not an engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has AI/LLM experience but lacks the required senior program management experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires significant senior-level program management experience, which the candidate lacks.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany; the candidate is willing to relocate and requires sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, which the candidate speaks at a professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Significant senior-level experience in technical program or project management\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"AI/LLM development\",\n    \"Software engineering background\",\n    \"FastAPI and Python\"\n  ],\n  \"gaps\": [\n    \"Program management experience\",\n    \"Senior-level leadership\",\n    \"Cross-functional strategy\"\n  ],\n  \"summary\": \"This is a senior program management role, which does not align with the candidate's junior engineering profile.\"\n}",
+ "tokens": {
+  "input": 5346,
+  "output": 517,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 37,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role is a Technical Program Manager, not an engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has AI/LLM experience but lacks the required senior program management experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires significant senior-level program management experience, which the candidate lacks.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany; the candidate is willing to relocate and requires sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, which the candidate speaks at a professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Significant senior-level experience in technical program or project management",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "AI/LLM development",
+   "Software engineering background",
+   "FastAPI and Python"
+  ],
+  "gaps": [
+   "Program management experience",
+   "Senior-level leadership",
+   "Cross-functional strategy"
+  ],
+  "summary": "This is a senior program management role, which does not align with the candidate's junior engineering profile.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role is a Technical Program Manager, not an engineering role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has AI/LLM experience but lacks the required senior program management experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires significant senior-level program management experience, which the candidate lacks.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany; the candidate is willing to relocate and requires sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, which the candidate speaks at a professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Significant senior-level experience in technical program or project management"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "AI/LLM development",
+   "Software engineering background",
+   "FastAPI and Python"
+  ],
+  "gaps": [
+   "Program management experience",
+   "Senior-level leadership",
+   "Cross-functional strategy"
+  ],
+  "summary": "This is a senior program management role, which does not align with the candidate's junior engineering profile."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Significant senior-level experience in technical program or project management",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

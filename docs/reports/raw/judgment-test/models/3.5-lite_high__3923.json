@@ -1,0 +1,133 @@
+{
+ "config": "3.5-lite high",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingLevel": "high"
+ },
+ "job": "3923",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 34.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"Building data extraction pipelines aligns directly with the Data Engineer track role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong Python and Docker skills match core requirements well.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Requires three years experience while candidate has one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Munich is a target country with no stated sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Job posting is in English, matching candidate fluency.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Docker\",\n    \"LLM integration\"\n  ],\n  \"gaps\": [\n    \"Web scraping at scale\",\n    \"Cloud platforms (GCP/Azure)\",\n    \"Track experience years\"\n  ],\n  \"summary\": \"Strong Python and LLM skills fit the data role despite experience and scraping gaps.\"\n}",
+ "tokens": {
+  "input": 4887,
+  "output": 478,
+  "thinking": 2627
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "Building data extraction pipelines aligns directly with the Data Engineer track role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong Python and Docker skills match core requirements well.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Requires three years experience while candidate has one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Munich is a target country with no stated sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Job posting is in English, matching candidate fluency.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM integration"
+  ],
+  "gaps": [
+   "Web scraping at scale",
+   "Cloud platforms (GCP/Azure)",
+   "Track experience years"
+  ],
+  "summary": "Strong Python and LLM skills fit the data role despite experience and scraping gaps."
+ },
+ "record": {
+  "score": 80,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "Building data extraction pipelines aligns directly with the Data Engineer track role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong Python and Docker skills match core requirements well.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Requires three years experience while candidate has one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Munich is a target country with no stated sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Job posting is in English, matching candidate fluency.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM integration"
+  ],
+  "gaps": [
+   "Web scraping at scale",
+   "Cloud platforms (GCP/Azure)",
+   "Track experience years"
+  ],
+  "summary": "Strong Python and LLM skills fit the data role despite experience and scraping gaps.",
+  "confidence": "high"
+ }
+}

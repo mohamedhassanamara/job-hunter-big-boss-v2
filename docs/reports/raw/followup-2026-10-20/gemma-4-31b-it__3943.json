@@ -1,0 +1,193 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3943,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 57.4,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 5,\n      \"reason\": \"The role is a specialized O&M Data Engineer focused on industrial energy systems, which is an adjacent application of the candidate's target Data Engineer role.\",\n      \"evidence\": \"Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight\"\n    },\n    \"skills_match\": {\n      \"score\": 4,\n      \"reason\": \"The candidate possesses the core programming requirements (Python, SQL, REST APIs) and some IoT experience, but completely lacks the essential industrial domain knowledge (SCADA, EMS, BESS, PLC) and specific dashboarding tools (Power BI, Grafana).\",\n      \"evidence\": \"experience with SCADA, EMS or industrial telemetry, ideally in ESS, BESS, renewables\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"The job asks for experience in a specific industrial field without specifying a number of years, and the candidate has only 1 year in the Data/AI track.\",\n      \"evidence\": \"You bring experience with SCADA, EMS or industrial telemetry\"\n    },\n    \"location_eligibility\": {\n      \"score\": 5,\n      \"reason\": \"The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship, which the candidate requires.\",\n      \"evidence\": \"Germany - Munich (DE)\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The candidate speaks English at a full professional level, meeting the C1 requirement.\",\n      \"evidence\": \"communicate confidently in English at C1 level\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": true,\n        \"evidence\": \"onsite\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python\",\n      \"SQL\",\n      \"REST APIs\"\n    ],\n    \"gaps\": [\n      \"SCADA/EMS/BESS experience\",\n      \"Industrial telemetry\",\n      \"Power BI/Grafana\"\n    ],\n    \"summary\": \"While the candidate has the general technical stack (Python, SQL), they lack the critical industrial domain expertise in energy storage and SCADA systems required for this specific O&M role.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5091,
+  "output": 677,
+  "thinking": 1150
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 52,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a specialized O&M Data Engineer focused on industrial energy systems, which is an adjacent application of the candidate's target Data Engineer role.",
+    "evidence": "Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 4,
+    "reason": "The candidate possesses the core programming requirements (Python, SQL, REST APIs) and some IoT experience, but completely lacks the essential industrial domain knowledge (SCADA, EMS, BESS, PLC) and specific dashboarding tools (Power BI, Grafana).",
+    "evidence": "experience with SCADA, EMS or industrial telemetry, ideally in ESS, BESS, renewables",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for experience in a specific industrial field without specifying a number of years, and the candidate has only 1 year in the Data/AI track.",
+    "evidence": "You bring experience with SCADA, EMS or industrial telemetry",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship, which the candidate requires.",
+    "evidence": "Germany - Munich (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The candidate speaks English at a full professional level, meeting the C1 requirement.",
+    "evidence": "communicate confidently in English at C1 level",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: onsite",
+    "evidence": "onsite",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "REST APIs"
+  ],
+  "gaps": [
+   "SCADA/EMS/BESS experience",
+   "Industrial telemetry",
+   "Power BI/Grafana"
+  ],
+  "summary": "While the candidate has the general technical stack (Python, SQL), they lack the critical industrial domain expertise in energy storage and SCADA systems required for this specific O&M role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a specialized O&M Data Engineer focused on industrial energy systems, which is an adjacent application of the candidate's target Data Engineer role.",
+   "evidence": "Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight"
+  },
+  "skills_match": {
+   "score": 4,
+   "reason": "The candidate possesses the core programming requirements (Python, SQL, REST APIs) and some IoT experience, but completely lacks the essential industrial domain knowledge (SCADA, EMS, BESS, PLC) and specific dashboarding tools (Power BI, Grafana).",
+   "evidence": "experience with SCADA, EMS or industrial telemetry, ideally in ESS, BESS, renewables"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for experience in a specific industrial field without specifying a number of years, and the candidate has only 1 year in the Data/AI track.",
+   "evidence": "You bring experience with SCADA, EMS or industrial telemetry"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship, which the candidate requires.",
+   "evidence": "Germany - Munich (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The candidate speaks English at a full professional level, meeting the C1 requirement.",
+   "evidence": "communicate confidently in English at C1 level"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "onsite"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL",
+   "REST APIs"
+  ],
+  "gaps": [
+   "SCADA/EMS/BESS experience",
+   "Industrial telemetry",
+   "Power BI/Grafana"
+  ],
+  "summary": "While the candidate has the general technical stack (Python, SQL), they lack the critical industrial domain expertise in energy storage and SCADA systems required for this specific O&M role."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 6,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "experience with SCADA, EMS or industrial telemetry, ideally in ESS, BESS, renewables",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "You bring experience with SCADA, EMS or industrial telemetry",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Germany - Munich (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "communicate confidently in English at C1 level",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

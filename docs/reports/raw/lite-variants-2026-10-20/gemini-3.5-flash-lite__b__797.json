@@ -1,0 +1,139 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "b",
+ "prompt": "v4",
+ "thinking_config": {
+  "thinkingBudget": 1024
+ },
+ "job_id": 797,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 12.4,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"Mixed role combining test automation and AI engineering responsibilities.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Strong Python and LLM background, but lacks enterprise test automation framework depth.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Job is senior level while candidate has one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"Remote role based in Egypt, regional remote availability is unclear.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and the candidate speaks it fluently.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python programming\",\n    \"LLM systems and RAG\",\n    \"FastAPI backend development\"\n  ],\n  \"gaps\": [\n    \"Enterprise test automation\",\n    \"Senior QA experience\",\n    \"AI evaluation infrastructure\"\n  ],\n  \"summary\": \"The candidate has strong Python and LLM skills but lacks the senior test automation experience required.\"\n}",
+ "tokens": {
+  "input": 5303,
+  "output": 485,
+  "thinking": 2203
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 55,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Mixed role combining test automation and AI engineering responsibilities.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Strong Python and LLM background, but lacks enterprise test automation framework depth.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job is senior level while candidate has one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "Remote role based in Egypt, regional remote availability is unclear.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and the candidate speaks it fluently.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "LLM systems and RAG",
+   "FastAPI backend development"
+  ],
+  "gaps": [
+   "Enterprise test automation",
+   "Senior QA experience",
+   "AI evaluation infrastructure"
+  ],
+  "summary": "The candidate has strong Python and LLM skills but lacks the senior test automation experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Mixed role combining test automation and AI engineering responsibilities.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Strong Python and LLM background, but lacks enterprise test automation framework depth.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job is senior level while candidate has one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "Remote role based in Egypt, regional remote availability is unclear.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and the candidate speaks it fluently.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "LLM systems and RAG",
+   "FastAPI backend development"
+  ],
+  "gaps": [
+   "Enterprise test automation",
+   "Senior QA experience",
+   "AI evaluation infrastructure"
+  ],
+  "summary": "The candidate has strong Python and LLM skills but lacks the senior test automation experience required."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

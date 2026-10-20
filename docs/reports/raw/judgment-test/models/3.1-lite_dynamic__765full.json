@@ -1,0 +1,159 @@
+{
+ "config": "3.1-lite dynamic",
+ "model": "gemini-3.1-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "765full",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 16.2,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title and core responsibilities align perfectly with the candidate's target AI Engineer role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Strong AI/LLM and Python skills, but lacks the required senior-level cloud and architecture experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job is a Senior role, while the candidate has only one year in this track.\",\n    \"evidence\": \"Level: Senior\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is on-site in Germany, a target country, with no explicit mention of sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The job requires C1 German, which the candidate does not speak.\",\n    \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Level: Senior\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"language_required\",\n      \"text\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\",\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n    },\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Level: Senior\",\n      \"evidence\": \"Level: Senior\"\n    }\n  ],\n  \"strengths\": [\n    \"LLM and RAG development\",\n    \"Python and FastAPI\",\n    \"Clean Architecture\"\n  ],\n  \"gaps\": [\n    \"No German language skills\",\n    \"Insufficient years in track\",\n    \"Professional cloud experience\"\n  ],\n  \"summary\": \"The candidate has relevant AI skills but lacks the required senior experience and C1 German language proficiency.\"\n}",
+ "tokens": {
+  "input": 5840,
+  "output": 652,
+  "thinking": 1197
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and core responsibilities align perfectly with the candidate's target AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Strong AI/LLM and Python skills, but lacks the required senior-level cloud and architecture experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job is a Senior role, while the candidate has only one year in this track.",
+   "evidence": "Level: Senior"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is on-site in Germany, a target country, with no explicit mention of sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires C1 German, which the candidate does not speak.",
+   "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Level: Senior"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Level: Senior",
+    "evidence": "Level: Senior"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG development",
+   "Python and FastAPI",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "No German language skills",
+   "Insufficient years in track",
+   "Professional cloud experience"
+  ],
+  "summary": "The candidate has relevant AI skills but lacks the required senior experience and C1 German language proficiency."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and core responsibilities align perfectly with the candidate's target AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Strong AI/LLM and Python skills, but lacks the required senior-level cloud and architecture experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job is a Senior role, while the candidate has only one year in this track.",
+    "evidence": "Level: Senior",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is on-site in Germany, a target country, with no explicit mention of sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires C1 German, which the candidate does not speak.",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Level: Senior",
+    "evidence": "Level: Senior",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG development",
+   "Python and FastAPI",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "No German language skills",
+   "Insufficient years in track",
+   "Professional cloud experience"
+  ],
+  "summary": "The candidate has relevant AI skills but lacks the required senior experience and C1 German language proficiency.",
+  "confidence": "high"
+ }
+}

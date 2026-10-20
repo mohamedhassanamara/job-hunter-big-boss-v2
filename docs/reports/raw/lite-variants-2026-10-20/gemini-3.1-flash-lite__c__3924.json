@@ -1,0 +1,147 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 3924,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 9.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Data Engineer, which is a core role in the track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Candidate has experience with Python, SQL, and dbt, but lacks senior-level professional experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 7+ years of experience, while the candidate has 1 year in track.\",\n    \"evidence\": \"You have at least 7+ years of experience as a Data Engineer, or a similar role\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers relocation support for international mobility.\",\n    \"evidence\": \"Relocation support in case of international mobility\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"You have at least 7+ years of experience as a Data Engineer, or a similar role\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"dbt and data pipelines\",\n    \"AI and LLM experience\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of senior-level expertise\",\n    \"No professional BI tool experience\"\n  ],\n  \"summary\": \"The candidate is a motivated junior engineer with relevant technical skills but lacks the 7+ years of experience required.\"\n}",
+ "tokens": {
+  "input": 5240,
+  "output": 569,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 73,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is a core role in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Candidate has experience with Python, SQL, and dbt, but lacks senior-level professional experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 7+ years of experience, while the candidate has 1 year in track.",
+    "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers relocation support for international mobility.",
+    "evidence": "Relocation support in case of international mobility",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and data pipelines",
+   "AI and LLM experience"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level expertise",
+   "No professional BI tool experience"
+  ],
+  "summary": "The candidate is a motivated junior engineer with relevant technical skills but lacks the 7+ years of experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is a core role in the track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Candidate has experience with Python, SQL, and dbt, but lacks senior-level professional experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 7+ years of experience, while the candidate has 1 year in track.",
+   "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role"
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers relocation support for international mobility.",
+   "evidence": "Relocation support in case of international mobility"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and data pipelines",
+   "AI and LLM experience"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level expertise",
+   "No professional BI tool experience"
+  ],
+  "summary": "The candidate is a motivated junior engineer with relevant technical skills but lacks the 7+ years of experience required."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

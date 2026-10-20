@@ -1,0 +1,139 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2427,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 8.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role is for a propulsion systems engineer, not a data or AI engineer.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"Candidate lacks the required aerospace, thermodynamics, and fluid dynamics engineering experience.\",\n    \"evidence\": \"Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job requires 3+ years of specific propulsion experience, which the candidate lacks.\",\n    \"evidence\": \"+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers relocation assistance and visa sponsorship.\",\n    \"evidence\": \"Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The candidate is fluent in English, which is the only required language.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python programming\",\n    \"Data analysis\",\n    \"FastAPI\"\n  ],\n  \"gaps\": [\n    \"Aerospace engineering\",\n    \"Fluid dynamics\",\n    \"Propulsion systems\"\n  ],\n  \"summary\": \"The candidate is a software engineer with data/AI interests, but lacks the specialized aerospace and propulsion engineering background required.\"\n}",
+ "tokens": {
+  "input": 5253,
+  "output": 544,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 38,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role is for a propulsion systems engineer, not a data or AI engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Candidate lacks the required aerospace, thermodynamics, and fluid dynamics engineering experience.",
+    "evidence": "Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job requires 3+ years of specific propulsion experience, which the candidate lacks.",
+    "evidence": "+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+    "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The candidate is fluent in English, which is the only required language.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "Data analysis",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Aerospace engineering",
+   "Fluid dynamics",
+   "Propulsion systems"
+  ],
+  "summary": "The candidate is a software engineer with data/AI interests, but lacks the specialized aerospace and propulsion engineering background required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role is for a propulsion systems engineer, not a data or AI engineer.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Candidate lacks the required aerospace, thermodynamics, and fluid dynamics engineering experience.",
+   "evidence": "Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job requires 3+ years of specific propulsion experience, which the candidate lacks.",
+   "evidence": "+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+   "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The candidate is fluent in English, which is the only required language.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "Data analysis",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Aerospace engineering",
+   "Fluid dynamics",
+   "Propulsion systems"
+  ],
+  "summary": "The candidate is a software engineer with data/AI interests, but lacks the specialized aerospace and propulsion engineering background required."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

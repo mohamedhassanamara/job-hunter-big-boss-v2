@@ -1,0 +1,236 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2418,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The job is a fullstack role requiring mobile development, which is a core part of the candidate's track.\",\n    \"evidence\": \"Move across the stack as priorities shift: mobile UI, backend services, APIs\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has strong experience in Flutter, backend development (Python, Spring Boot), and CI/CD, which aligns well with the job's requirements.\",\n    \"evidence\": \"Mobile development experience, ideally Android or Flutter\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for a 'Senior' level, while the candidate has 3 years of experience, which is below the typical expectation for a senior role.\",\n    \"evidence\": \"Senior Fullstack Engineer\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered.\",\n    \"evidence\": \"Work mode: onsite\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses.\",\n    \"evidence\": \"Professional English communication skills\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Work mode: onsite\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Fullstack Engineer\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"The role is onsite in Munich, Germany.\",\n      \"evidence\": \"Work mode: onsite\"\n    },\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"The role is for a Senior engineer, while the candidate has 3 years of experience.\",\n      \"evidence\": \"Senior Fullstack Engineer\"\n    }\n  ],\n  \"strengths\": [\n    \"Flutter mobile development\",\n    \"Backend and API integration\",\n    \"CI/CD and testing automation\"\n  ],\n  \"gaps\": [\n    \"Senior-level experience\",\n    \"Local work authorization in Germany\",\n    \"Healthcare interoperability standards (FHIR/HL7)\"\n  ],\n  \"summary\": \"While the candidate's technical stack is a strong match for the role, they lack the required seniority and the necessary work authorization to work onsite in Germany.\"\n}",
+ "tokens": {
+  "input": 4759,
+  "output": 724,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 70,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The job is a fullstack role requiring mobile development, which is a core part of the candidate's track.",
+    "evidence": "Move across the stack as priorities shift: mobile UI, backend services, APIs",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "The candidate has strong experience in Flutter, backend development (Python, Spring Boot), and CI/CD, which aligns well with the job's requirements.",
+    "evidence": "Mobile development experience, ideally Android or Flutter",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a 'Senior' level, while the candidate has 3 years of experience, which is below the typical expectation for a senior role.",
+    "evidence": "Senior Fullstack Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "Work mode: onsite",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses.",
+    "evidence": "Professional English communication skills",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Munich, Germany.",
+    "evidence": "Work mode: onsite",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "The role is for a Senior engineer, while the candidate has 3 years of experience.",
+    "evidence": "Senior Fullstack Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Flutter mobile development",
+   "Backend and API integration",
+   "CI/CD and testing automation"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Local work authorization in Germany",
+   "Healthcare interoperability standards (FHIR/HL7)"
+  ],
+  "summary": "While the candidate's technical stack is a strong match for the role, they lack the required seniority and the necessary work authorization to work onsite in Germany.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The job is a fullstack role requiring mobile development, which is a core part of the candidate's track.",
+   "evidence": "Move across the stack as priorities shift: mobile UI, backend services, APIs"
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "The candidate has strong experience in Flutter, backend development (Python, Spring Boot), and CI/CD, which aligns well with the job's requirements.",
+   "evidence": "Mobile development experience, ideally Android or Flutter"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a 'Senior' level, while the candidate has 3 years of experience, which is below the typical expectation for a senior role.",
+   "evidence": "Senior Fullstack Engineer"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered.",
+   "evidence": "Work mode: onsite"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses.",
+   "evidence": "Professional English communication skills"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Work mode: onsite"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Fullstack Engineer"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Munich, Germany.",
+    "evidence": "Work mode: onsite"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "The role is for a Senior engineer, while the candidate has 3 years of experience.",
+    "evidence": "Senior Fullstack Engineer"
+   }
+  ],
+  "strengths": [
+   "Flutter mobile development",
+   "Backend and API integration",
+   "CI/CD and testing automation"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Local work authorization in Germany",
+   "Healthcare interoperability standards (FHIR/HL7)"
+  ],
+  "summary": "While the candidate's technical stack is a strong match for the role, they lack the required seniority and the necessary work authorization to work onsite in Germany."
+ },
+ "evidence": {
+  "checked": 9,
+  "ok": 9,
+  "in_job": 6,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Move across the stack as priorities shift: mobile UI, backend services, APIs",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Mobile development experience, ideally Android or Flutter",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Senior Fullstack Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Work mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Professional English communication skills",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Work mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Senior Fullstack Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "Work mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Senior Fullstack Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

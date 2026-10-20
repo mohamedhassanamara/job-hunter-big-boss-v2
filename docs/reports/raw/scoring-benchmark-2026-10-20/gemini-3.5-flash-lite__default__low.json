@@ -1,0 +1,200 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "mode": "default",
+ "job": "low",
+ "job_id": 3950,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 3.0,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4552,
+  "output": 588,
+  "thinking": 0,
+  "total": 5140
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n  \"score\": 5,\n  \"reason\": \"The role is ADAS Data Collection Engineering involving test-tracks and sensor data handling, which is adjacent to the Data Engineer track.\",\n  \"evidence\": \"Data Collection Engineer ADAS (m/w/d)\"\n},\n\"skills_match\": {\n  \"score\": 5,\n  \"reason\": \"The candidate has Linux and Python background and general engineering degree, but lacks specific automotive ADAS experience and CAN/FlexRay protocols.\",\n  \"evidence\": \"Grundkenntnisse in Linux sind von Vorteil.\"\n},\n\"seniority_fit\": {\n  \"score\": 10,\n  \"reason\": \"The candidate has 3 years of total experience which fits well with the general profile requirements.\",\n  \"evidence\": \"\"\n},\n\"location_eligibility\": {\n  \"score\": 0,\n  \"reason\": \"The job requires working onsite in Munich, Germany, and the candidate needs visa sponsorship and does not live in Germany.\",\n  \"evidence\": \"Location: M\u00fcnchen (DE)\"\n},\n\"language_requirements\": {\n  \"score\": 0,\n  \"reason\": \"The job requires fluent German and English, but the candidate does not speak German.\",\n  \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n},\n\"flag_checks\": {\n  \"no_visa_sponsorship\": {\n    \"present\": false,\n    \"evidence\": \"\"\n  },\n  \"work_authorization_required\": {\n    \"present\": false,\n    \"evidence\": \"\"\n  },\n  \"must_be_based_in\": {\n    \"present\": true,\n    \"evidence\": \"Location: M\u00fcnchen (DE)\"\n  },\n  \"nationality_restricted\": {\n    \"present\": false,\n    \"evidence\": \"\"\n  },\n  \"language_required\": {\n    \"present\": true,\n    \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n  },\n  \"seniority_mismatch\": {\n    \"present\": false,\n    \"evidence\": \"\"\n  }\n},\n\"red_flags\": [],\n\"strengths\": [\n  \"Linux\",\n  \"Engineering degree\",\n  \"Python\"\n],\n\"gaps\": [\n  \"German language\",\n  \"ADAS experience\",\n  \"CAN/FlexRay protocols\"\n],\n\"summary\": \"This job is not a good fit because it is an onsite role in Munich requiring fluent German language skills and physical presence, which does not match the candidate's location or language profile.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is ADAS Data Collection Engineering involving test-tracks and sensor data handling, which is adjacent to the Data Engineer track.",
+   "evidence": "Data Collection Engineer ADAS (m/w/d)"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has Linux and Python background and general engineering degree, but lacks specific automotive ADAS experience and CAN/FlexRay protocols.",
+   "evidence": "Grundkenntnisse in Linux sind von Vorteil."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of total experience which fits well with the general profile requirements.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job requires working onsite in Munich, Germany, and the candidate needs visa sponsorship and does not live in Germany.",
+   "evidence": "Location: M\u00fcnchen (DE)"
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires fluent German and English, but the candidate does not speak German.",
+   "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Location: M\u00fcnchen (DE)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Linux",
+   "Engineering degree",
+   "Python"
+  ],
+  "gaps": [
+   "German language",
+   "ADAS experience",
+   "CAN/FlexRay protocols"
+  ],
+  "summary": "This job is not a good fit because it is an onsite role in Munich requiring fluent German language skills and physical presence, which does not match the candidate's location or language profile."
+ },
+ "record": {
+  "score": 52,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is ADAS Data Collection Engineering involving test-tracks and sensor data handling, which is adjacent to the Data Engineer track.",
+    "evidence": "Data Collection Engineer ADAS (m/w/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has Linux and Python background and general engineering degree, but lacks specific automotive ADAS experience and CAN/FlexRay protocols.",
+    "evidence": "Grundkenntnisse in Linux sind von Vorteil.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of total experience which fits well with the general profile requirements.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job requires working onsite in Munich, Germany, and the candidate needs visa sponsorship and does not live in Germany. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "Location: M\u00fcnchen (DE)",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires fluent German and English, but the candidate does not speak German.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Location: M\u00fcnchen (DE)",
+    "evidence": "Location: M\u00fcnchen (DE)",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "language_required",
+    "text": "Requires a language: Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Linux",
+   "Engineering degree",
+   "Python"
+  ],
+  "gaps": [
+   "German language",
+   "ADAS experience",
+   "CAN/FlexRay protocols"
+  ],
+  "summary": "This job is not a good fit because it is an onsite role in Munich requiring fluent German language skills and physical presence, which does not match the candidate's location or language profile.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Data Collection Engineer ADAS (m/w/d)",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Grundkenntnisse in Linux sind von Vorteil.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: M\u00fcnchen (DE)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:must_be_based_in",
+    "quote": "Location: M\u00fcnchen (DE)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "flag_check:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 6,
+  "ok": 4,
+  "in_job": 4
+ }
+}

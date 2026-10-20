@@ -1,0 +1,131 @@
+{
+ "config": "3.5-lite dynamic",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "3923",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 18.9,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 8,\n    \"reason\": \"Crawlers and data pipelines fit data engineering roles well.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong Python and LLM extraction skills match core technical needs.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"Job asks for 3+ years while candidate has 1 year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany, a target country, with no explicit restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and spoken fluently by the candidate.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Docker containerization\",\n    \"LLM extraction\"\n  ],\n  \"gaps\": [\n    \"Web scraping experience\",\n    \"Years of experience\"\n  ],\n  \"summary\": \"The candidate has strong Python and LLM skills, but fewer years of experience than requested.\"\n}",
+ "tokens": {
+  "input": 4887,
+  "output": 478,
+  "thinking": 2090
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 8,
+   "reason": "Crawlers and data pipelines fit data engineering roles well.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong Python and LLM extraction skills match core technical needs.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for 3+ years while candidate has 1 year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, a target country, with no explicit restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and spoken fluently by the candidate.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker containerization",
+   "LLM extraction"
+  ],
+  "gaps": [
+   "Web scraping experience",
+   "Years of experience"
+  ],
+  "summary": "The candidate has strong Python and LLM skills, but fewer years of experience than requested."
+ },
+ "record": {
+  "score": 74,
+  "sub_scores": {
+   "role_match": {
+    "score": 8,
+    "reason": "Crawlers and data pipelines fit data engineering roles well.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong Python and LLM extraction skills match core technical needs.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for 3+ years while candidate has 1 year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, a target country, with no explicit restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and spoken fluently by the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker containerization",
+   "LLM extraction"
+  ],
+  "gaps": [
+   "Web scraping experience",
+   "Years of experience"
+  ],
+  "summary": "The candidate has strong Python and LLM skills, but fewer years of experience than requested.",
+  "confidence": "high"
+ }
+}

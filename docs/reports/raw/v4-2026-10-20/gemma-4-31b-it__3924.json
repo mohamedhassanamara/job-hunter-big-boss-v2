@@ -1,0 +1,179 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3924,
+ "retries": 3,
+ "retry_reasons": [
+  500,
+  500,
+  500
+ ],
+ "errors": [],
+ "secs": 59.7,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities are exactly the Data Engineer role the candidate targets.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"Candidate has Python, SQL, and DBT, but lacks GCP and Tableau experience.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job requires 7+ years in track; candidate has 1 year.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"Job explicitly offers relocation support for international mobility.\",\n      \"evidence\": \"Relocation support in case of international mobility\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate is fluent in the required language (English).\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"at least 7+ years of experience as a Data Engineer\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Candidate lacks the required 7+ years of experience.\",\n        \"evidence\": \"at least 7+ years of experience as a Data Engineer\"\n      }\n    ],\n    \"strengths\": [\n      \"Python\",\n      \"SQL\",\n      \"DBT\"\n    ],\n    \"gaps\": [\n      \"7+ years experience\",\n      \"GCP stack\",\n      \"Tableau\"\n    ],\n    \"summary\": \"Candidate possesses the core technical skills but is significantly under-qualified in terms of seniority.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5908,
+  "output": 575,
+  "thinking": 819
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 70,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities are exactly the Data Engineer role the candidate targets.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has Python, SQL, and DBT, but lacks GCP and Tableau experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job requires 7+ years in track; candidate has 1 year.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "Job explicitly offers relocation support for international mobility.",
+    "evidence": "Relocation support in case of international mobility",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate is fluent in the required language (English).",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate lacks the required 7+ years of experience.",
+    "evidence": "at least 7+ years of experience as a Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "DBT"
+  ],
+  "gaps": [
+   "7+ years experience",
+   "GCP stack",
+   "Tableau"
+  ],
+  "summary": "Candidate possesses the core technical skills but is significantly under-qualified in terms of seniority.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities are exactly the Data Engineer role the candidate targets.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has Python, SQL, and DBT, but lacks GCP and Tableau experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job requires 7+ years in track; candidate has 1 year.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "Job explicitly offers relocation support for international mobility.",
+   "evidence": "Relocation support in case of international mobility"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate is fluent in the required language (English).",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "at least 7+ years of experience as a Data Engineer"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate lacks the required 7+ years of experience.",
+    "evidence": "at least 7+ years of experience as a Data Engineer"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "DBT"
+  ],
+  "gaps": [
+   "7+ years experience",
+   "GCP stack",
+   "Tableau"
+  ],
+  "summary": "Candidate possesses the core technical skills but is significantly under-qualified in terms of seniority."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3,
+  "in_job": 3,
+  "quotes": [
+   {
+    "where": "location_eligibility",
+    "quote": "Relocation support in case of international mobility",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "at least 7+ years of experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "at least 7+ years of experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

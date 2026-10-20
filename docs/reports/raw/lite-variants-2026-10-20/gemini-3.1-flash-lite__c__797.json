@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 797,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 68.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is primarily QA/Automation engineering, which is adjacent to the candidate's AI engineering track.\",\n    \"evidence\": \"We are seeking a highly skilled Senior Automation Testing Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong overlap in Python, LLM systems, and testing, though the role requires more senior QA experience.\",\n    \"evidence\": \"An engineer who ships production software, with recent hands-on work on LLM-backed systems\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires a Senior level, while the candidate has only 3 years of total experience.\",\n    \"evidence\": \"Senior Automation Testing Engineer\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is remote but does not explicitly offer visa sponsorship for the candidate's location.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, which the candidate speaks at a professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Automation Testing Engineer\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM-backed systems experience\",\n    \"Python proficiency\",\n    \"Test automation experience\"\n  ],\n  \"gaps\": [\n    \"Senior-level experience\",\n    \"Professional QA background\",\n    \"Enterprise-scale testing\"\n  ],\n  \"summary\": \"The candidate has relevant AI and testing skills but lacks the senior experience required for this role.\"\n}",
+ "tokens": {
+  "input": 5395,
+  "output": 560,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 54,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is primarily QA/Automation engineering, which is adjacent to the candidate's AI engineering track.",
+    "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong overlap in Python, LLM systems, and testing, though the role requires more senior QA experience.",
+    "evidence": "An engineer who ships production software, with recent hands-on work on LLM-backed systems",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires a Senior level, while the candidate has only 3 years of total experience.",
+    "evidence": "Senior Automation Testing Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is remote but does not explicitly offer visa sponsorship for the candidate's location.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, which the candidate speaks at a professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Senior Automation Testing Engineer",
+    "evidence": "Senior Automation Testing Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM-backed systems experience",
+   "Python proficiency",
+   "Test automation experience"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Professional QA background",
+   "Enterprise-scale testing"
+  ],
+  "summary": "The candidate has relevant AI and testing skills but lacks the senior experience required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is primarily QA/Automation engineering, which is adjacent to the candidate's AI engineering track.",
+   "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong overlap in Python, LLM systems, and testing, though the role requires more senior QA experience.",
+   "evidence": "An engineer who ships production software, with recent hands-on work on LLM-backed systems"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires a Senior level, while the candidate has only 3 years of total experience.",
+   "evidence": "Senior Automation Testing Engineer"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is remote but does not explicitly offer visa sponsorship for the candidate's location.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, which the candidate speaks at a professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Automation Testing Engineer"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM-backed systems experience",
+   "Python proficiency",
+   "Test automation experience"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Professional QA background",
+   "Enterprise-scale testing"
+  ],
+  "summary": "The candidate has relevant AI and testing skills but lacks the senior experience required for this role."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4
+ }
+}

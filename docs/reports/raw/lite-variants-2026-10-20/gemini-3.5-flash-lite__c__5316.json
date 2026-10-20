@@ -1,0 +1,135 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 5316,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 7.8,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role title and responsibilities match the candidate's target Analytics Engineer track.\",\n    \"evidence\": \"As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has solid experience in SQL, Python, and dbt through personal projects.\",\n    \"evidence\": \"Design, build, and maintain clean, efficient, and scalable data models in SQL and dbt.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 3+ years of hands-on experience, while the candidate has 1 year.\",\n    \"evidence\": \"3+ years of hands-on experience in data modeling using dbt.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Role is in Dubai, UAE, which is among the target countries, and no specific restrictions are stated.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Only English is required, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt and SQL modeling\",\n    \"Python scripting\",\n    \"Software engineering background\"\n  ],\n  \"gaps\": [\n    \"3+ years analytics experience\",\n    \"Cloud data warehouse experience\"\n  ],\n  \"summary\": \"An analytics engineer role matching the candidate's track, though requiring more years of experience than the candidate currently holds.\"\n}",
+ "tokens": {
+  "input": 4713,
+  "output": 574,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 80,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role title and responsibilities match the candidate's target Analytics Engineer track.",
+    "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has solid experience in SQL, Python, and dbt through personal projects.",
+    "evidence": "Design, build, and maintain clean, efficient, and scalable data models in SQL and dbt.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 3+ years of hands-on experience, while the candidate has 1 year.",
+    "evidence": "3+ years of hands-on experience in data modeling using dbt.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Role is in Dubai, UAE, which is among the target countries, and no specific restrictions are stated.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Only English is required, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and SQL modeling",
+   "Python scripting",
+   "Software engineering background"
+  ],
+  "gaps": [
+   "3+ years analytics experience",
+   "Cloud data warehouse experience"
+  ],
+  "summary": "An analytics engineer role matching the candidate's track, though requiring more years of experience than the candidate currently holds.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role title and responsibilities match the candidate's target Analytics Engineer track.",
+   "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has solid experience in SQL, Python, and dbt through personal projects.",
+   "evidence": "Design, build, and maintain clean, efficient, and scalable data models in SQL and dbt."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 3+ years of hands-on experience, while the candidate has 1 year.",
+   "evidence": "3+ years of hands-on experience in data modeling using dbt."
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Role is in Dubai, UAE, which is among the target countries, and no specific restrictions are stated.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Only English is required, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and SQL modeling",
+   "Python scripting",
+   "Software engineering background"
+  ],
+  "gaps": [
+   "3+ years analytics experience",
+   "Cloud data warehouse experience"
+  ],
+  "summary": "An analytics engineer role matching the candidate's track, though requiring more years of experience than the candidate currently holds."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

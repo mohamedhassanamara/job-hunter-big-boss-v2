@@ -1,0 +1,131 @@
+{
+ "config": "3.5-lite none",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": null,
+ "job": "1913",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 22.8,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is a backend engineering position, but focuses on Go which is outside the candidate's primary track stack.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"The job requires Go and AWS services, whereas the candidate's experience is in Java/Python/Spring Boot.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a senior level and fits the candidate's experience level.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in France (one of the target countries), with no explicit restriction on visa sponsorship mentioned.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires fluent/professional English which the candidate possesses.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"API development\",\n    \"Python backend experience\",\n    \"Distributed systems interest\"\n  ],\n  \"gaps\": [\n    \"No Go experience\",\n    \"No AWS DynamoDB/SQS experience\",\n    \"Limited backend experience duration\"\n  ],\n  \"summary\": \"The candidate matches the general backend role level and English requirement, but lacks the specific Go stack required for this position.\"\n}",
+ "tokens": {
+  "input": 4979,
+  "output": 526,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a backend engineering position, but focuses on Go which is outside the candidate's primary track stack.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "The job requires Go and AWS services, whereas the candidate's experience is in Java/Python/Spring Boot.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a senior level and fits the candidate's experience level.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in France (one of the target countries), with no explicit restriction on visa sponsorship mentioned.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires fluent/professional English which the candidate possesses.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "API development",
+   "Python backend experience",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No AWS DynamoDB/SQS experience",
+   "Limited backend experience duration"
+  ],
+  "summary": "The candidate matches the general backend role level and English requirement, but lacks the specific Go stack required for this position."
+ },
+ "record": {
+  "score": 58,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a backend engineering position, but focuses on Go which is outside the candidate's primary track stack.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "The job requires Go and AWS services, whereas the candidate's experience is in Java/Python/Spring Boot.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a senior level and fits the candidate's experience level.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in France (one of the target countries), with no explicit restriction on visa sponsorship mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires fluent/professional English which the candidate possesses.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "API development",
+   "Python backend experience",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No AWS DynamoDB/SQS experience",
+   "Limited backend experience duration"
+  ],
+  "summary": "The candidate matches the general backend role level and English requirement, but lacks the specific Go stack required for this position.",
+  "confidence": "high"
+ }
+}

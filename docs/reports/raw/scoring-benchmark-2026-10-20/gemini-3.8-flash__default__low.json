@@ -1,0 +1,190 @@
+{
+ "model": "gemini-3.8-flash",
+ "mode": "default",
+ "job": "low",
+ "job_id": 3950,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 80.3,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4552,
+  "output": 685,
+  "thinking": 695,
+  "total": 5932
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role is an automotive field/hardware testing position focused on vehicle sensor integration, test-track operations, and ADAS data logging rather than data platform or AI engineering.\",\n    \"evidence\": \"Betreuung und Koordination von Test-Track-Aktivit\u00e4ten sowie Pflege des aktuellen Aufgabenstatus nach definierten Prozessen und in den entsprechenden Tools\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"The position requires automotive protocols (CAN, FlexRay), ADAS experience, vehicle sensor hardware integration, and a European driving license, none of which the candidate possesses.\",\n    \"evidence\": \"Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The role accepts a completed technical degree or equivalent initial experience, which matches an entry- to mid-level profile.\",\n    \"evidence\": \"Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The position is on-site in Munich, Germany (a target country), but makes no statement regarding visa sponsorship or work permit eligibility.\",\n    \"evidence\": \"Reisebereitschaft von bis zu 30 % innerhalb Deutschlands und Europas.\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The posting strictly requires fluent German, which the candidate does not speak.\",\n    \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Technical engineering degree\",\n    \"Basic Linux familiarity\"\n  ],\n  \"gaps\": [\n    \"No German language skills\",\n    \"Lack of ADAS and automotive protocols (CAN, FlexRay)\",\n    \"No European driving license\"\n  ],\n  \"summary\": \"This role is a poor fit as it requires fluent German and focuses on on-site automotive test-track and hardware data collection rather than software/data engineering.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role is an automotive field/hardware testing position focused on vehicle sensor integration, test-track operations, and ADAS data logging rather than data platform or AI engineering.",
+   "evidence": "Betreuung und Koordination von Test-Track-Aktivit\u00e4ten sowie Pflege des aktuellen Aufgabenstatus nach definierten Prozessen und in den entsprechenden Tools"
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The position requires automotive protocols (CAN, FlexRay), ADAS experience, vehicle sensor hardware integration, and a European driving license, none of which the candidate possesses.",
+   "evidence": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The role accepts a completed technical degree or equivalent initial experience, which matches an entry- to mid-level profile.",
+   "evidence": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich."
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The position is on-site in Munich, Germany (a target country), but makes no statement regarding visa sponsorship or work permit eligibility.",
+   "evidence": "Reisebereitschaft von bis zu 30 % innerhalb Deutschlands und Europas."
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The posting strictly requires fluent German, which the candidate does not speak.",
+   "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Technical engineering degree",
+   "Basic Linux familiarity"
+  ],
+  "gaps": [
+   "No German language skills",
+   "Lack of ADAS and automotive protocols (CAN, FlexRay)",
+   "No European driving license"
+  ],
+  "summary": "This role is a poor fit as it requires fluent German and focuses on on-site automotive test-track and hardware data collection rather than software/data engineering."
+ },
+ "record": {
+  "score": 22,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role is an automotive field/hardware testing position focused on vehicle sensor integration, test-track operations, and ADAS data logging rather than data platform or AI engineering.",
+    "evidence": "Betreuung und Koordination von Test-Track-Aktivit\u00e4ten sowie Pflege des aktuellen Aufgabenstatus nach definierten Prozessen und in den entsprechenden Tools",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The position requires automotive protocols (CAN, FlexRay), ADAS experience, vehicle sensor hardware integration, and a European driving license, none of which the candidate possesses.",
+    "evidence": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The role accepts a completed technical degree or equivalent initial experience, which matches an entry- to mid-level profile.",
+    "evidence": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The position is on-site in Munich, Germany (a target country), but makes no statement regarding visa sponsorship or work permit eligibility.",
+    "evidence": "Reisebereitschaft von bis zu 30 % innerhalb Deutschlands und Europas.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The posting strictly requires fluent German, which the candidate does not speak.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires a language: Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Technical engineering degree",
+   "Basic Linux familiarity"
+  ],
+  "gaps": [
+   "No German language skills",
+   "Lack of ADAS and automotive protocols (CAN, FlexRay)",
+   "No European driving license"
+  ],
+  "summary": "This role is a poor fit as it requires fluent German and focuses on on-site automotive test-track and hardware data collection rather than software/data engineering.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Betreuung und Koordination von Test-Track-Aktivit\u00e4ten sowie Pflege des aktuellen Aufgabenstatus nach definierten Prozessen und in den entsprechenden Tools",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Reisebereitschaft von bis zu 30 % innerhalb Deutschlands und Europas.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 6,
+  "ok": 6,
+  "in_job": 6
+ }
+}

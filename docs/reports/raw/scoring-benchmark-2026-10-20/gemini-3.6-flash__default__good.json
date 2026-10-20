@@ -1,0 +1,170 @@
+{
+ "model": "gemini-3.6-flash",
+ "mode": "default",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 11.9,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4899,
+  "output": 447,
+  "thinking": 1618,
+  "total": 6964
+ },
+ "structured_native": true,
+ "raw_text": "{\"role_match\":{\"score\":5,\"reason\":\"The job is a backend-leaning full-stack role, which represents a mixed role combining backend engineering with frontend responsibilities.\",\"evidence\":\"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents\"},\"skills_match\":{\"score\":5,\"reason\":\"The candidate has relevant experience with Python, FastAPI, Spring Boot, and LLM agent orchestration, but lacks proven experience with asynchronous workers and production cloud storage.\",\"evidence\":\"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"},\"seniority_fit\":{\"score\":5,\"reason\":\"The job posting does not state a specific year requirement or seniority level, making the seniority fit unclear for a candidate with 1 year in the track.\",\"evidence\":\"We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.\"},\"location_eligibility\":{\"score\":10,\"reason\":\"The job is fully remote and explicitly states that location is not a barrier.\",\"evidence\":\"Global team: We prioritize your talent, not your location.\"},\"language_requirements\":{\"score\":10,\"reason\":\"The job is written in English and requires no additional languages; the candidate has full professional proficiency in English.\",\"evidence\":\"\"},\"flag_checks\":{\"no_visa_sponsorship\":{\"present\":false,\"evidence\":\"\"},\"work_authorization_required\":{\"present\":false,\"evidence\":\"\"},\"must_be_based_in\":{\"present\":false,\"evidence\":\"\"},\"nationality_restricted\":{\"present\":false,\"evidence\":\"\"},\"language_required\":{\"present\":false,\"evidence\":\"\"},\"seniority_mismatch\":{\"present\":false,\"evidence\":\"\"}},\"red_flags\":[],\"strengths\":[\"Python & FastAPI backend APIs\",\"LLM & AI agent orchestration\",\"Full-stack development\"],\"gaps\":[\"Only 1 year focused backend experience\",\"Asynchronous job processing\",\"Cloud infrastructure management\"],\"summary\":\"A good remote opportunity matching the candidate's backend and AI project experience, though full-stack expectations and unspecified seniority requirements create moderate gaps.\"}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The job is a backend-leaning full-stack role, which represents a mixed role combining backend engineering with frontend responsibilities.",
+   "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has relevant experience with Python, FastAPI, Spring Boot, and LLM agent orchestration, but lacks proven experience with asynchronous workers and production cloud storage.",
+   "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job posting does not state a specific year requirement or seniority level, making the seniority fit unclear for a candidate with 1 year in the track.",
+   "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is fully remote and explicitly states that location is not a barrier.",
+   "evidence": "Global team: We prioritize your talent, not your location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is written in English and requires no additional languages; the candidate has full professional proficiency in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python & FastAPI backend APIs",
+   "LLM & AI agent orchestration",
+   "Full-stack development"
+  ],
+  "gaps": [
+   "Only 1 year focused backend experience",
+   "Asynchronous job processing",
+   "Cloud infrastructure management"
+  ],
+  "summary": "A good remote opportunity matching the candidate's backend and AI project experience, though full-stack expectations and unspecified seniority requirements create moderate gaps."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The job is a backend-leaning full-stack role, which represents a mixed role combining backend engineering with frontend responsibilities.",
+    "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has relevant experience with Python, FastAPI, Spring Boot, and LLM agent orchestration, but lacks proven experience with asynchronous workers and production cloud storage.",
+    "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job posting does not state a specific year requirement or seniority level, making the seniority fit unclear for a candidate with 1 year in the track.",
+    "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is fully remote and explicitly states that location is not a barrier.",
+    "evidence": "Global team: We prioritize your talent, not your location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is written in English and requires no additional languages; the candidate has full professional proficiency in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python & FastAPI backend APIs",
+   "LLM & AI agent orchestration",
+   "Full-stack development"
+  ],
+  "gaps": [
+   "Only 1 year focused backend experience",
+   "Asynchronous job processing",
+   "Cloud infrastructure management"
+  ],
+  "summary": "A good remote opportunity matching the candidate's backend and AI project experience, though full-stack expectations and unspecified seniority requirements create moderate gaps.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Global team: We prioritize your talent, not your location.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4
+ }
+}

@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 5139,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 4.8,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"Adjacent software engineering role focusing on AI training data creation.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"Candidate has strong Python, Docker, Linux, Git, and automated testing skills.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"Requires 2+ years of professional experience, matching the candidate's total experience.\",\n    \"evidence\": \"2+ years of professional software engineering\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The role is fully remote and explicitly open to any location worldwide.\",\n    \"evidence\": \"Remote, any location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No language other than English is required.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python proficiency\",\n    \"Docker and Git\",\n    \"Automated testing experience\"\n  ],\n  \"gaps\": [\n    \"TypeScript, Go or Rust experience\",\n    \"Formal AI evaluation experience\",\n    \"Public open-source repository contributions\"\n  ],\n  \"summary\": \"This is a remote freelance AI evaluation role that matches the candidate's core programming and testing skills.\"\n}",
+ "tokens": {
+  "input": 4629,
+  "output": 511,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 85,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Adjacent software engineering role focusing on AI training data creation.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "Candidate has strong Python, Docker, Linux, Git, and automated testing skills.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "Requires 2+ years of professional experience, matching the candidate's total experience.",
+    "evidence": "2+ years of professional software engineering",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The role is fully remote and explicitly open to any location worldwide.",
+    "evidence": "Remote, any location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No language other than English is required.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Docker and Git",
+   "Automated testing experience"
+  ],
+  "gaps": [
+   "TypeScript, Go or Rust experience",
+   "Formal AI evaluation experience",
+   "Public open-source repository contributions"
+  ],
+  "summary": "This is a remote freelance AI evaluation role that matches the candidate's core programming and testing skills.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Adjacent software engineering role focusing on AI training data creation.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "Candidate has strong Python, Docker, Linux, Git, and automated testing skills.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "Requires 2+ years of professional experience, matching the candidate's total experience.",
+   "evidence": "2+ years of professional software engineering"
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The role is fully remote and explicitly open to any location worldwide.",
+   "evidence": "Remote, any location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No language other than English is required.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Docker and Git",
+   "Automated testing experience"
+  ],
+  "gaps": [
+   "TypeScript, Go or Rust experience",
+   "Formal AI evaluation experience",
+   "Public open-source repository contributions"
+  ],
+  "summary": "This is a remote freelance AI evaluation role that matches the candidate's core programming and testing skills."
+ },
+ "evidence": {
+  "checked": 2,
+  "ok": 2
+ }
+}

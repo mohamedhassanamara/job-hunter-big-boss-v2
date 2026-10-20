@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 1927,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 10.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role focuses heavily on algorithmic computation engines rather than standard backend web development.\",\n    \"evidence\": \"You will build the core engine that powers our rankings and benchmarks for hospitals worldwide\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has Python and Airflow, but lacks senior-level experience in building complex deterministic computation engines.\",\n    \"evidence\": \"Graph Algorithms & Engine Concepts\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"Job asks for 5+ years in backend engineering while the candidate has 1 year in the track.\",\n    \"evidence\": \"5+ years in backend software engineering building computation engines\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany, which is in the candidate's target countries, with no explicit visa statement.\",\n    \"evidence\": \"Hamburg or Berlin (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and spoken fluently; German is a plus.\",\n    \"evidence\": \"Fluent in English, German is a plus.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"5+ years in backend software engineering\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Apache Airflow\",\n    \"FastAPI\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"Computation engine design\",\n    \"Advanced graph algorithms\"\n  ],\n  \"summary\": \"This senior backend computation engine role exceeds the candidate's years of experience and specialized algorithmic background requirements despite Python and Airflow overlapability and German location fit eligibility match targets well otherwise overall technically speaking right now today honestly here directly.\"\n}",
+ "tokens": {
+  "input": 5217,
+  "output": 592,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 52,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role focuses heavily on algorithmic computation engines rather than standard backend web development.",
+    "evidence": "You will build the core engine that powers our rankings and benchmarks for hospitals worldwide",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has Python and Airflow, but lacks senior-level experience in building complex deterministic computation engines.",
+    "evidence": "Graph Algorithms & Engine Concepts",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job asks for 5+ years in backend engineering while the candidate has 1 year in the track.",
+    "evidence": "5+ years in backend software engineering building computation engines",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, which is in the candidate's target countries, with no explicit visa statement.",
+    "evidence": "Hamburg or Berlin (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and spoken fluently; German is a plus.",
+    "evidence": "Fluent in English, German is a plus.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: 5+ years in backend software engineering",
+    "evidence": "5+ years in backend software engineering",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "Apache Airflow",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Computation engine design",
+   "Advanced graph algorithms"
+  ],
+  "summary": "This senior backend computation engine role exceeds the candidate's years of experience and specialized algorithmic background requirements despite Python and Airflow overlapability and German location fit eligibility match targets well otherwise overall technically speaking right now today honestly here directly.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role focuses heavily on algorithmic computation engines rather than standard backend web development.",
+   "evidence": "You will build the core engine that powers our rankings and benchmarks for hospitals worldwide"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has Python and Airflow, but lacks senior-level experience in building complex deterministic computation engines.",
+   "evidence": "Graph Algorithms & Engine Concepts"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job asks for 5+ years in backend engineering while the candidate has 1 year in the track.",
+   "evidence": "5+ years in backend software engineering building computation engines"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, which is in the candidate's target countries, with no explicit visa statement.",
+   "evidence": "Hamburg or Berlin (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and spoken fluently; German is a plus.",
+   "evidence": "Fluent in English, German is a plus."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "5+ years in backend software engineering"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Apache Airflow",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Computation engine design",
+   "Advanced graph algorithms"
+  ],
+  "summary": "This senior backend computation engine role exceeds the candidate's years of experience and specialized algorithmic background requirements despite Python and Airflow overlapability and German location fit eligibility match targets well otherwise overall technically speaking right now today honestly here directly."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 6
+ }
+}
