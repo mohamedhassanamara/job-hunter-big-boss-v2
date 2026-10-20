@@ -48,12 +48,20 @@ def parse_arbeitnow(payload: dict[str, Any]) -> list[RawJob]:
     return jobs
 
 
+# A feed of the German-speaking job market: no listings for these target countries.
+NO_COVERAGE = {"TR"}
+
+
 class ArbeitnowSource:
     source = Source.arbeitnow
     cooldown_hours = 1.0  # the feed refreshes hourly
 
     def __init__(self) -> None:
         self.requests = 0
+
+    @staticmethod
+    def unsupported_countries(targets: list[str]) -> list[str]:
+        return [c.upper() for c in targets if c.upper() in NO_COVERAGE]
 
     def configured(self) -> str | None:
         return None
