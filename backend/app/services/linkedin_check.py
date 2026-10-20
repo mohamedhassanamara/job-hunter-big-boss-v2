@@ -28,6 +28,22 @@ JARGON = ["idempotent", "schema drift", "lakehouse", "orchestration", "orchestra
           "throughput", "latency", "scalable architecture", "end-to-end", "stack", "backfill",
           "upsert", "partitioning", "containerized", "containerised", "kubernetes", "terraform",
           "infrastructure as code", "deduplication", "entity resolution"]
+# A message must never reveal that you know they looked at your profile (LinkedIn Premium shows
+# you who viewed it). Any wording of it is an error, for every kind of message and every group.
+_VIEWED = re.compile(
+    r"\b(?:"
+    r"(?:view(?:ed|ing)|visit(?:ed|ing)|look(?:ed|ing) (?:at|over)|check(?:ed|ing)(?: out)?|"
+    r"saw|seen|noticed|spotted|came across|stopped by)\W+(?:\w+\W+){0,3}(?:your|my)\W+"
+    r"(?:linkedin\W+)?profile"
+    r"|(?:saw|noticed|spotted|appreciate|thanks for)\W+(?:\w+\W+){0,2}(?:your|their)\W+visit"
+    r"|profile\W+(?:visit|view)s?"
+    r"|(?:vu|vue?s?|consult[ée]e?s?|visit[ée]e?s?|regard[ée]e?s?)\W+(?:\w+\W+){0,3}"
+    r"(?:mon|votre)\W+profil"
+    r"|visite\W+de\W+(?:mon|votre)\W+profil)\b", re.I)
+_GREETING = re.compile(r"^\W*(?:hi|hello|hey|dear|good (?:morning|afternoon|evening)|bonjour|"
+                       r"bonsoir|salut|hola|hallo)\b", re.I)
+SUBJECT_MAX_CHARS = 80
+INMAIL_MIN_CHARS = 250
 _EASY_ASK = re.compile(r"\b(?:cv|resume|résumé|send|share|envoyer|partager)\b", re.I)
 _CHAT = re.compile(r"\b(?:chat|call|talk|coffee|minutes|échanger|échange|appel|discuter)\b", re.I)
 _ADVICE = re.compile(r"\b(?:advice|tips|refer\w*|recommend\w*|conseil\w*|recommand\w*|"
@@ -57,6 +73,7 @@ class Context:
     examples: list[str] = field(default_factory=list)  # reference notes (never copied)
     group: str = "lead"  # the note's angle: recruiter | lead | alumni
     matching_tools: list[str] = field(default_factory=list)  # listing tools you have
+    warm: bool = False  # they found you first (viewed your profile): a warm opener, no mention
 
 
 def check(text: str, ctx: Context) -> list[dict[str, str]]:
@@ -66,9 +83,19 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
     if not text:
         return [violation("empty", "The message is empty", "body", "error")]
     if n > ctx.max_chars:
-        out.append(violation("length", f"{n} characters: LinkedIn allows {ctx.max_chars}"
-                             + (" in a connection note" if ctx.kind == "note" else ""),
-                             "body", "error"))
+        out.append(violation("length", f"{n} characters: the limit is {ctx.max_chars}"
+                             + (" in a connection note" if ctx.kind == "note" else
+                                " for this InMail (Settings → LinkedIn)" if ctx.kind == "inmail"
+                                else ""), "body", "error"))
+    if ctx.kind == "inmail" and n < INMAIL_MIN_CHARS:
+        out.append(violation("short", f"{n} characters is short for an InMail: give them a "
+                             "reason to reply (why them, one proof, one ask)", "body"))
+    if _VIEWED.search(text):
+        out.append(violation("viewed", "Never mention that they looked at your profile, or that "
+                             "you noticed their visit", "body", "error"))
+    if ctx.warm and ctx.kind in ("note", "inmail") and not _GREETING.search(text):
+        out.append(violation("warm", "Open warmly: start with a greeting and their name",
+                             "body"))
     if _URL.search(text):
         out.append(violation("link", "No links in the message", "body", "error"))
     if "?" not in text:
@@ -97,7 +124,7 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
         if key and re.search(rf"\b{re.escape(key)}\b", oc.fold(text.replace("’", "'"))):
             out.append(violation("banned", f"Banned phrase: “{phrase}”", "body", "error"))
             break
-    if ctx.first_name and oc.fold(ctx.first_name) not in folded and ctx.kind == "note":
+    if ctx.first_name and oc.fold(ctx.first_name) not in folded and ctx.kind in ("note", "inmail"):
         out.append(violation("name", f"Address {ctx.first_name} by name", "body"))
     email_ctx = oc.Context(pool=ctx.pool, allowed_years=ctx.allowed_years,
                            job_text=ctx.job_text, company=ctx.company, first_name="")
@@ -120,6 +147,50 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
     return out
 
 
+def inmail_text(message: dict[str, Any] | None) -> str:
+    """What is verified and sent as one unit: the subject, then the body."""
+    message = message or {}
+    return f"Subject: {message.get('subject', '')}\n\n{message.get('text', '')}"
+
+
+def check_subject(subject: str, ctx: Context) -> list[dict[str, str]]:
+    """The InMail subject line: short and plain, never clickbait, never a claim the pool and the
+    listing can't back, never your location, never a mention of a profile visit."""
+    out: list[dict[str, str]] = []
+    subject = " ".join(subject.split())
+    if not subject:
+        return [violation("subject_empty", "The InMail needs a subject line", "subject", "error")]
+    if len(subject) > SUBJECT_MAX_CHARS:
+        out.append(violation("subject_length", f"{len(subject)} characters: keep the subject "
+                             f"under {SUBJECT_MAX_CHARS}", "subject", "error"))
+    if "!" in subject:
+        out.append(violation("subject_tone", "No exclamation mark in the subject", "subject",
+                             "error"))
+    if _URL.search(subject):
+        out.append(violation("subject_link", "No links in the subject", "subject", "error"))
+    if _VIEWED.search(subject):
+        out.append(violation("viewed", "Never mention that they looked at your profile",
+                             "subject", "error"))
+    if _PLACE.search(subject) or any(
+            p and re.search(rf"\b{re.escape(oc.fold(p))}\b", oc.fold(subject)) for p in ctx.places):
+        out.append(violation("location", "Never mention where you are, your nationality, visa "
+                             "or work authorization", "subject", "error"))
+    folded = oc.fold(subject.replace("’", "'"))
+    for phrase in [*ctx.banned, *LINKEDIN_BANNED]:
+        key = oc.fold(phrase.replace("’", "'"))
+        if key and re.search(rf"\b{re.escape(key)}\b", folded):
+            out.append(violation("banned", f"Banned phrase in the subject: “{phrase}”", "subject",
+                                 "error"))
+            break
+    if sum(1 for w in subject.split() if len(w) > 2 and w.isupper()) >= 2:
+        out.append(violation("subject_caps", "Avoid shouting (ALL CAPS) in the subject", "subject"))
+    email_ctx = oc.Context(pool=ctx.pool, allowed_years=ctx.allowed_years,
+                           job_text=ctx.job_text, company=ctx.company, first_name="")
+    out += [violation("grounding", p, "subject", "error")
+            for p in oc._source_problems(subject, email_ctx)]
+    return out
+
+
 def _group_rules(text: str, ctx: Context) -> list[dict[str, str]]:
     """Written for its reader: plain words for recruiters, a proof for team leads, the school
     for alumni. (A follow-up keeps the person's angle but isn't held to the note's ask.)"""
@@ -138,16 +209,16 @@ def _group_rules(text: str, ctx: Context) -> list[dict[str, str]]:
             out.append(violation("tools", f"For a recruiter, name only tools from the listing "
                                  f"that you have ({', '.join(ctx.matching_tools) or 'none'}); "
                                  f"also named: {', '.join(extra[:3])}", "body"))
-        if ctx.kind == "note" and not _EASY_ASK.search(text):
+        if ctx.kind in ("note", "inmail") and not _EASY_ASK.search(text):
             out.append(violation("ask", "Give a recruiter an easy ask (“Could I send you my "
                                  "CV?”)", "body"))
     elif ctx.group == "alumni":
         if ctx.school and not re.search(rf"\b{re.escape(oc.fold(ctx.school))}\b", folded):
             out.append(violation("school", f"Open with the shared school ({ctx.school})",
                                  "body"))
-        if ctx.kind == "note" and not _ADVICE.search(text):
+        if ctx.kind in ("note", "inmail") and not _ADVICE.search(text):
             out.append(violation("ask", "Ask an alumnus for advice or a referral", "body"))
-    elif ctx.kind == "note" and not _CHAT.search(text):
+    elif ctx.kind in ("note", "inmail") and not _CHAT.search(text):
         out.append(violation("ask", "Ask a team lead for a short chat", "body"))
     return out
 

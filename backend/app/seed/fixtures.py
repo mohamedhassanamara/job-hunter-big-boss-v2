@@ -547,8 +547,9 @@ SETTINGS: dict[str, dict] = {
                  "banned_phrases": DEFAULT_BANNED, "max_words": 150, "language": "auto"},
     # LinkedIn (Settings → LinkedIn): note length (free account: 200), daily requests, reminders,
     # and the gap between an email and a LinkedIn request to the same person.
-    "linkedin": {"note_max_chars": 200, "daily_requests": 10, "followup_days": 5, "gap_days": 3,
-                 "geo_ids": DEFAULT_LINKEDIN["geo_ids"]},
+    "linkedin": {k: DEFAULT_LINKEDIN[k] for k in (
+        "note_max_chars", "daily_requests", "followup_days", "gap_days", "inmail_monthly_credits",
+        "inmail_max_chars", "premium_end_date", "premium_remind_days", "geo_ids")},
     # Streak, chests, shop (Settings → Motivation). chests_since is stamped on first read.
     "motivation": {k: v for k, v in DEFAULT_MOTIVATION.items() if k != "chests_since"},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.

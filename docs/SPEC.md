@@ -368,6 +368,26 @@ linkedin.com).
   a question, banned phrases, grounding of numbers and tools, years, never location/visa. Statuses to contact →
   request sent → accepted → messaged → replied (one-step undo), a daily request counter (a warning), reminders,
   and the gap rule (no email and LinkedIn request to the same person within `linkedin.gap_days`, 3: a hint).
+- **LinkedIn Premium additions (limited time; prompt `linkedin.md` v3):**
+  - **InMail** is a message type per person, for someone you are not connected with: a subject (at most 80
+    characters) and a longer body (up to `linkedin.inmail_max_chars`, 1,000 by default, in Settings → LinkedIn). Claude
+    drafts it with the same grounding, honesty (years), banned-phrase and no-location/visa checks as the note, the
+    recruiter / hiring-manager / alumni styles, and an ask suited to the group; the subject has its own checks
+    (length, no exclamation mark, links, clichés, location, grounding). The exact subject + body is verified by the claim
+    verifier before Copy and "I sent the InMail" unlock. You send it yourself. Sending it marks the person
+    messaged (the no-reply reminder starts) and never counts as a connection request.
+  - **InMail credits:** the monthly allowance is a setting (default 5; Career 5, Business 15, Sales Navigator 50).
+    Used = InMails you marked sent this calendar month; **a reply within 90 days gives the credit back**
+    ("Credit refunded"; marking the reply by mistake and undoing it takes it away; unmarking the InMail returns
+    the credit). Shown on the person's job page and in Settings → LinkedIn.
+  - **Viewed my profile:** a quick-add on the LinkedIn page (name, title, company, profile URL, date) creates a person
+    in the track with the reason "viewed my profile on <date>", linked to your best open job at that company
+    (company matched by normalized name, a confirmed alias, or an unambiguous contained name). No job there yet:
+    a lead that links itself when one exists. The reason is for you only: it is never sent to the drafting model,
+    drafts for these people open warmly, and a check rejects any message (any kind, any group, English or French)
+    that mentions or hints at their visit.
+  - **Premium reminder:** Settings → LinkedIn has the Premium end date and how many days before it to remind you (14);
+    the reminder says when it ends and how many InMails you sent and how many got a reply, so you can decide in time.
 - **Notes written for their reader:** each person's group (the note's angle) is detected from their title
   (`linkedin.detect_group`: recruiter / team lead / other; alumni when ticked) and overridable on the card; the
   captured poster also carries a "Hiring team" badge (`hiring_team`). Recruiters / talent acquisition: plain words

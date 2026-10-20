@@ -1586,6 +1586,8 @@ export type LinkedInStatus = 'to_contact' | 'sent' | 'accepted' | 'messaged' | '
 
 /** A drafted LinkedIn message (note or follow-up) with its checks. */
 export interface LinkedInDraft {
+  /** InMail only: the subject line. */
+  subject?: string
   text: string
   citations: number[]
   violations: Violation[]
@@ -1612,6 +1614,14 @@ export interface LinkedInPerson {
   status: LinkedInStatus
   note: LinkedInDraft | null
   followup: LinkedInDraft | null
+  /** LinkedIn Premium InMail: subject + a longer body. You send it yourself. */
+  inmail: LinkedInDraft | null
+  inmail_sent_at: string | null
+  /** The credit came back: they replied within 90 days. */
+  inmail_refunded_at: string | null
+  source: 'manual' | 'captured' | 'viewed_profile'
+  /** For you only ("viewed my profile on 20 Oct"): never given to a drafting model. */
+  reason: string
   critique: Critique | null
   sent_at: string | null
   accepted_at: string | null
@@ -1620,6 +1630,50 @@ export interface LinkedInPerson {
   gap_hint: string | null
   note_verification_state: VerificationState
   followup_verification_state: VerificationState
+  inmail_verification_state: VerificationState
+}
+
+export interface InMailCredits {
+  allowance: number
+  used: number
+  refunded: number
+  left: number
+  month: string
+  renews_on: string
+  sent_total: number
+  replies_total: number
+  recent: { row_id: number; person: string; sent_at: string; refunded: boolean; replied: boolean }[]
+}
+
+export interface PremiumReminder {
+  end_date: string
+  days_left: number
+  remind: boolean
+  ended: boolean
+  message: string
+  remind_days: number
+  inmails_sent: number
+  replies: number
+}
+
+export interface ViewerResult {
+  linked: boolean
+  row_id: number | null
+  lead_id: number | null
+  reason: string
+  company: string
+  job: { application_id: number; job_id: number; title: string; stage: string; score: number | null } | null
+  other_jobs: { application_id: number; job_id: number; title: string; stage: string; score: number | null }[]
+}
+
+export interface ViewerLead {
+  id: number
+  full_name: string
+  title: string | null
+  company: string
+  linkedin_url: string | null
+  reason: string
+  viewed_on: string | null
 }
 
 export interface LinkedInPanel {
@@ -1629,6 +1683,8 @@ export interface LinkedInPanel {
   company_id: number
   school: string | null
   max_chars: number
+  inmail_max_chars: number
+  credits: InMailCredits
   requests_today: number
   daily_limit: number
   groups: { group: LinkedInGroup; label: string; why: string; search: string | null; titles: string[] }[]
@@ -1654,6 +1710,9 @@ export interface LinkedInSummary {
   followups: { row_id: number; application_id: number; job_id: number; person: string; company: string; kind: 'no_answer' | 'no_reply' | 'write_followup'; since: string }[]
   requests_today: number
   daily_limit: number
+  credits?: InMailCredits
+  premium?: PremiumReminder | null
+  leads?: ViewerLead[]
 }
 
 export interface CVFit {

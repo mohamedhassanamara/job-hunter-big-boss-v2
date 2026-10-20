@@ -27,6 +27,12 @@ DEFAULT_LINKEDIN: dict[str, Any] = {
     "daily_requests": 10,  # connection requests you send per day (a warning, never a block)
     "followup_days": 5,  # no answer after this many days: a reminder
     "gap_days": 3,  # never an email and a LinkedIn request to the same person within this
+    # LinkedIn Premium (limited time): InMail credits per month (Career 5, Business 15, Sales
+    # Navigator 50), the InMail body limit, and when the subscription ends (a reminder).
+    "inmail_monthly_credits": 5,
+    "inmail_max_chars": 1000,  # a limit you choose: shorter than LinkedIn's own
+    "premium_end_date": None,  # "YYYY-MM-DD"
+    "premium_remind_days": 14,  # show the reminder this many days before it ends
     # LinkedIn's location id per target country (a text location can resolve to the wrong place:
     # "Jordan" → Jordan, Pennsylvania). Seeded unverified; you confirm each in Settings → LinkedIn.
     "geo_ids": {code: {"id": gid, "verified": False} for code, gid in {

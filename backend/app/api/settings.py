@@ -176,10 +176,20 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_cover_letter(body.value)
     if key == "linkedin":
         for name, lo, hi in (("note_max_chars", 100, 300), ("daily_requests", 1, 100),
-                             ("followup_days", 1, 60), ("gap_days", 0, 30)):
+                             ("followup_days", 1, 60), ("gap_days", 0, 30),
+                             ("inmail_monthly_credits", 0, 200), ("inmail_max_chars", 300, 1900),
+                             ("premium_remind_days", 0, 120)):
             v = body.value.get(name)
             if v is not None and (not isinstance(v, int) or not lo <= v <= hi):
                 raise HTTPException(422, f"{name} must be between {lo} and {hi}")
+        end = body.value.get("premium_end_date")
+        if end:
+            from datetime import date
+
+            try:
+                date.fromisoformat(str(end))
+            except ValueError as exc:
+                raise HTTPException(422, "premium_end_date must be a date (YYYY-MM-DD)") from exc
         geos = body.value.get("geo_ids")
         if geos is not None:
             if not isinstance(geos, dict):

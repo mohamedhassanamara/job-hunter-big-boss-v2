@@ -1,4 +1,4 @@
-import { CircleCheck, ExternalLink } from 'lucide-react'
+import { CircleCheck, ExternalLink, Hourglass } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Tooltip } from '@/components/ui/tooltip'
 import { countryName } from '@/lib/format'
 import { linkedinSearchUrl } from '@/lib/linkedin'
+import { useLinkedInCredits } from '@/lib/queries/linkedin'
 import { useSaveSetting, useSearchProfile } from '@/lib/queries/library'
 import type { SettingsView } from '@/lib/types'
 import { Card, Field, SaveBar } from './sections'
@@ -17,6 +18,10 @@ interface LinkedInValue {
   daily_requests: number
   followup_days: number
   gap_days: number
+  inmail_monthly_credits: number
+  inmail_max_chars: number
+  premium_end_date: string | null
+  premium_remind_days: number
   geo_ids: Record<string, { id: string; verified: boolean }>
 }
 
@@ -33,8 +38,28 @@ export function LinkedInSection({ settings }: { settings: SettingsView }) {
   const setGeo = (code: string, patch: Partial<{ id: string; verified: boolean }>) =>
     setValue({ ...value, geo_ids: { ...value.geo_ids, [code]: { ...geo(code), ...patch } } })
   const num = (k: keyof LinkedInValue) => (e: React.ChangeEvent<HTMLInputElement>) => setValue({ ...value, [k]: Number(e.target.value) })
+  const credits = useLinkedInCredits()
+  const premium = credits.data?.premium
+  const c = credits.data?.credits
   return (
     <div className="space-y-6">
+      {premium && (
+        <div
+          className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${premium.remind ? 'border-tone-amber-border bg-warning-bg text-warning-fg' : 'border-border bg-surface text-fg-muted'}`}
+          data-tour="linkedin-premium"
+          role={premium.remind ? 'alert' : undefined}
+        >
+          <Hourglass className="mt-0.5 size-4 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className={premium.remind ? 'font-medium' : ''}>{premium.message}</p>
+            {c && (
+              <p className="mt-0.5 text-xs">
+                This month: {c.used} InMail{c.used === 1 ? '' : 's'} sent, {c.refunded} credit{c.refunded === 1 ? '' : 's'} refunded by replies, {c.left} of {c.allowance} left (renews {c.renews_on}).
+              </p>
+            )}
+          </div>
+        </div>
+      )}
       <Card title="The LinkedIn bookmark" description="One click on a LinkedIn job page saves the job here and scores it. It reads only the page you're viewing, in your browser; the app never visits LinkedIn.">
         <div className="px-5 py-4">
           <BookmarkInstall />
@@ -70,6 +95,23 @@ export function LinkedInSection({ settings }: { settings: SettingsView }) {
           <div className="flex items-center gap-2 text-sm">
             <Input type="number" min={1} max={60} value={value.followup_days} onChange={num('followup_days')} className="w-24" aria-label="Follow-up reminder days" />
             days
+          </div>
+        </Field>
+        <Field label="InMail credits per month" hint="Your Premium allowance (Career 5, Business 15, Sales Navigator 50). Sending an InMail uses one; a reply within 90 days gives it back.">
+          <Input type="number" min={0} max={200} value={value.inmail_monthly_credits} onChange={num('inmail_monthly_credits')} className="w-24" aria-label="InMail credits per month" />
+        </Field>
+        <Field label="InMail length" hint="The longest InMail body the drafts and checks allow. Keep it short: a long one is rarely read.">
+          <div className="flex items-center gap-2 text-sm">
+            <Input type="number" min={300} max={1900} value={value.inmail_max_chars} onChange={num('inmail_max_chars')} className="w-24" aria-label="InMail length" />
+            characters
+          </div>
+        </Field>
+        <Field label="Premium ends on" hint="You get a reminder here before it ends, with what you got out of it, so you can decide in time whether to keep it.">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Input type="date" value={value.premium_end_date ?? ''} onChange={(e) => setValue({ ...value, premium_end_date: e.target.value || null })} className="w-44" aria-label="Premium end date" />
+            <span className="text-fg-muted">remind me</span>
+            <Input type="number" min={0} max={120} value={value.premium_remind_days} onChange={num('premium_remind_days')} className="w-20" aria-label="Remind days before" />
+            <span className="text-fg-muted">days before</span>
           </div>
         </Field>
         <Field label="Locations (geoId)" hint="LinkedIn's id for each target country. A text location can land in the wrong place (Jordan → Jordan, Pennsylvania), so links use these ids only; a country without one gets no link.">

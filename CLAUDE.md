@@ -279,6 +279,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - LinkedIn groups are the note's angle (`linkedin.detect_group`, overridable); `hiring_team` is a separate flag.
   Per-group rules are in `linkedin_check._group_rules`; the transition line is code (`linkedin_track.framing`).
   LinkedIn reference notes (`email_example.inputs.channel == "linkedin"`) never enter the email eval or prompts.
+- LinkedIn Premium (prompt `linkedin.md` v3, migration 0029): InMail is `linkedin_outreach.inmail` (subject + body, `linkedin_check.check` + `check_subject`, claim-verified as `inmail_text` = subject + body). Credits are derived from `inmail_sent_at` / `inmail_refunded_at` (`linkedin_track.credits`; refund only for a reply within 90 days). Viewer leads store the reason in `reason` and NEVER pass it to a model (`_request` sends only `warm_opener`); `linkedin_check._VIEWED` rejects any mention of a profile visit. No-job leads live in `linkedin_lead` and link themselves in `leads()`.
 - `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches), and recruiters first in
   the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it). `company.agency_override`
   (employer | agency) always wins over the signals; `agency.detected` is the rule alone.
