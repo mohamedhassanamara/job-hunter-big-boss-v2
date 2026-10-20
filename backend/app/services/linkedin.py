@@ -32,7 +32,7 @@ DEFAULT_LINKEDIN: dict[str, Any] = {
     "geo_ids": {code: {"id": gid, "verified": False} for code, gid in {
         "FR": "105015875", "DE": "101282230", "ES": "105646813", "IT": "103350119",
         "PT": "100364837", "BE": "100565514", "AE": "104305776", "QA": "104170880",
-        "JO": "103710677", "BH": "100425729", "KW": "103239229"}.items()},
+        "JO": "103710677", "BH": "100425729", "KW": "103239229", "TR": "102105699"}.items()},
 }
 JOBS_SEARCH = "https://www.linkedin.com/jobs/search/"
 PAST_24H = "r86400"

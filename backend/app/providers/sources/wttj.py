@@ -143,6 +143,10 @@ def parse_wttj(payload: dict[str, Any], targets: set[str] | None = None) -> list
     return list(seen.values())
 
 
+# Probed 2026-10-19: a `offices.country_code:TR` query returns no Turkish office at all.
+NO_COVERAGE = {"TR"}
+
+
 class WTTJSource:
     source = Source.wttj
     cooldown_hours = 1.0
@@ -153,6 +157,10 @@ class WTTJSource:
         settings = get_settings()
         self.app_id = settings.wttj_algolia_app_id
         self.key = settings.wttj_algolia_key
+
+    @staticmethod
+    def unsupported_countries(targets: list[str]) -> list[str]:
+        return [c.upper() for c in targets if c.upper() in NO_COVERAGE]
 
     def configured(self) -> str | None:
         if not (self.app_id and self.key):
