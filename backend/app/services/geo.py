@@ -52,7 +52,7 @@ COUNTRY_ALIASES: dict[str, list[str]] = {
     "LB": ["lebanon", "liban"],
     "TN": ["tunisia", "tunisie"],
     "DZ": ["algeria", "algerie"],
-    "TR": ["turkey", "turkiye"],
+    "TR": ["turkey", "turkiye", "republic of turkiye", "turkei"],
     "SG": ["singapore"],
     "ZA": ["south africa"],
     "NZ": ["new zealand"],
@@ -102,6 +102,11 @@ CITIES: dict[str, list[str]] = {
     "OM": ["muscat"],
     "EG": ["cairo", "alexandria", "giza"],
     "TN": ["tunis", "sfax", "sousse"],
+    "TR": [
+        "istanbul", "ankara", "izmir", "bursa", "antalya", "adana", "konya", "gaziantep",
+        "kocaeli", "gebze", "mersin", "eskisehir", "kayseri", "samsun", "denizli", "trabzon",
+        "bodrum", "mugla", "sakarya", "tekirdag",
+    ],
     "US": ["new york", "san francisco", "seattle", "boston", "austin", "chicago"],
 }
 
@@ -194,26 +199,34 @@ def country_from_text(text: str | None) -> str | None:
     return None
 
 
-def remote_region(text: str | None) -> frozenset[str] | None:
-    """Countries a remote job is open to, from its location text. WORLD for worldwide,
-    None when the text names no country or region (unknown)."""
+def _remote_parts(text: str | None) -> tuple[frozenset[str], frozenset[str]] | None:
+    """(countries from region words, countries named outright), or None when the text is
+    empty. A region part equal to WORLD means worldwide."""
     if not text or not text.strip():
         return None
     folded = fold(text)
-    open_to: set[str] = set()
+    regions: set[str] = set()
     for word, codes in _REGION_WORDS:
         if _contains(folded, word):
             if codes == WORLD:
-                return WORLD
-            open_to |= codes
-    for code, aliases in COUNTRY_ALIASES.items():
-        if any(_contains(folded, a) for a in aliases):
-            open_to.add(code)
-    if not open_to:
+                return WORLD, frozenset()
+            regions |= codes
+    named = {code for code, aliases in COUNTRY_ALIASES.items()
+             if any(_contains(folded, a) for a in aliases)}
+    if not named and not regions:
         code = country_from_text(text)  # a city ("Remote, Berlin")
         if code:
-            open_to.add(code)
-    return frozenset(open_to) or None
+            named.add(code)
+    return frozenset(regions), frozenset(named)
+
+
+def remote_region(text: str | None) -> frozenset[str] | None:
+    """Countries a remote job is open to, from its location text. WORLD for worldwide,
+    None when the text names no country or region (unknown)."""
+    parts = _remote_parts(text)
+    if parts is None:
+        return None
+    return (parts[0] | parts[1]) or None
 
 
 def remote_allows(
@@ -225,14 +238,21 @@ def remote_allows(
     location dimension then judges the listing text). US-only remote is never eligible because
     no scope includes the Americas.
     """
-    open_to = remote_region(text)
-    if open_to is None and country:
-        open_to = frozenset({country})
-    if open_to is None or open_to == WORLD:
+    parts = _remote_parts(text)
+    regions, named = parts if parts else (frozenset(), frozenset())
+    if regions == WORLD:
         return True, None
+    if not regions and not named and country:
+        named = frozenset({country})
+    if not regions and not named:
+        return True, None
+    # A region word ("Europe", "MENA") is open to its whole region, judged by the scope. A
+    # country named outright ("Remote, Netherlands", a London office) is remote within that
+    # country: it counts only when it is a target.
     eligible = {"anywhere": EMEA | targets, "europe": EUROPE, "targets": targets}.get(
         scope, EMEA | targets
     )
-    if open_to & eligible:
+    named_ok = targets & EUROPE if scope == "europe" else targets
+    if regions & eligible or named & named_ok:
         return True, None
-    return False, sorted(open_to)[0]
+    return False, sorted(regions | named)[0]

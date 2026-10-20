@@ -53,11 +53,13 @@ TARGETS = {"FR", "ES", "IT", "PT", "DE", "BE", "AE", "QA", "BH", "KW", "JO"}
         ("Europe", True, True, True),
         ("CET +/- 2h", True, True, True),
         ("Spain, Portugal", True, True, True),
-        ("Netherlands", True, True, False),  # European, not a target
+        ("Netherlands", False, False, False),  # named outright: remote within a non-target country
         ("Middle East", True, False, True),
         ("GCC", True, False, True),
         ("Dubai, UAE", True, False, True),
-        ("Saudi Arabia", True, False, False),  # EMEA, not European, not a target
+        ("Saudi Arabia", False, False, False),  # named outright, not a target
+        ("Remote, Europe", True, True, True),
+        ("EMEA", True, True, True),  # a region word follows the scope
         ("USA", False, False, False),  # US-only remote is never eligible
         ("USA (remote)", False, False, False),
         ("USA, UTC-5", False, False, False),
@@ -76,3 +78,33 @@ def test_remote_falls_back_to_job_country() -> None:
     assert remote_allows(None, "US", TARGETS, "anywhere") == (False, "US")
     assert remote_allows(None, "DE", TARGETS, "targets") == (True, None)
     assert remote_allows(None, None, TARGETS, "targets") == (True, None)
+
+
+def test_turkish_cities_map_to_turkey():
+    from app.services.geo import country_from_text
+
+    for text in ("Istanbul", "İstanbul, Türkiye", "Ankara", "İzmir", "Remote from Turkey"):
+        assert country_from_text(text) == "TR", text
+
+
+def test_turkey_is_unsupported_by_sources_without_coverage():
+    from app.models.enums import Source
+    from app.providers.registry import unsupported_countries
+
+    for src in (Source.adzuna, Source.bayt, Source.wttj, Source.arbeitnow):
+        assert "TR" in unsupported_countries(src, ["TR"]), src
+    assert unsupported_countries(Source.remotive, ["TR"]) == []
+
+
+@pytest.mark.parametrize(
+    "location",
+    ["Ashington, United Kingdom", "London, United Kingdom", "Netherlands", "Makkah, Saudi Arabia"],
+)
+def test_remote_job_in_a_non_target_country_is_filtered(location: str) -> None:
+    """Remote jobs tied to one non-target country (found in the Oct 2026 run) never get in,
+    whatever the scope; a region word still follows the scope."""
+    from app.services.geo import country_from_text
+
+    for scope in ("anywhere", "europe", "targets"):
+        assert remote_allows(location, country_from_text(location), TARGETS, scope)[0] is False
+    assert remote_allows("Remote", "GB", TARGETS, "anywhere")[0] is False  # country only

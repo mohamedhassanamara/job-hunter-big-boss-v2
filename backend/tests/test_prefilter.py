@@ -77,7 +77,7 @@ def test_reasons() -> None:
     result = prefilter(jobs, PROFILE, now=NOW)
     kept = {j.external_id for j in result.kept}
     reasons = {d.job.external_id: d.reason for d in result.dropped}
-    assert kept == {"ok", "eu-remote", "de-remote"}
+    assert kept == {"ok", "eu-remote"}
     assert reasons == {
         "intern": "title_excluded:intern",
         "analyst": "title_no_role_match",
@@ -85,6 +85,7 @@ def test_reasons() -> None:
         "de": "location_outside:DE",
         "us-remote": "remote_outside:US",
         "usa-only": "remote_outside:US",
+        "de-remote": "remote_outside:DE",  # remote within a country that is not a target
         "empty": "incomplete",
     }
     assert result.reason_counts()["title_excluded:intern"] == 1
@@ -93,8 +94,8 @@ def test_reasons() -> None:
 @pytest.mark.parametrize(
     ("scope", "kept"),
     [
-        ("anywhere", {"world", "europe", "nl", "gulf", "unknown"}),
-        ("europe", {"world", "europe", "nl", "unknown"}),
+        ("anywhere", {"world", "europe", "gulf", "unknown"}),
+        ("europe", {"world", "europe", "unknown"}),
         ("targets", {"world", "europe", "gulf", "unknown"}),
     ],
 )
