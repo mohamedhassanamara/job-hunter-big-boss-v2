@@ -10,6 +10,7 @@ from app.providers.base import (
     AnswerDraft,
     AnswersPlan,
     AnswersRequest,
+    ConfirmationAnswer,
     CoverLetterPlan,
     CritiqueIssue,
     CritiquePlan,
@@ -34,6 +35,7 @@ from app.providers.base import (
     SubScore,
     SummaryDraft,
     SummarySentence,
+    Verdict,
     VerifyClaim,
     VerifyPlan,
     plan_from_draft,
@@ -468,3 +470,37 @@ class MockInterviewDrafter:
             pitch=pitch, stories=stories, questions=questions,
             ask_them=[f"What does success look like in the first months of the {title} role?",
                       "How does the team decide what to build next?"])
+
+
+class MockConfirmer:
+    """Ask Claude without a model: a deterministic second opinion from the prompt text, for tests
+    and the tour sandbox."""
+
+    model = "mock-confirmer"
+    via = "mock"
+
+    def confirm(self, system: str, user: str) -> ConfirmationAnswer:
+        import re
+
+        title = (re.search(r"^Title: (.*)$", user, re.M) or re.search(r"(.*)", user)).group(1)
+        seed = sum(map(ord, title)) % 5
+        quote = ""
+
+        def sub(score: int, reason: str) -> SubScore:
+            return SubScore(score=score, reason=reason, evidence=quote)
+
+        return ConfirmationAnswer(
+            role_match=sub(8 + seed % 2, "The duties match a target role."),
+            skills_match=sub(5 + seed, "Part of the stack overlaps."),
+            seniority_fit=sub(7, "The level is close to yours."),
+            location_eligibility=sub(8, "Work mode versus your targets."),
+            language_requirements=sub(10, "English is enough."),
+            strengths=["Relevant background"], gaps=["Some tools are new"],
+            summary=f"A plausible match for {title}.",
+            verdict=Verdict(
+                advice="apply" if seed >= 3 else "maybe",
+                why="The skills overlap well and nothing in the listing rules you out.",
+                seniority="The level looks reachable.", skills="Most of the core stack is yours.",
+                location_visa="Sponsorship is not mentioned, so ask early.",
+                language="English is enough."),
+        )

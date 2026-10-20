@@ -495,3 +495,5 @@ A single row in v2 (the global queue).
 - `company_provider_run.domain`: the domain a run searched (NULL on runs from before: they match any domain).
 
 **Gemini quota (no new tables):** `provider_usage` holds one row per (model, key label "key N", Pacific date) with `calls` = requests made that day; `provider_key_state` (provider `gemini`) holds a key Google refused. Settings → Scoring also gained `never_cap_on` (list) and `auto_score_new` (bool); a missing value means the default.
+
+**`fit_confirmation` (migration 0028):** a second opinion on one job (Ask Claude). `job_id`, `source` (claude | gemma | manual | mock), `model`, `via`, `prompt_version` (the scoring prompt used), `confirm_prompt_version`, `experience_version`, then the same `score` / `sub_scores` / `red_flags` / `core_requirements` / `strengths` / `gaps` / `summary` / `confidence` as `fit_score` (same arithmetic and caps), `verdict` (`{advice apply|maybe|skip, why, seniority, skills, location_visa, language}`), `notes` (what was skipped and why), `duration_ms`. History is kept, the newest row is shown; scoring never reads this table and it never changes `fit_score`.

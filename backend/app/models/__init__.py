@@ -18,7 +18,7 @@ from app.models.company import (
 from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceHistory, ExperienceItem
 from app.models.interview import InterviewPrep
-from app.models.job import FitScore, Job
+from app.models.job import FitConfirmation, FitScore, Job
 from app.models.linkedin import CVFit, LinkedInLinkOpen, LinkedInOutreach
 from app.models.motivation import (
     ChestOpen,
@@ -85,6 +85,7 @@ __all__ = [
     "EmailExample",
     "ExperienceHistory",
     "ExperienceItem",
+    "FitConfirmation",
     "FitScore",
     "Interview",
     "Job",

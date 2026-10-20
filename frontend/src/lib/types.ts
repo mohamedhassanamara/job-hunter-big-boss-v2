@@ -1897,3 +1897,40 @@ export interface InterviewStudio {
   language: 'fr' | 'en'
   has_experience: boolean
 }
+
+export type VerdictAdvice = 'apply' | 'maybe' | 'skip'
+
+export interface ConfirmationVerdict {
+  advice: VerdictAdvice
+  why: string
+  seniority: string
+  skills: string
+  location_visa: string
+  language: string
+}
+
+/** A second opinion on one job (Ask Claude), stored next to the main score and never replacing it. */
+export interface ConfirmationOut {
+  id: number
+  job_id: number
+  source: 'claude' | 'gemma' | 'manual' | 'mock'
+  model: string
+  via: string
+  score: number | null
+  band: FitBand
+  sub_scores: Partial<Record<Dimension, SubScoreOut>>
+  red_flags: RedFlagOut[]
+  core_requirements: CoreRequirementOut[]
+  capped_by: 'hard_flag' | 'missing_core' | null
+  missing_core: string | null
+  strengths: string[]
+  gaps: string[]
+  summary: string
+  confidence: Confidence
+  verdict: ConfirmationVerdict
+  notes: string
+  prompt_version: string | null
+  created_at: string
+  /** Your experience changed since this answer. */
+  stale: boolean
+}

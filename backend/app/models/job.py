@@ -70,3 +70,31 @@ class FitScore(TableBase, table=True):
     experience_version: str | None = None
     cache_key: str | None = Field(default=None, index=True)
     duration_ms: int | None = None
+
+
+class FitConfirmation(TableBase, table=True):
+    """A second opinion on one job (Ask Claude, the Gemma fallback, or a pasted Gemini Pro
+    answer). Stored next to the main score, never in place of it; the newest row is shown."""
+
+    __tablename__ = "fit_confirmation"
+
+    job_id: int = Field(foreign_key="job.id", index=True)
+    source: str  # claude | gemma | manual | mock
+    model: str
+    via: str = ""  # claude -p | gemini api | paste
+    prompt_version: str | None = None  # the scoring prompt it used
+    confirm_prompt_version: str | None = None  # the verdict addendum
+    experience_version: str | None = None
+    # Same arithmetic as the main score (fit.build_record), same caps.
+    score: int | None = Field(default=None, ge=0, le=100)
+    sub_scores: dict[str, Any] = json_field(dict)
+    red_flags: list[dict[str, Any]] = json_field()
+    core_requirements: list[dict[str, Any]] = json_field()
+    strengths: list[str] = json_field()
+    gaps: list[str] = json_field()
+    summary: str = ""
+    confidence: str = "medium"
+    # {advice: apply|maybe|skip, why, seniority, skills, location_visa, language}
+    verdict: dict[str, Any] = json_field(dict)
+    notes: str = ""  # e.g. "Claude was unavailable (…): this answer comes from gemma-4-31b-it."
+    duration_ms: int | None = None

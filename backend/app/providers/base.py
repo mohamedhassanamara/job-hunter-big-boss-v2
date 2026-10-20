@@ -163,6 +163,24 @@ class FitAssessment(BaseModel):
         return {d: getattr(self, d) for d in DIMENSIONS}
 
 
+class Verdict(BaseModel):
+    """A second opinion in plain words (Ask Claude): should the candidate apply to this job?"""
+
+    advice: Literal["apply", "maybe", "skip"]
+    why: str = Field(description="At most 40 words: the deciding factor")
+    seniority: str = Field(description="One short sentence: is the level right?")
+    skills: str = Field(description="One short sentence: do the skills match?")
+    location_visa: str = Field(description="One short sentence: can they take it from where they "
+                                           "live with their work authorization?")
+    language: str = Field(description="One short sentence: is the language requirement met?")
+
+
+class ConfirmationAnswer(FitAssessment):
+    """The scoring answer plus a verdict: what Ask Claude / Gemma / the Gemini Pro app return."""
+
+    verdict: Verdict
+
+
 class PlanBullet(BaseModel):
     source_index: int = Field(description="Index of the fact this bullet rewords")
     text: str = Field(description=(

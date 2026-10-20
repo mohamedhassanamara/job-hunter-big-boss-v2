@@ -26,6 +26,7 @@ import {
 import { CloseDialog } from '@/components/app/CloseDialog'
 import { LogInterviewDialog, MarkAppliedDialog } from '@/components/app/tracking/TrackingDialogs'
 import { AppliedFacts, TrackingActions } from '@/components/app/tracking/TrackingPanel'
+import { ConfirmationPanel } from '@/components/app/ConfirmationPanel'
 import { FitCard } from '@/components/app/FitCard'
 import { AgencyLine, ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
 import { Section } from '@/components/app/PageHeader'
@@ -418,6 +419,7 @@ export default function JobPage() {
           <div data-tour="job-fit">
             <FitCard job={job} />
           </div>
+          <ConfirmationPanel job={job} />
           <CVSection job={job} />
           <CoverLetterSection job={job} />
           <InterviewPrepSection job={job} />
