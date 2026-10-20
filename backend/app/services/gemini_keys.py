@@ -223,10 +223,16 @@ _pools: dict[tuple[int, str], KeyPool] = {}
 _pools_lock = threading.Lock()
 
 
+# Free-tier limits per key where they differ from the Gemini defaults (requests/min, input
+# tokens/min, requests/day).
+MODEL_LIMITS = {"gemma-4-31b-it": (30, 16_000, 14_400), "gemma-4-26b-a4b-it": (30, 16_000, 14_400)}
+
+
 def pool_for(engine: Engine, model: str) -> KeyPool:
     with _pools_lock:
         pool = _pools.get((id(engine), model))
         if pool is None:
-            pool = KeyPool(engine, model)
+            rpm, tpm, rpd = MODEL_LIMITS.get(model, (RPM, TPM, RPD))
+            pool = KeyPool(engine, model, rpm=rpm, tpm=tpm, rpd=rpd)
             _pools[(id(engine), model)] = pool
         return pool

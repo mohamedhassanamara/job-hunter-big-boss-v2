@@ -20,6 +20,7 @@ export type TourId =
   | 'pipeline'
   | 'applications'
   | 'job'
+  | 'confirmation'
   | 'cv'
   | 'letter'
   | 'interview'
@@ -132,6 +133,19 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'job-fit', title: 'Sub-scores and evidence', body: 'Each sub-score has a reason and a quote from the listing; quotes the app cannot find in the text are marked unverified. Low confidence? Fetch or paste the full listing and rescore.', placement: 'right' },
       { target: 'job-contact', title: 'Contact resolution', body: 'Who the email goes to: your best-ranked contact at the company (imported or found by you). Before any email, you verify they are still there; nobody yet means Get contact (Outreach → Contacts to get).', placement: 'left' },
       { target: 'job-timeline', title: 'Timeline', body: 'Every stage change, CV version and email, newest first.', placement: 'left' },
+    ],
+  },
+  confirmation: {
+    id: 'confirmation',
+    title: 'Second opinion',
+    description: 'Ask Claude to double-check a score',
+    resolveRoute: async () => {
+      const id = await firstJobId()
+      return id ? `/jobs/${id}` : '/discover'
+    },
+    steps: [
+      { target: 'job-confirm', title: 'A second opinion, next to the score', body: 'Claude (on your subscription) scores this job again with the same prompt and tells you in plain words whether to apply: seniority, skills, location and visa, language. It is stored next to the main score and never replaces it; both show side by side.', placement: 'right' },
+      { target: 'confirm-ask', title: 'Ask Claude', body: 'It takes about 20 to 60 seconds. If Claude is not available it falls back to Gemma through the Gemini API; if that fails too, you can copy the prompt into the Gemini Pro app and paste its answer back.', placement: 'left' },
     ],
   },
   cv: {

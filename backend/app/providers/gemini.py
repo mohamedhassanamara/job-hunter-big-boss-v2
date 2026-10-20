@@ -25,12 +25,19 @@ from pydantic import ValidationError
 
 from app.providers.base import (
     ConcurrencyLimited,
+    ConfirmationAnswer,
     FitAssessment,
     JobSnapshot,
     ScoringFailed,
     TransientError,
 )
-from app.providers.ollama import _short_error, _unwrap_properties, inline_schema, strip_fence
+from app.providers.ollama import (
+    _short_error,
+    _unwrap_properties,
+    inline_schema,
+    schema_instruction,
+    strip_fence,
+)
 from app.services.gemini_keys import KeyPool
 
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -73,12 +80,16 @@ class ProviderHealth:
     message: str
 
 
-class GeminiFitScorer:
-    def __init__(self, model: str, pool: KeyPool, *, timeout: float = 120.0,
+class _GeminiClient:
+    """One Gemini model behind a KeyPool. `native` = the API enforces the JSON schema (Gemini
+    models); Gemma rejects that, so its schema goes into the prompt instead."""
+
+    def __init__(self, model: str, pool: KeyPool, *, native: bool = True, timeout: float = 120.0,
                  transport: httpx.BaseTransport | None = None,
                  sleep: Callable[[float], None] = time.sleep):
         self.model = model
         self.pool = pool
+        self.native = native
         self.timeout = timeout
         self._transport = transport
         self._sleep = sleep
@@ -101,12 +112,13 @@ class GeminiFitScorer:
     # one HTTP call, with key handling ---------------------------------------------------------
 
     def _generate(self, system: str, contents: list[dict[str, Any]]) -> str:
-        body = {
-            "systemInstruction": {"parts": [{"text": system}]},
-            "contents": contents,
-            "generationConfig": {"temperature": 0, "responseMimeType": "application/json",
-                                 "responseJsonSchema": self._schema},
-        }
+        config: dict[str, Any] = {"temperature": 0}
+        if self.native:
+            config.update(responseMimeType="application/json", responseJsonSchema=self._schema)
+        else:
+            system = system + schema_instruction(self._schema)
+        body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents,
+                "generationConfig": config}
         est = (len(system) + sum(len(p["text"]) for c in contents for p in c["parts"])) // 3 + 1500
         last = ""
         for attempt in range(HTTP_ATTEMPTS + 2):  # +2: moving on to another key is not a retry
@@ -154,9 +166,8 @@ class GeminiFitScorer:
         self._sleep(BACKOFF[min(attempt, len(BACKOFF) - 1)])
         return True
 
-    # scoring ----------------------------------------------------------------------------------
-
-    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+    def _answer(self, system: str, user: str, parse: Callable[[str], Any]) -> Any:
+        """One validated answer; invalid JSON gets ONE retry with the error fed back."""
         contents: list[dict[str, Any]] = [{"role": "user", "parts": [{"text": user}]}]
         started = time.monotonic()
         last_error = ""
@@ -165,7 +176,7 @@ class GeminiFitScorer:
                 text = self._generate(system, contents)
                 self._count("calls")
                 try:
-                    result = _parse(text)
+                    result = parse(text)
                     self._count("valid_first_try" if attempt == 0 else "valid_after_retry")
                     return result
                 except (ValidationError, json.JSONDecodeError) as exc:
@@ -183,9 +194,35 @@ class GeminiFitScorer:
             self.last_duration_ms = int((time.monotonic() - started) * 1000)
 
 
+class GeminiFitScorer(_GeminiClient):
+    """Bulk scoring (the FitScorer protocol)."""
+
+    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+        return self._answer(system, user, _parse)
+
+
+class GeminiConfirmer(_GeminiClient):
+    """"Ask" fallback: the scoring answer plus a verdict from a Gemini-API model (Gemma)."""
+
+    via = "gemini api"
+
+    def __init__(self, model: str, pool: KeyPool, **kw: Any):
+        super().__init__(model, pool, **kw)
+        self._schema = inline_schema(ConfirmationAnswer)
+
+    def confirm(self, system: str, user: str) -> ConfirmationAnswer:
+        return self._answer(system, user, parse_confirmation)
+
+
 def _parse(text: str) -> FitAssessment:
     content = _unwrap_properties(strip_fence(text), FitAssessment)
     return FitAssessment.model_validate_json(content)
+
+
+def parse_confirmation(text: str) -> ConfirmationAnswer:
+    """Also accepts a fenced or {"properties": ...}-wrapped answer (Gemma, a pasted reply)."""
+    content = _unwrap_properties(strip_fence(text), ConfirmationAnswer)
+    return ConfirmationAnswer.model_validate_json(content)
 
 
 def _finish_reason(data: dict[str, Any]) -> str:

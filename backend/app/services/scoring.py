@@ -26,6 +26,7 @@ from app.models import (
     AppSetting,
     Company,
     ExperienceItem,
+    FitConfirmation,
     FitScore,
     Job,
     ScoringRun,
@@ -344,6 +345,16 @@ def recompute_all(engine: Engine) -> int:
                 row.score, row.red_flags, row.core_requirements = score, flags, cores
                 s.add(row)
                 n += 1
+        # The confirmations (Ask Claude) follow the same rules: same caps, same exemption list.
+        for conf, title in s.exec(
+            select(FitConfirmation, Job.title).join(Job, col(Job.id) == col(FitConfirmation.job_id))
+        ).all():
+            score, flags, cores = fit.recompute_full(
+                conf.sub_scores, conf.red_flags, ctx.config, conf.core_requirements, title,
+                ctx.experience_text)
+            if score != conf.score or flags != conf.red_flags or cores != conf.core_requirements:
+                conf.score, conf.red_flags, conf.core_requirements = score, flags, cores
+                s.add(conf)
         s.commit()
         return n
 

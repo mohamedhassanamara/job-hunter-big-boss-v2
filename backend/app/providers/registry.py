@@ -225,3 +225,24 @@ def mailer(*, mock: bool | None = None, address: str = "", from_name: str = "") 
     from app.providers.smtp_mailer import GmailMailer
 
     return GmailMailer(address, password, from_name)
+
+
+def confirmers(*, mock: bool | None = None, engine: Any = None,
+               claude_model: str = "claude-sonnet-5-5") -> list[tuple[str, Any]]:
+    """Ask Claude, in order: Claude Code headless (your subscription), then Gemma through the
+    Gemini API. The last fallback (copy-paste into the Gemini Pro app) is a user flow. Tests and
+    the tour sandbox: the mock only."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        from app.providers.mock import MockConfirmer
+
+        return [("mock", MockConfirmer())]
+    from app.db import engine as default_engine
+    from app.providers.claude_confirm import ClaudeConfirmer
+    from app.providers.gemini import GeminiConfirmer
+    from app.services.gemini_keys import pool_for
+
+    model = "gemma-4-31b-it"
+    return [("claude", ClaudeConfirmer(claude_model)),
+            ("gemma", GeminiConfirmer(model, pool_for(engine or default_engine, model),
+                                      native=False, timeout=240.0))]

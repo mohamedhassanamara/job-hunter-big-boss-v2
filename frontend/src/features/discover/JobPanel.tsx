@@ -8,6 +8,7 @@ import {
   SourceBadge,
   StageBadge,
 } from '@/components/app/badges'
+import { ConfirmationPanel } from '@/components/app/ConfirmationPanel'
 import { FitCard } from '@/components/app/FitCard'
 import { ContactCard, ExternalListingButton, JobFlags } from '@/components/app/job-cards'
 import { LabelPicker } from '@/components/app/LabelPicker'
@@ -142,6 +143,7 @@ export function JobPanel({
                 <FitCard job={job} />
               )}
             </div>
+            {!(hideScores && !reveal) && <ConfirmationPanel job={job} className="mt-3" />}
             <ContactCard job={job} />
 
             <div>
