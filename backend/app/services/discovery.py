@@ -268,7 +268,10 @@ def after_discovery(engine: Engine, job_ids: list[int], queue: Any = None) -> No
     except Exception:
         _logger().exception("contact matching after discovery failed")
     if queue is not None:
-        queue.enqueue_never_scored()
+        from app.services.scoring import auto_score_enabled
+
+        if auto_score_enabled(engine):
+            queue.enqueue_never_scored()
 
 
 def run_discovery(

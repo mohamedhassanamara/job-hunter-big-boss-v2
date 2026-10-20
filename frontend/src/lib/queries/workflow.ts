@@ -16,6 +16,7 @@ import type {
   Queue,
   RescorePreview,
   ScoringHealth,
+  ScoringQuota,
   ScoringStatus,
   SearchHit,
   SendLogEntry,
@@ -320,18 +321,46 @@ export function useScoringHealth(model?: string) {
 export function useRescore() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'jobs'; job_ids?: number[]; confirm?: boolean }) =>
+    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'outdated' | 'jobs'; job_ids?: number[]; confirm?: boolean }) =>
       api.post<{ enqueued: number }>('/scoring/rescore', body),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
   })
 }
 
-export function useRescorePreview(scope: 'all' | 'stale', enabled: boolean) {
+export function useRescorePreview(scope: 'all' | 'stale' | 'outdated', enabled: boolean) {
   return useQuery({
     queryKey: ['rescore-preview', scope],
     queryFn: () => api.get<RescorePreview>(`/scoring/rescore-preview?scope=${scope}`),
     enabled,
     staleTime: 0,
+  })
+}
+
+export function useScoringQuota() {
+  return useQuery({
+    queryKey: ['scoring-quota'],
+    queryFn: () => api.get<ScoringQuota>('/scoring/quota'),
+    refetchInterval: 30_000,
+    retry: false,
+  })
+}
+
+export function useContinueWith() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (model: string | null) => api.post<{ enqueued: number }>('/scoring/continue-with', { model }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: keys.scoringStatus })
+      void qc.invalidateQueries({ queryKey: ['scoring-quota'] })
+    },
+  })
+}
+
+export function useEnableGeminiKey() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (label: string) => api.post<{ ok: boolean }>(`/scoring/keys/${encodeURIComponent(label)}/enable`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['scoring-quota'] }),
   })
 }
 

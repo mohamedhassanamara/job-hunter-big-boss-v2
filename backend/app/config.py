@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     prospeo_api_keys: str = ""
     apollo_api_keys: str = ""
     apify_token: str = ""
+    # Gemini API (bulk scoring). Keys are comma-separated and used in order, one daily quota each;
+    # `gemini_api_key` (singular) is accepted too. Only the scoring queue and "Ask Gemini/Claude"
+    # use them, never discovery itself.
+    gemini_api_keys: str = ""
+    gemini_api_key: str = ""
     # The send queue worker (real workspace only; tests turn it off).
     send_worker_enabled: bool = True
 

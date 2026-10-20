@@ -14,6 +14,7 @@ from app.services.fit import (
     experience_version,
     flag_severity,
     recompute,
+    recompute_full,
     truncate_description,
     weighted_score,
 )
@@ -264,13 +265,14 @@ def test_hard_flag_needs_a_quote_that_states_the_requirement(
 SPARK = "build pipelines with Spark and dbt"  # a quote that is in TEXT
 
 
-def core(name: str = "Kafka", quote: str = SPARK, missing: bool = True) -> CoreRequirement:
+def core(name: str = "Go", quote: str = SPARK, missing: bool = True) -> CoreRequirement:
     return CoreRequirement(requirement=name, evidence=quote, missing=missing)
 
 
 def record_for(cores: list[CoreRequirement], config=CONFIG, flags=None, experience: str = ""):
     return build_record(assessment(flags, cores), job_text=TEXT, description_level="full",
-                        remote_type="onsite", config=config, experience_text=experience)
+                        remote_type="onsite", config=config, experience_text=experience,
+                        job_title="Data Engineer")
 
 
 def test_a_verified_missing_core_requirement_caps_the_score_at_60() -> None:
@@ -283,10 +285,10 @@ def test_a_verified_missing_core_requirement_caps_the_score_at_60() -> None:
 def test_a_core_requirement_that_is_covered_or_unsupported_does_not_cap() -> None:
     partly = record_for([core(missing=False)])
     assert partly["score"] == 76 and partly["core_requirements"][0]["counts"] is False
-    unsupported = record_for([core(quote="five years of Kafka at scale")])
+    unsupported = record_for([core(quote="five years of Go at scale")])
     assert unsupported["score"] == 76
     assert "isn't in the listing" in unsupported["core_requirements"][0]["note"]
-    named = record_for([core("Kafka")], experience="- [skill] Streaming\n  Skills: Kafka, Flink")
+    named = record_for([core("Go")], experience="- [skill] Languages\n  Skills: Python, Go, SQL")
     assert named["score"] == 76 and "names it" in named["core_requirements"][0]["note"]
     assert record_for([core(quote="")])["score"] == 76  # no quote, no cap
 
@@ -301,6 +303,45 @@ def test_the_missing_core_cap_is_configurable_and_the_lower_cap_wins() -> None:
                    evidence="we do not offer visa sponsorship")
     rec = record_for([core()], flags=[hard])
     assert rec["score"] == 35 and cap_reason(rec["red_flags"], rec["core_requirements"]) == "hard_flag"
+
+
+def test_generic_tooling_never_caps_on_its_own_unless_the_title_is_built_around_it() -> None:
+    for generic in ("Cloud Development (AWS/Azure)", "Kubernetes", "Spark", "Terraform", "CI/CD pipelines",
+                    "Agile", "Kafka streaming", "GCP"):
+        rec = record_for([core(generic)])
+        assert rec["score"] == 76 and rec["core_requirements"][0]["excluded"] is True, generic
+        assert "generic tooling" in rec["core_requirements"][0]["note"]
+    # the title is built around it: it counts. The job text's first line is the title.
+    config = CONFIG
+    for title, req in (("Spark Engineer", "Spark"), ("Senior Cloud Engineer", "Cloud platforms"),
+                       ("Kubernetes Platform Engineer", "Kubernetes")):
+        rec = build_record(assessment(None, [core(req)]), job_text=TEXT, description_level="full",
+                           remote_type="onsite", config=config, job_title=title)
+        assert rec["score"] == 60 and rec["core_requirements"][0]["counts"] is True, title
+    # a primary language is not on the list, so it counts whatever the tooling
+    assert record_for([core("Go")])["score"] == 60
+
+
+def test_the_exclusion_list_is_a_setting_and_recompute_applies_it_without_a_rescore() -> None:
+    rec = record_for([core("Kafka")])
+    assert rec["score"] == 76  # on the default list
+    trimmed = ScoringConfig.from_settings({"never_cap_on": ["AWS"]}, PROFILE)
+    score, flags, cores = recompute_full(rec["sub_scores"], rec["red_flags"], trimmed,
+                                         rec["core_requirements"], "Data Engineer")
+    assert score == 60 and cores[0]["counts"] is True and cores[0]["excluded"] is False
+    back = recompute_full(rec["sub_scores"], rec["red_flags"], CONFIG, cores, "Data Engineer")
+    assert back[0] == 76 and back[2][0]["excluded"] is True  # and back again
+    assert ScoringConfig.from_settings({}, PROFILE).never_cap_on[:3] == ("AWS", "Azure", "GCP")
+    assert ScoringConfig.from_settings({"never_cap_on": []}, PROFILE).never_cap_on == ()
+
+
+def test_the_experience_text_is_rechecked_at_recompute() -> None:
+    rec = record_for([core("Go")])
+    cores = rec["core_requirements"]
+    assert recompute_full(rec["sub_scores"], rec["red_flags"], CONFIG, cores, "Backend Engineer",
+                          "Skills: Python, Go")[0] == 76  # you added Go to your pool
+    assert recompute_full(rec["sub_scores"], rec["red_flags"], CONFIG, cores, "Backend Engineer",
+                          None)[0] == 60  # no pool given: the stored answer stands
 
 
 def test_recompute_reapplies_the_missing_core_cap_from_stored_rows() -> None:

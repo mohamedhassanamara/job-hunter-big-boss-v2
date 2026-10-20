@@ -4,6 +4,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { formatDuration, pluralize } from '@/lib/format'
 import { useRescore, useRescorePreview } from '@/lib/queries/workflow'
 
+const TITLES = { all: 'Rescore every job', stale: 'Rescore stale jobs', outdated: 'Rescore outdated jobs' } as const
+
 /** Rescoring jobs that already have a valid score is always explicit: this dialog shows how
  * many jobs, which model and roughly how long before anything is queued. */
 export function RescoreConfirmDialog({
@@ -11,7 +13,7 @@ export function RescoreConfirmDialog({
   open,
   onOpenChange,
 }: {
-  scope: 'all' | 'stale'
+  scope: 'all' | 'stale' | 'outdated'
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -31,9 +33,9 @@ export function RescoreConfirmDialog({
     )
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={scope === 'all' ? 'Rescore all jobs' : 'Rescore stale jobs'} className="max-w-md p-0">
+      <DialogContent title={TITLES[scope]} className="max-w-md p-0">
         <div className="space-y-1 px-5 py-4">
-          <h2 className="text-md font-semibold tracking-tight">{scope === 'all' ? 'Rescore every job?' : 'Rescore stale jobs?'}</h2>
+          <h2 className="text-md font-semibold tracking-tight">{TITLES[scope]}?</h2>
           {preview.isPending ? (
             <p className="text-sm text-fg-muted">Counting…</p>
           ) : preview.error ? (
@@ -44,7 +46,10 @@ export function RescoreConfirmDialog({
             p && (
               <p className="text-sm text-fg-muted">
                 {pluralize(p.count, 'job')} will be scored again with <span className="font-mono text-xs text-fg">{p.model}</span>,{' '}
-                {formatDuration(p.eta_seconds)}. Their current scores are replaced when the new ones arrive; labels and stages don't change.
+                {p.days
+                  ? `in about ${p.days} ${p.days === 1 ? 'day' : 'days'} of free quota (${p.daily_capacity}/day, best jobs first, it carries on by itself)`
+                  : formatDuration(p.eta_seconds)}
+                . Their current scores are replaced when the new ones arrive; labels and stages don't change.
               </p>
             )
           )}

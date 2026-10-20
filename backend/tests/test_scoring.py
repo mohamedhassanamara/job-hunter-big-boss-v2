@@ -211,3 +211,27 @@ def test_a_missing_core_requirement_is_stored_capped_and_shown_in_the_api(client
     scoring_cfg = client.get("/api/settings").json()["values"]["scoring"]
     client.put("/api/settings/scoring", json={"value": {**scoring_cfg, "missing_core_cap": 100}})
     assert client.get(f"/api/jobs/{job_id}").json()["fit_detail"]["score"] == 80
+
+
+class GenericCoreScorer(CountingScorer):
+    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+        base = super().assess(system, user, job)
+        quote = " ".join(job.description.split()[:6])
+        base.core_requirements = [
+            CoreRequirement(requirement="Mainframe tooling", evidence=quote, missing=True)]
+        return base
+
+
+def test_editing_the_exclusion_list_recomputes_stored_scores_without_a_rescore(
+        client: TestClient) -> None:
+    cfg = client.get("/api/settings").json()["values"]["scoring"]
+    client.put("/api/settings/scoring", json={"value": {**cfg, "never_cap_on": ["Mainframe"]}})
+    scorer, job_id = GenericCoreScorer(), first_job_id()
+    row = scoring.score_job(engine, job_id, scorer)
+    assert row.score == 80 and row.core_requirements[0]["excluded"] is True  # on the list
+    client.put("/api/settings/scoring", json={"value": {**cfg, "never_cap_on": ["AWS"]}})
+    detail = client.get(f"/api/jobs/{job_id}").json()["fit_detail"]
+    assert detail["score"] == 60 and detail["missing_core"] == "Mainframe tooling"
+    assert scorer.calls == 1  # recomputed, never rescored
+    client.put("/api/settings/scoring", json={"value": {**cfg, "never_cap_on": ["Mainframe"]}})
+    assert client.get(f"/api/jobs/{job_id}").json()["fit_detail"]["score"] == 80

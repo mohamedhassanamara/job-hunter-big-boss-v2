@@ -35,6 +35,11 @@ DEFAULT_CAP = 35
 # Soft cap when a verified core requirement of the role is missing from the candidate's experience
 # (prompt v5; Settings → Scoring; 100 turns it off).
 DEFAULT_MISSING_CORE_CAP = 60
+# Generic tooling and platforms: a missing one never triggers the missing-core cap on its own,
+# unless the job title itself is built around it ("Spark Engineer", "Cloud Engineer"). Editable in
+# Settings → Scoring.
+DEFAULT_NEVER_CAP_ON = ("AWS", "Azure", "GCP", "cloud", "Kubernetes", "Spark", "Kafka", "Terraform",
+                        "CI/CD", "Agile")
 # Flag types that disqualify a candidate who needs visa sponsorship.
 _AUTH_FLAGS = {"no_visa_sponsorship", "work_authorization_required", "must_be_based_in"}
 # Requirement-type dimensions: a penalty (below the neutral 5) must be backed by a verified quote.
@@ -83,6 +88,7 @@ class ScoringConfig:
     weights: dict[str, float]
     hard_flag_cap: int = DEFAULT_CAP
     missing_core_cap: int = DEFAULT_MISSING_CORE_CAP
+    never_cap_on: tuple[str, ...] = DEFAULT_NEVER_CAP_ON
     work_authorization: str = "needs_sponsorship"
     # Languages the candidate speaks at a working level (folded names, e.g. {"french"}).
     working_languages: frozenset[str] = frozenset()
@@ -101,6 +107,8 @@ class ScoringConfig:
             weights={**DEFAULT_WEIGHTS, **(scoring.get("weights") or {})},
             hard_flag_cap=int(scoring.get("hard_flag_cap", DEFAULT_CAP)),
             missing_core_cap=int(scoring.get("missing_core_cap", DEFAULT_MISSING_CORE_CAP)),
+            never_cap_on=tuple(str(x).strip() for x in scoring["never_cap_on"] if str(x).strip())
+            if isinstance(scoring.get("never_cap_on"), list) else DEFAULT_NEVER_CAP_ON,
             work_authorization=profile.get("work_authorization", "needs_sponsorship"),
             working_languages=working,
             nationality=fold(str(profile.get("nationality") or "")),
@@ -307,25 +315,53 @@ def in_experience(requirement: str, experience_text: str) -> bool:
     return bool(phrase) and f" {phrase} " in f" {fold(experience_text)} "
 
 
-def evaluate_core(assessment: FitAssessment, job_text: str,
-                  experience_text: str) -> list[dict[str, Any]]:
-    """Stored form of the model's core requirements. `counts` = missing from the candidate AND
-    the job-text quote is verified AND the pool doesn't name it. Only counted requirements cap the
-    score: an unsupported claim must never sink a job."""
+def generic_exempt(requirement: str, title: str, never_cap_on: tuple[str, ...]) -> bool:
+    """Is this requirement generic tooling from the "never cap on these alone" list? Exempt unless
+    the job title itself names the matched term ("Cloud Engineer" is built around cloud)."""
+    folded = f" {fold(requirement)} "
+    terms = [f" {fold(term)} " for term in never_cap_on if fold(term)]
+    matched = [term for term in terms if term in folded]
+    if not matched:
+        return False
+    title_folded = f" {fold(title)} "
+    return not any(term in title_folded for term in matched)
+
+
+def judge_core(core: dict[str, Any], config: ScoringConfig, title: str,
+               experience_text: str | None) -> dict[str, Any]:
+    """Decide whether one stored core requirement caps the score. Everything it needs is stored
+    (`missing`, `evidence_verified`) or current (the exclusion list, the title, the experience
+    text), so changing the rule later only needs `recompute_all`, never a rescore."""
+    name = core["requirement"]
+    missing, verified = bool(core.get("missing")), bool(core.get("evidence_verified"))
+    named = (missing and in_experience(name, experience_text)) if experience_text is not None \
+        else bool(core.get("named"))
+    excluded = missing and generic_exempt(name, title, config.never_cap_on)
+    counts = missing and verified and not named and not excluded
+    note = ""
+    if missing and not counts:
+        note = ("Not counted: the quote isn't in the listing." if not verified
+                else "Not counted: your experience names it." if named
+                else "Not counted: generic tooling never caps on its own (Settings → Scoring).")
+    out = {k: v for k, v in core.items() if k not in ("note", "named", "excluded", "counts")}
+    return {**out, "named": named, "excluded": excluded, "counts": counts,
+            **({"note": note} if note else {})}
+
+
+def evaluate_core(assessment: FitAssessment, job_text: str, experience_text: str,
+                  config: ScoringConfig | None = None, title: str = "") -> list[dict[str, Any]]:
+    """Stored form of the model's core requirements (at most 4), judged by `judge_core`. Only a
+    counted requirement caps the score: an unsupported claim must never sink a job."""
+    config = config or ScoringConfig(weights=DEFAULT_WEIGHTS)
+    title = title or job_text.split("\n", 1)[0]
     out = []
     for core in assessment.core_requirements[:4]:
         name, quote = core.requirement.strip(), core.evidence.strip()
         if not name:
             continue
-        verified = evidence_found(quote, job_text)
-        named = core.missing and in_experience(name, experience_text)
-        counts = core.missing and verified and not named
-        note = ""
-        if core.missing and not counts:
-            note = ("Not counted: your experience names it." if named
-                    else "Not counted: the quote isn't in the listing.")
-        out.append({"requirement": name, "evidence": quote, "evidence_verified": verified,
-                    "missing": core.missing, "counts": counts, **({"note": note} if note else {})})
+        raw = {"requirement": name, "evidence": quote, "missing": core.missing,
+               "evidence_verified": evidence_found(quote, job_text)}
+        out.append(judge_core(raw, config, title, experience_text))
     return out
 
 
@@ -337,6 +373,7 @@ def build_record(
     remote_type: str,
     config: ScoringConfig,
     experience_text: str = "",
+    job_title: str = "",
 ) -> dict[str, Any]:
     subs = {}
     for dim, sub in assessment.sub_scores().items():
@@ -368,7 +405,7 @@ def build_record(
             }
         )
     raw = {d: s["score"] for d, s in subs.items()}
-    core = evaluate_core(assessment, job_text, experience_text)
+    core = evaluate_core(assessment, job_text, experience_text, config, job_title)
     return {
         "score": final_score(raw, flags, config, missing_core=any(c["counts"] for c in core)),
         "sub_scores": subs,
@@ -404,10 +441,12 @@ def _all_flags(assessment: FitAssessment) -> list[RedFlag]:
     return flags
 
 
-def recompute(sub_scores: dict[str, Any], red_flags: list[dict], config: ScoringConfig,
-              core_requirements: list[dict] | None = None):
-    """New weights/caps/work authorization → new score from stored sub-scores (no LLM call).
-    Stored core requirements keep their `counts` verdict."""
+def recompute_full(sub_scores: dict[str, Any], red_flags: list[dict], config: ScoringConfig,
+                   core_requirements: list[dict] | None = None, title: str = "",
+                   experience_text: str | None = None):
+    """New weights, caps, exclusion list or work authorization → new score, flags and core
+    requirement verdicts from the stored data (no LLM call). `experience_text=None` keeps each
+    requirement's stored 'named in your experience' answer."""
     flags = []
     for f in red_flags:
         severity, note = flag_severity_detail(
@@ -415,9 +454,17 @@ def recompute(sub_scores: dict[str, Any], red_flags: list[dict], config: Scoring
             f"{f.get('text', '')} {f.get('evidence', '')}", f.get("evidence", ""))
         flags.append({**{k: v for k, v in f.items() if k != "severity_note"}, "severity": severity,
                       **({"severity_note": note} if note else {})})
+    cores = [judge_core(c, config, title, experience_text) for c in core_requirements or []]
     raw = {d: int(v.get("score", 0)) for d, v in sub_scores.items()}
-    missing = any(c.get("counts") for c in core_requirements or [])
-    return final_score(raw, flags, config, missing_core=missing), flags
+    missing = any(c["counts"] for c in cores)
+    return final_score(raw, flags, config, missing_core=missing), flags, cores
+
+
+def recompute(sub_scores: dict[str, Any], red_flags: list[dict], config: ScoringConfig,
+              core_requirements: list[dict] | None = None, title: str = ""):
+    """(score, flags) of `recompute_full`."""
+    score, flags, _ = recompute_full(sub_scores, red_flags, config, core_requirements, title)
+    return score, flags
 
 
 # ------------------------------------------------------------------------------ prompt inputs

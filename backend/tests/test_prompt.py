@@ -59,9 +59,10 @@ def test_schema_requires_every_flag_check() -> None:
 
 def test_v5_asks_for_core_requirements_any_integer_and_explicit_language_levels() -> None:
     prompt = load_prompt("fit_score")
-    assert prompt.version == 5
+    assert prompt.version == 6
     for needle in ("core_requirements:", "caps the score in code", "ANY integer from 0 to 10",
-                   "A stated level counts as stating the requirement",
+                   "A stated level counts as stating the requirement", "NEVER count as a core",
+                   "at most 3 requirements, and ONLY what the role is built around",
                    "sehr gute Deutschkenntnisse"):
         assert needle in prompt.system
 

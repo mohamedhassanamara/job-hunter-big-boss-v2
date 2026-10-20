@@ -580,6 +580,9 @@ SETTINGS: dict[str, dict] = {
         },
         "hard_flag_cap": 35,
         "missing_core_cap": 60,
+        "auto_score_new": True,  # score new jobs right after each discovery run
+        "never_cap_on": ["AWS", "Azure", "GCP", "cloud", "Kubernetes", "Spark", "Kafka", "Terraform",
+                         "CI/CD", "Agile"],
         "concurrency": 1,
         "good_threshold": 70,
         "maybe_threshold": 45,
