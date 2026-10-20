@@ -82,6 +82,7 @@ def discovery_status(session: SessionDep) -> DiscoveryStatus:
 @router.get("/sources", response_model=list[SourceInfo])
 def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInfo]:
     enabled = set(discovery.enabled_sources(session))
+    paused = discovery.paused_sources(session)
     impls = job_sources(DISCOVERY_SOURCES, mock=workspace == "demo" or None)
     _, profile = discovery.active_profile(session)
     out = []
@@ -107,6 +108,7 @@ def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInf
                 cooldown_remaining_minutes=int(wait.total_seconds() // 60) + 1 if wait else None,
                 last_run=run_out(last) if last else None,
                 unsupported_countries=unsupported_countries(src, profile.locations),
+                paused_reason=paused.get(src.value),
             )
         )
     return out

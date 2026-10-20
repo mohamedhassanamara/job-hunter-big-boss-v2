@@ -462,7 +462,7 @@ redirects to Outreach → Contacts to get).
 
 ### 3.9 Settings (`/settings`)
 Sections in a left sub-nav:
-- **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible), and min fit score.
+- **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible; remote tied to one non-target country is filtered), and min fit score.
 - **Company job boards** (a source): an editable list of employers (platform: Greenhouse, Lever, Ashby, Workable or SmartRecruiters, plus the board token and a display name), each with its job count or error from the last run. A board answering with 0 jobs is flagged ("check the token").
 - **Bayt** (a source): Gulf/MENA board read from its public per-country search pages; summaries only, the full listing is fetched per job.
 - **CV:** download filename pattern (`{full_name}_CV_{company}.pdf`), and per-track emphasis (skill groups and tags each track's CV leads with).
@@ -594,3 +594,5 @@ opens the picker: every known domain with its source, whether it receives email 
 "no MX") and a **Use this one** button, plus a field for the website's domain. When a provider finds nobody at a
 domain the card stops with an amber question: "Hunter found nobody at sekoia.com. No other provider was paid for
 it", with one button per domain that receives email ("Look at sekoia.io"). A domain with no MX is never searched.
+
+- **Paused sources (Settings → Sources):** a source with an entry in `sources.paused` (reason text) is skipped by every run, shows a "Paused" badge with the reason and a Resume button, and raises no failure alert on Today. Bayt is paused while Cloudflare blocks it.

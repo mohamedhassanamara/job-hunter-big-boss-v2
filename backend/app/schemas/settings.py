@@ -98,6 +98,8 @@ class SourceInfo(BaseModel):
     last_run: SourceRunOut | None
     # Target countries (from the search profile) this source cannot search.
     unsupported_countries: list[str] = []
+    # Why discovery skips this source (it is paused, not failing); None when it is not paused.
+    paused_reason: str | None = None
 
 
 class SampleJob(BaseModel):

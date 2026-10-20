@@ -144,6 +144,7 @@ function TestResultSheet({ result, name, onClose }: { result: SourceTestResult; 
 }
 
 function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on: boolean) => void; boards?: CompanyBoard[] }) {
+  const paused = info.paused_reason !== null
   const test = useTestSource()
   const [result, setResult] = useState<SourceTestResult | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
@@ -164,7 +165,8 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold">{info.name}</p>
-            {run && (
+            {paused && <ToneBadge tone="amber">Paused</ToneBadge>}
+            {run && !paused && (
               <Tooltip content={absoluteDate(run.finished_at ?? run.started_at)}>
                 <span>
                   <ToneBadge tone={STATUS[run.status].tone}>
@@ -173,9 +175,10 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
                 </span>
               </Tooltip>
             )}
-            {!run && info.configured && <span className="text-xs text-fg-subtle">Never run</span>}
+            {!run && !paused && info.configured && <span className="text-xs text-fg-subtle">Never run</span>}
           </div>
           <p className="mt-0.5 text-xs text-fg-muted">{NOTES[info.source]}</p>
+          {paused && <p className="mt-0.5 text-xs text-fg-muted">Paused: {info.paused_reason}</p>}
           {info.unsupported_countries.length > 0 && (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-warning-fg">
               <TriangleAlert className="size-3.5 shrink-0" />
@@ -199,12 +202,18 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
             </Button>
           </span>
         </Tooltip>
-        <Switch
-          checked={info.enabled}
-          onCheckedChange={onToggle}
-          aria-label={`Enable ${info.name}`}
-          className="mt-1.5"
-        />
+        {paused ? (
+          <Button size="sm" onClick={() => onToggle(true)}>
+            Resume
+          </Button>
+        ) : (
+          <Switch
+            checked={info.enabled}
+            onCheckedChange={onToggle}
+            aria-label={`Enable ${info.name}`}
+            className="mt-1.5"
+          />
+        )}
       </div>
 
       {!info.configured && (
@@ -229,7 +238,7 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
         </p>
       )}
 
-      {run && (
+      {run && !paused && (
         <div className="space-y-2">
           {run.status !== 'failed' && run.status !== 'skipped' && <Counts run={run} />}
           {run.error && !(run.error.startsWith('Not configured') && !info.configured) && (
@@ -282,11 +291,16 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
 export function SourcesSection({ settings }: { settings: SettingsView }) {
   const sources = useSources()
   const save = useSaveSetting()
-  const flags = settings.values.sources as Record<Source, boolean>
+  const { paused: pausedMap, ...flags } = settings.values.sources as Record<Source, boolean> & {
+    paused?: Record<string, string>
+  }
 
-  const toggle = (info: SourceInfo, on: boolean) =>
-    save.mutate(
-      { key: 'sources', value: { ...flags, [info.source]: on } },
+  const toggle = (info: SourceInfo, on: boolean) => {
+    // Resuming a paused source removes its pause; the "paused" map is only kept when non-empty.
+    const stillPaused = Object.fromEntries(Object.entries(pausedMap ?? {}).filter(([k]) => k !== info.source))
+    const paused = on ? stillPaused : (pausedMap ?? {})
+    return save.mutate(
+      { key: 'sources', value: { ...flags, [info.source]: on, ...(Object.keys(paused).length ? { paused } : {}) } },
       {
         onSuccess: () => {
           toast.success(`${info.name} ${on ? 'enabled' : 'disabled'}`)
@@ -295,6 +309,7 @@ export function SourcesSection({ settings }: { settings: SettingsView }) {
         onError: (e) => toast.error(e.message),
       },
     )
+  }
 
   return (
     <Card title="Sources" description="Where discovery pulls listings from. Toggles save immediately.">
