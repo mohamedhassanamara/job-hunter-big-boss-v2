@@ -29,6 +29,8 @@ import { ProviderCredits } from '@/components/app/contact/ProviderCredits'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
 import { ChestSummary, StreakSummary } from '@/components/app/motivation/MotivationCards'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
+import { ScoringProgress } from '@/components/app/ScoringProgress'
+import { ScoringTodayCard } from '@/components/app/ScoringTodayCard'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { TestDataBanner } from '@/components/app/TestDataBanner'
@@ -482,6 +484,8 @@ export default function TodayPage() {
         </p>
       </header>
       <ScoringFallbackNotice className="rounded-lg border px-4" />
+      <ScoringProgress className="rounded-lg border px-4" />
+      <ScoringTodayCard />
 
       <SourceAlerts />
       <TestDataBanner showLink />

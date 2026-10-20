@@ -1,11 +1,12 @@
-import { CircleAlert, Copy, LoaderCircle, RefreshCw, Sparkles, X } from 'lucide-react'
+import { CircleAlert, Copy, LoaderCircle, Pause, RefreshCw, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { Button } from '@/components/ui/button'
 import { pluralize } from '@/lib/format'
-import { useCancelScoring, useRescore, useScoringStatus, useStartScoring } from '@/lib/queries/workflow'
+import { clockTime, relativeTime } from '@/lib/format'
+import { useCancelScoring, useContinueWith, useRescore, useScoringStatus, useStartScoring } from '@/lib/queries/workflow'
 import { cn } from '@/lib/utils'
 
 function eta(seconds: number | null) {
@@ -23,9 +24,11 @@ export function ScoringProgress({ className }: { className?: string }) {
   const rescore = useRescore()
   const cancel = useCancelScoring()
   const start = useStartScoring()
+  const continueWith = useContinueWith()
   const [confirmStale, setConfirmStale] = useState(false)
   if (!data) return null
   const run = data.run
+  const ollama = run?.fallback_model || 'gemma4:31b-cloud'
 
   const queue = (scope: 'stale' | 'failed' | 'unscored') =>
     rescore.mutate(
@@ -35,6 +38,39 @@ export function ScoringProgress({ className }: { className?: string }) {
         onError: (e) => toast.error(e.message),
       },
     )
+
+  if (data.waiting_until) {
+    return (
+      <div className={cn('flex flex-wrap items-center gap-3 border-b border-tone-amber-border bg-warning-bg px-6 py-2 text-sm text-warning-fg', className)} data-tour="scoring-waiting">
+        <Pause className="size-4 shrink-0" />
+        <span className="flex-1">
+          {data.blocked ?? 'The Gemini quota is used up.'} {pluralize(data.queued, 'job')} wait{data.queued === 1 ? 's' : ''}: scoring resumes by itself at {clockTime(data.waiting_until)} ({relativeTime(data.waiting_until)}).
+        </span>
+        <Button
+          size="xs"
+          variant="ghost"
+          onClick={() => continueWith.mutate(ollama, { onSuccess: () => toast.success(`Scoring the rest with ${ollama}`), onError: (e) => toast.error(e.message) })}
+          disabled={continueWith.isPending}
+        >
+          Score the rest now with {ollama}
+        </Button>
+      </div>
+    )
+  }
+
+  if (data.override_model && data.running) {
+    return (
+      <div className={cn('flex items-center gap-3 border-b border-border bg-primary-subtle/50 px-6 py-2 text-xs', className)}>
+        <LoaderCircle className="size-3.5 animate-spin text-primary" />
+        <span className="font-medium">
+          Scoring {data.done + data.failed} / {data.total} with {data.override_model} (your choice, until the app restarts)
+        </span>
+        <Button size="xs" variant="ghost" className="ml-auto" onClick={() => continueWith.mutate(null)}>
+          Back to {data.model}
+        </Button>
+      </div>
+    )
+  }
 
   if (data.blocked) {
     const command = data.blocked.match(/ollama pull \S+/)?.[0]

@@ -1,5 +1,7 @@
 import { CircleAlert, CircleCheck, Copy, FlaskConical, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { TagInput } from '@/components/app/TagInput'
+import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
 import { TourButton } from '@/components/app/tour/TourButton'
@@ -293,6 +295,8 @@ interface ScoringValue {
   weights: Record<Dimension, number>
   hard_flag_cap: number
   missing_core_cap: number
+  never_cap_on: string[]
+  auto_score_new: boolean
   concurrency: number
   good_threshold: number
   maybe_threshold: number
@@ -302,6 +306,8 @@ const DEFAULT_SCORING: ScoringValue = {
   weights: { role_match: 0.3, skills_match: 0.3, seniority_fit: 0.15, location_eligibility: 0.15, language_requirements: 0.1 },
   hard_flag_cap: 35,
   missing_core_cap: 60,
+  never_cap_on: ['AWS', 'Azure', 'GCP', 'cloud', 'Kubernetes', 'Spark', 'Kafka', 'Terraform', 'CI/CD', 'Agile'],
+  auto_score_new: true,
   concurrency: 1,
   good_threshold: 70,
   maybe_threshold: 45,
@@ -378,6 +384,12 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
       </Field>
       <Field label="Missing core requirement cap" hint="Max score when the role is built around something you have no experience of at all (e.g. Go for a Go role). 100 turns it off">
         <Input type="number" min={0} max={100} value={v.missing_core_cap} onChange={(e) => setV({ ...v, missing_core_cap: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="w-24" />
+      </Field>
+      <Field label="Never cap on these alone" hint="A missing item from this list never triggers the missing-core cap, unless the job title itself is built around it (e.g. 'Spark Engineer', 'Cloud Engineer')">
+        <TagInput tags={v.never_cap_on} onChange={(never_cap_on) => setV({ ...v, never_cap_on })} lowercase={false} placeholder="AWS, Kubernetes… (Enter to add)" />
+      </Field>
+      <Field label="Auto-score new jobs after discovery" hint="Every discovery run queues the jobs that were never scored">
+        <Switch checked={v.auto_score_new} onCheckedChange={(on) => setV({ ...v, auto_score_new: on })} aria-label="Auto-score new jobs after discovery" />
       </Field>
       <Field label="Shortlist threshold" hint="Divider in Discover and Today's highlights">
         <div className="flex items-center gap-3">

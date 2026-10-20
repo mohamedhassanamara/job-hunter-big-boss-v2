@@ -184,7 +184,7 @@ One scoring attempt. History is kept, and the latest row per job is authoritativ
 | score | int 0–100? | **Computed in code** from sub_scores and weights, capped by hard flags. Bands: ≥80 strong, 65–79 good, 50–64 fair, <50 weak |
 | sub_scores | JSON | `{dimension: {score 0-10, reason, evidence, evidence_verified}}` for role_match, skills_match, seniority_fit, location_eligibility, language_requirements |
 | red_flags | JSON | `[{type, text, evidence, evidence_verified, severity hard\|soft, severity_note?}]`; `severity_note` is set when a flag that would be hard stayed soft because its quote doesn't state the requirement (prompt v4) |
-| core_requirements | JSON | Prompt v5: `[{requirement, evidence, evidence_verified, missing, counts, note?}]`. `counts` = missing from the candidate, quote verified in the listing and not named in the experience text: only these cap the score (`app_setting.scoring.missing_core_cap`, default 60). Empty on older rows (migration 0027) |
+| core_requirements | JSON | Prompt v5+: `[{requirement, evidence, evidence_verified, missing, named, excluded, counts, note?}]`. `missing`/`evidence_verified` come from scoring; `named` (your experience text names it), `excluded` (on "Never cap on these alone" and not in the title) and `counts` (missing, verified, not named, not excluded: only these cap the score at `scoring.missing_core_cap`, default 60) are re-derived by `recompute_all`. Empty on older rows (migration 0027) |
 | strengths / gaps | JSON list[str] | ≤3 each |
 | summary | str | One sentence |
 | confidence | str | high / medium / low (from job.description_level) |
@@ -493,3 +493,5 @@ A single row in v2 (the global queue).
 - `company.domains` JSON: `{domain: {source, mx, checked_at, note}}`, every known domain (pdl, listing, apply link,
   website, website contact page, verified email, guess, you) with its MX answer cached for 30 days.
 - `company_provider_run.domain`: the domain a run searched (NULL on runs from before: they match any domain).
+
+**Gemini quota (no new tables):** `provider_usage` holds one row per (model, key label "key N", Pacific date) with `calls` = requests made that day; `provider_key_state` (provider `gemini`) holds a key Google refused. Settings → Scoring also gained `never_cap_on` (list) and `auto_score_new` (bool); a missing value means the default.

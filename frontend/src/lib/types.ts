@@ -1136,6 +1136,32 @@ export interface RescorePreview {
   count: number
   model: string
   eta_seconds: number | null
+  /** Gemini only: days of quota this takes (today's remaining quota counts) and per-day capacity. */
+  days: number | null
+  daily_capacity: number | null
+}
+
+export interface GeminiKeyQuota {
+  label: string
+  fingerprint: string
+  used: number
+  limit: number
+  remaining: number
+  state: 'ok' | 'exhausted' | 'disabled'
+  reason: string | null
+  last_minute: number
+}
+
+export interface ScoringQuota {
+  provider: 'gemini' | 'other'
+  model: string
+  keys?: GeminiKeyQuota[]
+  limits?: { rpm: number; tpm: number; rpd: number }
+  remaining_today?: number
+  day?: string
+  /** UTC ISO: the next midnight Pacific. Null in the tour sandbox. */
+  resets_at?: string | null
+  sample?: boolean
 }
 
 export interface ScoringStatus {
@@ -1150,6 +1176,10 @@ export interface ScoringStatus {
   output_stats: Record<string, number>
   eta_seconds: number | null
   last_error: string | null
+  /** Set while every API key is out of quota: when scoring carries on by itself (UTC ISO). */
+  waiting_until: string | null
+  /** A model chosen with "score the rest with…" (this process only). */
+  override_model: string | null
   jobs_total: number
   scored: number
   stale: number
@@ -1157,6 +1187,9 @@ export interface ScoringStatus {
   failed_jobs: number
   model: string
   prompt_version: string
+  /** Rescore progress: non-duplicate jobs scored with the current prompt + model, of all of them. */
+  current_scored: number
+  current_total: number
   run: ScoringRunInfo | null
 }
 

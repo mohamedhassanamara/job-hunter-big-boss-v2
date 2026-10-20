@@ -16,6 +16,7 @@ import time
 from collections import deque
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import Engine
@@ -38,6 +39,7 @@ from app.providers.base import (
     FitScorer,
     JobSnapshot,
     QuotaExceeded,
+    QuotaWait,
     ScoringFailed,
 )
 from app.services import fit
@@ -286,6 +288,7 @@ def score_job(
                 remote_type=job.remote_type,
                 config=ctx.config,
                 experience_text=ctx.experience_text,
+                job_title=job.title,
             )
             for name, value in record.items():
                 setattr(row, name, value)
@@ -314,19 +317,31 @@ def record_failure(engine: Engine, job_id: int, model: str, error: str) -> None:
         s.commit()
 
 
+def auto_score_enabled(engine: Engine) -> bool:
+    """Settings → Scoring → "Auto-score new jobs after discovery" (on unless you turn it off)."""
+    with Session(engine) as s:
+        return bool(_setting(s, "scoring").get("auto_score_new", True))
+
+
 def recompute_all(engine: Engine) -> int:
-    """Weights / cap / work authorization changed: recompute stored scores without the LLM."""
+    """Weights / caps / exclusion list / work authorization changed: recompute stored scores, flags
+    and core-requirement verdicts from the stored sub-scores, without the LLM. Rewrites only rows
+    that change."""
     with Session(engine) as s:
         ctx = load_context(s)
-        rows = s.exec(select(FitScore).where(FitScore.status == FitStatus.ok)).all()
+        rows = s.exec(
+            select(FitScore, Job.title).join(Job, col(Job.id) == col(FitScore.job_id))
+            .where(FitScore.status == FitStatus.ok)
+        ).all()
         n = 0
-        for row in rows:
+        for row, title in rows:
             if not row.sub_scores:
                 continue
-            score, flags = fit.recompute(row.sub_scores, row.red_flags, ctx.config,
-                                         row.core_requirements)
-            if score != row.score or flags != row.red_flags:
-                row.score, row.red_flags = score, flags
+            score, flags, cores = fit.recompute_full(
+                row.sub_scores, row.red_flags, ctx.config, row.core_requirements, title,
+                ctx.experience_text)
+            if score != row.score or flags != row.red_flags or cores != row.core_requirements:
+                row.score, row.red_flags, row.core_requirements = score, flags, cores
                 s.add(row)
                 n += 1
         s.commit()
@@ -393,7 +408,7 @@ RAISE_AFTER = 10  # successes in a row before the adaptive limit goes up by one
 
 
 def is_cloud(model: str) -> bool:
-    return model.endswith(("-cloud", ":cloud"))
+    return model.endswith(("-cloud", ":cloud")) or model.startswith("gemini-")
 
 
 def max_concurrency(model: str) -> int:
@@ -493,6 +508,8 @@ class ScoringQueue:
         self.model: str | None = None
         self.run_id: int | None = None
         self.blocked: str | None = None
+        self.waiting_until: datetime | None = None  # every API key is out of quota until then
+        self._wake_timer: threading.Timer | None = None
         self.last_error: str | None = None
         self.durations: deque[float] = deque(maxlen=30)
         # One-off local model for this process only (scripts); Settings → Models is never touched.
@@ -614,6 +631,8 @@ class ScoringQueue:
             return {
                 "running": running,
                 "blocked": self.blocked,
+                "waiting_until": self.waiting_until.isoformat() if self.waiting_until else None,
+                "override_model": self.model_override,
                 "queued": queued,
                 "in_progress": [{"job_id": k, "title": v} for k, v in self._current.items()],
                 "done": run.done if run else 0,
@@ -761,6 +780,10 @@ class ScoringQueue:
             self._update_run(retried_429=1, concurrency_min=self.controller.limit)
             self._requeue(task, front=True, error=str(exc))
             return
+        except QuotaWait as exc:  # before QuotaExceeded's fallback: waiting is not switching
+            self._pause_for_quota(exc)
+            self._requeue(task, front=True, error=str(exc))
+            return
         except QuotaExceeded as exc:
             self._update_run(quota_hits=1)
             self._switch_to_fallback(str(exc), model)
@@ -775,6 +798,42 @@ class ScoringQueue:
         self.durations.append(time.monotonic() - started)
         self._update_run(done=1, concurrency_max=self.controller.limit)
         self._finish_task(task, ScoringTaskStatus.done, model_used=row.model)
+
+    def _pause_for_quota(self, exc: QuotaWait) -> None:
+        """Every API key is out of quota: stop the workers (tasks stay queued, nothing fails) and,
+        when we know when the quota comes back, start again by ourselves at that time."""
+        with self._lock:
+            self.waiting_until = exc.resume_at
+            when = f" Resumes by itself at {exc.resume_at:%H:%M} UTC." if exc.resume_at else ""
+            self.blocked = f"{exc}{when}"
+            self._stop = True
+            if exc.resume_at is None or (self._wake_timer and self._wake_timer.is_alive()):
+                return
+            delay = max(5.0, (exc.resume_at - utcnow()).total_seconds() + 5)
+            self._wake_timer = threading.Timer(delay, self._wake)
+            self._wake_timer.daemon = True
+            self._wake_timer.start()
+        log.warning("scoring paused until the quota resets: %s", exc)
+
+    def _wake(self) -> None:
+        with self._lock:
+            self._wake_timer = None
+            self.waiting_until = self.blocked = None
+            self._stop = False
+        self.start()
+
+    def continue_with(self, model: str | None) -> None:
+        """Your explicit choice: score the rest of this process's queue with `model` (for example
+        the Ollama cloud model while the Gemini quota is used up), or None to go back to
+        Settings → Models. Settings are never touched; a restart goes back to them."""
+        with self._lock:
+            self.model_override = model
+            if self._wake_timer:
+                self._wake_timer.cancel()
+                self._wake_timer = None
+            self.waiting_until = self.blocked = None
+            self._stop = False
+        self.start()
 
     def _requeue(self, task: ScoringTask, *, front: bool, error: str | None = None,
                  count_attempt: bool = False) -> None:
@@ -916,7 +975,8 @@ def queue_for(engine: Engine, *, mock: bool) -> ScoringQueue:
     with _queues_lock:
         queue = _queues.get(id(engine))
         if queue is None:
-            queue = ScoringQueue(engine, lambda model: fit_scorer(mock=mock, model=model))
+            queue = ScoringQueue(
+                engine, lambda model: fit_scorer(mock=mock, model=model, engine=engine))
             _queues[id(engine)] = queue
         return queue
 

@@ -14,6 +14,7 @@ import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/q
 import type { RemoteScope, SearchProfile, SettingsView } from '@/lib/types'
 import { CountryPicker } from './CountryPicker'
 import { TracksEditor } from './TracksEditor'
+import { GeminiQuotaList } from '@/components/app/GeminiQuota'
 import { OllamaStatus } from './ScoringSections'
 
 export function Card({
@@ -236,9 +237,9 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="amber">Partly mocked</ToneBadge>
-        Fit scoring runs on Ollama (cloud first, local fallback). CV generation and email drafting are still mocked.
+        Fit scoring runs on Gemini (free API keys, one daily quota each) or Ollama (cloud first, local fallback). CV generation and email drafting are still mocked.
       </div>
-      <Field label="Fit scoring" hint="Ollama model. Cloud models end in -cloud and run on ollama.com.">
+      <Field label="Fit scoring" hint="A Gemini model (gemini-3.5-flash-lite, keys in .env as GEMINI_API_KEYS) or an Ollama model. Ollama cloud models end in -cloud and run on ollama.com.">
         <Input
           value={m.scoring.model}
           onChange={(e) => draft.setValue({ ...m, scoring: { ...m.scoring, model: e.target.value } })}
@@ -283,7 +284,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         />
       </Field>
       <div className="space-y-2">
-        <OllamaStatus label="Scoring" />
+        {m.scoring.model.startsWith('gemini-') ? <GeminiQuotaList /> : <OllamaStatus label="Scoring" />}
         {m.scoring.fallback && <OllamaStatus model={m.scoring.fallback} label="Fallback" />}
       </div>
       <Field label="CV generation" hint="Anthropic API">

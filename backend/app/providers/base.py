@@ -23,6 +23,16 @@ class QuotaExceeded(ScoringFailed):
     """Cloud usage limit reached (session/hourly/weekly). Switch the run to the local model."""
 
 
+class QuotaWait(ScoringFailed):
+    """Every API key is out of quota for today (or none is usable). Never a failure and never a
+    reason to switch model: the queue pauses and carries on at `resume_at` (None: it needs you,
+    e.g. every key was refused)."""
+
+    def __init__(self, message: str, resume_at: datetime | None = None):
+        super().__init__(message)
+        self.resume_at = resume_at
+
+
 class TransientError(ScoringFailed):
     """Timeout, connection problem or 5xx: worth a few more attempts."""
 

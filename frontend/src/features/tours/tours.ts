@@ -67,6 +67,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'today-followups', title: 'Follow-ups', body: 'No reply 7 and 14 days after applying? A follow-up shows here; snooze or dismiss it. After 30 days the app suggests closing as no response, but only your click closes anything.', placement: 'top' },
       { target: 'today-interviews', title: 'Upcoming interviews', body: 'Interview rounds scheduled in the next 14 days.', placement: 'left' },
       { target: 'today-queue', title: 'Send queue', body: 'Approved emails go out one at a time, 15 minutes apart, at most 20 per queue. Pause anytime.', placement: 'left' },
+      { target: 'today-scoring', title: 'Scoring progress', body: 'How many jobs are scored with the current prompt and model, best jobs first, and what is left of the free Gemini quota per key (separate daily quota per key, reset at midnight Pacific). When every key is used up the rest waits and carries on by itself; you can also score it right away with the Ollama cloud model.', placement: 'left' },
       { target: 'today-discovery', title: 'Discovery status', body: 'Discovery runs daily on its own. If a source fails, you see it here, not buried in logs.', placement: 'left' },
     ],
   },
