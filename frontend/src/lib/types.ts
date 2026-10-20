@@ -828,6 +828,8 @@ export interface SourceInfo {
   last_run: SourceRun | null
   /** Target countries (search profile) this source cannot search. */
   unsupported_countries: string[]
+  /** Set when the source is paused (skipped by every run, no failure alert). */
+  paused_reason: string | null
 }
 
 export interface SampleJob {

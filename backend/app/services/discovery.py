@@ -42,10 +42,21 @@ def _logger() -> logging.Logger:
     return log
 
 
-def enabled_sources(session: Session) -> list[Source]:
+def _source_flags(session: Session) -> dict[str, Any]:
     setting = session.exec(select(AppSetting).where(AppSetting.key == "sources")).first()
-    flags = setting.value if setting else {}
-    return [s for s in DISCOVERY_SOURCES if flags.get(s.value, True)]
+    return setting.value if setting else {}
+
+
+def paused_sources(session: Session) -> dict[str, str]:
+    """Sources paused with a reason (e.g. blocked by the site): never run by any run, and no
+    failure alert while paused. Resuming (Settings → Sources) removes the entry."""
+    paused = _source_flags(session).get("paused")
+    return {k: str(v) for k, v in paused.items()} if isinstance(paused, dict) else {}
+
+
+def enabled_sources(session: Session) -> list[Source]:
+    flags, paused = _source_flags(session), paused_sources(session)
+    return [s for s in DISCOVERY_SOURCES if flags.get(s.value, True) and s.value not in paused]
 
 
 def prepare_source(session: Session, source: JobSource) -> JobSource:

@@ -172,3 +172,22 @@ def test_discovery_never_rescores_existing_jobs(empty_db: None) -> None:
         assert (job.title, job.description) == before[:2]
         scores = s.exec(select(FitScore).where(FitScore.job_id == job.id)).all()
         assert len(scores) == 1  # never rescored by discovery
+
+
+def test_paused_sources_are_never_run() -> None:
+    from app.models import AppSetting
+
+    with Session(engine) as s:
+        row = s.exec(select(AppSetting).where(AppSetting.key == "sources")).first()
+        if row is None:
+            row = AppSetting(key="sources", value={})
+        original = dict(row.value)
+        row.value = {**original, "paused": {"bayt": "blocked"}}
+        s.add(row)
+        s.commit()
+        assert Source.bayt not in discovery.enabled_sources(s)
+        assert discovery.paused_sources(s) == {"bayt": "blocked"}
+        row.value = original
+        s.add(row)
+        s.commit()
+        assert Source.bayt in discovery.enabled_sources(s)
