@@ -115,6 +115,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   weights, the hard-flag cap (verified quotes only), evidence verification, confidence. Don't ask the model for the final number.
 - `score_job` never raises for model problems by default (stores `status=failed`); the queue calls it with
   `store_failures=False` and handles the typed errors itself. A score is never defaulted.
+- Hard flags (the score cap) need a quote that states the requirement itself: `fit.requirement_stated` checks the quote's wording per flag type and downgrades the rest to soft with a `severity_note` (prompt v4). An office, a city, on-site/hybrid or perks never cap a score; `recompute` applies the same rule to stored flags.
+- Prompt v5 adds `core_requirements` (the role's primary language/stack or central skill, with a quote and `missing`). A missing one caps the score softly (`scoring.missing_core_cap`, default 60) only when `fit.evaluate_core` verifies its quote in the listing and the experience text doesn't name it; the lower of the hard (35) and soft caps wins; `recompute` reapplies the stored verdict. Listings go in whole up to 15,000 chars (`fit.truncate_description` drops boilerplate sections above that, never requirement/language sections); the Ollama scorer's `num_ctx` is 16,384.
 - The cache key includes the prompt version. **Any edit to `app/prompts/fit_score.md` needs a version bump** and a new hash in
   `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
 - Models (Settings → Models): `models.scoring = {model: gemma4:31b-cloud, fallback: gemma4:12b, cloud_concurrency:

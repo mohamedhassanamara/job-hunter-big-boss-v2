@@ -20,6 +20,8 @@ class FitBrief(BaseModel):
     confidence: str  # high | medium | low
     hard_flag: bool = False
     flag_count: int = 0
+    # First missing core requirement that counts toward the cap (prompt v5), else null.
+    missing_core: str | None = None
     stale: bool = False
     # Provenance: which model and prompt version produced this score.
     model: str | None = None
@@ -29,6 +31,8 @@ class FitBrief(BaseModel):
 class FitDetail(FitBrief):
     sub_scores: dict[str, Any]
     red_flags: list[dict[str, Any]]
+    core_requirements: list[dict[str, Any]] = []
+    capped_by: str | None = None  # hard_flag | missing_core | null
     strengths: list[str]
     gaps: list[str]
     summary: str

@@ -285,6 +285,7 @@ def score_job(
                 description_level=job.description_level,
                 remote_type=job.remote_type,
                 config=ctx.config,
+                experience_text=ctx.experience_text,
             )
             for name, value in record.items():
                 setattr(row, name, value)
@@ -322,7 +323,8 @@ def recompute_all(engine: Engine) -> int:
         for row in rows:
             if not row.sub_scores:
                 continue
-            score, flags = fit.recompute(row.sub_scores, row.red_flags, ctx.config)
+            score, flags = fit.recompute(row.sub_scores, row.red_flags, ctx.config,
+                                         row.core_requirements)
             if score != row.score or flags != row.red_flags:
                 row.score, row.red_flags = score, flags
                 s.add(row)

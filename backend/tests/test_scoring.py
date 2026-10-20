@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.db import engine
 from app.models import ExperienceItem, Job
 from app.models.enums import FitStatus
-from app.providers.base import FitAssessment, JobSnapshot, ScoringFailed, SubScore
+from app.providers.base import CoreRequirement, FitAssessment, JobSnapshot, ScoringFailed, SubScore
 from app.services import scoring
 
 
@@ -190,3 +190,24 @@ def test_cache_hit_from_a_duplicate_gives_the_job_its_own_score(seeded: None) ->
     assert b.job_id == twin_id and b.id != a.id and b.score == a.score
     with Session(engine) as s:
         assert scoring.latest_fit(s, twin_id).id == b.id
+
+
+class MissingCoreScorer(CountingScorer):
+    def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
+        base = super().assess(system, user, job)
+        quote = " ".join(job.description.split()[:6])
+        base.core_requirements = [CoreRequirement(requirement="Cobol", evidence=quote, missing=True)]
+        return base
+
+
+def test_a_missing_core_requirement_is_stored_capped_and_shown_in_the_api(client: TestClient) -> None:
+    job_id = first_job_id()
+    row = scoring.score_job(engine, job_id, MissingCoreScorer())
+    assert row.score == 60 and row.core_requirements[0]["counts"] is True
+    detail = client.get(f"/api/jobs/{job_id}").json()["fit_detail"]
+    assert detail["capped_by"] == "missing_core" and detail["missing_core"] == "Cobol"
+    assert detail["core_requirements"][0]["requirement"] == "Cobol"
+    # the cap is a setting: raising it to 100 recomputes the stored score without a model call
+    scoring_cfg = client.get("/api/settings").json()["values"]["scoring"]
+    client.put("/api/settings/scoring", json={"value": {**scoring_cfg, "missing_core_cap": 100}})
+    assert client.get(f"/api/jobs/{job_id}").json()["fit_detail"]["score"] == 80

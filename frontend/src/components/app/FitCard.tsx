@@ -164,6 +164,7 @@ export function FitCard({ job, className }: { job: JobDetail; className?: string
   const [pasting, setPasting] = useState(false)
   const weights = (settings.data?.values.scoring?.weights ?? {}) as Partial<Record<Dimension, number>>
   const totalWeight = Object.values(weights).reduce((a, b) => a + (b ?? 0), 0) || 1
+  const missingCoreCap = Number(settings.data?.values.scoring?.missing_core_cap ?? 60)
   const inQueue = !!status.data?.in_progress.some((p) => p.job_id === job.id)
 
   const runRescore = () =>
@@ -184,6 +185,7 @@ export function FitCard({ job, className }: { job: JobDetail; className?: string
 
   const hardFlags = fit?.red_flags.filter((f) => f.severity === 'hard') ?? []
   const softFlags = fit?.red_flags.filter((f) => f.severity !== 'hard') ?? []
+  const missingCore = fit?.core_requirements?.filter((c) => c.counts) ?? []
 
   return (
     <div className={cn('@container space-y-4 rounded-lg border border-border bg-surface p-4', className)}>
@@ -219,6 +221,27 @@ export function FitCard({ job, className }: { job: JobDetail; className?: string
               <ul className="space-y-2">
                 {hardFlags.map((f, i) => (
                   <FlagRow key={i} flag={f} />
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {fit.status === 'ok' && missingCore.length > 0 && (
+            <div className="rounded-md border border-tone-amber-border bg-warning-bg px-3 py-2.5" data-testid="missing-core">
+              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-warning-fg">
+                <TriangleAlert className="size-3.5" />
+                {missingCore.length === 1 ? 'Missing a core requirement' : 'Missing core requirements'}
+                {fit.capped_by === 'missing_core' ? `: score capped at ${missingCoreCap}` : ''}
+              </p>
+              <ul className="space-y-2">
+                {missingCore.map((c) => (
+                  <li key={c.requirement} className="space-y-0.5">
+                    <p className="text-sm font-medium">
+                      {c.requirement}
+                      <span className="font-normal text-fg-muted">: nothing like it in your experience</span>
+                    </p>
+                    <Quote text={c.evidence} verified={c.evidence_verified} />
+                  </li>
                 ))}
               </ul>
             </div>

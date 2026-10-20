@@ -62,6 +62,8 @@ export interface FitBrief {
   confidence: Confidence
   hard_flag: boolean
   flag_count: number
+  /** First missing core requirement that caps the score (prompt v5), else null. */
+  missing_core: string | null
   stale: boolean
   /** Provenance: which model and prompt version produced this score. */
   model: string | null
@@ -91,9 +93,23 @@ export interface RedFlagOut {
   severity: 'hard' | 'soft'
 }
 
+export interface CoreRequirementOut {
+  requirement: string
+  evidence: string
+  evidence_verified: boolean
+  /** The model says the candidate has nothing of it. */
+  missing: boolean
+  /** Missing, quote verified and not named in the experience: this one caps the score. */
+  counts: boolean
+  note?: string
+}
+
 export interface FitDetail extends FitBrief {
   sub_scores: Partial<Record<Dimension, SubScoreOut>>
   red_flags: RedFlagOut[]
+  core_requirements: CoreRequirementOut[]
+  /** Which cap decides the score. */
+  capped_by: 'hard_flag' | 'missing_core' | null
   strengths: string[]
   gaps: string[]
   summary: string

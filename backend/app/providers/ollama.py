@@ -103,6 +103,11 @@ def inline_schema(model: type[FitAssessment]) -> dict[str, Any]:
         checks["required"] = sorted(checks.get("properties", {}))
         for check in checks.get("properties", {}).values():
             check["required"] = ["present", "evidence"]
+    # Prompt v5: the model must answer the core-requirements list (possibly empty).
+    if "core_requirements" in out.get("properties", {}):
+        out["required"] = sorted(set(out.get("required", [])) | {"core_requirements"})
+        item = out["properties"]["core_requirements"].get("items", {})
+        item["required"] = ["requirement", "evidence", "missing"]
     return out
 
 
@@ -126,7 +131,7 @@ class OllamaFitScorer:
         *,
         base_url: str = DEFAULT_URL,
         timeout: float = 120.0,
-        num_ctx: int = 8192,
+        num_ctx: int = 16384,
         transport: httpx.BaseTransport | None = None,
     ):
         self.model = model
