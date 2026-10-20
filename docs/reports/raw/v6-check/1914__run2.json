@@ -1,0 +1,170 @@
+{
+ "job": 1914,
+ "run": 2,
+ "retries": 0,
+ "secs": 18.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role focuses directly on data engineering and pipeline development matching the candidate track.\",\n    \"evidence\": \"Location Data engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong overlap in SQL, DuckDB, and dbt, with adjacent general software engineering experience.\",\n    \"evidence\": \"Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools\"\n  },\n  \"seniority_fit\": {\n    \"score\": 8,\n    \"reason\": \"The job does not specify a seniority level, fitting the candidate's total experience well.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers visa sponsorship and relocation support to Paris, France.\",\n    \"evidence\": \"Help and sponsored visa process\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The listing is in English and no other language is required.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"SQL\",\n      \"evidence\": \"Very comfortable with SQL and manipulating large datasets.\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Data technologies\",\n      \"evidence\": \"Experience with one or more modern data technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Data pipelines\",\n      \"evidence\": \"Design, build, and maintain pipelines that process large volumes of data efficiently\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"SQL\",\n    \"DuckDB\",\n    \"dbt\"\n  ],\n  \"gaps\": [\n    \"Commercial data engineering experience\",\n    \"Spark\"\n  ],\n  \"summary\": \"This role fits the candidate well as it offers visa sponsorship and matches their data engineering skillset, though commercial data experience is limited to internships and personal projects.\"\n}",
+ "tokens": {
+  "input": 5668,
+  "output": 677,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role focuses directly on data engineering and pipeline development matching the candidate track.",
+   "evidence": "Location Data engineer"
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong overlap in SQL, DuckDB, and dbt, with adjacent general software engineering experience.",
+   "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools"
+  },
+  "seniority_fit": {
+   "score": 8,
+   "reason": "The job does not specify a seniority level, fitting the candidate's total experience well.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers visa sponsorship and relocation support to Paris, France.",
+   "evidence": "Help and sponsored visa process"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The listing is in English and no other language is required.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "SQL",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "missing": false
+   },
+   {
+    "requirement": "Data technologies",
+    "evidence": "Experience with one or more modern data technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB",
+    "missing": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "SQL",
+   "DuckDB",
+   "dbt"
+  ],
+  "gaps": [
+   "Commercial data engineering experience",
+   "Spark"
+  ],
+  "summary": "This role fits the candidate well as it offers visa sponsorship and matches their data engineering skillset, though commercial data experience is limited to internships and personal projects."
+ },
+ "record": {
+  "score": 91,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role focuses directly on data engineering and pipeline development matching the candidate track.",
+    "evidence": "Location Data engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong overlap in SQL, DuckDB, and dbt, with adjacent general software engineering experience.",
+    "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB, or similar tools",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 8,
+    "reason": "The job does not specify a seniority level, fitting the candidate's total experience well.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers visa sponsorship and relocation support to Paris, France.",
+    "evidence": "Help and sponsored visa process",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The listing is in English and no other language is required.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "SQL",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Data technologies",
+    "evidence": "Experience with one or more modern data technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "SQL",
+   "DuckDB",
+   "dbt"
+  ],
+  "gaps": [
+   "Commercial data engineering experience",
+   "Spark"
+  ],
+  "summary": "This role fits the candidate well as it offers visa sponsorship and matches their data engineering skillset, though commercial data experience is limited to internships and personal projects.",
+  "confidence": "high"
+ }
+}

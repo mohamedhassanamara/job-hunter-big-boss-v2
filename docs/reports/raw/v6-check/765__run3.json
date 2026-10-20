@@ -1,0 +1,174 @@
+{
+ "job": 765,
+ "run": 3,
+ "retries": 0,
+ "secs": 21.1,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role matches the AI Engineer track.\",\n    \"evidence\": \"Wir suchen erfahrene AI Engineers\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Candidate has strong LLM and Python skills, but lacks AWS/Azure and enterprise seniority.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 2,\n    \"reason\": \"The job explicitly asks for a senior level, while the candidate has 1 year of track experience.\",\n    \"evidence\": \"Level: Senior\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Job is on-site in Germany, a target country, but offers no stated visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The job requires C1 German, which the candidate does not speak.\",\n    \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"LLMs\",\n      \"evidence\": \"Praktische Erfahrung mit LLMs und generativer KI\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Cloud Development\",\n      \"evidence\": \"Cloud-Entwicklung mit AWS und/oder Azure\",\n      \"missing\": true\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM applications\",\n    \"Python\",\n    \"RAG pipelines\"\n  ],\n  \"gaps\": [\n    \"German C1 language\",\n    \"Senior experience level\",\n    \"AWS or Azure cloud\"\n  ],\n  \"summary\": \"The candidate matches the AI Engineer role technically with LLM projects, but lacks the required C1 German, senior level, and cloud experience.\"\n}",
+ "tokens": {
+  "input": 6102,
+  "output": 638,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role matches the AI Engineer track.",
+   "evidence": "Wir suchen erfahrene AI Engineers"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Candidate has strong LLM and Python skills, but lacks AWS/Azure and enterprise seniority.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 2,
+   "reason": "The job explicitly asks for a senior level, while the candidate has 1 year of track experience.",
+   "evidence": "Level: Senior"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Job is on-site in Germany, a target country, but offers no stated visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires C1 German, which the candidate does not speak.",
+   "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "LLMs",
+    "evidence": "Praktische Erfahrung mit LLMs und generativer KI",
+    "missing": false
+   },
+   {
+    "requirement": "Cloud Development",
+    "evidence": "Cloud-Entwicklung mit AWS und/oder Azure",
+    "missing": true
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "LLM applications",
+   "Python",
+   "RAG pipelines"
+  ],
+  "gaps": [
+   "German C1 language",
+   "Senior experience level",
+   "AWS or Azure cloud"
+  ],
+  "summary": "The candidate matches the AI Engineer role technically with LLM projects, but lacks the required C1 German, senior level, and cloud experience."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role matches the AI Engineer track.",
+    "evidence": "Wir suchen erfahrene AI Engineers",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Candidate has strong LLM and Python skills, but lacks AWS/Azure and enterprise seniority.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 2,
+    "reason": "The job explicitly asks for a senior level, while the candidate has 1 year of track experience.",
+    "evidence": "Level: Senior",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Job is on-site in Germany, a target country, but offers no stated visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires C1 German, which the candidate does not speak.",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires a language: Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "core_requirements": [
+   {
+    "requirement": "LLMs",
+    "evidence": "Praktische Erfahrung mit LLMs und generativer KI",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Cloud Development",
+    "evidence": "Cloud-Entwicklung mit AWS und/oder Azure",
+    "missing": true,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": true,
+    "counts": false,
+    "note": "Not counted: generic tooling never caps on its own (Settings → Scoring)."
+   }
+  ],
+  "strengths": [
+   "LLM applications",
+   "Python",
+   "RAG pipelines"
+  ],
+  "gaps": [
+   "German C1 language",
+   "Senior experience level",
+   "AWS or Azure cloud"
+  ],
+  "summary": "The candidate matches the AI Engineer role technically with LLM projects, but lacks the required C1 German, senior level, and cloud experience.",
+  "confidence": "high"
+ }
+}

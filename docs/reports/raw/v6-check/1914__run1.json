@@ -1,0 +1,156 @@
+{
+ "job": 1914,
+ "run": 1,
+ "retries": 2,
+ "secs": 25.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role focuses directly on data engineering and pipeline building.\",\n    \"evidence\": \"Location Data engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong SQL and DuckDB skills, plus Python pipeline experience matching the stack.\",\n    \"evidence\": \"Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 1 year in data engineering matching a general or mid-level opening.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The company explicitly offers visa sponsorship and relocation support to Paris.\",\n    \"evidence\": \"Help and sponsored visa process.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is the working language implied and candidate is fully professional.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"SQL\",\n      \"evidence\": \"Very comfortable with SQL and manipulating large datasets.\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Data pipelines\",\n      \"evidence\": \"Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"SQL and database manipulation\",\n    \"dbt and DuckDB experience\",\n    \"Python pipeline orchestration\"\n  ],\n  \"gaps\": [\n    \"Spark or Dagster experience\",\n    \"Large-scale distributed systems\"\n  ],\n  \"summary\": \"This data engineer role matches the candidate's target track, and visa sponsorship is offered for relocation to Paris France GIS systems and data pipelines closely align with personal projects using dbt, DuckDB and Python.\"\n}",
+ "tokens": {
+  "input": 5668,
+  "output": 637,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role focuses directly on data engineering and pipeline building.",
+   "evidence": "Location Data engineer"
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong SQL and DuckDB skills, plus Python pipeline experience matching the stack.",
+   "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 1 year in data engineering matching a general or mid-level opening.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The company explicitly offers visa sponsorship and relocation support to Paris.",
+   "evidence": "Help and sponsored visa process."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is the working language implied and candidate is fully professional.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "SQL",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "missing": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "SQL and database manipulation",
+   "dbt and DuckDB experience",
+   "Python pipeline orchestration"
+  ],
+  "gaps": [
+   "Spark or Dagster experience",
+   "Large-scale distributed systems"
+  ],
+  "summary": "This data engineer role matches the candidate's target track, and visa sponsorship is offered for relocation to Paris France GIS systems and data pipelines closely align with personal projects using dbt, DuckDB and Python."
+ },
+ "record": {
+  "score": 94,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role focuses directly on data engineering and pipeline building.",
+    "evidence": "Location Data engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong SQL and DuckDB skills, plus Python pipeline experience matching the stack.",
+    "evidence": "Work with technologies such as Spark, DBT, Dagster, BigQuery, ClickHouse, DuckDB",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 1 year in data engineering matching a general or mid-level opening.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The company explicitly offers visa sponsorship and relocation support to Paris.",
+    "evidence": "Help and sponsored visa process.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is the working language implied and candidate is fully professional.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "SQL",
+    "evidence": "Very comfortable with SQL and manipulating large datasets.",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Data pipelines",
+    "evidence": "Design, build, and maintain pipelines that process large volumes of data efficiently and reliably.",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "SQL and database manipulation",
+   "dbt and DuckDB experience",
+   "Python pipeline orchestration"
+  ],
+  "gaps": [
+   "Spark or Dagster experience",
+   "Large-scale distributed systems"
+  ],
+  "summary": "This data engineer role matches the candidate's target track, and visa sponsorship is offered for relocation to Paris France GIS systems and data pipelines closely align with personal projects using dbt, DuckDB and Python.",
+  "confidence": "high"
+ }
+}

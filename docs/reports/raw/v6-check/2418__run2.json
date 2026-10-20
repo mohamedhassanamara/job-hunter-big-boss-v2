@@ -1,0 +1,158 @@
+{
+ "job": 2418,
+ "run": 2,
+ "retries": 1,
+ "secs": 13.8,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role involves mobile and backend development, directly matching the candidate's target track.\",\n    \"evidence\": \"bringing our clinical mobile app to Android, evolving how our product integrates with hospital systems\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Matches mobile and backend stack, but lacks experience in some requested backend languages and agentic AI tools.\",\n    \"evidence\": \"our mobile app is native iOS today, with Android coming next, likely in Flutter\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for a senior engineer, but the candidate has only 3 years of total experience.\",\n    \"evidence\": \"Several years of professional experience building and operating software in production\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany, which is a target country, and the listing does not mention sponsorship restrictions.\",\n    \"evidence\": \"München (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and spoken fluently by the candidate; German is only an advantage.\",\n    \"evidence\": \"Professional English communication skills; German is a strong advantage\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Mobile development\",\n      \"evidence\": \"bringing our clinical mobile app to Android\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Backend development\",\n      \"evidence\": \"move between backend, mobile, integration and platform work\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter experience\",\n    \"Python backend experience\",\n    \"Clean Architecture knowledge\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"Go and .NET experience\",\n    \"Agentic AI workflow tools\"\n  ],\n  \"summary\": \"The candidate has strong Flutter and backend skills matching the tech stack, but falls short of the senior level requested.\"\n}",
+ "tokens": {
+  "input": 5409,
+  "output": 671,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role involves mobile and backend development, directly matching the candidate's target track.",
+   "evidence": "bringing our clinical mobile app to Android, evolving how our product integrates with hospital systems"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Matches mobile and backend stack, but lacks experience in some requested backend languages and agentic AI tools.",
+   "evidence": "our mobile app is native iOS today, with Android coming next, likely in Flutter"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a senior engineer, but the candidate has only 3 years of total experience.",
+   "evidence": "Several years of professional experience building and operating software in production"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, which is a target country, and the listing does not mention sponsorship restrictions.",
+   "evidence": "München (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and spoken fluently by the candidate; German is only an advantage.",
+   "evidence": "Professional English communication skills; German is a strong advantage"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "missing": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "move between backend, mobile, integration and platform work",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Flutter experience",
+   "Python backend experience",
+   "Clean Architecture knowledge"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Go and .NET experience",
+   "Agentic AI workflow tools"
+  ],
+  "summary": "The candidate has strong Flutter and backend skills matching the tech stack, but falls short of the senior level requested."
+ },
+ "record": {
+  "score": 78,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role involves mobile and backend development, directly matching the candidate's target track.",
+    "evidence": "bringing our clinical mobile app to Android, evolving how our product integrates with hospital systems",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Matches mobile and backend stack, but lacks experience in some requested backend languages and agentic AI tools.",
+    "evidence": "our mobile app is native iOS today, with Android coming next, likely in Flutter",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a senior engineer, but the candidate has only 3 years of total experience.",
+    "evidence": "Several years of professional experience building and operating software in production",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, which is a target country, and the listing does not mention sponsorship restrictions.",
+    "evidence": "München (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and spoken fluently by the candidate; German is only an advantage.",
+    "evidence": "Professional English communication skills; German is a strong advantage",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "move between backend, mobile, integration and platform work",
+    "missing": false,
+    "evidence_verified": false,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Flutter experience",
+   "Python backend experience",
+   "Clean Architecture knowledge"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Go and .NET experience",
+   "Agentic AI workflow tools"
+  ],
+  "summary": "The candidate has strong Flutter and backend skills matching the tech stack, but falls short of the senior level requested.",
+  "confidence": "high"
+ }
+}

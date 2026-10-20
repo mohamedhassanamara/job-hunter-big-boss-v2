@@ -1,0 +1,166 @@
+{
+ "job": 2418,
+ "run": 1,
+ "retries": 0,
+ "secs": 15.8,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role requires full-stack work including mobile, which partially overlaps with mobile engineering.\",\n    \"evidence\": \"Senior Fullstack Engineer — Mobile Healthcare Platform\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Candidate brings strong Flutter and backend skills, but lacks native mobile or the required backend languages.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for a senior role while the candidate has 3 years of experience.\",\n    \"evidence\": \"Senior Fullstack Engineer\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany, but the listing states nothing about sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Only professional English is required, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"Professional English communication skills; German is a strong advantage\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Mobile development\",\n      \"evidence\": \"bringing our clinical mobile app to Android\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Backend development\",\n      \"evidence\": \"Our backend is built with Python, Go, .NET and Rust\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter\",\n    \"Python\",\n    \"RESTful APIs\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"Go or .NET experience\",\n    \"Native mobile development\"\n  ],\n  \"summary\": \"The candidate has strong Flutter and Python background but falls short of the senior level requested for this full-stack healthcare platform.\"\n}",
+ "tokens": {
+  "input": 5409,
+  "output": 620,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role requires full-stack work including mobile, which partially overlaps with mobile engineering.",
+   "evidence": "Senior Fullstack Engineer — Mobile Healthcare Platform"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Candidate brings strong Flutter and backend skills, but lacks native mobile or the required backend languages.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a senior role while the candidate has 3 years of experience.",
+   "evidence": "Senior Fullstack Engineer"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, but the listing states nothing about sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Only professional English is required, which the candidate speaks at a full professional level.",
+   "evidence": "Professional English communication skills; German is a strong advantage"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "missing": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "Our backend is built with Python, Go, .NET and Rust",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Flutter",
+   "Python",
+   "RESTful APIs"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Go or .NET experience",
+   "Native mobile development"
+  ],
+  "summary": "The candidate has strong Flutter and Python background but falls short of the senior level requested for this full-stack healthcare platform."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role requires full-stack work including mobile, which partially overlaps with mobile engineering.",
+    "evidence": "Senior Fullstack Engineer — Mobile Healthcare Platform",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Candidate brings strong Flutter and backend skills, but lacks native mobile or the required backend languages.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a senior role while the candidate has 3 years of experience.",
+    "evidence": "Senior Fullstack Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, but the listing states nothing about sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Only professional English is required, which the candidate speaks at a full professional level.",
+    "evidence": "Professional English communication skills; German is a strong advantage",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "core_requirements": [
+   {
+    "requirement": "Mobile development",
+    "evidence": "bringing our clinical mobile app to Android",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Backend development",
+    "evidence": "Our backend is built with Python, Go, .NET and Rust",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Flutter",
+   "Python",
+   "RESTful APIs"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Go or .NET experience",
+   "Native mobile development"
+  ],
+  "summary": "The candidate has strong Flutter and Python background but falls short of the senior level requested for this full-stack healthcare platform.",
+  "confidence": "high"
+ }
+}

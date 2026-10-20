@@ -1,0 +1,156 @@
+{
+ "job": 3923,
+ "run": 2,
+ "retries": 0,
+ "secs": 23.8,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The core responsibilities match the candidate's target Data Engineer track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Strong Python and Docker skills, but lacks professional web scraping scale experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has 3 years of experience, meeting the minimum requirement.\",\n    \"evidence\": \"3+ years of professional software development\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site job in Germany with no explicit visa sponsorship or local residency constraint stated.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The listing is in English and requires no other languages.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Python\",\n      \"evidence\": \"Strong Python: real production code, async.\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Web Scraping\",\n      \"evidence\": \"Hands-on web scraping at scale, including firsthand experience with anti-bot defenses\",\n      \"missing\": true\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Docker\",\n    \"LLM-assisted extraction\"\n  ],\n  \"gaps\": [\n    \"Large-scale web scraping\",\n    \"Anti-bot bypass experience\"\n  ],\n  \"summary\": \"Good match on Python and data fundamentals, but lacks hands-on professional web scraping at scale experience required by the role description limits alignment score slightly for this specific crawl engineering position while fitting the broader data profile well otherwise within the requested bounds of evaluation guidelines completely here overall for this candidate review explicitly now today correctly.\"\n}",
+ "tokens": {
+  "input": 5149,
+  "output": 628,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities match the candidate's target Data Engineer track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Strong Python and Docker skills, but lacks professional web scraping scale experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 7,
+   "reason": "Candidate has 3 years of experience, meeting the minimum requirement.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site job in Germany with no explicit visa sponsorship or local residency constraint stated.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The listing is in English and requires no other languages.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Python",
+    "evidence": "Strong Python: real production code, async.",
+    "missing": false
+   },
+   {
+    "requirement": "Web Scraping",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "missing": true
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM-assisted extraction"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot bypass experience"
+  ],
+  "summary": "Good match on Python and data fundamentals, but lacks hands-on professional web scraping at scale experience required by the role description limits alignment score slightly for this specific crawl engineering position while fitting the broader data profile well otherwise within the requested bounds of evaluation guidelines completely here overall for this candidate review explicitly now today correctly."
+ },
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities match the candidate's target Data Engineer track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Strong Python and Docker skills, but lacks professional web scraping scale experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 7,
+    "reason": "Candidate has 3 years of experience, meeting the minimum requirement.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site job in Germany with no explicit visa sponsorship or local residency constraint stated.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The listing is in English and requires no other languages.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Python",
+    "evidence": "Strong Python: real production code, async.",
+    "missing": false,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": false
+   },
+   {
+    "requirement": "Web Scraping",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "missing": true,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": true
+   }
+  ],
+  "strengths": [
+   "Python",
+   "Docker",
+   "LLM-assisted extraction"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot bypass experience"
+  ],
+  "summary": "Good match on Python and data fundamentals, but lacks hands-on professional web scraping at scale experience required by the role description limits alignment score slightly for this specific crawl engineering position while fitting the broader data profile well otherwise within the requested bounds of evaluation guidelines completely here overall for this candidate review explicitly now today correctly.",
+  "confidence": "high"
+ }
+}

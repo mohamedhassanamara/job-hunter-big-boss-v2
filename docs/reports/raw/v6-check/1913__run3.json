@@ -1,0 +1,140 @@
+{
+ "job": 1913,
+ "run": 3,
+ "retries": 1,
+ "secs": 15.5,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role matches the backend engineering track.\",\n    \"evidence\": \"Backend Engineer (Go)\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"The candidate has no professional Go experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 3 years of total experience, fitting mid-level roles.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site/hybrid in France without explicit visa sponsorship mentioned.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"Fluent/professional English given our international team\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Go\",\n      \"evidence\": \"Strong coding skills in Go\",\n      \"missing\": true\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Full professional English\",\n    \"API development experience\"\n  ],\n  \"gaps\": [\n    \"No Go experience\",\n    \"Needs visa sponsorship\"\n  ],\n  \"summary\": \"This backend engineering role focuses on Go, which the candidate lacks, though they have general backend experience and English proficiency matching the requirements.\"\n}",
+ "tokens": {
+  "input": 5241,
+  "output": 532,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role matches the backend engineering track.",
+   "evidence": "Backend Engineer (Go)"
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "The candidate has no professional Go experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of total experience, fitting mid-level roles.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site/hybrid in France without explicit visa sponsorship mentioned.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires English, which the candidate speaks at a full professional level.",
+   "evidence": "Fluent/professional English given our international team"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "missing": true
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Full professional English",
+   "API development experience"
+  ],
+  "gaps": [
+   "No Go experience",
+   "Needs visa sponsorship"
+  ],
+  "summary": "This backend engineering role focuses on Go, which the candidate lacks, though they have general backend experience and English proficiency matching the requirements."
+ },
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role matches the backend engineering track.",
+    "evidence": "Backend Engineer (Go)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "The candidate has no professional Go experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of total experience, fitting mid-level roles.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site/hybrid in France without explicit visa sponsorship mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires English, which the candidate speaks at a full professional level.",
+    "evidence": "Fluent/professional English given our international team",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "missing": true,
+    "evidence_verified": true,
+    "named": false,
+    "excluded": false,
+    "counts": true
+   }
+  ],
+  "strengths": [
+   "Full professional English",
+   "API development experience"
+  ],
+  "gaps": [
+   "No Go experience",
+   "Needs visa sponsorship"
+  ],
+  "summary": "This backend engineering role focuses on Go, which the candidate lacks, though they have general backend experience and English proficiency matching the requirements.",
+  "confidence": "high"
+ }
+}
