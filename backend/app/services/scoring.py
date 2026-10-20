@@ -493,6 +493,14 @@ class ScoringQueue:
         self.blocked: str | None = None
         self.last_error: str | None = None
         self.durations: deque[float] = deque(maxlen=30)
+        # One-off local model for this process only (scripts); Settings → Models is never touched.
+        self.model_override: str | None = None
+
+    def _context(self, s: Session) -> ScoringContext:
+        ctx = load_context(s)
+        if self.model_override:
+            ctx.model, ctx.fallback_model = self.model_override, None
+        return ctx
 
     # public -----------------------------------------------------------------------------------
 
@@ -554,7 +562,7 @@ class ScoringQueue:
                 if not s.exec(select(ScoringTask.id).where(
                         ScoringTask.status == ScoringTaskStatus.queued)).first():
                     return
-                ctx = load_context(s)
+                ctx = self._context(s)
                 run = self._active_run(s) or self._new_run(s, "resume")
                 self.run_id = run.id
                 fallback_reason = run.fallback_reason
@@ -687,7 +695,7 @@ class ScoringQueue:
         `failed_model` is the model that hit the limit: parallel calls hit it together, and only
         the first one switches; the others just retry on the new model."""
         with self._lock, Session(self.engine) as s:
-            ctx = load_context(s)
+            ctx = self._context(s)
             if self.model != failed_model:  # another worker already switched
                 return True
         fallback = ctx.fallback_model
@@ -848,7 +856,7 @@ class ScoringQueue:
                       .order_by(col(ScoringRun.id).desc())).first()
 
     def _new_run(self, s: Session, trigger: str) -> ScoringRun:
-        ctx = load_context(s)
+        ctx = self._context(s)
         run = ScoringRun(trigger=trigger, primary_model=ctx.model,
                          fallback_model=ctx.fallback_model)
         s.add(run)
