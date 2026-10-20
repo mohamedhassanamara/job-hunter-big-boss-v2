@@ -579,6 +579,7 @@ SETTINGS: dict[str, dict] = {
             "language_requirements": 0.10,
         },
         "hard_flag_cap": 35,
+        "missing_core_cap": 60,
         "concurrency": 1,
         "good_threshold": 70,
         "maybe_threshold": 45,

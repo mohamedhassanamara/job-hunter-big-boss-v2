@@ -112,6 +112,16 @@ class FlagCheck(BaseModel):
     evidence: str = Field(default="", description="Verbatim quote when present, else empty")
 
 
+class CoreRequirement(BaseModel):
+    """What the role is built around (prompt v5): the primary language or stack, or the central
+    skill. `missing` = the candidate's experience has nothing of it at all."""
+
+    requirement: str = Field(description="Short name, e.g. 'Go' or 'large-scale web scraping'")
+    evidence: str = Field(default="",
+                          description="Verbatim quote from the job text showing it is core")
+    missing: bool = False
+
+
 class FlagChecks(BaseModel):
     """One explicit yes/no per disqualifier type (prompt v3+). Structured output makes the model
     answer every check instead of taking the "empty red_flags list" shortcut."""
@@ -133,6 +143,7 @@ class FitAssessment(BaseModel):
     location_eligibility: SubScore
     language_requirements: SubScore
     flag_checks: FlagChecks = Field(default_factory=FlagChecks)
+    core_requirements: list[CoreRequirement] = Field(default_factory=list, max_length=4)
     red_flags: list[RedFlag] = Field(default_factory=list, max_length=8)
     strengths: list[str] = Field(default_factory=list, max_length=3)
     gaps: list[str] = Field(default_factory=list, max_length=3)

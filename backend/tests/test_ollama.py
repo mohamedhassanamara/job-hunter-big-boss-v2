@@ -52,7 +52,7 @@ def test_valid_structured_output() -> None:
     assert isinstance(result, FitAssessment) and result.role_match.score == 7
     body = calls[0]
     assert body["format"]["type"] == "object"  # JSON schema passed as `format`
-    assert body["options"]["temperature"] == 0 and body["options"]["num_ctx"] == 8192
+    assert body["options"]["temperature"] == 0 and body["options"]["num_ctx"] == 16384
     assert scorer.last_duration_ms is not None
 
 

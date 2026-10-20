@@ -183,7 +183,8 @@ One scoring attempt. History is kept, and the latest row per job is authoritativ
 | error | str? | Visible in the UI |
 | score | int 0–100? | **Computed in code** from sub_scores and weights, capped by hard flags. Bands: ≥80 strong, 65–79 good, 50–64 fair, <50 weak |
 | sub_scores | JSON | `{dimension: {score 0-10, reason, evidence, evidence_verified}}` for role_match, skills_match, seniority_fit, location_eligibility, language_requirements |
-| red_flags | JSON | `[{type, text, evidence, evidence_verified, severity hard\|soft}]` |
+| red_flags | JSON | `[{type, text, evidence, evidence_verified, severity hard\|soft, severity_note?}]`; `severity_note` is set when a flag that would be hard stayed soft because its quote doesn't state the requirement (prompt v4) |
+| core_requirements | JSON | Prompt v5: `[{requirement, evidence, evidence_verified, missing, counts, note?}]`. `counts` = missing from the candidate, quote verified in the listing and not named in the experience text: only these cap the score (`app_setting.scoring.missing_core_cap`, default 60). Empty on older rows (migration 0027) |
 | strengths / gaps | JSON list[str] | ≤3 each |
 | summary | str | One sentence |
 | confidence | str | high / medium / low (from job.description_level) |

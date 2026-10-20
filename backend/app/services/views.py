@@ -33,6 +33,7 @@ from app.schemas.jobs import (
     TracksOut,
 )
 from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
+from app.services import fit as fitsvc
 from app.services import listing_flags, tracking
 from app.services import tracks as track_service
 from app.services.pipeline import ALLOWED, stage_label
@@ -80,6 +81,8 @@ def fit_brief(fit: FitScore | None, experience_version: str | None = None) -> Fi
         confidence=fit.confidence,
         hard_flag=any(f.get("severity") == "hard" for f in fit.red_flags or []),
         flag_count=len(fit.red_flags or []),
+        missing_core=next(
+            (c["requirement"] for c in fit.core_requirements or [] if c.get("counts")), None),
         stale=bool(
             status == "ok"
             and experience_version
@@ -336,6 +339,8 @@ def job_detail(session: Session, job: Job) -> JobDetail:
             **brief.model_dump(),
             sub_scores=fit.sub_scores or {},
             red_flags=fit.red_flags or [],
+            core_requirements=fit.core_requirements or [],
+            capped_by=fitsvc.cap_reason(fit.red_flags or [], fit.core_requirements or []),
             strengths=fit.strengths,
             gaps=fit.gaps,
             summary=fit.summary,

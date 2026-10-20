@@ -52,6 +52,18 @@ def test_schema_requires_every_flag_check() -> None:
     checks = schema["properties"]["flag_checks"]
     assert set(checks["required"]) >= {"no_visa_sponsorship", "nationality_restricted",
                                        "language_required"}
+    assert "core_requirements" in schema["required"]  # prompt v5
+    item = schema["properties"]["core_requirements"]["items"]
+    assert set(item["required"]) == {"requirement", "evidence", "missing"}
+
+
+def test_v5_asks_for_core_requirements_any_integer_and_explicit_language_levels() -> None:
+    prompt = load_prompt("fit_score")
+    assert prompt.version == 5
+    for needle in ("core_requirements:", "caps the score in code", "ANY integer from 0 to 10",
+                   "A stated level counts as stating the requirement",
+                   "sehr gute Deutschkenntnisse"):
+        assert needle in prompt.system
 
 
 def test_flag_checks_become_verified_flags() -> None:
@@ -79,3 +91,14 @@ def test_flag_checks_become_verified_flags() -> None:
     assert by_type["language_required"]["severity"] == "hard"
     assert by_type["no_visa_sponsorship"]["severity"] == "soft"  # quote not in the listing
     assert record["score"] <= 35
+
+
+def test_the_longest_scoring_prompt_fits_the_ollama_context() -> None:
+    """15,000 chars of listing + a large experience pool + the system prompt and the schema
+    instruction, at a pessimistic 3 characters per token, plus room for the answer."""
+    from app.providers.ollama import OllamaFitScorer
+
+    prompt = load_prompt("fit_score")
+    # schema text, candidate header, a large experience pool, 15,000 chars of listing
+    chars = len(prompt.system) + 2500 + 1500 + 14_000 + 15_000
+    assert chars / 3 + 1500 < OllamaFitScorer().num_ctx

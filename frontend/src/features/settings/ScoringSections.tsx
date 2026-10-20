@@ -292,6 +292,7 @@ const EXAMPLE: Record<Dimension, number> = {
 interface ScoringValue {
   weights: Record<Dimension, number>
   hard_flag_cap: number
+  missing_core_cap: number
   concurrency: number
   good_threshold: number
   maybe_threshold: number
@@ -300,6 +301,7 @@ interface ScoringValue {
 const DEFAULT_SCORING: ScoringValue = {
   weights: { role_match: 0.3, skills_match: 0.3, seniority_fit: 0.15, location_eligibility: 0.15, language_requirements: 0.1 },
   hard_flag_cap: 35,
+  missing_core_cap: 60,
   concurrency: 1,
   good_threshold: 70,
   maybe_threshold: 45,
@@ -373,6 +375,9 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
       </Field>
       <Field label="Disqualifying flag cap" hint="Max score when a verified hard red flag applies to you">
         <Input type="number" min={0} max={100} value={v.hard_flag_cap} onChange={(e) => setV({ ...v, hard_flag_cap: Number(e.target.value) || 0 })} className="w-24" />
+      </Field>
+      <Field label="Missing core requirement cap" hint="Max score when the role is built around something you have no experience of at all (e.g. Go for a Go role). 100 turns it off">
+        <Input type="number" min={0} max={100} value={v.missing_core_cap} onChange={(e) => setV({ ...v, missing_core_cap: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })} className="w-24" />
       </Field>
       <Field label="Shortlist threshold" hint="Divider in Discover and Today's highlights">
         <div className="flex items-center gap-3">

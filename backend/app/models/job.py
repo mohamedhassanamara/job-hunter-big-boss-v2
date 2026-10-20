@@ -58,6 +58,8 @@ class FitScore(TableBase, table=True):
     score: int | None = Field(default=None, ge=0, le=100)
     sub_scores: dict[str, Any] = json_field(dict)
     red_flags: list[dict[str, Any]] = json_field()
+    # Prompt v5: [{requirement, evidence, evidence_verified, missing, counts, note?}]; `counts` caps
+    core_requirements: list[dict[str, Any]] = json_field()
     strengths: list[str] = json_field()
     gaps: list[str] = json_field()
     summary: str = ""
