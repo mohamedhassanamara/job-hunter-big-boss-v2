@@ -1,0 +1,152 @@
+{
+ "job": 1913,
+ "run": 2,
+ "retries": 0,
+ "secs": 30.5,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a Backend Engineer matching the candidate's target track.\",\n    \"evidence\": \"Backend Engineer (Go)\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has strong general backend skills in Java and Python, but lacks Go experience.\",\n    \"evidence\": \"Strong coding skills in Go - any experience with Rust, TypeScript or similar is a huge plus\"\n  },\n  \"seniority_fit\": {\n    \"score\": 7,\n    \"reason\": \"The role requires systems engineering experience, which slightly exceeds the candidate's 1 year in track.\",\n    \"evidence\": \"Experience designing and engineering large-scale systems\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site job in Paris, France without explicit visa sponsorship statements.\",\n    \"evidence\": \"based in Paris, building products\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires professional English, which the candidate possesses at full professional level.\",\n    \"evidence\": \"Fluent/professional English given our international team\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Go\",\n      \"evidence\": \"Strong coding skills in Go\",\n      \"missing\": true\n    },\n    {\n      \"requirement\": \"Distributed Systems\",\n      \"evidence\": \"Building and scaling a distributed system\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Spring Boot\",\n    \"FastAPI\",\n    \"REST-API\"\n  ],\n  \"gaps\": [\n    \"Go programming language\",\n    \"Large-scale distributed systems\"\n  ],\n  \"summary\": \"The candidate targets backend roles and has relevant general backend experience, but lacks the required Go programming skills for this Paris-based position.\"\n}",
+ "tokens": {
+  "input": 5183,
+  "output": 626,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a Backend Engineer matching the candidate's target track.",
+   "evidence": "Backend Engineer (Go)"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has strong general backend skills in Java and Python, but lacks Go experience.",
+   "evidence": "Strong coding skills in Go - any experience with Rust, TypeScript or similar is a huge plus"
+  },
+  "seniority_fit": {
+   "score": 7,
+   "reason": "The role requires systems engineering experience, which slightly exceeds the candidate's 1 year in track.",
+   "evidence": "Experience designing and engineering large-scale systems"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site job in Paris, France without explicit visa sponsorship statements.",
+   "evidence": "based in Paris, building products"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires professional English, which the candidate possesses at full professional level.",
+   "evidence": "Fluent/professional English given our international team"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "missing": true
+   },
+   {
+    "requirement": "Distributed Systems",
+    "evidence": "Building and scaling a distributed system",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Spring Boot",
+   "FastAPI",
+   "REST-API"
+  ],
+  "gaps": [
+   "Go programming language",
+   "Large-scale distributed systems"
+  ],
+  "summary": "The candidate targets backend roles and has relevant general backend experience, but lacks the required Go programming skills for this Paris-based position."
+ },
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a Backend Engineer matching the candidate's target track.",
+    "evidence": "Backend Engineer (Go)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has strong general backend skills in Java and Python, but lacks Go experience.",
+    "evidence": "Strong coding skills in Go - any experience with Rust, TypeScript or similar is a huge plus",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 7,
+    "reason": "The role requires systems engineering experience, which slightly exceeds the candidate's 1 year in track.",
+    "evidence": "Experience designing and engineering large-scale systems",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site job in Paris, France without explicit visa sponsorship statements.",
+    "evidence": "based in Paris, building products",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires professional English, which the candidate possesses at full professional level.",
+    "evidence": "Fluent/professional English given our international team",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "evidence_verified": true,
+    "missing": true,
+    "counts": true
+   },
+   {
+    "requirement": "Distributed Systems",
+    "evidence": "Building and scaling a distributed system",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Spring Boot",
+   "FastAPI",
+   "REST-API"
+  ],
+  "gaps": [
+   "Go programming language",
+   "Large-scale distributed systems"
+  ],
+  "summary": "The candidate targets backend roles and has relevant general backend experience, but lacks the required Go programming skills for this Paris-based position.",
+  "confidence": "high"
+ }
+}

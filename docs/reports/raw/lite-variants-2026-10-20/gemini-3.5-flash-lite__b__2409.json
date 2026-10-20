@@ -1,0 +1,157 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "b",
+ "prompt": "v4",
+ "thinking_config": {
+  "thinkingBudget": 1024
+ },
+ "job_id": 2409,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 11.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"Role focuses on database engine internals rather than candidate's target track roles.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"Lacks required expertise in distributed database systems, query optimization, and C++ systems programming.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"Requires 12+ years and principal level, far exceeding candidate's 3 years.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"Job requires US residency and provides no visa sponsorship.\",\n    \"evidence\": \"Remote - US based candidates only, no visa sponsorship available\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and fully spoken by the candidate.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": true,\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"US based candidates only\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"C++ programming\"\n  ],\n  \"gaps\": [\n    \"12+ years experience\",\n    \"Distributed database systems\",\n    \"Query optimization\"\n  ],\n  \"summary\": \"This principal database role requires US presence and 12+ years experience, completely mismatching the candidate's profile.\"\n}",
+ "tokens": {
+  "input": 4572,
+  "output": 508,
+  "thinking": 1866
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 10,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "Role focuses on database engine internals rather than candidate's target track roles.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "Lacks required expertise in distributed database systems, query optimization, and C++ systems programming.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Requires 12+ years and principal level, far exceeding candidate's 3 years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "Job requires US residency and provides no visa sponsorship.",
+    "evidence": "Remote - US based candidates only, no visa sponsorship available",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and fully spoken by the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "States it can't sponsor visas: no visa sponsorship available",
+    "evidence": "no visa sponsorship available",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: US based candidates only",
+    "evidence": "US based candidates only",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "C++ programming"
+  ],
+  "gaps": [
+   "12+ years experience",
+   "Distributed database systems",
+   "Query optimization"
+  ],
+  "summary": "This principal database role requires US presence and 12+ years experience, completely mismatching the candidate's profile.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "Role focuses on database engine internals rather than candidate's target track roles.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "Lacks required expertise in distributed database systems, query optimization, and C++ systems programming.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Requires 12+ years and principal level, far exceeding candidate's 3 years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "Job requires US residency and provides no visa sponsorship.",
+   "evidence": "Remote - US based candidates only, no visa sponsorship available"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and fully spoken by the candidate.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": true,
+    "evidence": "no visa sponsorship available"
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "US based candidates only"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "C++ programming"
+  ],
+  "gaps": [
+   "12+ years experience",
+   "Distributed database systems",
+   "Query optimization"
+  ],
+  "summary": "This principal database role requires US presence and 12+ years experience, completely mismatching the candidate's profile."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

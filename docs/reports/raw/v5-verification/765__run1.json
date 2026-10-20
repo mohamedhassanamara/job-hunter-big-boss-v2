@@ -1,0 +1,169 @@
+{
+ "job": 765,
+ "run": 1,
+ "retries": 0,
+ "secs": 36.3,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role matches the AI Engineer track.\",\n    \"evidence\": \"AI Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 4,\n    \"reason\": \"Missing required cloud platforms (AWS/Azure) and fluent German language.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 2,\n    \"reason\": \"The job asks for a Senior, but the candidate has only 1 year in the track.\",\n    \"evidence\": \"Level: Senior\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Onsite in Germany, but candidate needs visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"Requires C1 German which the candidate does not speak.\",\n    \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"LLM / Generative AI\",\n      \"evidence\": \"Praktische Erfahrung mit LLMs und generativer KI\",\n      \"missing\": false\n    },\n    {\n      \"requirement\": \"Cloud Development\",\n      \"evidence\": \"Cloud-Entwicklung mit AWS und/oder Azure\",\n      \"missing\": true\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLMs and RAG\",\n    \"Python\",\n    \"FastAPI\"\n  ],\n  \"gaps\": [\n    \"C1 German\",\n    \"Senior experience level\",\n    \"AWS or Azure experience\"\n  ],\n  \"summary\": \"This senior AI Engineer role requires fluent German and cloud experience, both of which are gaps for this junior candidate needing visa sponsorship.\"\n}",
+ "tokens": {
+  "input": 6044,
+  "output": 618,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role matches the AI Engineer track.",
+   "evidence": "AI Engineer"
+  },
+  "skills_match": {
+   "score": 4,
+   "reason": "Missing required cloud platforms (AWS/Azure) and fluent German language.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 2,
+   "reason": "The job asks for a Senior, but the candidate has only 1 year in the track.",
+   "evidence": "Level: Senior"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Onsite in Germany, but candidate needs visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "Requires C1 German which the candidate does not speak.",
+   "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "LLM / Generative AI",
+    "evidence": "Praktische Erfahrung mit LLMs und generativer KI",
+    "missing": false
+   },
+   {
+    "requirement": "Cloud Development",
+    "evidence": "Cloud-Entwicklung mit AWS und/oder Azure",
+    "missing": true
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "LLMs and RAG",
+   "Python",
+   "FastAPI"
+  ],
+  "gaps": [
+   "C1 German",
+   "Senior experience level",
+   "AWS or Azure experience"
+  ],
+  "summary": "This senior AI Engineer role requires fluent German and cloud experience, both of which are gaps for this junior candidate needing visa sponsorship."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role matches the AI Engineer track.",
+    "evidence": "AI Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 4,
+    "reason": "Missing required cloud platforms (AWS/Azure) and fluent German language.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 2,
+    "reason": "The job asks for a Senior, but the candidate has only 1 year in the track.",
+    "evidence": "Level: Senior",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Onsite in Germany, but candidate needs visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "Requires C1 German which the candidate does not speak.",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires a language: Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "core_requirements": [
+   {
+    "requirement": "LLM / Generative AI",
+    "evidence": "Praktische Erfahrung mit LLMs und generativer KI",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   },
+   {
+    "requirement": "Cloud Development",
+    "evidence": "Cloud-Entwicklung mit AWS und/oder Azure",
+    "evidence_verified": true,
+    "missing": true,
+    "counts": true
+   }
+  ],
+  "strengths": [
+   "LLMs and RAG",
+   "Python",
+   "FastAPI"
+  ],
+  "gaps": [
+   "C1 German",
+   "Senior experience level",
+   "AWS or Azure experience"
+  ],
+  "summary": "This senior AI Engineer role requires fluent German and cloud experience, both of which are gaps for this junior candidate needing visa sponsorship.",
+  "confidence": "high"
+ }
+}

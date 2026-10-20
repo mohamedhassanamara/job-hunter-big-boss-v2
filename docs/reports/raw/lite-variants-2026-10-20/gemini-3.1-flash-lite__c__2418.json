@@ -1,0 +1,140 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2418,
+ "retries": 2,
+ "retry_reasons": [
+  503,
+  503
+ ],
+ "errors": [],
+ "secs": 13.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is fullstack but requires mobile development, which is the candidate's core track.\",\n    \"evidence\": \"bringing our clinical mobile app to Android\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong overlap in mobile and backend, though lacks specific healthcare interoperability experience.\",\n    \"evidence\": \"Mobile development experience, ideally Android or Flutter\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 'several years' of experience, while the candidate has 3 years.\",\n    \"evidence\": \"Several years of professional experience building and operating software in production\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany and does not explicitly state a requirement for existing work authorization.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is the primary language; German is listed as a plus, not a requirement.\",\n    \"evidence\": \"German is a strong advantage\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter development\",\n    \"Backend-for-Frontend integration\",\n    \"Clean Architecture\"\n  ],\n  \"gaps\": [\n    \"Healthcare interoperability standards\",\n    \"Regulated software experience\",\n    \"Senior-level experience\"\n  ],\n  \"summary\": \"A strong mobile-focused engineer with relevant fullstack experience, though lacking specific healthcare industry background.\"\n}",
+ "tokens": {
+  "input": 5049,
+  "output": 548,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is fullstack but requires mobile development, which is the candidate's core track.",
+    "evidence": "bringing our clinical mobile app to Android",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong overlap in mobile and backend, though lacks specific healthcare interoperability experience.",
+    "evidence": "Mobile development experience, ideally Android or Flutter",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 'several years' of experience, while the candidate has 3 years.",
+    "evidence": "Several years of professional experience building and operating software in production",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany and does not explicitly state a requirement for existing work authorization.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is the primary language; German is listed as a plus, not a requirement.",
+    "evidence": "German is a strong advantage",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Backend-for-Frontend integration",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Regulated software experience",
+   "Senior-level experience"
+  ],
+  "summary": "A strong mobile-focused engineer with relevant fullstack experience, though lacking specific healthcare industry background.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is fullstack but requires mobile development, which is the candidate's core track.",
+   "evidence": "bringing our clinical mobile app to Android"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong overlap in mobile and backend, though lacks specific healthcare interoperability experience.",
+   "evidence": "Mobile development experience, ideally Android or Flutter"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 'several years' of experience, while the candidate has 3 years.",
+   "evidence": "Several years of professional experience building and operating software in production"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany and does not explicitly state a requirement for existing work authorization.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is the primary language; German is listed as a plus, not a requirement.",
+   "evidence": "German is a strong advantage"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Backend-for-Frontend integration",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Regulated software experience",
+   "Senior-level experience"
+  ],
+  "summary": "A strong mobile-focused engineer with relevant fullstack experience, though lacking specific healthcare industry background."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4
+ }
+}

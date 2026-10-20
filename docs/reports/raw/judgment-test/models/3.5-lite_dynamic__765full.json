@@ -1,0 +1,148 @@
+{
+ "config": "3.5-lite dynamic",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "765full",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 30.2,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The candidate's profile directly targets the AI Engineer role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has strong practical experience with LLMs, RAG, and Python.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The role is senior-level, exceeding the candidate's one year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Onsite role in Germany, a target country without sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The position requires C1 German proficiency which the candidate lacks.\",\n    \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG development\",\n    \"Python backend development\",\n    \"Machine learning pipelines\"\n  ],\n  \"gaps\": [\n    \"C1 German proficiency\",\n    \"Senior-level experience\",\n    \"Onsite presence in Germany\"\n  ],\n  \"summary\": \"The candidate matches the AI role technically but lacks C1 German proficiency and senior-level experience.\"\n}",
+ "tokens": {
+  "input": 5840,
+  "output": 538,
+  "thinking": 2951
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The candidate's profile directly targets the AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has strong practical experience with LLMs, RAG, and Python.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The role is senior-level, exceeding the candidate's one year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Onsite role in Germany, a target country without sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The position requires C1 German proficiency which the candidate lacks.",
+   "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse"
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG development",
+   "Python backend development",
+   "Machine learning pipelines"
+  ],
+  "gaps": [
+   "C1 German proficiency",
+   "Senior-level experience",
+   "Onsite presence in Germany"
+  ],
+  "summary": "The candidate matches the AI role technically but lacks C1 German proficiency and senior-level experience."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The candidate's profile directly targets the AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has strong practical experience with LLMs, RAG, and Python.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The role is senior-level, exceeding the candidate's one year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Onsite role in Germany, a target country without sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The position requires C1 German proficiency which the candidate lacks.",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires a language: Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+    "evidence": "Sehr gute Deutschkenntnisse (C1) in Wort und Schrift, sowie gute Englischkenntnisse",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG development",
+   "Python backend development",
+   "Machine learning pipelines"
+  ],
+  "gaps": [
+   "C1 German proficiency",
+   "Senior-level experience",
+   "Onsite presence in Germany"
+  ],
+  "summary": "The candidate matches the AI role technically but lacks C1 German proficiency and senior-level experience.",
+  "confidence": "high"
+ }
+}

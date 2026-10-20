@@ -1,0 +1,181 @@
+{
+ "model": "gemini-3.8-flash",
+ "mode": "default",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 3,
+ "retry_reasons": [
+  503,
+  503,
+  503
+ ],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 98.2,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4899,
+  "output": 697,
+  "thinking": 994,
+  "total": 6590
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is a backend-leaning full-stack position combining backend infrastructure and customer-facing agent integrations, which is adjacent to pure backend engineering.\",\n    \"evidence\": \"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has practical experience with LLMs, FastAPI, and APIs, but lacks professional experience with WebSockets, MCP integrations, and running large-scale asynchronous generation pipelines.\",\n    \"evidence\": \"Familiarity with HTTP, WebSockets and asynchronous workers will help you build reliable communication between services and recover from failures.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The company does not use standard job titles or state required years of experience, making the seniority expectation ambiguous, though they look for proven end-to-end ownership.\",\n    \"evidence\": \"Impact not job titles: We don\u2019t have job titles. Instead, it\u2019s about the impact you have. No task is above or beneath you.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The position is fully remote and explicitly states a global-first policy prioritizing talent regardless of location.\",\n    \"evidence\": \"Global team: We prioritize your talent, not your location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The role is conducted in English, which the candidate speaks at a full professional working proficiency.\",\n    \"evidence\": \"Find more English Speaking Jobs in Switzerland on Arbeitnow\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Hands-on AI and LLM project experience\",\n    \"API development with FastAPI and Spring Boot\",\n    \"Cross-stack mobile and backend development\"\n  ],\n  \"gaps\": [\n    \"Production experience with WebSockets and async workers\",\n    \"Model Context Protocol (MCP) integrations\",\n    \"Limited professional backend track tenure\"\n  ],\n  \"summary\": \"A globally remote role open to backend-focused AI engineering, but demanding strong end-to-end agent production experience beyond the candidate's current background.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a backend-leaning full-stack position combining backend infrastructure and customer-facing agent integrations, which is adjacent to pure backend engineering.",
+   "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has practical experience with LLMs, FastAPI, and APIs, but lacks professional experience with WebSockets, MCP integrations, and running large-scale asynchronous generation pipelines.",
+   "evidence": "Familiarity with HTTP, WebSockets and asynchronous workers will help you build reliable communication between services and recover from failures."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The company does not use standard job titles or state required years of experience, making the seniority expectation ambiguous, though they look for proven end-to-end ownership.",
+   "evidence": "Impact not job titles: We don\u2019t have job titles. Instead, it\u2019s about the impact you have. No task is above or beneath you."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The position is fully remote and explicitly states a global-first policy prioritizing talent regardless of location.",
+   "evidence": "Global team: We prioritize your talent, not your location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The role is conducted in English, which the candidate speaks at a full professional working proficiency.",
+   "evidence": "Find more English Speaking Jobs in Switzerland on Arbeitnow"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Hands-on AI and LLM project experience",
+   "API development with FastAPI and Spring Boot",
+   "Cross-stack mobile and backend development"
+  ],
+  "gaps": [
+   "Production experience with WebSockets and async workers",
+   "Model Context Protocol (MCP) integrations",
+   "Limited professional backend track tenure"
+  ],
+  "summary": "A globally remote role open to backend-focused AI engineering, but demanding strong end-to-end agent production experience beyond the candidate's current background."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a backend-leaning full-stack position combining backend infrastructure and customer-facing agent integrations, which is adjacent to pure backend engineering.",
+    "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has practical experience with LLMs, FastAPI, and APIs, but lacks professional experience with WebSockets, MCP integrations, and running large-scale asynchronous generation pipelines.",
+    "evidence": "Familiarity with HTTP, WebSockets and asynchronous workers will help you build reliable communication between services and recover from failures.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The company does not use standard job titles or state required years of experience, making the seniority expectation ambiguous, though they look for proven end-to-end ownership.",
+    "evidence": "Impact not job titles: We don\u2019t have job titles. Instead, it\u2019s about the impact you have. No task is above or beneath you.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The position is fully remote and explicitly states a global-first policy prioritizing talent regardless of location.",
+    "evidence": "Global team: We prioritize your talent, not your location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The role is conducted in English, which the candidate speaks at a full professional working proficiency.",
+    "evidence": "Find more English Speaking Jobs in Switzerland on Arbeitnow",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Hands-on AI and LLM project experience",
+   "API development with FastAPI and Spring Boot",
+   "Cross-stack mobile and backend development"
+  ],
+  "gaps": [
+   "Production experience with WebSockets and async workers",
+   "Model Context Protocol (MCP) integrations",
+   "Limited professional backend track tenure"
+  ],
+  "summary": "A globally remote role open to backend-focused AI engineering, but demanding strong end-to-end agent production experience beyond the candidate's current background.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Familiarity with HTTP, WebSockets and asynchronous workers will help you build reliable communication between services and recover from failures.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Impact not job titles: We don\u2019t have job titles. Instead, it\u2019s about the impact you have. No task is above or beneath you.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Global team: We prioritize your talent, not your location.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in Switzerland on Arbeitnow",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 5,
+  "ok": 5,
+  "in_job": 5
+ }
+}

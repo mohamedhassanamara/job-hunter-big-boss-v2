@@ -1,0 +1,157 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2409,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 8.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role requires a Senior Principal engineer for distributed database systems, which differs from candidate tracks.\",\n    \"evidence\": \"Senior Principal Software Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"The job requires deep C++ database engine internals expertise, which the candidate lacks.\",\n    \"evidence\": \"Vertica, C++, SQL, Distributed systems, Query optimization, Storage engines\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job asks for 12+ years of experience and a Principal title, far exceeding the candidate's 3 years.\",\n    \"evidence\": \"Minimum 12 years of software engineering experience\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job explicitly restricts candidates to US-based and offers no visa sponsorship.\",\n    \"evidence\": \"Remote - US based candidates only, no visa sponsorship available\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required and the candidate speaks it at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": true,\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"US based candidates only\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"SQL\"\n  ],\n  \"gaps\": [\n    \"C++ programming\",\n    \"Distributed database internals\",\n    \"12+ years of experience\"\n  ],\n  \"summary\": \"This senior principal database role requires extensive systems programming and U.S. residency, making it entirely unsuitable for the candidate.\"\n}",
+ "tokens": {
+  "input": 4664,
+  "output": 561,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 10,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role requires a Senior Principal engineer for distributed database systems, which differs from candidate tracks.",
+    "evidence": "Senior Principal Software Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The job requires deep C++ database engine internals expertise, which the candidate lacks.",
+    "evidence": "Vertica, C++, SQL, Distributed systems, Query optimization, Storage engines",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job asks for 12+ years of experience and a Principal title, far exceeding the candidate's 3 years.",
+    "evidence": "Minimum 12 years of software engineering experience",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job explicitly restricts candidates to US-based and offers no visa sponsorship.",
+    "evidence": "Remote - US based candidates only, no visa sponsorship available",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and the candidate speaks it at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "States it can't sponsor visas: no visa sponsorship available",
+    "evidence": "no visa sponsorship available",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: US based candidates only",
+    "evidence": "US based candidates only",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL"
+  ],
+  "gaps": [
+   "C++ programming",
+   "Distributed database internals",
+   "12+ years of experience"
+  ],
+  "summary": "This senior principal database role requires extensive systems programming and U.S. residency, making it entirely unsuitable for the candidate.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role requires a Senior Principal engineer for distributed database systems, which differs from candidate tracks.",
+   "evidence": "Senior Principal Software Engineer"
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The job requires deep C++ database engine internals expertise, which the candidate lacks.",
+   "evidence": "Vertica, C++, SQL, Distributed systems, Query optimization, Storage engines"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job asks for 12+ years of experience and a Principal title, far exceeding the candidate's 3 years.",
+   "evidence": "Minimum 12 years of software engineering experience"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job explicitly restricts candidates to US-based and offers no visa sponsorship.",
+   "evidence": "Remote - US based candidates only, no visa sponsorship available"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and the candidate speaks it at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": true,
+    "evidence": "no visa sponsorship available"
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "US based candidates only"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "SQL"
+  ],
+  "gaps": [
+   "C++ programming",
+   "Distributed database internals",
+   "12+ years of experience"
+  ],
+  "summary": "This senior principal database role requires extensive systems programming and U.S. residency, making it entirely unsuitable for the candidate."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 6
+ }
+}

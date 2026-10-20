@@ -1,0 +1,224 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2431,
+ "retries": 1,
+ "retry_reasons": [
+  503
+ ],
+ "errors": [],
+ "secs": 73.3,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an AI Engineer focusing on agents and platforms, which directly matches the candidate's target role of AI Engineer.\",\n    \"evidence\": \"Senior AI Engineer, Agents and Platform (f/m/d)\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"The candidate has experience with the core technical stack (LLMs, RAG, FastAPI, Python, and relational databases), but the job requires deep production experience with agents and orchestration at scale, whereas the candidate's AI experience is primarily from an internship and personal projects.\",\n    \"evidence\": \"Retrieval that works, agents beyond a demo\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 8+ years of experience building production software, while the candidate has only 3 years of total experience and 1 year in the AI track.\",\n    \"evidence\": \"Eight or more years building and running production software\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is onsite in Berlin, Germany (one of the candidate's target countries), but there is no mention of visa sponsorship.\",\n    \"evidence\": \"Location: Berlin (DE)\\nWork mode: onsite\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses. German is listed as a plus.\",\n    \"evidence\": \"Professional English; German is a plus.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Location: Berlin (DE)\\nWork mode: onsite\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Eight or more years building and running production software\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Candidate has 3 years of experience; job requires 8+ years.\",\n      \"evidence\": \"Eight or more years building and running production software\"\n    }\n  ],\n  \"strengths\": [\n    \"LLM implementation (Mistral, LLaMA 3)\",\n    \"RAG and vector search (FAISS)\",\n    \"Backend development (FastAPI, Spring Boot)\"\n  ],\n  \"gaps\": [\n    \"Production-scale AI agent experience\",\n    \"8+ years of professional software engineering\",\n    \"Senior-level architectural ownership\"\n  ],\n  \"summary\": \"While the candidate has a strong technical alignment with the AI stack (LLMs, RAG, FastAPI), they are significantly under-qualified for this senior role which requires at least 8 years of production experience.\"\n}\n```",
+ "tokens": {
+  "input": 5406,
+  "output": 771,
+  "thinking": 1081
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an AI Engineer focusing on agents and platforms, which directly matches the candidate's target role of AI Engineer.",
+    "evidence": "Senior AI Engineer, Agents and Platform (f/m/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "The candidate has experience with the core technical stack (LLMs, RAG, FastAPI, Python, and relational databases), but the job requires deep production experience with agents and orchestration at scale, whereas the candidate's AI experience is primarily from an internship and personal projects.",
+    "evidence": "Retrieval that works, agents beyond a demo",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 8+ years of experience building production software, while the candidate has only 3 years of total experience and 1 year in the AI track.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Berlin, Germany (one of the candidate's target countries), but there is no mention of visa sponsorship.",
+    "evidence": "Location: Berlin (DE)\nWork mode: onsite",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses. German is listed as a plus.",
+    "evidence": "Professional English; German is a plus.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 3 years of experience; job requires 8+ years.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true,
+    "severity": "soft"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Location: Berlin (DE)\nWork mode: onsite",
+    "evidence": "Location: Berlin (DE)\nWork mode: onsite",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM implementation (Mistral, LLaMA 3)",
+   "RAG and vector search (FAISS)",
+   "Backend development (FastAPI, Spring Boot)"
+  ],
+  "gaps": [
+   "Production-scale AI agent experience",
+   "8+ years of professional software engineering",
+   "Senior-level architectural ownership"
+  ],
+  "summary": "While the candidate has a strong technical alignment with the AI stack (LLMs, RAG, FastAPI), they are significantly under-qualified for this senior role which requires at least 8 years of production experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an AI Engineer focusing on agents and platforms, which directly matches the candidate's target role of AI Engineer.",
+   "evidence": "Senior AI Engineer, Agents and Platform (f/m/d)"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "The candidate has experience with the core technical stack (LLMs, RAG, FastAPI, Python, and relational databases), but the job requires deep production experience with agents and orchestration at scale, whereas the candidate's AI experience is primarily from an internship and personal projects.",
+   "evidence": "Retrieval that works, agents beyond a demo"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 8+ years of experience building production software, while the candidate has only 3 years of total experience and 1 year in the AI track.",
+   "evidence": "Eight or more years building and running production software"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite in Berlin, Germany (one of the candidate's target countries), but there is no mention of visa sponsorship.",
+   "evidence": "Location: Berlin (DE)\nWork mode: onsite"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses. German is listed as a plus.",
+   "evidence": "Professional English; German is a plus."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Location: Berlin (DE)\nWork mode: onsite"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Eight or more years building and running production software"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 3 years of experience; job requires 8+ years.",
+    "evidence": "Eight or more years building and running production software"
+   }
+  ],
+  "strengths": [
+   "LLM implementation (Mistral, LLaMA 3)",
+   "RAG and vector search (FAISS)",
+   "Backend development (FastAPI, Spring Boot)"
+  ],
+  "gaps": [
+   "Production-scale AI agent experience",
+   "8+ years of professional software engineering",
+   "Senior-level architectural ownership"
+  ],
+  "summary": "While the candidate has a strong technical alignment with the AI stack (LLMs, RAG, FastAPI), they are significantly under-qualified for this senior role which requires at least 8 years of production experience."
+ },
+ "evidence": {
+  "checked": 8,
+  "ok": 8,
+  "in_job": 6,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Senior AI Engineer, Agents and Platform (f/m/d)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Retrieval that works, agents beyond a demo",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Berlin (DE)\nWork mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Professional English; German is a plus.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Location: Berlin (DE)\nWork mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

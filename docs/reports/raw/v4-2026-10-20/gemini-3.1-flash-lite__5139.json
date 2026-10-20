@@ -1,0 +1,143 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 5139,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 6.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is for a software engineer, which is the candidate's primary professional background.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"Candidate has strong experience in Python, Java, Docker, Git, and automated testing.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job requires 2+ years of experience, and the candidate has 3 years total.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job is explicitly remote and open to any location.\",\n    \"evidence\": \"Remote, any location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and Java proficiency\",\n    \"Automated testing expertise\",\n    \"Docker and Git skills\"\n  ],\n  \"gaps\": [\n    \"Limited open-source contributions\",\n    \"No formal AI evaluation experience\"\n  ],\n  \"summary\": \"The candidate is a strong fit for this remote software engineering role given their technical stack and experience.\"\n}",
+ "tokens": {
+  "input": 4629,
+  "output": 510,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 85,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is for a software engineer, which is the candidate's primary professional background.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "Candidate has strong experience in Python, Java, Docker, Git, and automated testing.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job requires 2+ years of experience, and the candidate has 3 years total.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is explicitly remote and open to any location.",
+    "evidence": "Remote, any location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and Java proficiency",
+   "Automated testing expertise",
+   "Docker and Git skills"
+  ],
+  "gaps": [
+   "Limited open-source contributions",
+   "No formal AI evaluation experience"
+  ],
+  "summary": "The candidate is a strong fit for this remote software engineering role given their technical stack and experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is for a software engineer, which is the candidate's primary professional background.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "Candidate has strong experience in Python, Java, Docker, Git, and automated testing.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job requires 2+ years of experience, and the candidate has 3 years total.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is explicitly remote and open to any location.",
+   "evidence": "Remote, any location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and Java proficiency",
+   "Automated testing expertise",
+   "Docker and Git skills"
+  ],
+  "gaps": [
+   "Limited open-source contributions",
+   "No formal AI evaluation experience"
+  ],
+  "summary": "The candidate is a strong fit for this remote software engineering role given their technical stack and experience."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "location_eligibility",
+    "quote": "Remote, any location.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

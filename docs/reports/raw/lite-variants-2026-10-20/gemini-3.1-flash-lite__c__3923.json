@@ -1,0 +1,138 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 3923,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 9.7,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role focuses on web crawling and data extraction, which is adjacent to data engineering.\",\n    \"evidence\": \"Build and scale crawlers that handle dynamic, large-scale sites\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Candidate has strong Python and Docker skills, but lacks professional-scale web scraping experience.\",\n    \"evidence\": \"Strong Python: real production code, async.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has 3 years of experience, meeting the minimum requirement for the base role.\",\n    \"evidence\": \"3+ years of professional software development\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is based in Germany and does not offer visa sponsorship, which the candidate requires.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate is fluent in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Strong Python proficiency\",\n    \"Docker and CI/CD experience\",\n    \"LLM and data pipeline knowledge\"\n  ],\n  \"gaps\": [\n    \"Professional web scraping experience\",\n    \"No German work authorization\",\n    \"Limited cloud platform experience\"\n  ],\n  \"summary\": \"The candidate is a strong technical match for the Python engineering tasks but lacks the required work authorization for Germany.\"\n}",
+ "tokens": {
+  "input": 4789,
+  "output": 547,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 58,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role focuses on web crawling and data extraction, which is adjacent to data engineering.",
+    "evidence": "Build and scale crawlers that handle dynamic, large-scale sites",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Candidate has strong Python and Docker skills, but lacks professional-scale web scraping experience.",
+    "evidence": "Strong Python: real production code, async.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The candidate has 3 years of experience, meeting the minimum requirement for the base role.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is based in Germany and does not offer visa sponsorship, which the candidate requires. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate is fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Strong Python proficiency",
+   "Docker and CI/CD experience",
+   "LLM and data pipeline knowledge"
+  ],
+  "gaps": [
+   "Professional web scraping experience",
+   "No German work authorization",
+   "Limited cloud platform experience"
+  ],
+  "summary": "The candidate is a strong technical match for the Python engineering tasks but lacks the required work authorization for Germany.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role focuses on web crawling and data extraction, which is adjacent to data engineering.",
+   "evidence": "Build and scale crawlers that handle dynamic, large-scale sites"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Candidate has strong Python and Docker skills, but lacks professional-scale web scraping experience.",
+   "evidence": "Strong Python: real production code, async."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The candidate has 3 years of experience, meeting the minimum requirement for the base role.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is based in Germany and does not offer visa sponsorship, which the candidate requires.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate is fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Strong Python proficiency",
+   "Docker and CI/CD experience",
+   "LLM and data pipeline knowledge"
+  ],
+  "gaps": [
+   "Professional web scraping experience",
+   "No German work authorization",
+   "Limited cloud platform experience"
+  ],
+  "summary": "The candidate is a strong technical match for the Python engineering tasks but lacks the required work authorization for Germany."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

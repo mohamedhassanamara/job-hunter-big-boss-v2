@@ -1,0 +1,26 @@
+{
+ "model": "gemma-4-26b-a4b-it",
+ "mode": "default",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [
+  "native JSON schema rejected -> schema in prompt"
+ ],
+ "errors": [
+  "invalid output: 1 validation error for FitAssessment\n  Invalid JSON: EOF while parsing a value at line 1 column 0 [type=json_invalid, input_value='', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/json_invalid"
+ ],
+ "thinking_config": null,
+ "secs": 168.6,
+ "finish": "MALFORMED_RESPONSE",
+ "tokens": {
+  "input": 5643,
+  "output": null,
+  "thinking": 0,
+  "total": 5643
+ },
+ "structured_native": false,
+ "raw_text": "",
+ "valid_first_try": false
+}

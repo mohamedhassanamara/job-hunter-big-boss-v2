@@ -1,0 +1,142 @@
+{
+ "job": 1913,
+ "run": 1,
+ "retries": 0,
+ "secs": 24.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role matches the candidate's target track as a Backend Engineer.\",\n    \"evidence\": \"Backend Engineer (Go)\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"The job requires Go and AWS services, but the candidate has no professional Go experience.\",\n    \"evidence\": \"Strong coding skills in Go\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 1 year of backend experience and the role is mid-level.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Paris, France, which is a target country with no stated sponsorship restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires English and the candidate is proficient in it.\",\n    \"evidence\": \"Fluent/professional English given our international team\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Go\",\n      \"evidence\": \"Strong coding skills in Go\",\n      \"missing\": true\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Spring Boot\",\n    \"FastAPI\",\n    \"Python\"\n  ],\n  \"gaps\": [\n    \"Go programming language\",\n    \"DynamoDB and AWS serverless\",\n    \"Large-scale distributed systems\"\n  ],\n  \"summary\": \"The candidate targets backend roles and matches the seniority, but lacks the required Go experience for this Paris-based position.\"\n}",
+ "tokens": {
+  "input": 5183,
+  "output": 570,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role matches the candidate's target track as a Backend Engineer.",
+   "evidence": "Backend Engineer (Go)"
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "The job requires Go and AWS services, but the candidate has no professional Go experience.",
+   "evidence": "Strong coding skills in Go"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 1 year of backend experience and the role is mid-level.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Paris, France, which is a target country with no stated sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires English and the candidate is proficient in it.",
+   "evidence": "Fluent/professional English given our international team"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "missing": true
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Spring Boot",
+   "FastAPI",
+   "Python"
+  ],
+  "gaps": [
+   "Go programming language",
+   "DynamoDB and AWS serverless",
+   "Large-scale distributed systems"
+  ],
+  "summary": "The candidate targets backend roles and matches the seniority, but lacks the required Go experience for this Paris-based position."
+ },
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role matches the candidate's target track as a Backend Engineer.",
+    "evidence": "Backend Engineer (Go)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "The job requires Go and AWS services, but the candidate has no professional Go experience.",
+    "evidence": "Strong coding skills in Go",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 1 year of backend experience and the role is mid-level.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Paris, France, which is a target country with no stated sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires English and the candidate is proficient in it.",
+    "evidence": "Fluent/professional English given our international team",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Go",
+    "evidence": "Strong coding skills in Go",
+    "evidence_verified": true,
+    "missing": true,
+    "counts": true
+   }
+  ],
+  "strengths": [
+   "Spring Boot",
+   "FastAPI",
+   "Python"
+  ],
+  "gaps": [
+   "Go programming language",
+   "DynamoDB and AWS serverless",
+   "Large-scale distributed systems"
+  ],
+  "summary": "The candidate targets backend roles and matches the seniority, but lacks the required Go experience for this Paris-based position.",
+  "confidence": "high"
+ }
+}

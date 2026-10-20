@@ -1,0 +1,144 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 797,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 147.6,
+ "finish": "STOP",
+ "raw_text": "{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 0,\n      \"reason\": \"The role is for a QA/Automation Testing Engineer.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"Overlap in AI and languages, but lacks QA automation frameworks.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Senior role requires significantly more experience than the candidate's one year.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The position is remote.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate speaks required Arabic and English.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python and Java proficiency\",\n      \"LLM and RAG experience\",\n      \"Backend development\"\n    ],\n    \"gaps\": [\n      \"Senior-level experience\",\n      \"Test automation frameworks\",\n      \"Agentic AI orchestration\"\n    ],\n    \"summary\": \"Candidate is a junior AI engineer, but the role is for a Senior AI Quality Engineer.\"\n  }\n}",
+ "tokens": {
+  "input": 6063,
+  "output": 485,
+  "thinking": 3339
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 40,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role is for a QA/Automation Testing Engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Overlap in AI and languages, but lacks QA automation frameworks.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Senior role requires significantly more experience than the candidate's one year.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The position is remote.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate speaks required Arabic and English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and Java proficiency",
+   "LLM and RAG experience",
+   "Backend development"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Test automation frameworks",
+   "Agentic AI orchestration"
+  ],
+  "summary": "Candidate is a junior AI engineer, but the role is for a Senior AI Quality Engineer.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role is for a QA/Automation Testing Engineer.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Overlap in AI and languages, but lacks QA automation frameworks.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Senior role requires significantly more experience than the candidate's one year.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The position is remote.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate speaks required Arabic and English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and Java proficiency",
+   "LLM and RAG experience",
+   "Backend development"
+  ],
+  "gaps": [
+   "Senior-level experience",
+   "Test automation frameworks",
+   "Agentic AI orchestration"
+  ],
+  "summary": "Candidate is a junior AI engineer, but the role is for a Senior AI Quality Engineer."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0,
+  "in_job": 0,
+  "quotes": []
+ }
+}

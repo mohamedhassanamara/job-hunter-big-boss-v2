@@ -1,0 +1,168 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "mode": "default",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 3.3,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4899,
+  "output": 608,
+  "thinking": 0,
+  "total": 5507
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The job is a Full-Stack Engineer role leaning towards backend, which partially overlaps with backend developer roles.\",\n    \"evidence\": \"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"The candidate has experience with backend systems, APIs, Python, and LLM agent development, matching several requirements.\",\n    \"evidence\": \"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job does not state a specific seniority level, but requires evidence of exceptional engineering and independent ownership.\",\n    \"evidence\": \"We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job is fully remote and explicitly states global team priority.\",\n    \"evidence\": \"Global team: We prioritize your talent, not your location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No specific secondary language is required, and the candidate has full professional English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM agent development\",\n    \"Python backend engineering\",\n    \"API design\"\n  ],\n  \"gaps\": [\n    \"Full-stack production experience\",\n    \"Multimodal generation experience\"\n  ],\n  \"summary\": \"This is a remote full-stack engineering role focusing on creative AI agents at ElevenLabs, which aligns well with the candidate's backend and AI project background.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The job is a Full-Stack Engineer role leaning towards backend, which partially overlaps with backend developer roles.",
+   "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs."
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "The candidate has experience with backend systems, APIs, Python, and LLM agent development, matching several requirements.",
+   "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job does not state a specific seniority level, but requires evidence of exceptional engineering and independent ownership.",
+   "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is fully remote and explicitly states global team priority.",
+   "evidence": "Global team: We prioritize your talent, not your location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No specific secondary language is required, and the candidate has full professional English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM agent development",
+   "Python backend engineering",
+   "API design"
+  ],
+  "gaps": [
+   "Full-stack production experience",
+   "Multimodal generation experience"
+  ],
+  "summary": "This is a remote full-stack engineering role focusing on creative AI agents at ElevenLabs, which aligns well with the candidate's backend and AI project background."
+ },
+ "record": {
+  "score": 68,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The job is a Full-Stack Engineer role leaning towards backend, which partially overlaps with backend developer roles.",
+    "evidence": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "The candidate has experience with backend systems, APIs, Python, and LLM agent development, matching several requirements.",
+    "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job does not state a specific seniority level, but requires evidence of exceptional engineering and independent ownership.",
+    "evidence": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is fully remote and explicitly states global team priority.",
+    "evidence": "Global team: We prioritize your talent, not your location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No specific secondary language is required, and the candidate has full professional English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM agent development",
+   "Python backend engineering",
+   "API design"
+  ],
+  "gaps": [
+   "Full-stack production experience",
+   "Multimodal generation experience"
+  ],
+  "summary": "This is a remote full-stack engineering role focusing on creative AI agents at ElevenLabs, which aligns well with the candidate's backend and AI project background.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "We care about evidence of exceptional engineering: products you have shipped, difficult problems you have solved, and systems you have owned.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Global team: We prioritize your talent, not your location.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4
+ }
+}

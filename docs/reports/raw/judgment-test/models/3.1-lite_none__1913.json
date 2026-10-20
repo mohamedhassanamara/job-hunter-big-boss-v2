@@ -1,0 +1,131 @@
+{
+ "config": "3.1-lite none",
+ "model": "gemini-3.1-flash-lite",
+ "thinking_config": null,
+ "job": "1913",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 18.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Backend Engineer, which is a core role in the track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has strong backend experience but lacks professional experience with Go and AWS services.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, making it suitable for the candidate.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in France, a target country, and does not explicitly forbid visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Backend development\",\n    \"API design\",\n    \"Distributed systems interest\"\n  ],\n  \"gaps\": [\n    \"Go programming language\",\n    \"AWS ecosystem\",\n    \"Professional backend experience\"\n  ],\n  \"summary\": \"The candidate is a strong backend-focused engineer who matches the role but lacks specific experience with the required stack.\"\n}",
+ "tokens": {
+  "input": 4979,
+  "output": 502,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Backend Engineer, which is a core role in the track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has strong backend experience but lacks professional experience with Go and AWS services.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, making it suitable for the candidate.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in France, a target country, and does not explicitly forbid visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development",
+   "API design",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "Go programming language",
+   "AWS ecosystem",
+   "Professional backend experience"
+  ],
+  "summary": "The candidate is a strong backend-focused engineer who matches the role but lacks specific experience with the required stack."
+ },
+ "record": {
+  "score": 82,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Backend Engineer, which is a core role in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has strong backend experience but lacks professional experience with Go and AWS services.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, making it suitable for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in France, a target country, and does not explicitly forbid visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development",
+   "API design",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "Go programming language",
+   "AWS ecosystem",
+   "Professional backend experience"
+  ],
+  "summary": "The candidate is a strong backend-focused engineer who matches the role but lacks specific experience with the required stack.",
+  "confidence": "high"
+ }
+}

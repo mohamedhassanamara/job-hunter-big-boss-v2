@@ -1,0 +1,226 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "mode": "minimal",
+ "job": "low",
+ "job_id": 3950,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": {
+  "thinkingLevel": "minimal"
+ },
+ "secs": 6.3,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4552,
+  "output": 880,
+  "thinking": 0,
+  "total": 5432
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is focused on data collection and sensor integration for ADAS, which is adjacent to data engineering but involves significant hardware and test-track work.\",\n    \"evidence\": \"Umgang mit Daten, einschlie\u00dflich Upload, Validierung der hochgeladenen Daten sowie Korrektur und Anpassung bis zur \u00dcbergabe der fertigen Daten.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong software and data pipeline skills, but lacks the specific automotive/ADAS hardware and sensor integration experience required.\",\n    \"evidence\": \"Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for an engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.\",\n    \"evidence\": \"Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The job requires fluent German, which the candidate does not speak.\",\n    \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"language_required\",\n      \"text\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\",\n      \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)\",\n      \"evidence\": \"Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)\"\n    }\n  ],\n  \"strengths\": [\n    \"Python data pipelines\",\n    \"Software engineering fundamentals\",\n    \"FastAPI and backend development\"\n  ],\n  \"gaps\": [\n    \"Fluent German language\",\n    \"Automotive/ADAS sensor experience\",\n    \"Local work authorization in Germany\"\n  ],\n  \"summary\": \"The candidate is a strong software engineer with emerging data skills, but is not a fit due to the requirement for fluent German, onsite presence in Munich, and lack of specific automotive sensor experience.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is focused on data collection and sensor integration for ADAS, which is adjacent to data engineering but involves significant hardware and test-track work.",
+   "evidence": "Umgang mit Daten, einschlie\u00dflich Upload, Validierung der hochgeladenen Daten sowie Korrektur und Anpassung bis zur \u00dcbergabe der fertigen Daten."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong software and data pipeline skills, but lacks the specific automotive/ADAS hardware and sensor integration experience required.",
+   "evidence": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for an engineering role.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.",
+   "evidence": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)"
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires fluent German, which the candidate does not speak.",
+   "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "evidence": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)"
+   }
+  ],
+  "strengths": [
+   "Python data pipelines",
+   "Software engineering fundamentals",
+   "FastAPI and backend development"
+  ],
+  "gaps": [
+   "Fluent German language",
+   "Automotive/ADAS sensor experience",
+   "Local work authorization in Germany"
+  ],
+  "summary": "The candidate is a strong software engineer with emerging data skills, but is not a fit due to the requirement for fluent German, onsite presence in Munich, and lack of specific automotive sensor experience."
+ },
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is focused on data collection and sensor integration for ADAS, which is adjacent to data engineering but involves significant hardware and test-track work.",
+    "evidence": "Umgang mit Daten, einschlie\u00dflich Upload, Validierung der hochgeladenen Daten sowie Korrektur und Anpassung bis zur \u00dcbergabe der fertigen Daten.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong software and data pipeline skills, but lacks the specific automotive/ADAS hardware and sensor integration experience required.",
+    "evidence": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for an engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is onsite in Munich, Germany, and the candidate is based in Tunisia and requires visa sponsorship, which is not offered.",
+    "evidence": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires fluent German, which the candidate does not speak.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true,
+    "severity": "soft"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "evidence": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Python data pipelines",
+   "Software engineering fundamentals",
+   "FastAPI and backend development"
+  ],
+  "gaps": [
+   "Fluent German language",
+   "Automotive/ADAS sensor experience",
+   "Local work authorization in Germany"
+  ],
+  "summary": "The candidate is a strong software engineer with emerging data skills, but is not a fit due to the requirement for fluent German, onsite presence in Munich, and lack of specific automotive sensor experience.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Umgang mit Daten, einschlie\u00dflich Upload, Validierung der hochgeladenen Daten sowie Korrektur und Anpassung bis zur \u00dcbergabe der fertigen Daten.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:must_be_based_in",
+    "quote": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "red_flag:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "red_flag:must_be_based_in",
+    "quote": "Zum Einsatz bei einem unserer Kunden suchen wir zum 01.11.2026 einen Data Collection Engineer ADAS (m/w/d)",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 8,
+  "ok": 8,
+  "in_job": 8
+ }
+}

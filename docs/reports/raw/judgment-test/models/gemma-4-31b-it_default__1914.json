@@ -1,0 +1,131 @@
+{
+ "config": "gemma-4-31b-it default",
+ "model": "gemma-4-31b-it",
+ "thinking_config": null,
+ "job": "1914",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 57.8,
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities are exactly those of a Data Engineer.\",\n      \"evidence\": \"As a Data Engineer, your day-to-day will include\"\n    },\n    \"skills_match\": {\n      \"score\": 9,\n      \"reason\": \"Candidate has experience with dbt, DuckDB, SQL, and pipeline orchestration via Airflow.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"The job does not specify years; candidate has 3 years total experience.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The job explicitly offers visa sponsorship and relocation to Paris.\",\n      \"evidence\": \"support relocation to Paris with: Help and sponsored visa process\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate is fluent in English and French, matching the location and listing.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"dbt\",\n      \"DuckDB\",\n      \"Apache Airflow\"\n    ],\n    \"gaps\": [\n      \"Spark\",\n      \"BigQuery\",\n      \"ClickHouse\"\n    ],\n    \"summary\": \"Excellent match with the required data stack and full eligibility via the company's relocation and sponsorship offer.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 6166,
+  "output": 531,
+  "thinking": 1094
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities are exactly those of a Data Engineer.",
+   "evidence": "As a Data Engineer, your day-to-day will include"
+  },
+  "skills_match": {
+   "score": 9,
+   "reason": "Candidate has experience with dbt, DuckDB, SQL, and pipeline orchestration via Airflow.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify years; candidate has 3 years total experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers visa sponsorship and relocation to Paris.",
+   "evidence": "support relocation to Paris with: Help and sponsored visa process"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate is fluent in English and French, matching the location and listing.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt",
+   "DuckDB",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Spark",
+   "BigQuery",
+   "ClickHouse"
+  ],
+  "summary": "Excellent match with the required data stack and full eligibility via the company's relocation and sponsorship offer."
+ },
+ "record": {
+  "score": 97,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities are exactly those of a Data Engineer.",
+    "evidence": "As a Data Engineer, your day-to-day will include",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 9,
+    "reason": "Candidate has experience with dbt, DuckDB, SQL, and pipeline orchestration via Airflow.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify years; candidate has 3 years total experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers visa sponsorship and relocation to Paris.",
+    "evidence": "support relocation to Paris with: Help and sponsored visa process",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate is fluent in English and French, matching the location and listing.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt",
+   "DuckDB",
+   "Apache Airflow"
+  ],
+  "gaps": [
+   "Spark",
+   "BigQuery",
+   "ClickHouse"
+  ],
+  "summary": "Excellent match with the required data stack and full eligibility via the company's relocation and sponsorship offer.",
+  "confidence": "high"
+ }
+}

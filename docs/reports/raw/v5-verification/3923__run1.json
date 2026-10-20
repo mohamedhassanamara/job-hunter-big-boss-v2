@@ -1,0 +1,154 @@
+{
+ "job": 3923,
+ "run": 1,
+ "retries": 0,
+ "secs": 22.7,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role involves data ingestion and extraction matching the Data Engineer track.\",\n    \"evidence\": \"Build and scale crawlers that handle dynamic, large-scale sites\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Python and Docker overlap well, but large-scale web scraping against anti-bot defenses is missing.\",\n    \"evidence\": \"Python, Docker, GCP (Cloud Run jobs), Azure Blob Storage, MongoDB.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job asks for 3+ years of professional software development, matching the candidate.\",\n    \"evidence\": \"3+ years of professional software development\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site or hybrid in Germany (target country) with no visa mention.\",\n    \"evidence\": \"München - HQ (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and requires no other language.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"core_requirements\": [\n    {\n      \"requirement\": \"Web Scraping at Scale\",\n      \"evidence\": \"Hands-on web scraping at scale, including firsthand experience with anti-bot defenses\",\n      \"missing\": true\n    },\n    {\n      \"requirement\": \"Python\",\n      \"evidence\": \"Strong Python: real production code, async.\",\n      \"missing\": false\n    }\n  ],\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python development\",\n    \"Docker & containerization\",\n    \"LLM experience\"\n  ],\n  \"gaps\": [\n    \"Large-scale web scraping\",\n    \"Anti-bot defense handling\",\n    \"Cloud data infrastructure\"\n  ],\n  \"summary\": \"The candidate has strong Python skills but lacks professional experience in large-scale web scraping and anti-bot bypass mechanisms.\"\n}",
+ "tokens": {
+  "input": 5091,
+  "output": 648,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role involves data ingestion and extraction matching the Data Engineer track.",
+   "evidence": "Build and scale crawlers that handle dynamic, large-scale sites"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Python and Docker overlap well, but large-scale web scraping against anti-bot defenses is missing.",
+   "evidence": "Python, Docker, GCP (Cloud Run jobs), Azure Blob Storage, MongoDB."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job asks for 3+ years of professional software development, matching the candidate.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site or hybrid in Germany (target country) with no visa mention.",
+   "evidence": "München - HQ (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and requires no other language.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "core_requirements": [
+   {
+    "requirement": "Web Scraping at Scale",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "missing": true
+   },
+   {
+    "requirement": "Python",
+    "evidence": "Strong Python: real production code, async.",
+    "missing": false
+   }
+  ],
+  "red_flags": [],
+  "strengths": [
+   "Python development",
+   "Docker & containerization",
+   "LLM experience"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defense handling",
+   "Cloud data infrastructure"
+  ],
+  "summary": "The candidate has strong Python skills but lacks professional experience in large-scale web scraping and anti-bot bypass mechanisms."
+ },
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role involves data ingestion and extraction matching the Data Engineer track.",
+    "evidence": "Build and scale crawlers that handle dynamic, large-scale sites",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Python and Docker overlap well, but large-scale web scraping against anti-bot defenses is missing.",
+    "evidence": "Python, Docker, GCP (Cloud Run jobs), Azure Blob Storage, MongoDB.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job asks for 3+ years of professional software development, matching the candidate.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site or hybrid in Germany (target country) with no visa mention.",
+    "evidence": "München - HQ (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and requires no other language.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "core_requirements": [
+   {
+    "requirement": "Web Scraping at Scale",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "evidence_verified": true,
+    "missing": true,
+    "counts": true
+   },
+   {
+    "requirement": "Python",
+    "evidence": "Strong Python: real production code, async.",
+    "evidence_verified": true,
+    "missing": false,
+    "counts": false
+   }
+  ],
+  "strengths": [
+   "Python development",
+   "Docker & containerization",
+   "LLM experience"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defense handling",
+   "Cloud data infrastructure"
+  ],
+  "summary": "The candidate has strong Python skills but lacks professional experience in large-scale web scraping and anti-bot bypass mechanisms.",
+  "confidence": "high"
+ }
+}

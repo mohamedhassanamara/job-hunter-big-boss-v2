@@ -1,0 +1,29 @@
+{
+ "model": "gemma-4-31b-it",
+ "mode": "default",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 2,
+ "retry_reasons": [
+  500,
+  500
+ ],
+ "adaptations": [
+  "native JSON schema rejected -> schema in prompt"
+ ],
+ "errors": [
+  "invalid output: 6 validation errors for FitAssessment\nrole_match\n  Field required [type=missing, input_value={'properties': {'role_mat...cross the full stack.\"}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nskills_ma"
+ ],
+ "thinking_config": null,
+ "secs": 73.1,
+ "finish": "STOP",
+ "tokens": {
+  "input": 5659,
+  "output": 641,
+  "thinking": 1148,
+  "total": 7448
+ },
+ "structured_native": false,
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a backend-leaning full-stack engineer, which aligns perfectly with the candidate's background in backend development and mobile frontend.\",\n      \"evidence\": \"backend-leaning full-stack engineer\"\n    },\n    \"skills_match\": {\n      \"score\": 9,\n      \"reason\": \"The candidate has strong overlap in backend skills (FastAPI, Spring Boot, PostgreSQL), AI agent development (LLMs, RAG, Mistral, LLaMA), and full-stack delivery (Flutter).\",\n      \"evidence\": \"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"The job does not specify a minimum number of years or a senior title, and the candidate's 3 years of experience is appropriate for a general engineer role.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The company explicitly states they prioritize talent over location and operate as a global team.\",\n      \"evidence\": \"Global team: We prioritize your talent, not your location.\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job is in English, and the candidate has full professional proficiency.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"LLM and Agent development (Mistral, LLaMA, RAG)\",\n      \"Backend proficiency (FastAPI, Spring Boot, Airflow)\",\n      \"Full-stack delivery (Flutter)\"\n    ],\n    \"gaps\": [\n      \"Experience with multimodal generation\",\n      \"Scale of production systems operated\"\n    ],\n    \"summary\": \"An excellent match given the candidate's specific experience building AI agents and their ability to work across the full stack.\"\n  }\n}\n```",
+ "valid_first_try": false
+}

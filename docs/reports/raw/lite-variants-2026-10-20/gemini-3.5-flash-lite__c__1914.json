@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 1914,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a Data Engineer, which directly matches the candidate's target track role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has experience with SQL, Python, DuckDB, dbt, and data pipelines, matching several required data stack tools.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 8,\n    \"reason\": \"The job does not explicitly state seniority requirements, matching the candidate's junior-mid level profile.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers visa sponsorship and relocation support to Paris.\",\n    \"evidence\": \"Help and sponsored visa process.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English (implied by English listing), which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"SQL and Python proficiency\",\n    \"dbt and DuckDB experience\",\n    \"Data pipeline engineering\"\n  ],\n  \"gaps\": [\n    \"Limited professional data engineering years\",\n    \"Lack of Spark production experience\",\n    \"Geospatial data specialization missing\"\n  ],\n  \"summary\": \"This is a good data engineering role offering visa sponsorship in Paris, aligning well with the candidate's recent data projects and skills.\"\n}",
+ "tokens": {
+  "input": 5308,
+  "output": 544,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 88,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a Data Engineer, which directly matches the candidate's target track role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has experience with SQL, Python, DuckDB, dbt, and data pipelines, matching several required data stack tools.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 8,
+    "reason": "The job does not explicitly state seniority requirements, matching the candidate's junior-mid level profile.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers visa sponsorship and relocation support to Paris.",
+    "evidence": "Help and sponsored visa process.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English (implied by English listing), which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "SQL and Python proficiency",
+   "dbt and DuckDB experience",
+   "Data pipeline engineering"
+  ],
+  "gaps": [
+   "Limited professional data engineering years",
+   "Lack of Spark production experience",
+   "Geospatial data specialization missing"
+  ],
+  "summary": "This is a good data engineering role offering visa sponsorship in Paris, aligning well with the candidate's recent data projects and skills.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a Data Engineer, which directly matches the candidate's target track role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has experience with SQL, Python, DuckDB, dbt, and data pipelines, matching several required data stack tools.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 8,
+   "reason": "The job does not explicitly state seniority requirements, matching the candidate's junior-mid level profile.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers visa sponsorship and relocation support to Paris.",
+   "evidence": "Help and sponsored visa process."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English (implied by English listing), which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "SQL and Python proficiency",
+   "dbt and DuckDB experience",
+   "Data pipeline engineering"
+  ],
+  "gaps": [
+   "Limited professional data engineering years",
+   "Lack of Spark production experience",
+   "Geospatial data specialization missing"
+  ],
+  "summary": "This is a good data engineering role offering visa sponsorship in Paris, aligning well with the candidate's recent data projects and skills."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

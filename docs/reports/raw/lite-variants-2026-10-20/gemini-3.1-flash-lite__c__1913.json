@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 1913,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 84.6,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The job is for a Backend Engineer, which is one of the candidate's target roles.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"Candidate lacks Go experience, which is the primary language required for this role.\",\n    \"evidence\": \"Strong coding skills in Go\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, making it suitable for the candidate.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in France, a target country, and does not explicitly forbid visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Backend development experience\",\n    \"API design knowledge\",\n    \"Distributed systems interest\"\n  ],\n  \"gaps\": [\n    \"No Go experience\",\n    \"No DynamoDB experience\",\n    \"Limited professional backend tenure\"\n  ],\n  \"summary\": \"The candidate is a strong backend developer but lacks the specific Go experience required for this role.\"\n}",
+ "tokens": {
+  "input": 4881,
+  "output": 509,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 58,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Candidate lacks Go experience, which is the primary language required for this role.",
+    "evidence": "Strong coding skills in Go",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, making it suitable for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in France, a target country, and does not explicitly forbid visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development experience",
+   "API design knowledge",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No DynamoDB experience",
+   "Limited professional backend tenure"
+  ],
+  "summary": "The candidate is a strong backend developer but lacks the specific Go experience required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Candidate lacks Go experience, which is the primary language required for this role.",
+   "evidence": "Strong coding skills in Go"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, making it suitable for the candidate.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in France, a target country, and does not explicitly forbid visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend development experience",
+   "API design knowledge",
+   "Distributed systems interest"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No DynamoDB experience",
+   "Limited professional backend tenure"
+  ],
+  "summary": "The candidate is a strong backend developer but lacks the specific Go experience required for this role."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

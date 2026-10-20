@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2431,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 8.3,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Senior AI Engineer, directly matching the candidate's target track role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"The candidate has hands-on LLM, RAG and backend experience, but lacks senior-level production scale depth.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The role requires 8+ years of production experience, while the candidate has 1 year in the track.\",\n    \"evidence\": \"Eight or more years building and running production software\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is onsite in Germany, which is in the candidate's target countries list.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG experience\",\n    \"FastAPI backend development\",\n    \"Python and Docker skills\"\n  ],\n  \"gaps\": [\n    \"8+ years experience required\",\n    \"Senior software architecture background\",\n    \"Advanced evaluation pipelines\"\n  ],\n  \"summary\": \"The candidate is a strong junior AI engineer, but this senior role requires significantly more years of production experience.\"\n}",
+ "tokens": {
+  "input": 4936,
+  "output": 542,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 73,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Senior AI Engineer, directly matching the candidate's target track role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "The candidate has hands-on LLM, RAG and backend experience, but lacks senior-level production scale depth.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The role requires 8+ years of production experience, while the candidate has 1 year in the track.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is onsite in Germany, which is in the candidate's target countries list.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG experience",
+   "FastAPI backend development",
+   "Python and Docker skills"
+  ],
+  "gaps": [
+   "8+ years experience required",
+   "Senior software architecture background",
+   "Advanced evaluation pipelines"
+  ],
+  "summary": "The candidate is a strong junior AI engineer, but this senior role requires significantly more years of production experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Senior AI Engineer, directly matching the candidate's target track role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "The candidate has hands-on LLM, RAG and backend experience, but lacks senior-level production scale depth.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The role requires 8+ years of production experience, while the candidate has 1 year in the track.",
+   "evidence": "Eight or more years building and running production software"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is onsite in Germany, which is in the candidate's target countries list.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG experience",
+   "FastAPI backend development",
+   "Python and Docker skills"
+  ],
+  "gaps": [
+   "8+ years experience required",
+   "Senior software architecture background",
+   "Advanced evaluation pipelines"
+  ],
+  "summary": "The candidate is a strong junior AI engineer, but this senior role requires significantly more years of production experience."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

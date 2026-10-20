@@ -1,0 +1,143 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 3921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 5.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The job is a senior Technical Program Manager role, not an engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 3,\n    \"reason\": \"The candidate has AI tooling familiarity, but lacks senior program management experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires significant senior-level TPM experience, while the candidate is junior.\",\n    \"evidence\": \"Significant senior-level experience in technical program or project management\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany, which is a target country, and no visa sponsorship text is present.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is required implicitly by the listing, and the candidate speaks it fluently.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Sr. Technical Program Manager (TPM)\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"AI tooling familiarity\",\n    \"Technical background\"\n  ],\n  \"gaps\": [\n    \"No program management experience\",\n    \"Junior seniority level\",\n    \"Lacks executive leadership background\"\n  ],\n  \"summary\": \"This is a senior Technical Program Manager role requiring extensive leadership experience, making it an unsuitable match for a junior engineer.\"\n}",
+ "tokens": {
+  "input": 5438,
+  "output": 523,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 31,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is a senior Technical Program Manager role, not an engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 3,
+    "reason": "The candidate has AI tooling familiarity, but lacks senior program management experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires significant senior-level TPM experience, while the candidate is junior.",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, which is a target country, and no visa sponsorship text is present.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required implicitly by the listing, and the candidate speaks it fluently.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Sr. Technical Program Manager (TPM)",
+    "evidence": "Sr. Technical Program Manager (TPM)",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "AI tooling familiarity",
+   "Technical background"
+  ],
+  "gaps": [
+   "No program management experience",
+   "Junior seniority level",
+   "Lacks executive leadership background"
+  ],
+  "summary": "This is a senior Technical Program Manager role requiring extensive leadership experience, making it an unsuitable match for a junior engineer.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is a senior Technical Program Manager role, not an engineering role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 3,
+   "reason": "The candidate has AI tooling familiarity, but lacks senior program management experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires significant senior-level TPM experience, while the candidate is junior.",
+   "evidence": "Significant senior-level experience in technical program or project management"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, which is a target country, and no visa sponsorship text is present.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required implicitly by the listing, and the candidate speaks it fluently.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Sr. Technical Program Manager (TPM)"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "AI tooling familiarity",
+   "Technical background"
+  ],
+  "gaps": [
+   "No program management experience",
+   "Junior seniority level",
+   "Lacks executive leadership background"
+  ],
+  "summary": "This is a senior Technical Program Manager role requiring extensive leadership experience, making it an unsuitable match for a junior engineer."
+ },
+ "evidence": {
+  "checked": 2,
+  "ok": 2
+ }
+}

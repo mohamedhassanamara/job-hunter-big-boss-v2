@@ -1,0 +1,155 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2431,
+ "retries": 1,
+ "retry_reasons": [
+  500
+ ],
+ "errors": [],
+ "secs": 74.1,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities align with the candidate's target role of AI Engineer.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"Has LLM and RAG experience, but lacks production-scale backend depth and queues.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job requires 8+ years; candidate has 3 years total and 1 in track.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"On-site in Germany, which is a target country for the candidate.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate speaks English at a full professional level as required.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"Eight or more years building and running production software\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"LLM implementation\",\n      \"RAG and FAISS\",\n      \"FastAPI development\"\n    ],\n    \"gaps\": [\n      \"8+ years production experience\",\n      \"Backend depth (queues)\",\n      \"Production-scale AI agents\"\n    ],\n    \"summary\": \"Candidate has relevant AI skills but lacks the required 8+ years of production software experience.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5604,
+  "output": 533,
+  "thinking": 984
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities align with the candidate's target role of AI Engineer.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Has LLM and RAG experience, but lacks production-scale backend depth and queues.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job requires 8+ years; candidate has 3 years total and 1 in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, which is a target country for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate speaks English at a full professional level as required.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Eight or more years building and running production software",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM implementation",
+   "RAG and FAISS",
+   "FastAPI development"
+  ],
+  "gaps": [
+   "8+ years production experience",
+   "Backend depth (queues)",
+   "Production-scale AI agents"
+  ],
+  "summary": "Candidate has relevant AI skills but lacks the required 8+ years of production software experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities align with the candidate's target role of AI Engineer.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Has LLM and RAG experience, but lacks production-scale backend depth and queues.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job requires 8+ years; candidate has 3 years total and 1 in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, which is a target country for the candidate.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate speaks English at a full professional level as required.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Eight or more years building and running production software"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM implementation",
+   "RAG and FAISS",
+   "FastAPI development"
+  ],
+  "gaps": [
+   "8+ years production experience",
+   "Backend depth (queues)",
+   "Production-scale AI agents"
+  ],
+  "summary": "Candidate has relevant AI skills but lacks the required 8+ years of production software experience."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

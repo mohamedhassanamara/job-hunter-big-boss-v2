@@ -1,0 +1,129 @@
+{
+ "config": "gemma-4-31b-it default",
+ "model": "gemma-4-31b-it",
+ "thinking_config": null,
+ "job": "1913",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 60.7,
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities are exactly a Backend Engineer role.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 2,\n      \"reason\": \"Candidate lacks the primary required skill (Go) and specific AWS services.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"Job level is unclear; candidate has 3 years total experience, 1 in track.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"Hybrid role in a target country with no mention of sponsorship restrictions.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has full professional English and French.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Full professional English\",\n      \"Full professional French\",\n      \"Spring Boot and FastAPI\"\n    ],\n    \"gaps\": [\n      \"No Go experience\",\n      \"No DynamoDB/SQS/Redshift experience\"\n    ],\n    \"summary\": \"Backend engineer with 3 years experience, but lacks the required Go and AWS stack skills.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5739,
+  "output": 500,
+  "thinking": 916
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities are exactly a Backend Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Candidate lacks the primary required skill (Go) and specific AWS services.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job level is unclear; candidate has 3 years total experience, 1 in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Hybrid role in a target country with no mention of sponsorship restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate has full professional English and French.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Full professional English",
+   "Full professional French",
+   "Spring Boot and FastAPI"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No DynamoDB/SQS/Redshift experience"
+  ],
+  "summary": "Backend engineer with 3 years experience, but lacks the required Go and AWS stack skills."
+ },
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities are exactly a Backend Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Candidate lacks the primary required skill (Go) and specific AWS services.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job level is unclear; candidate has 3 years total experience, 1 in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Hybrid role in a target country with no mention of sponsorship restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate has full professional English and French.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Full professional English",
+   "Full professional French",
+   "Spring Boot and FastAPI"
+  ],
+  "gaps": [
+   "No Go experience",
+   "No DynamoDB/SQS/Redshift experience"
+  ],
+  "summary": "Backend engineer with 3 years experience, but lacks the required Go and AWS stack skills.",
+  "confidence": "high"
+ }
+}

@@ -1,0 +1,161 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2431,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 28.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an AI Engineer, which is a core role in the track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 8+ years of experience, while the candidate has 3 years total.\",\n    \"evidence\": \"Eight or more years building and running production software\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany; the candidate is willing to relocate and requires visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate speaks.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Eight or more years building and running production software\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG experience\",\n    \"Python and FastAPI proficiency\",\n    \"AI pipeline development\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of senior production experience\",\n    \"No experience with complex enterprise systems\"\n  ],\n  \"summary\": \"The candidate is a talented junior AI engineer but lacks the eight years of production experience required.\"\n}",
+ "tokens": {
+  "input": 4844,
+  "output": 536,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an AI Engineer, which is a core role in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 8+ years of experience, while the candidate has 3 years total.",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany; the candidate is willing to relocate and requires visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate speaks.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Eight or more years building and running production software",
+    "evidence": "Eight or more years building and running production software",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "LLM and RAG experience",
+   "Python and FastAPI proficiency",
+   "AI pipeline development"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior production experience",
+   "No experience with complex enterprise systems"
+  ],
+  "summary": "The candidate is a talented junior AI engineer but lacks the eight years of production experience required.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an AI Engineer, which is a core role in the track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has relevant AI/LLM experience but lacks the 8+ years of production software experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 8+ years of experience, while the candidate has 3 years total.",
+   "evidence": "Eight or more years building and running production software"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany; the candidate is willing to relocate and requires visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate speaks.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Eight or more years building and running production software"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG experience",
+   "Python and FastAPI proficiency",
+   "AI pipeline development"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior production experience",
+   "No experience with complex enterprise systems"
+  ],
+  "summary": "The candidate is a talented junior AI engineer but lacks the eight years of production experience required."
+ },
+ "evidence": {
+  "checked": 2,
+  "ok": 2,
+  "in_job": 2,
+  "quotes": [
+   {
+    "where": "seniority_fit",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Eight or more years building and running production software",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

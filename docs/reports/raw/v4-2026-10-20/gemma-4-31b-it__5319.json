@@ -1,0 +1,181 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 5319,
+ "retries": 4,
+ "retry_reasons": [
+  500,
+  500,
+  500,
+  503
+ ],
+ "errors": [],
+ "secs": 117.2,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The role is an ML Backend Engineer, which aligns with the candidate's target track.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 3,\n      \"reason\": \"Candidate knows Python and FAISS, but lacks production search engines, Kafka, and TypeScript.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"Job requires 5+ years; candidate has 3 total and 1 in track.\",\n      \"evidence\": \"5+ years building backend or platform systems in production.\"\n    },\n    \"location_eligibility\": {\n      \"score\": 0,\n      \"reason\": \"The job is located in Saudi Arabia, which is not in the candidate's target countries.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate is native in Arabic and fluent in English.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"5+ years building backend or platform systems in production.\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Candidate lacks the required 5+ years of production backend experience.\",\n        \"evidence\": \"5+ years building backend or platform systems in production.\"\n      }\n    ],\n    \"strengths\": [\n      \"Strong Python\",\n      \"FastAPI\",\n      \"Vector search (FAISS)\"\n    ],\n    \"gaps\": [\n      \"Production search engines\",\n      \"Streaming/CDC (Kafka)\",\n      \"5+ years experience\"\n    ],\n    \"summary\": \"Candidate lacks the required seniority and specific search/streaming skills, and the location is not a target.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5393,
+  "output": 603,
+  "thinking": 1659
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 56,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is an ML Backend Engineer, which aligns with the candidate's target track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 3,
+    "reason": "Candidate knows Python and FAISS, but lacks production search engines, Kafka, and TypeScript.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job requires 5+ years; candidate has 3 total and 1 in track.",
+    "evidence": "5+ years building backend or platform systems in production.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is located in Saudi Arabia, which is not in the candidate's target countries. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate is native in Arabic and fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate lacks the required 5+ years of production backend experience.",
+    "evidence": "5+ years building backend or platform systems in production.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Strong Python",
+   "FastAPI",
+   "Vector search (FAISS)"
+  ],
+  "gaps": [
+   "Production search engines",
+   "Streaming/CDC (Kafka)",
+   "5+ years experience"
+  ],
+  "summary": "Candidate lacks the required seniority and specific search/streaming skills, and the location is not a target.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is an ML Backend Engineer, which aligns with the candidate's target track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 3,
+   "reason": "Candidate knows Python and FAISS, but lacks production search engines, Kafka, and TypeScript.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job requires 5+ years; candidate has 3 total and 1 in track.",
+   "evidence": "5+ years building backend or platform systems in production."
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is located in Saudi Arabia, which is not in the candidate's target countries.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate is native in Arabic and fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "5+ years building backend or platform systems in production."
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate lacks the required 5+ years of production backend experience.",
+    "evidence": "5+ years building backend or platform systems in production."
+   }
+  ],
+  "strengths": [
+   "Strong Python",
+   "FastAPI",
+   "Vector search (FAISS)"
+  ],
+  "gaps": [
+   "Production search engines",
+   "Streaming/CDC (Kafka)",
+   "5+ years experience"
+  ],
+  "summary": "Candidate lacks the required seniority and specific search/streaming skills, and the location is not a target."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3,
+  "in_job": 3,
+  "quotes": [
+   {
+    "where": "seniority_fit",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "5+ years building backend or platform systems in production.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

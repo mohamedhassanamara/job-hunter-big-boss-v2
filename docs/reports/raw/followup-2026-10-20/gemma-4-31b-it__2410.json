@@ -1,0 +1,169 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2410,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 113.4,
+ "finish": "STOP",
+ "raw_text": "{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job title and core responsibilities are exactly the candidate's target role of Data Engineer.\",\n      \"evidence\": \"Data Engineer\"\n    },\n    \"skills_match\": {\n      \"score\": 7,\n      \"reason\": \"The candidate has strong Python, SQL, and data modeling skills, and experience with dbt, Airflow, Docker, and Terraform, but lacks production AWS experience (only LocalStack).\",\n      \"evidence\": \"Strong Python skills for data processing.\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"The job requires production experience in ETL/ELT, whereas the candidate's data engineering experience is primarily from personal projects and certifications.\",\n      \"evidence\": \"Experience building ETL/ELT pipelines in production environments.\"\n    },\n    \"location_eligibility\": {\n      \"score\": 0,\n      \"reason\": \"The job is based in Vienna, Austria, which is not one of the candidate's target countries.\",\n      \"evidence\": \"workplace in the heart of Vienna\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job is written in English and the candidate has full professional proficiency.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python and SQL\",\n      \"dbt and Apache Airflow\",\n      \"Docker and Terraform\"\n    ],\n    \"gaps\": [\n      \"Production AWS experience\",\n      \"Production ETL/ELT experience\",\n      \"Location (Austria)\"\n    ],\n    \"summary\": \"The candidate possesses the core technical skills for a Data Engineer but lacks production-level AWS experience and the job is located in a country not on their target list.\"\n  }\n}",
+ "tokens": {
+  "input": 5000,
+  "output": 599,
+  "thinking": 2720
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 68,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and core responsibilities are exactly the candidate's target role of Data Engineer.",
+    "evidence": "Data Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "The candidate has strong Python, SQL, and data modeling skills, and experience with dbt, Airflow, Docker, and Terraform, but lacks production AWS experience (only LocalStack).",
+    "evidence": "Strong Python skills for data processing.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job requires production experience in ETL/ELT, whereas the candidate's data engineering experience is primarily from personal projects and certifications.",
+    "evidence": "Experience building ETL/ELT pipelines in production environments.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is based in Vienna, Austria, which is not one of the candidate's target countries.",
+    "evidence": "workplace in the heart of Vienna",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is written in English and the candidate has full professional proficiency.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL",
+   "dbt and Apache Airflow",
+   "Docker and Terraform"
+  ],
+  "gaps": [
+   "Production AWS experience",
+   "Production ETL/ELT experience",
+   "Location (Austria)"
+  ],
+  "summary": "The candidate possesses the core technical skills for a Data Engineer but lacks production-level AWS experience and the job is located in a country not on their target list.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and core responsibilities are exactly the candidate's target role of Data Engineer.",
+   "evidence": "Data Engineer"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "The candidate has strong Python, SQL, and data modeling skills, and experience with dbt, Airflow, Docker, and Terraform, but lacks production AWS experience (only LocalStack).",
+   "evidence": "Strong Python skills for data processing."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job requires production experience in ETL/ELT, whereas the candidate's data engineering experience is primarily from personal projects and certifications.",
+   "evidence": "Experience building ETL/ELT pipelines in production environments."
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is based in Vienna, Austria, which is not one of the candidate's target countries.",
+   "evidence": "workplace in the heart of Vienna"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is written in English and the candidate has full professional proficiency.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL",
+   "dbt and Apache Airflow",
+   "Docker and Terraform"
+  ],
+  "gaps": [
+   "Production AWS experience",
+   "Production ETL/ELT experience",
+   "Location (Austria)"
+  ],
+  "summary": "The candidate possesses the core technical skills for a Data Engineer but lacks production-level AWS experience and the job is located in a country not on their target list."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Data Engineer",
+    "in_job": true,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong Python skills for data processing.",
+    "in_job": true,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Experience building ETL/ELT pipelines in production environments.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "workplace in the heart of Vienna",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

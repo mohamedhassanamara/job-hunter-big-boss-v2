@@ -1,0 +1,135 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 794,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 44.4,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an Analytics Engineer, which is a core role in the track.\",\n    \"evidence\": \"This is an Analytics Engineer I role\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has strong Python, SQL, and LLM experience, though lacks professional BI tool experience.\",\n    \"evidence\": \"Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 6,\n    \"reason\": \"The job asks for 2-3 years; candidate has 1 year in this specific track.\",\n    \"evidence\": \"2-3 years of hands-on experience in Analytics Engineering\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"English proficiency: Good communication in English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"LLM and automation experience\",\n    \"Collaborative engineering practices\"\n  ],\n  \"gaps\": [\n    \"Limited professional BI experience\",\n    \"Less than 2 years in track\"\n  ],\n  \"summary\": \"A strong candidate for an Analytics Engineer role with relevant technical skills, though slightly below the requested experience level.\"\n}",
+ "tokens": {
+  "input": 5332,
+  "output": 562,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 82,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+    "evidence": "This is an Analytics Engineer I role",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has strong Python, SQL, and LLM experience, though lacks professional BI tool experience.",
+    "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 6,
+    "reason": "The job asks for 2-3 years; candidate has 1 year in this specific track.",
+    "evidence": "2-3 years of hands-on experience in Analytics Engineering",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "English proficiency: Good communication in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited professional BI experience",
+   "Less than 2 years in track"
+  ],
+  "summary": "A strong candidate for an Analytics Engineer role with relevant technical skills, though slightly below the requested experience level.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+   "evidence": "This is an Analytics Engineer I role"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has strong Python, SQL, and LLM experience, though lacks professional BI tool experience.",
+   "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries."
+  },
+  "seniority_fit": {
+   "score": 6,
+   "reason": "The job asks for 2-3 years; candidate has 1 year in this specific track.",
+   "evidence": "2-3 years of hands-on experience in Analytics Engineering"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": "English proficiency: Good communication in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited professional BI experience",
+   "Less than 2 years in track"
+  ],
+  "summary": "A strong candidate for an Analytics Engineer role with relevant technical skills, though slightly below the requested experience level."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4
+ }
+}

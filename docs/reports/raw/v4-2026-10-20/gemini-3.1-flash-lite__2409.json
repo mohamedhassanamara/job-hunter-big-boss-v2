@@ -1,0 +1,232 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 2409,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 5.3,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The role is for a Senior Principal database engine engineer, not the candidate's track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"Candidate lacks the required 12+ years of C++ and database engine internals expertise.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 12+ years of experience; the candidate has 3 years.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is restricted to US-based candidates and explicitly denies visa sponsorship.\",\n    \"evidence\": \"Remote - US based candidates only, no visa sponsorship available\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No specific language requirements beyond English, which the candidate speaks fluently.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": true,\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Remote - US based candidates only\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Senior Principal Software Engineer\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"no_visa_sponsorship\",\n      \"text\": \"no visa sponsorship available\",\n      \"evidence\": \"no visa sponsorship available\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"Remote - US based candidates only\",\n      \"evidence\": \"Remote - US based candidates only\"\n    },\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Senior Principal Software Engineer\",\n      \"evidence\": \"Senior Principal Software Engineer\"\n    }\n  ],\n  \"strengths\": [\n    \"Python\",\n    \"SQL\",\n    \"Distributed systems concepts\"\n  ],\n  \"gaps\": [\n    \"12+ years experience\",\n    \"C++ systems programming\",\n    \"Database engine internals\"\n  ],\n  \"summary\": \"This role is a senior database engine position requiring 12+ years of experience, which does not match.\"\n}",
+ "tokens": {
+  "input": 4572,
+  "output": 666,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 10,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The role is for a Senior Principal database engine engineer, not the candidate's track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "Candidate lacks the required 12+ years of C++ and database engine internals expertise.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 12+ years of experience; the candidate has 3 years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is restricted to US-based candidates and explicitly denies visa sponsorship.",
+    "evidence": "Remote - US based candidates only, no visa sponsorship available",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No specific language requirements beyond English, which the candidate speaks fluently.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "no visa sponsorship available",
+    "evidence": "no visa sponsorship available",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Remote - US based candidates only",
+    "evidence": "Remote - US based candidates only",
+    "evidence_verified": true,
+    "severity": "soft",
+    "severity_note": "The quote doesn't state the requirement (it mentions a place, mode or perk)."
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Senior Principal Software Engineer",
+    "evidence": "Senior Principal Software Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Distributed systems concepts"
+  ],
+  "gaps": [
+   "12+ years experience",
+   "C++ systems programming",
+   "Database engine internals"
+  ],
+  "summary": "This role is a senior database engine position requiring 12+ years of experience, which does not match.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The role is for a Senior Principal database engine engineer, not the candidate's track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "Candidate lacks the required 12+ years of C++ and database engine internals expertise.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 12+ years of experience; the candidate has 3 years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is restricted to US-based candidates and explicitly denies visa sponsorship.",
+   "evidence": "Remote - US based candidates only, no visa sponsorship available"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No specific language requirements beyond English, which the candidate speaks fluently.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": true,
+    "evidence": "no visa sponsorship available"
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Remote - US based candidates only"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Senior Principal Software Engineer"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "no_visa_sponsorship",
+    "text": "no visa sponsorship available",
+    "evidence": "no visa sponsorship available"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Remote - US based candidates only",
+    "evidence": "Remote - US based candidates only"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Senior Principal Software Engineer",
+    "evidence": "Senior Principal Software Engineer"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "SQL",
+   "Distributed systems concepts"
+  ],
+  "gaps": [
+   "12+ years experience",
+   "C++ systems programming",
+   "Database engine internals"
+  ],
+  "summary": "This role is a senior database engine position requiring 12+ years of experience, which does not match."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 7,
+  "quotes": [
+   {
+    "where": "location_eligibility",
+    "quote": "Remote - US based candidates only, no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Remote - US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Senior Principal Software Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:no_visa_sponsorship",
+    "quote": "no visa sponsorship available",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "Remote - US based candidates only",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "Senior Principal Software Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

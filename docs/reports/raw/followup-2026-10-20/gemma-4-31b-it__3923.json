@@ -1,0 +1,169 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3923,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 98.5,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job focuses on building data extraction systems and pipelines, which aligns directly with the candidate's target role of Data Engineer.\",\n      \"evidence\": \"Build and scale crawlers that handle dynamic, large-scale sites\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"The candidate has strong Python, Docker, and LLM skills (which are listed as nice-to-haves), but lacks the core requirement of professional experience with large-scale web scraping and anti-bot defenses.\",\n      \"evidence\": \"Hands-on web scraping at scale, including firsthand experience with anti-bot defenses\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"The job requires 3+ years of professional software development, and the candidate has exactly 3 years of experience.\",\n      \"evidence\": \"3+ years of professional software development\"\n    },\n    \"location_eligibility\": {\n      \"score\": 5,\n      \"reason\": \"The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship or work authorization requirements.\",\n      \"evidence\": \"M\u00fcnchen - HQ (DE)\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job is posted in English and the candidate has full professional proficiency in English.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python\",\n      \"LLM-assisted extraction\",\n      \"Java/Spring Boot\"\n    ],\n    \"gaps\": [\n      \"Large-scale web scraping\",\n      \"Anti-bot defenses\",\n      \"GCP/Azure production experience\"\n    ],\n    \"summary\": \"The candidate meets the general seniority and Python requirements and possesses valuable LLM and backend skills, but lacks the specific expertise in large-scale web crawling and anti-bot measures required for this role.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5259,
+  "output": 644,
+  "thinking": 1337
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 78,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job focuses on building data extraction systems and pipelines, which aligns directly with the candidate's target role of Data Engineer.",
+    "evidence": "Build and scale crawlers that handle dynamic, large-scale sites",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python, Docker, and LLM skills (which are listed as nice-to-haves), but lacks the core requirement of professional experience with large-scale web scraping and anti-bot defenses.",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job requires 3+ years of professional software development, and the candidate has exactly 3 years of experience.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship or work authorization requirements.",
+    "evidence": "M\u00fcnchen - HQ (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is posted in English and the candidate has full professional proficiency in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "LLM-assisted extraction",
+   "Java/Spring Boot"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defenses",
+   "GCP/Azure production experience"
+  ],
+  "summary": "The candidate meets the general seniority and Python requirements and possesses valuable LLM and backend skills, but lacks the specific expertise in large-scale web crawling and anti-bot measures required for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job focuses on building data extraction systems and pipelines, which aligns directly with the candidate's target role of Data Engineer.",
+   "evidence": "Build and scale crawlers that handle dynamic, large-scale sites"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python, Docker, and LLM skills (which are listed as nice-to-haves), but lacks the core requirement of professional experience with large-scale web scraping and anti-bot defenses.",
+   "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job requires 3+ years of professional software development, and the candidate has exactly 3 years of experience.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite in Germany (a target country), but the listing does not mention visa sponsorship or work authorization requirements.",
+   "evidence": "M\u00fcnchen - HQ (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is posted in English and the candidate has full professional proficiency in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "LLM-assisted extraction",
+   "Java/Spring Boot"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defenses",
+   "GCP/Azure production experience"
+  ],
+  "summary": "The candidate meets the general seniority and Python requirements and possesses valuable LLM and backend skills, but lacks the specific expertise in large-scale web crawling and anti-bot measures required for this role."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 3,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Build and scale crawlers that handle dynamic, large-scale sites",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "3+ years of professional software development",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "M\u00fcnchen - HQ (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

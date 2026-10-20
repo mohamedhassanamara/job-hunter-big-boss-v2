@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 3921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 20.3,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"This is a senior technical program management role, not an individual contributor engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"Candidate lacks the required senior program management experience and cross-functional leadership track record.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires significant senior-level program management experience; candidate has 3 years total experience.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Germany; candidate is willing to relocate and requires visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate is fluent in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Significant senior-level experience in technical program or project management\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"AI/LLM project experience\",\n    \"Software engineering background\",\n    \"FastAPI and Python proficiency\"\n  ],\n  \"gaps\": [\n    \"No program management experience\",\n    \"Insufficient years of experience\",\n    \"Lack of leadership track record\"\n  ],\n  \"summary\": \"The candidate is an early-career software engineer, whereas this role requires a senior technical program manager.\"\n}",
+ "tokens": {
+  "input": 5438,
+  "output": 524,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 28,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "This is a senior technical program management role, not an individual contributor engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "Candidate lacks the required senior program management experience and cross-functional leadership track record.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires significant senior-level program management experience; candidate has 3 years total experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Germany; candidate is willing to relocate and requires visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate is fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: Significant senior-level experience in technical program or project management",
+    "evidence": "Significant senior-level experience in technical program or project management",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "AI/LLM project experience",
+   "Software engineering background",
+   "FastAPI and Python proficiency"
+  ],
+  "gaps": [
+   "No program management experience",
+   "Insufficient years of experience",
+   "Lack of leadership track record"
+  ],
+  "summary": "The candidate is an early-career software engineer, whereas this role requires a senior technical program manager.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "This is a senior technical program management role, not an individual contributor engineering role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "Candidate lacks the required senior program management experience and cross-functional leadership track record.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires significant senior-level program management experience; candidate has 3 years total experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Germany; candidate is willing to relocate and requires visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate is fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Significant senior-level experience in technical program or project management"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "AI/LLM project experience",
+   "Software engineering background",
+   "FastAPI and Python proficiency"
+  ],
+  "gaps": [
+   "No program management experience",
+   "Insufficient years of experience",
+   "Lack of leadership track record"
+  ],
+  "summary": "The candidate is an early-career software engineer, whereas this role requires a senior technical program manager."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

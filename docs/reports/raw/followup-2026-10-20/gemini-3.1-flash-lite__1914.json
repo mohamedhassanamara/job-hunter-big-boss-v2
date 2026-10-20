@@ -1,0 +1,193 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 1914,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 16.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title and core responsibilities are explicitly for a Data Engineer, which is one of the candidate's target roles.\",\n    \"evidence\": \"We are seeking a highly skilled Location Data Engineer to join our team.\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has strong experience with the core stack mentioned (Python, SQL, dbt, DuckDB) and has built end-to-end data pipelines.\",\n    \"evidence\": \"Built a dbt star schema on DuckDB... Orchestrated full ingest-to-transform pipelines using dependency-chained Apache Airflow DAGs\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a minimum number of years, and the candidate's background in software engineering and data projects is sufficient for a data engineering role.\",\n    \"evidence\": \"Strong software engineering fundamentals and experience working with data-intensive systems.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job explicitly offers visa sponsorship and relocation assistance to Paris.\",\n    \"evidence\": \"We love the diverse perspectives we get from having people from all over the world join us... and so we of course support relocation to Paris with: Help and sponsored visa process.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English (the posting is in English) and the candidate is fluent in English.\",\n    \"evidence\": \"Find more English Speaking Jobs in France on Arbeitnow\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"we work together onsite 5 days a week.\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"dbt and Airflow experience\",\n    \"End-to-end pipeline development\"\n  ],\n  \"gaps\": [\n    \"Limited professional experience in data engineering\",\n    \"No experience with Spark or BigQuery\",\n    \"Onsite requirement in Paris\"\n  ],\n  \"summary\": \"The candidate is a strong match for this Data Engineer role, possessing the necessary technical skills and benefiting from the company's explicit offer of visa sponsorship and relocation support.\"\n}",
+ "tokens": {
+  "input": 5018,
+  "output": 690,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title and core responsibilities are explicitly for a Data Engineer, which is one of the candidate's target roles.",
+    "evidence": "We are seeking a highly skilled Location Data Engineer to join our team.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "The candidate has strong experience with the core stack mentioned (Python, SQL, dbt, DuckDB) and has built end-to-end data pipelines.",
+    "evidence": "Built a dbt star schema on DuckDB... Orchestrated full ingest-to-transform pipelines using dependency-chained Apache Airflow DAGs",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a minimum number of years, and the candidate's background in software engineering and data projects is sufficient for a data engineering role.",
+    "evidence": "Strong software engineering fundamentals and experience working with data-intensive systems.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers visa sponsorship and relocation assistance to Paris.",
+    "evidence": "We love the diverse perspectives we get from having people from all over the world join us... and so we of course support relocation to Paris with: Help and sponsored visa process.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English (the posting is in English) and the candidate is fluent in English.",
+    "evidence": "Find more English Speaking Jobs in France on Arbeitnow",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: we work together onsite 5 days a week.",
+    "evidence": "we work together onsite 5 days a week.",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and Airflow experience",
+   "End-to-end pipeline development"
+  ],
+  "gaps": [
+   "Limited professional experience in data engineering",
+   "No experience with Spark or BigQuery",
+   "Onsite requirement in Paris"
+  ],
+  "summary": "The candidate is a strong match for this Data Engineer role, possessing the necessary technical skills and benefiting from the company's explicit offer of visa sponsorship and relocation support.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title and core responsibilities are explicitly for a Data Engineer, which is one of the candidate's target roles.",
+   "evidence": "We are seeking a highly skilled Location Data Engineer to join our team."
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "The candidate has strong experience with the core stack mentioned (Python, SQL, dbt, DuckDB) and has built end-to-end data pipelines.",
+   "evidence": "Built a dbt star schema on DuckDB... Orchestrated full ingest-to-transform pipelines using dependency-chained Apache Airflow DAGs"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a minimum number of years, and the candidate's background in software engineering and data projects is sufficient for a data engineering role.",
+   "evidence": "Strong software engineering fundamentals and experience working with data-intensive systems."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers visa sponsorship and relocation assistance to Paris.",
+   "evidence": "We love the diverse perspectives we get from having people from all over the world join us... and so we of course support relocation to Paris with: Help and sponsored visa process."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English (the posting is in English) and the candidate is fluent in English.",
+   "evidence": "Find more English Speaking Jobs in France on Arbeitnow"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "we work together onsite 5 days a week."
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and Airflow experience",
+   "End-to-end pipeline development"
+  ],
+  "gaps": [
+   "Limited professional experience in data engineering",
+   "No experience with Spark or BigQuery",
+   "Onsite requirement in Paris"
+  ],
+  "summary": "The candidate is a strong match for this Data Engineer role, possessing the necessary technical skills and benefiting from the company's explicit offer of visa sponsorship and relocation support."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 6,
+  "in_job": 5,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are seeking a highly skilled Location Data Engineer to join our team.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Built a dbt star schema on DuckDB... Orchestrated full ingest-to-transform pipelines using dependency-chained Apache Airflow DAGs",
+    "in_job": false,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Strong software engineering fundamentals and experience working with data-intensive systems.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "We love the diverse perspectives we get from having people from all over the world join us... and so we of course support relocation to Paris with: Help and sponsored visa process.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in France on Arbeitnow",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "we work together onsite 5 days a week.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

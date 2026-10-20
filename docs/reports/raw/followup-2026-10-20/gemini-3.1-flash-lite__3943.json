@@ -1,0 +1,186 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 3943,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 9.6,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is a mix of Data Engineering and industrial operations/SCADA engineering, which is adjacent to the candidate's target Data Engineer role.\",\n    \"evidence\": \"We are looking for a Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong Python and SQL skills and experience with data pipelines, but lacks the specific industrial/SCADA/BESS domain experience required.\",\n    \"evidence\": \"You work confidently with SQL and Python or similar languages, time-series data and REST APIs.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for a general engineering role.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is onsite in Munich, Germany, and the candidate requires visa sponsorship, which is not explicitly offered.\",\n    \"evidence\": \"work mode: onsite\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English at C1 level, which the candidate meets.\",\n    \"evidence\": \"You communicate confidently in English at C1 level\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Germany - Munich (DE)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Data pipeline development\",\n    \"REST API integration\"\n  ],\n  \"gaps\": [\n    \"No SCADA/EMS experience\",\n    \"No BESS/Renewables domain knowledge\",\n    \"Requires visa sponsorship\"\n  ],\n  \"summary\": \"While the candidate has strong technical foundations in data engineering, they lack the specific industrial domain experience required for this onsite role in Germany and would require visa sponsorship.\"\n}",
+ "tokens": {
+  "input": 4331,
+  "output": 628,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is a mix of Data Engineering and industrial operations/SCADA engineering, which is adjacent to the candidate's target Data Engineer role.",
+    "evidence": "We are looking for a Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python and SQL skills and experience with data pipelines, but lacks the specific industrial/SCADA/BESS domain experience required.",
+    "evidence": "You work confidently with SQL and Python or similar languages, time-series data and REST APIs.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for a general engineering role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Munich, Germany, and the candidate requires visa sponsorship, which is not explicitly offered. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "work mode: onsite",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English at C1 level, which the candidate meets.",
+    "evidence": "You communicate confidently in English at C1 level",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Germany - Munich (DE)",
+    "evidence": "Germany - Munich (DE)",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline development",
+   "REST API integration"
+  ],
+  "gaps": [
+   "No SCADA/EMS experience",
+   "No BESS/Renewables domain knowledge",
+   "Requires visa sponsorship"
+  ],
+  "summary": "While the candidate has strong technical foundations in data engineering, they lack the specific industrial domain experience required for this onsite role in Germany and would require visa sponsorship.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is a mix of Data Engineering and industrial operations/SCADA engineering, which is adjacent to the candidate's target Data Engineer role.",
+   "evidence": "We are looking for a Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python and SQL skills and experience with data pipelines, but lacks the specific industrial/SCADA/BESS domain experience required.",
+   "evidence": "You work confidently with SQL and Python or similar languages, time-series data and REST APIs."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a seniority level, and the candidate's 3 years of experience are sufficient for a general engineering role.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Munich, Germany, and the candidate requires visa sponsorship, which is not explicitly offered.",
+   "evidence": "work mode: onsite"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English at C1 level, which the candidate meets.",
+   "evidence": "You communicate confidently in English at C1 level"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Germany - Munich (DE)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Data pipeline development",
+   "REST API integration"
+  ],
+  "gaps": [
+   "No SCADA/EMS experience",
+   "No BESS/Renewables domain knowledge",
+   "Requires visa sponsorship"
+  ],
+  "summary": "While the candidate has strong technical foundations in data engineering, they lack the specific industrial domain experience required for this onsite role in Germany and would require visa sponsorship."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5,
+  "in_job": 3,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a Data Engineer who can turn complex EMS, SCADA and contract data into reliable operational insight",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "You work confidently with SQL and Python or similar languages, time-series data and REST APIs.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "work mode: onsite",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "You communicate confidently in English at C1 level",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Germany - Munich (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

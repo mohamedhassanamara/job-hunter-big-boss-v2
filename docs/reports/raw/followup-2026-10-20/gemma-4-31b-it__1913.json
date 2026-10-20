@@ -1,0 +1,193 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 1913,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 61.3,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Backend Engineer, which is exactly the candidate's target role in the Backend track.\",\n    \"evidence\": \"Backend Engineer (Go)\"\n  },\n  \"skills_match\": {\n    \"score\": 2,\n    \"reason\": \"The candidate lacks the primary required skill (Go) and the specific AWS stack (DynamoDB, SQS, Redshift, Lambdas). While they have backend experience in Java/Spring Boot and Python/FastAPI, there is very little overlap with the requested tech stack.\",\n    \"evidence\": \"Strong coding skills in Go\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job does not specify a minimum number of years and the compensation range is consistent with a mid-level role, which fits the candidate's 3 years of total experience.\",\n    \"evidence\": \"\u20ac60K \u2013 \u20ac65K\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is hybrid in Paris, France, which is one of the candidate's target countries, but the listing does not mention visa sponsorship.\",\n    \"evidence\": \"3 days in-office in central Paris\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English, which the candidate possesses.\",\n    \"evidence\": \"Fluent/professional English given our international team\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"3 days in-office in central Paris\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Backend experience with Spring Boot and FastAPI\",\n    \"Full professional fluency in English and French\",\n    \"Experience building RESTful APIs\"\n  ],\n  \"gaps\": [\n    \"No experience with Go (Golang)\",\n    \"No experience with DynamoDB, SQS, or Redshift\",\n    \"No experience with AWS Lambdas\"\n  ],\n  \"summary\": \"The candidate is a qualified backend engineer and meets the language and location targets, but is a poor fit due to the complete absence of the required Go programming language and AWS serverless stack.\"\n}\n```",
+ "tokens": {
+  "input": 5351,
+  "output": 675,
+  "thinking": 1006
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Backend Engineer, which is exactly the candidate's target role in the Backend track.",
+    "evidence": "Backend Engineer (Go)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 2,
+    "reason": "The candidate lacks the primary required skill (Go) and the specific AWS stack (DynamoDB, SQS, Redshift, Lambdas). While they have backend experience in Java/Spring Boot and Python/FastAPI, there is very little overlap with the requested tech stack.",
+    "evidence": "Strong coding skills in Go",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job does not specify a minimum number of years and the compensation range is consistent with a mid-level role, which fits the candidate's 3 years of total experience.",
+    "evidence": "\u20ac60K \u2013 \u20ac65K",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is hybrid in Paris, France, which is one of the candidate's target countries, but the listing does not mention visa sponsorship.",
+    "evidence": "3 days in-office in central Paris",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English, which the candidate possesses.",
+    "evidence": "Fluent/professional English given our international team",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: 3 days in-office in central Paris",
+    "evidence": "3 days in-office in central Paris",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Backend experience with Spring Boot and FastAPI",
+   "Full professional fluency in English and French",
+   "Experience building RESTful APIs"
+  ],
+  "gaps": [
+   "No experience with Go (Golang)",
+   "No experience with DynamoDB, SQS, or Redshift",
+   "No experience with AWS Lambdas"
+  ],
+  "summary": "The candidate is a qualified backend engineer and meets the language and location targets, but is a poor fit due to the complete absence of the required Go programming language and AWS serverless stack.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Backend Engineer, which is exactly the candidate's target role in the Backend track.",
+   "evidence": "Backend Engineer (Go)"
+  },
+  "skills_match": {
+   "score": 2,
+   "reason": "The candidate lacks the primary required skill (Go) and the specific AWS stack (DynamoDB, SQS, Redshift, Lambdas). While they have backend experience in Java/Spring Boot and Python/FastAPI, there is very little overlap with the requested tech stack.",
+   "evidence": "Strong coding skills in Go"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job does not specify a minimum number of years and the compensation range is consistent with a mid-level role, which fits the candidate's 3 years of total experience.",
+   "evidence": "\u20ac60K \u2013 \u20ac65K"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is hybrid in Paris, France, which is one of the candidate's target countries, but the listing does not mention visa sponsorship.",
+   "evidence": "3 days in-office in central Paris"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English, which the candidate possesses.",
+   "evidence": "Fluent/professional English given our international team"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "3 days in-office in central Paris"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Backend experience with Spring Boot and FastAPI",
+   "Full professional fluency in English and French",
+   "Experience building RESTful APIs"
+  ],
+  "gaps": [
+   "No experience with Go (Golang)",
+   "No experience with DynamoDB, SQS, or Redshift",
+   "No experience with AWS Lambdas"
+  ],
+  "summary": "The candidate is a qualified backend engineer and meets the language and location targets, but is a poor fit due to the complete absence of the required Go programming language and AWS serverless stack."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 6,
+  "in_job": 6,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Backend Engineer (Go)",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong coding skills in Go",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "\u20ac60K \u2013 \u20ac65K",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "3 days in-office in central Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Fluent/professional English given our international team",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "3 days in-office in central Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

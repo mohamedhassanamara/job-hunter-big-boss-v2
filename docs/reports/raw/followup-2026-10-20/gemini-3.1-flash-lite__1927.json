@@ -1,0 +1,236 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 1927,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 2.8,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Backend Engineer, which is one of the candidate's target roles.\",\n    \"evidence\": \"Senior Backend Engineer - Scoring & Computation Engine\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong Python and data engineering skills (Airflow, dbt, FastAPI), but lacks the 5+ years of experience in building complex computation engines required for this senior role.\",\n    \"evidence\": \"Mastery of modern Python with strict typing (mypy/pyright), explicit testing discipline, and clean packaging practices.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 5+ years of experience, while the candidate has 3 years total and 1 year in the backend track.\",\n    \"evidence\": \"Experience: 5+ years in backend software engineering\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is onsite in Germany and the candidate requires visa sponsorship, which is not explicitly offered.\",\n    \"evidence\": \"Location: Hamburg or Berlin (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"Languages: Fluent in English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Location: Hamburg or Berlin (DE)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"Experience: 5+ years in backend software engineering\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"seniority_mismatch\",\n      \"text\": \"Experience: 5+ years in backend software engineering\",\n      \"evidence\": \"The candidate has 3 years of total experience and 1 year in the backend track.\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"Location: Hamburg or Berlin (DE)\",\n      \"evidence\": \"The candidate is based in Tunisia and requires visa sponsorship.\"\n    }\n  ],\n  \"strengths\": [\n    \"Python and FastAPI\",\n    \"Data engineering pipelines\",\n    \"Testing and clean architecture\"\n  ],\n  \"gaps\": [\n    \"Years of experience\",\n    \"Computation engine design\",\n    \"German work authorization\"\n  ],\n  \"summary\": \"The candidate is a talented junior engineer with relevant technical skills, but does not meet the senior experience requirements or the location/work authorization criteria for this role.\"\n}",
+ "tokens": {
+  "input": 4927,
+  "output": 744,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+    "evidence": "Senior Backend Engineer - Scoring & Computation Engine",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python and data engineering skills (Airflow, dbt, FastAPI), but lacks the 5+ years of experience in building complex computation engines required for this senior role.",
+    "evidence": "Mastery of modern Python with strict typing (mypy/pyright), explicit testing discipline, and clean packaging practices.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 5+ years of experience, while the candidate has 3 years total and 1 year in the backend track.",
+    "evidence": "Experience: 5+ years in backend software engineering",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Germany and the candidate requires visa sponsorship, which is not explicitly offered. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "Location: Hamburg or Berlin (DE)",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "Languages: Fluent in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Experience: 5+ years in backend software engineering",
+    "evidence": "The candidate has 3 years of total experience and 1 year in the backend track.",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Location: Hamburg or Berlin (DE)",
+    "evidence": "The candidate is based in Tunisia and requires visa sponsorship.",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and FastAPI",
+   "Data engineering pipelines",
+   "Testing and clean architecture"
+  ],
+  "gaps": [
+   "Years of experience",
+   "Computation engine design",
+   "German work authorization"
+  ],
+  "summary": "The candidate is a talented junior engineer with relevant technical skills, but does not meet the senior experience requirements or the location/work authorization criteria for this role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+   "evidence": "Senior Backend Engineer - Scoring & Computation Engine"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python and data engineering skills (Airflow, dbt, FastAPI), but lacks the 5+ years of experience in building complex computation engines required for this senior role.",
+   "evidence": "Mastery of modern Python with strict typing (mypy/pyright), explicit testing discipline, and clean packaging practices."
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 5+ years of experience, while the candidate has 3 years total and 1 year in the backend track.",
+   "evidence": "Experience: 5+ years in backend software engineering"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Germany and the candidate requires visa sponsorship, which is not explicitly offered.",
+   "evidence": "Location: Hamburg or Berlin (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": "Languages: Fluent in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Location: Hamburg or Berlin (DE)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "Experience: 5+ years in backend software engineering"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Experience: 5+ years in backend software engineering",
+    "evidence": "The candidate has 3 years of total experience and 1 year in the backend track."
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Location: Hamburg or Berlin (DE)",
+    "evidence": "The candidate is based in Tunisia and requires visa sponsorship."
+   }
+  ],
+  "strengths": [
+   "Python and FastAPI",
+   "Data engineering pipelines",
+   "Testing and clean architecture"
+  ],
+  "gaps": [
+   "Years of experience",
+   "Computation engine design",
+   "German work authorization"
+  ],
+  "summary": "The candidate is a talented junior engineer with relevant technical skills, but does not meet the senior experience requirements or the location/work authorization criteria for this role."
+ },
+ "evidence": {
+  "checked": 9,
+  "ok": 7,
+  "in_job": 5,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Senior Backend Engineer - Scoring & Computation Engine",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Mastery of modern Python with strict typing (mypy/pyright), explicit testing discipline, and clean packaging practices.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Experience: 5+ years in backend software engineering",
+    "in_job": true,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Hamburg or Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Languages: Fluent in English",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Location: Hamburg or Berlin (DE)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "Experience: 5+ years in backend software engineering",
+    "in_job": true,
+    "in_exp": true,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "The candidate has 3 years of total experience and 1 year in the backend track.",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": false,
+    "ok": false
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "The candidate is based in Tunisia and requires visa sponsorship.",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": false,
+    "ok": false
+   }
+  ]
+ }
+}

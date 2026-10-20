@@ -1,0 +1,177 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 5316,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 2.8,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title is Analytics Engineer and the responsibilities align perfectly with the Analytics Engineer role in the track.\",\n    \"evidence\": \"As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong Python and SQL skills and experience with dbt and data pipelines from personal projects, but lacks the 3+ years of professional experience in dbt specifically requested.\",\n    \"evidence\": \"Strong proficiency in Python, SQL and experience with dbt for data modeling.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 3+ years of hands-on experience in dbt, while the candidate has 1 year of experience in the Data/AI track.\",\n    \"evidence\": \"3+ years of hands-on experience in data modeling using dbt.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is based in Dubai, UAE. The candidate is Tunisian and requires visa sponsorship. The job description does not explicitly mention visa sponsorship, so it is treated as neutral/unknown.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English and the candidate is fluent in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"3+ years of hands-on experience in data modeling using dbt.\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"dbt and data modeling experience\",\n    \"Data pipeline orchestration\"\n  ],\n  \"gaps\": [\n    \"Lack of 3+ years professional dbt experience\",\n    \"Limited professional experience in Data/AI track\",\n    \"Requires visa sponsorship\"\n  ],\n  \"summary\": \"The candidate is a strong junior-level engineer with relevant technical skills in dbt and Python, but does not meet the 3+ years of professional experience requirement for this specific Analytics Engineer II role.\"\n}",
+ "tokens": {
+  "input": 4423,
+  "output": 669,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title is Analytics Engineer and the responsibilities align perfectly with the Analytics Engineer role in the track.",
+    "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python and SQL skills and experience with dbt and data pipelines from personal projects, but lacks the 3+ years of professional experience in dbt specifically requested.",
+    "evidence": "Strong proficiency in Python, SQL and experience with dbt for data modeling.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 3+ years of hands-on experience in dbt, while the candidate has 1 year of experience in the Data/AI track.",
+    "evidence": "3+ years of hands-on experience in data modeling using dbt.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is based in Dubai, UAE. The candidate is Tunisian and requires visa sponsorship. The job description does not explicitly mention visa sponsorship, so it is treated as neutral/unknown.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English and the candidate is fluent in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: 3+ years of hands-on experience in data modeling using dbt.",
+    "evidence": "3+ years of hands-on experience in data modeling using dbt.",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and data modeling experience",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "Lack of 3+ years professional dbt experience",
+   "Limited professional experience in Data/AI track",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is a strong junior-level engineer with relevant technical skills in dbt and Python, but does not meet the 3+ years of professional experience requirement for this specific Analytics Engineer II role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title is Analytics Engineer and the responsibilities align perfectly with the Analytics Engineer role in the track.",
+   "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python and SQL skills and experience with dbt and data pipelines from personal projects, but lacks the 3+ years of professional experience in dbt specifically requested.",
+   "evidence": "Strong proficiency in Python, SQL and experience with dbt for data modeling."
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 3+ years of hands-on experience in dbt, while the candidate has 1 year of experience in the Data/AI track.",
+   "evidence": "3+ years of hands-on experience in data modeling using dbt."
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is based in Dubai, UAE. The candidate is Tunisian and requires visa sponsorship. The job description does not explicitly mention visa sponsorship, so it is treated as neutral/unknown.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English and the candidate is fluent in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "3+ years of hands-on experience in data modeling using dbt."
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "dbt and data modeling experience",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "Lack of 3+ years professional dbt experience",
+   "Limited professional experience in Data/AI track",
+   "Requires visa sponsorship"
+  ],
+  "summary": "The candidate is a strong junior-level engineer with relevant technical skills in dbt and Python, but does not meet the 3+ years of professional experience requirement for this specific Analytics Engineer II role."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong proficiency in Python, SQL and experience with dbt for data modeling.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "3+ years of hands-on experience in data modeling using dbt.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "3+ years of hands-on experience in data modeling using dbt.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

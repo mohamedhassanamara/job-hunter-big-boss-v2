@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 5319,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 4.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role is ML backend infrastructure, which is adjacent to the candidate's target ML engineering track.\",\n    \"evidence\": \"You own the platform that makes them fast, fresh, reliable and shippable.\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong Python and data pipeline experience but lacks production search engine and streaming experience.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job requires 5+ years of backend experience, but the candidate has only 3 years total.\",\n    \"evidence\": \"5+ years building backend or platform systems in production.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job is fully remote and does not restrict location or require local work authorization.\",\n    \"evidence\": \"Work mode: remote\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No languages other than English are required.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"Data pipeline experience\",\n    \"FastAPI\"\n  ],\n  \"gaps\": [\n    \"5+ years backend experience\",\n    \"Production search engines\",\n    \"Streaming ingestion\"\n  ],\n  \"summary\": \"This senior ML backend role requires extensive experience and search engine expertise that exceeds the candidate's junior background.\"\n}",
+ "tokens": {
+  "input": 4633,
+  "output": 539,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 55,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role is ML backend infrastructure, which is adjacent to the candidate's target ML engineering track.",
+    "evidence": "You own the platform that makes them fast, fresh, reliable and shippable.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong Python and data pipeline experience but lacks production search engine and streaming experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires 5+ years of backend experience, but the candidate has only 3 years total.",
+    "evidence": "5+ years building backend or platform systems in production.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is fully remote and does not restrict location or require local work authorization.",
+    "evidence": "Work mode: remote",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No languages other than English are required.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "Data pipeline experience",
+   "FastAPI"
+  ],
+  "gaps": [
+   "5+ years backend experience",
+   "Production search engines",
+   "Streaming ingestion"
+  ],
+  "summary": "This senior ML backend role requires extensive experience and search engine expertise that exceeds the candidate's junior background.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role is ML backend infrastructure, which is adjacent to the candidate's target ML engineering track.",
+   "evidence": "You own the platform that makes them fast, fresh, reliable and shippable."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong Python and data pipeline experience but lacks production search engine and streaming experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires 5+ years of backend experience, but the candidate has only 3 years total.",
+   "evidence": "5+ years building backend or platform systems in production."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is fully remote and does not restrict location or require local work authorization.",
+   "evidence": "Work mode: remote"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No languages other than English are required.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "Data pipeline experience",
+   "FastAPI"
+  ],
+  "gaps": [
+   "5+ years backend experience",
+   "Production search engines",
+   "Streaming ingestion"
+  ],
+  "summary": "This senior ML backend role requires extensive experience and search engine expertise that exceeds the candidate's junior background."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

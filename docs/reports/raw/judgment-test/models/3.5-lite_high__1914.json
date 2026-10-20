@@ -1,0 +1,131 @@
+{
+ "config": "3.5-lite high",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingLevel": "high"
+ },
+ "job": "1914",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 29.1,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"Role is Data Engineer, matching the candidate's target track role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Strong overlap in dbt, DuckDB, SQL, and Python data pipelines.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 8,\n    \"reason\": \"Mid-level role with no explicit years requirement, fitting candidate's experience.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"Job explicitly offers visa sponsorship and relocation support to Paris.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Job is in English, which the candidate speaks fluently.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt and DuckDB experience\",\n    \"Python data pipelines\",\n    \"SQL data modeling\"\n  ],\n  \"gaps\": [\n    \"limited track experience\",\n    \"lack of Spark experience\"\n  ],\n  \"summary\": \"This data engineer role matches the candidate's skills and offers visa sponsorship for relocation to Paris.\"\n}",
+ "tokens": {
+  "input": 5406,
+  "output": 490,
+  "thinking": 1800
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "Role is Data Engineer, matching the candidate's target track role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong overlap in dbt, DuckDB, SQL, and Python data pipelines.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 8,
+   "reason": "Mid-level role with no explicit years requirement, fitting candidate's experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "Job explicitly offers visa sponsorship and relocation support to Paris.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Job is in English, which the candidate speaks fluently.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and DuckDB experience",
+   "Python data pipelines",
+   "SQL data modeling"
+  ],
+  "gaps": [
+   "limited track experience",
+   "lack of Spark experience"
+  ],
+  "summary": "This data engineer role matches the candidate's skills and offers visa sponsorship for relocation to Paris."
+ },
+ "record": {
+  "score": 91,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "Role is Data Engineer, matching the candidate's target track role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong overlap in dbt, DuckDB, SQL, and Python data pipelines.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 8,
+    "reason": "Mid-level role with no explicit years requirement, fitting candidate's experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "Job explicitly offers visa sponsorship and relocation support to Paris.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Job is in English, which the candidate speaks fluently.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt and DuckDB experience",
+   "Python data pipelines",
+   "SQL data modeling"
+  ],
+  "gaps": [
+   "limited track experience",
+   "lack of Spark experience"
+  ],
+  "summary": "This data engineer role matches the candidate's skills and offers visa sponsorship for relocation to Paris.",
+  "confidence": "high"
+ }
+}

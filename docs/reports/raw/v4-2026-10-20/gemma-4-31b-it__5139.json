@@ -1,0 +1,132 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 5139,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 66.1,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The role is for a software engineer focused on AI tasks.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 9,\n      \"reason\": \"Strong overlap in languages, tools, and AI experience; open-source contributions not explicitly mentioned.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has 3 years of experience, exceeding the 2+ years requirement.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The job is remote and open to any location.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has full professional English proficiency.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python, Java, C++\",\n      \"Docker, Linux, Git\",\n      \"LLM and AI experience\"\n    ],\n    \"gaps\": [\n      \"Explicit open-source contributions\"\n    ],\n    \"summary\": \"Highly qualified software engineer with AI experience meeting all technical and seniority requirements for this remote role.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5389,
+  "output": 497,
+  "thinking": 1042
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 97,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is for a software engineer focused on AI tasks.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 9,
+    "reason": "Strong overlap in languages, tools, and AI experience; open-source contributions not explicitly mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "Candidate has 3 years of experience, exceeding the 2+ years requirement.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is remote and open to any location.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate has full professional English proficiency.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python, Java, C++",
+   "Docker, Linux, Git",
+   "LLM and AI experience"
+  ],
+  "gaps": [
+   "Explicit open-source contributions"
+  ],
+  "summary": "Highly qualified software engineer with AI experience meeting all technical and seniority requirements for this remote role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is for a software engineer focused on AI tasks.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 9,
+   "reason": "Strong overlap in languages, tools, and AI experience; open-source contributions not explicitly mentioned.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "Candidate has 3 years of experience, exceeding the 2+ years requirement.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is remote and open to any location.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate has full professional English proficiency.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python, Java, C++",
+   "Docker, Linux, Git",
+   "LLM and AI experience"
+  ],
+  "gaps": [
+   "Explicit open-source contributions"
+  ],
+  "summary": "Highly qualified software engineer with AI experience meeting all technical and seniority requirements for this remote role."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0,
+  "in_job": 0,
+  "quotes": []
+ }
+}

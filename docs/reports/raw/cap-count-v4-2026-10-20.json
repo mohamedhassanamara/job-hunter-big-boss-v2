@@ -1,0 +1,87 @@
+{
+ "latest_ok_rows": 5319,
+ "cap_value": 35,
+ "score_eq_cap": 1975,
+ "had_hard_flag": 1967,
+ "lose_cap": 1876,
+ "keep_cap": 91,
+ "score_35_without_hard_flag": 8,
+ "hard_flags_before": {
+  "must_be_based_in": 905,
+  "language_required": 1050,
+  "no_visa_sponsorship": 10,
+  "work_authorization_required": 469,
+  "nationality_restricted": 21
+ },
+ "hard_flags_after": {
+  "no_visa_sponsorship": 5,
+  "nationality_restricted": 19,
+  "work_authorization_required": 26,
+  "language_required": 49,
+  "must_be_based_in": 11
+ },
+ "by_model": {
+  "gemma4:12b": [
+   576,
+   555,
+   15
+  ],
+  "gemma4:31b-cloud": [
+   1399,
+   1321,
+   76
+  ]
+ },
+ "by_level": {
+  "snippet": [
+   1724,
+   1675,
+   49
+  ],
+  "full": [
+   79,
+   43,
+   36
+  ],
+  "summary": [
+   164,
+   158,
+   6
+  ]
+ },
+ "by_source": {
+  "adzuna": [
+   1724,
+   1675,
+   49
+  ],
+  "arbeitnow": [
+   77,
+   42,
+   35
+  ],
+  "wttj": [
+   164,
+   158,
+   6
+  ],
+  "remotive": [
+   1,
+   0,
+   1
+  ],
+  "boards": [
+   1,
+   1,
+   0
+  ]
+ },
+ "new_score_bands": {
+  "65-79": 746,
+  "\u226580": 327,
+  "50-64": 680,
+  "<50": 123
+ },
+ "new_score_mean": 66.0,
+ "other_rows_with_hard_flag": 113
+}

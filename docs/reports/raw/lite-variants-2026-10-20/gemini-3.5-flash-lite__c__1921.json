@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 1921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.3,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is Senior Data Engineer, exactly matching the track role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate has hands-on experience with dbt, Terraform, Python pipelines, and GCP/AWS data storage.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 2,\n    \"reason\": \"The job explicitly asks for a senior level with extensive experience, while the candidate has 1 year in the track.\",\n    \"evidence\": \"Extensive experience as a Data Engineer or another similar role.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Paris, France (one of candidate's target countries) with no explicit visa statement.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No language is required beyond English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt\",\n    \"Terraform\",\n    \"Python\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"Massive scale experience\",\n    \"GCP production experience\"\n  ],\n  \"summary\": \"This is a senior data engineering role requiring extensive experience, which exceeds the candidate's one year in the track, though core tools like dbt overlap well.\"\n}",
+ "tokens": {
+  "input": 4713,
+  "output": 543,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 76,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is Senior Data Engineer, exactly matching the track role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate has hands-on experience with dbt, Terraform, Python pipelines, and GCP/AWS data storage.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 2,
+    "reason": "The job explicitly asks for a senior level with extensive experience, while the candidate has 1 year in the track.",
+    "evidence": "Extensive experience as a Data Engineer or another similar role.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Paris, France (one of candidate's target countries) with no explicit visa statement.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No language is required beyond English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "dbt",
+   "Terraform",
+   "Python"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Massive scale experience",
+   "GCP production experience"
+  ],
+  "summary": "This is a senior data engineering role requiring extensive experience, which exceeds the candidate's one year in the track, though core tools like dbt overlap well.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is Senior Data Engineer, exactly matching the track role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate has hands-on experience with dbt, Terraform, Python pipelines, and GCP/AWS data storage.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 2,
+   "reason": "The job explicitly asks for a senior level with extensive experience, while the candidate has 1 year in the track.",
+   "evidence": "Extensive experience as a Data Engineer or another similar role."
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Paris, France (one of candidate's target countries) with no explicit visa statement.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No language is required beyond English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt",
+   "Terraform",
+   "Python"
+  ],
+  "gaps": [
+   "Seniority level",
+   "Massive scale experience",
+   "GCP production experience"
+  ],
+  "summary": "This is a senior data engineering role requiring extensive experience, which exceeds the candidate's one year in the track, though core tools like dbt overlap well."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1
+ }
+}

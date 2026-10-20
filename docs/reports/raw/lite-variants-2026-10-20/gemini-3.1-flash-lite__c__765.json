@@ -1,0 +1,146 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 765,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 50.1,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an AI Engineer, which matches the candidate's target role.\",\n    \"evidence\": \"AI Engineer (m/w/d)\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong overlap in LLMs, RAG, and backend, but lacks professional AWS/Azure cloud experience.\",\n    \"evidence\": \"Praktische Erfahrung mit LLMs und generativer KI in echten Projekten: Prompting, RAG\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 'mehrj\u00e4hrige Erfahrung' (multiple years), while the candidate has 1 year in AI.\",\n    \"evidence\": \"Mehrj\u00e4hrige Erfahrung in der modernen Softwareentwicklung\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job requires being based in Germany for remote work, which the candidate is not.\",\n    \"evidence\": \"Remote & Home-Office innerhalb Deutschlands\"\n  },\n  \"language_requirements\": {\n    \"score\": 5,\n    \"reason\": \"The job is in German; the candidate does not list German as a language.\",\n    \"evidence\": \"The entire job description is written in German.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Remote & Home-Office innerhalb Deutschlands\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"LLM and RAG development\",\n    \"FastAPI and backend engineering\",\n    \"Clean Architecture principles\"\n  ],\n  \"gaps\": [\n    \"Professional cloud experience (AWS/Azure)\",\n    \"German language proficiency\",\n    \"Years of experience in AI\"\n  ],\n  \"summary\": \"The candidate is a strong technical match for the AI engineering tasks but lacks the required German residency and professional cloud experience.\"\n}",
+ "tokens": {
+  "input": 5535,
+  "output": 597,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 64,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an AI Engineer, which matches the candidate's target role.",
+    "evidence": "AI Engineer (m/w/d)",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong overlap in LLMs, RAG, and backend, but lacks professional AWS/Azure cloud experience.",
+    "evidence": "Praktische Erfahrung mit LLMs und generativer KI in echten Projekten: Prompting, RAG",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 'mehrj\u00e4hrige Erfahrung' (multiple years), while the candidate has 1 year in AI.",
+    "evidence": "Mehrj\u00e4hrige Erfahrung in der modernen Softwareentwicklung",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job requires being based in Germany for remote work, which the candidate is not.",
+    "evidence": "Remote & Home-Office innerhalb Deutschlands",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 5,
+    "reason": "The job is in German; the candidate does not list German as a language.",
+    "evidence": "The entire job description is written in German.",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Remote & Home-Office innerhalb Deutschlands",
+    "evidence": "Remote & Home-Office innerhalb Deutschlands",
+    "evidence_verified": true,
+    "severity": "soft",
+    "severity_note": "The quote doesn't state the requirement (it mentions a place, mode or perk)."
+   }
+  ],
+  "strengths": [
+   "LLM and RAG development",
+   "FastAPI and backend engineering",
+   "Clean Architecture principles"
+  ],
+  "gaps": [
+   "Professional cloud experience (AWS/Azure)",
+   "German language proficiency",
+   "Years of experience in AI"
+  ],
+  "summary": "The candidate is a strong technical match for the AI engineering tasks but lacks the required German residency and professional cloud experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an AI Engineer, which matches the candidate's target role.",
+   "evidence": "AI Engineer (m/w/d)"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong overlap in LLMs, RAG, and backend, but lacks professional AWS/Azure cloud experience.",
+   "evidence": "Praktische Erfahrung mit LLMs und generativer KI in echten Projekten: Prompting, RAG"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 'mehrj\u00e4hrige Erfahrung' (multiple years), while the candidate has 1 year in AI.",
+   "evidence": "Mehrj\u00e4hrige Erfahrung in der modernen Softwareentwicklung"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job requires being based in Germany for remote work, which the candidate is not.",
+   "evidence": "Remote & Home-Office innerhalb Deutschlands"
+  },
+  "language_requirements": {
+   "score": 5,
+   "reason": "The job is in German; the candidate does not list German as a language.",
+   "evidence": "The entire job description is written in German."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Remote & Home-Office innerhalb Deutschlands"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG development",
+   "FastAPI and backend engineering",
+   "Clean Architecture principles"
+  ],
+  "gaps": [
+   "Professional cloud experience (AWS/Azure)",
+   "German language proficiency",
+   "Years of experience in AI"
+  ],
+  "summary": "The candidate is a strong technical match for the AI engineering tasks but lacks the required German residency and professional cloud experience."
+ },
+ "evidence": {
+  "checked": 6,
+  "ok": 5
+ }
+}

@@ -1,0 +1,207 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 1913,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 4.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Backend Engineer, which is one of the candidate's target roles.\",\n    \"evidence\": \"Building and scaling a distributed system using Go\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has strong backend experience (Spring Boot, FastAPI, Flask) and Python/SQL skills, but lacks professional experience with the specific stack (Go, DynamoDB, SQS, Redshift).\",\n    \"evidence\": \"Building and scaling a distributed system using Go, DynamoDB, SQS, Redshift and Lambdas\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 3 years of experience, which is appropriate for a general Backend Engineer role that does not specify a senior level.\",\n    \"evidence\": \"Experience designing and engineering large-scale systems\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is onsite in Paris and the candidate requires visa sponsorship, which is not offered.\",\n    \"evidence\": \"3 days in-office in central Paris\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"Fluent/professional English given our international team\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"3 days in-office in central Paris\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"The role is onsite in Paris, France, and the candidate is based in Tunisia and requires visa sponsorship.\",\n      \"evidence\": \"3 days in-office in central Paris\"\n    }\n  ],\n  \"strengths\": [\n    \"Backend development experience\",\n    \"API design and integration\",\n    \"Distributed systems knowledge\"\n  ],\n  \"gaps\": [\n    \"No professional Go experience\",\n    \"No existing work authorization for France\",\n    \"Lack of experience with AWS-specific services (DynamoDB, SQS)\"\n  ],\n  \"summary\": \"While the candidate's backend engineering background is a strong match for the role, the requirement for onsite work in Paris without visa sponsorship makes this position ineligible for the candidate.\"\n}",
+ "tokens": {
+  "input": 4591,
+  "output": 706,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 35,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+    "evidence": "Building and scaling a distributed system using Go",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has strong backend experience (Spring Boot, FastAPI, Flask) and Python/SQL skills, but lacks professional experience with the specific stack (Go, DynamoDB, SQS, Redshift).",
+    "evidence": "Building and scaling a distributed system using Go, DynamoDB, SQS, Redshift and Lambdas",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of experience, which is appropriate for a general Backend Engineer role that does not specify a senior level.",
+    "evidence": "Experience designing and engineering large-scale systems",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The job is onsite in Paris and the candidate requires visa sponsorship, which is not offered.",
+    "evidence": "3 days in-office in central Paris",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "Fluent/professional English given our international team",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Paris, France, and the candidate is based in Tunisia and requires visa sponsorship.",
+    "evidence": "3 days in-office in central Paris",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Backend development experience",
+   "API design and integration",
+   "Distributed systems knowledge"
+  ],
+  "gaps": [
+   "No professional Go experience",
+   "No existing work authorization for France",
+   "Lack of experience with AWS-specific services (DynamoDB, SQS)"
+  ],
+  "summary": "While the candidate's backend engineering background is a strong match for the role, the requirement for onsite work in Paris without visa sponsorship makes this position ineligible for the candidate.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Backend Engineer, which is one of the candidate's target roles.",
+   "evidence": "Building and scaling a distributed system using Go"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has strong backend experience (Spring Boot, FastAPI, Flask) and Python/SQL skills, but lacks professional experience with the specific stack (Go, DynamoDB, SQS, Redshift).",
+   "evidence": "Building and scaling a distributed system using Go, DynamoDB, SQS, Redshift and Lambdas"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of experience, which is appropriate for a general Backend Engineer role that does not specify a senior level.",
+   "evidence": "Experience designing and engineering large-scale systems"
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is onsite in Paris and the candidate requires visa sponsorship, which is not offered.",
+   "evidence": "3 days in-office in central Paris"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": "Fluent/professional English given our international team"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "3 days in-office in central Paris"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is onsite in Paris, France, and the candidate is based in Tunisia and requires visa sponsorship.",
+    "evidence": "3 days in-office in central Paris"
+   }
+  ],
+  "strengths": [
+   "Backend development experience",
+   "API design and integration",
+   "Distributed systems knowledge"
+  ],
+  "gaps": [
+   "No professional Go experience",
+   "No existing work authorization for France",
+   "Lack of experience with AWS-specific services (DynamoDB, SQS)"
+  ],
+  "summary": "While the candidate's backend engineering background is a strong match for the role, the requirement for onsite work in Paris without visa sponsorship makes this position ineligible for the candidate."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 7,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Building and scaling a distributed system using Go",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Building and scaling a distributed system using Go, DynamoDB, SQS, Redshift and Lambdas",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Experience designing and engineering large-scale systems",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "3 days in-office in central Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Fluent/professional English given our international team",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "3 days in-office in central Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "3 days in-office in central Paris",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

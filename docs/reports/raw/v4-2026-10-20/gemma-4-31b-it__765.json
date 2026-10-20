@@ -1,0 +1,145 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 765,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 129.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The core responsibilities exactly match the AI Engineer role.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 8,\n      \"reason\": \"Strong LLM, RAG, and software engineering skills; lacks specific agentic engineering experience.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has 3 years of software engineering experience.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"On-site in target country; no sponsorship restrictions mentioned.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 0,\n      \"reason\": \"Job is written in German; candidate does not speak German.\",\n      \"evidence\": \"Wir suchen erfahrene AI Engineers\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"LLM and RAG experience\",\n      \"Full-stack development\",\n      \"Clean Architecture\"\n    ],\n    \"gaps\": [\n      \"German language\",\n      \"AWS/Azure production\",\n      \"Agentic Engineering\"\n    ],\n    \"summary\": \"Strong technical fit in AI and software engineering, but lacks required German language proficiency.\"\n  }\n}",
+ "tokens": {
+  "input": 6203,
+  "output": 503,
+  "thinking": 2646
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 81,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The core responsibilities exactly match the AI Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong LLM, RAG, and software engineering skills; lacks specific agentic engineering experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "Candidate has 3 years of software engineering experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in target country; no sponsorship restrictions mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "Job is written in German; candidate does not speak German.",
+    "evidence": "Wir suchen erfahrene AI Engineers",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG experience",
+   "Full-stack development",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "German language",
+   "AWS/Azure production",
+   "Agentic Engineering"
+  ],
+  "summary": "Strong technical fit in AI and software engineering, but lacks required German language proficiency.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The core responsibilities exactly match the AI Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong LLM, RAG, and software engineering skills; lacks specific agentic engineering experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "Candidate has 3 years of software engineering experience.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in target country; no sponsorship restrictions mentioned.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "Job is written in German; candidate does not speak German.",
+   "evidence": "Wir suchen erfahrene AI Engineers"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "LLM and RAG experience",
+   "Full-stack development",
+   "Clean Architecture"
+  ],
+  "gaps": [
+   "German language",
+   "AWS/Azure production",
+   "Agentic Engineering"
+  ],
+  "summary": "Strong technical fit in AI and software engineering, but lacks required German language proficiency."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "language_requirements",
+    "quote": "Wir suchen erfahrene AI Engineers",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

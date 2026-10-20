@@ -1,0 +1,167 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 5139,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 24.7,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The job is for a software engineer to create AI coding tasks, which is adjacent to the AI/ML engineering track but not a core development role.\",\n    \"evidence\": \"We're looking for experienced software engineers to build AI coding tasks\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has strong experience in Python, Docker, Git, and automated testing, which are the core technical requirements for this role.\",\n    \"evidence\": \"Strong in at least one of Python... Solid with Docker, Linux, Git and automated testing\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 3 years of professional experience, meeting the 2+ years requirement.\",\n    \"evidence\": \"2+ years of professional software engineering\"\n  },\n  \"location_eligibility\": {\n    \"score\": 10,\n    \"reason\": \"The job is remote and explicitly states it is open to any location.\",\n    \"evidence\": \"Remote, any location.\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, and the candidate has full professional proficiency in English.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Strong Python proficiency\",\n    \"Experience with automated testing\",\n    \"Familiarity with AI/LLM workflows\"\n  ],\n  \"gaps\": [\n    \"Limited experience in open-source contributions\",\n    \"No prior experience creating AI evaluation benchmarks\"\n  ],\n  \"summary\": \"The candidate is a strong technical fit for this remote task-based role, possessing the required programming skills and experience with AI tools, though they will need to demonstrate their ability to curate high-quality coding tasks.\"\n}",
+ "tokens": {
+  "input": 4431,
+  "output": 606,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 85,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The job is for a software engineer to create AI coding tasks, which is adjacent to the AI/ML engineering track but not a core development role.",
+    "evidence": "We're looking for experienced software engineers to build AI coding tasks",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "The candidate has strong experience in Python, Docker, Git, and automated testing, which are the core technical requirements for this role.",
+    "evidence": "Strong in at least one of Python... Solid with Docker, Linux, Git and automated testing",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of professional experience, meeting the 2+ years requirement.",
+    "evidence": "2+ years of professional software engineering",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is remote and explicitly states it is open to any location.",
+    "evidence": "Remote, any location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, and the candidate has full professional proficiency in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Strong Python proficiency",
+   "Experience with automated testing",
+   "Familiarity with AI/LLM workflows"
+  ],
+  "gaps": [
+   "Limited experience in open-source contributions",
+   "No prior experience creating AI evaluation benchmarks"
+  ],
+  "summary": "The candidate is a strong technical fit for this remote task-based role, possessing the required programming skills and experience with AI tools, though they will need to demonstrate their ability to curate high-quality coding tasks.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The job is for a software engineer to create AI coding tasks, which is adjacent to the AI/ML engineering track but not a core development role.",
+   "evidence": "We're looking for experienced software engineers to build AI coding tasks"
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "The candidate has strong experience in Python, Docker, Git, and automated testing, which are the core technical requirements for this role.",
+   "evidence": "Strong in at least one of Python... Solid with Docker, Linux, Git and automated testing"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of professional experience, meeting the 2+ years requirement.",
+   "evidence": "2+ years of professional software engineering"
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is remote and explicitly states it is open to any location.",
+   "evidence": "Remote, any location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, and the candidate has full professional proficiency in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Strong Python proficiency",
+   "Experience with automated testing",
+   "Familiarity with AI/LLM workflows"
+  ],
+  "gaps": [
+   "Limited experience in open-source contributions",
+   "No prior experience creating AI evaluation benchmarks"
+  ],
+  "summary": "The candidate is a strong technical fit for this remote task-based role, possessing the required programming skills and experience with AI tools, though they will need to demonstrate their ability to curate high-quality coding tasks."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We're looking for experienced software engineers to build AI coding tasks",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong in at least one of Python... Solid with Docker, Linux, Git and automated testing",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "2+ years of professional software engineering",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Remote, any location.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

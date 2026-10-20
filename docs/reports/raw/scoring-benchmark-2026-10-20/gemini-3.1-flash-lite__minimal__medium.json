@@ -1,0 +1,208 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "mode": "minimal",
+ "job": "medium",
+ "job_id": 3935,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [],
+ "errors": [],
+ "thinking_config": {
+  "thinkingLevel": "minimal"
+ },
+ "secs": 3.2,
+ "finish": "STOP",
+ "tokens": {
+  "input": 4883,
+  "output": 671,
+  "thinking": 0,
+  "total": 5554
+ },
+ "structured_native": true,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for a Data Engineer, which is one of the target roles in the candidate's track.\",\n    \"evidence\": \"we are looking for an engaged and passionate Senior Data Engineer\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"The candidate has experience with Python, SQL, and Airflow, but lacks the required 5+ years of experience and specific expertise in the heavy AWS/Kafka/Flink stack mentioned.\",\n    \"evidence\": \"AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"The job is a Senior role requiring 5+ years of experience, while the candidate has only 3 years total and 1 year in the data track.\",\n    \"evidence\": \"5+ years experience with a modern programming language\"\n  },\n  \"location_eligibility\": {\n    \"score\": 5,\n    \"reason\": \"The job is onsite in Paris, France. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the text.\",\n    \"evidence\": \"Paris Office (FR)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"Find more English Speaking Jobs in France on Arbeitnow\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Paris Office (FR)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"5+ years experience with a modern programming language\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"Experience with Apache Airflow\",\n    \"Data pipeline project experience\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of senior-level expertise\",\n    \"No experience with Kafka/Flink/AWS stack\"\n  ],\n  \"summary\": \"The candidate is a junior engineer who does not meet the senior-level experience requirements or the location/visa needs for this onsite role in Paris.\"\n}",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is one of the target roles in the candidate's track.",
+   "evidence": "we are looking for an engaged and passionate Senior Data Engineer"
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has experience with Python, SQL, and Airflow, but lacks the required 5+ years of experience and specific expertise in the heavy AWS/Kafka/Flink stack mentioned.",
+   "evidence": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow."
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job is a Senior role requiring 5+ years of experience, while the candidate has only 3 years total and 1 year in the data track.",
+   "evidence": "5+ years experience with a modern programming language"
+  },
+  "location_eligibility": {
+   "score": 5,
+   "reason": "The job is onsite in Paris, France. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the text.",
+   "evidence": "Paris Office (FR)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, which the candidate speaks at a full professional level.",
+   "evidence": "Find more English Speaking Jobs in France on Arbeitnow"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Paris Office (FR)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "5+ years experience with a modern programming language"
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with Apache Airflow",
+   "Data pipeline project experience"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level expertise",
+   "No experience with Kafka/Flink/AWS stack"
+  ],
+  "summary": "The candidate is a junior engineer who does not meet the senior-level experience requirements or the location/visa needs for this onsite role in Paris."
+ },
+ "record": {
+  "score": 62,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is one of the target roles in the candidate's track.",
+    "evidence": "we are looking for an engaged and passionate Senior Data Engineer",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has experience with Python, SQL, and Airflow, but lacks the required 5+ years of experience and specific expertise in the heavy AWS/Kafka/Flink stack mentioned.",
+    "evidence": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job is a Senior role requiring 5+ years of experience, while the candidate has only 3 years total and 1 year in the data track.",
+    "evidence": "5+ years experience with a modern programming language",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is onsite in Paris, France. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the text.",
+    "evidence": "Paris Office (FR)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, which the candidate speaks at a full professional level.",
+    "evidence": "Find more English Speaking Jobs in France on Arbeitnow",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "Requires living in a specific place: Paris Office (FR)",
+    "evidence": "Paris Office (FR)",
+    "evidence_verified": false,
+    "severity": "soft"
+   },
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate: 5+ years experience with a modern programming language",
+    "evidence": "5+ years experience with a modern programming language",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python and SQL proficiency",
+   "Experience with Apache Airflow",
+   "Data pipeline project experience"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of senior-level expertise",
+   "No experience with Kafka/Flink/AWS stack"
+  ],
+  "summary": "The candidate is a junior engineer who does not meet the senior-level experience requirements or the location/visa needs for this onsite role in Paris.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "we are looking for an engaged and passionate Senior Data Engineer",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "5+ years experience with a modern programming language",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Find more English Speaking Jobs in France on Arbeitnow",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:must_be_based_in",
+    "quote": "Paris Office (FR)",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "flag_check:seniority_mismatch",
+    "quote": "5+ years experience with a modern programming language",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 7,
+  "ok": 5,
+  "in_job": 5
+ }
+}

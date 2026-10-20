@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 2418,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 9.0,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role requires full-stack work including mobile, which partially aligns with the mobile track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Overlaps on mobile and Flutter experience, but lacks the requested backend stacks like Go or Rust.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 'several years' of professional experience, while the candidate has 3 years.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site in Germany with no explicit mention of visa sponsorship or residence requirements.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English communication, which the candidate possesses.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter development\",\n    \"Clean architecture\",\n    \"CI/CD pipelines\"\n  ],\n  \"gaps\": [\n    \"Native iOS/Android experience\",\n    \"Healthcare interoperability standards\",\n    \"Go or Rust backend experience\"\n  ],\n  \"summary\": \"A mobile engineer with strong Flutter skills who matches the mobile aspect of this healthcare full-stack role.\"\n}",
+ "tokens": {
+  "input": 4957,
+  "output": 513,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 60,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role requires full-stack work including mobile, which partially aligns with the mobile track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Overlaps on mobile and Flutter experience, but lacks the requested backend stacks like Go or Rust.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 'several years' of professional experience, while the candidate has 3 years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany with no explicit mention of visa sponsorship or residence requirements.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English communication, which the candidate possesses.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Clean architecture",
+   "CI/CD pipelines"
+  ],
+  "gaps": [
+   "Native iOS/Android experience",
+   "Healthcare interoperability standards",
+   "Go or Rust backend experience"
+  ],
+  "summary": "A mobile engineer with strong Flutter skills who matches the mobile aspect of this healthcare full-stack role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role requires full-stack work including mobile, which partially aligns with the mobile track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Overlaps on mobile and Flutter experience, but lacks the requested backend stacks like Go or Rust.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 'several years' of professional experience, while the candidate has 3 years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany with no explicit mention of visa sponsorship or residence requirements.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English communication, which the candidate possesses.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Clean architecture",
+   "CI/CD pipelines"
+  ],
+  "gaps": [
+   "Native iOS/Android experience",
+   "Healthcare interoperability standards",
+   "Go or Rust backend experience"
+  ],
+  "summary": "A mobile engineer with strong Flutter skills who matches the mobile aspect of this healthcare full-stack role."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

@@ -1,0 +1,153 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2418,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 64.2,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The role requires a mobile/backend hybrid, matching the candidate's Flutter and backend experience.\",\n      \"evidence\": \"bringing our clinical mobile app to Android... likely in Flutter\"\n    },\n    \"skills_match\": {\n      \"score\": 9,\n      \"reason\": \"Strong overlap in Flutter, backend (Python/Java), architecture, and DevOps; lacks healthcare domain knowledge.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"Job asks for 'Senior' and 'several years'; candidate has 3 years experience.\",\n      \"evidence\": \"Several years of professional experience\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"Hybrid role in Germany, which is a target country; no sponsorship restrictions mentioned.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has professional English; German is only listed as an advantage.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Flutter and Dart\",\n      \"Clean Architecture\",\n      \"Python and Java backend\"\n    ],\n    \"gaps\": [\n      \"Healthcare interoperability standards\",\n      \"Senior-level experience\",\n      \"German language\"\n    ],\n    \"summary\": \"Technically strong match for the Flutter/Backend requirements, though slightly under-experienced for a Senior role.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5717,
+  "output": 545,
+  "thinking": 1215
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 86,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role requires a mobile/backend hybrid, matching the candidate's Flutter and backend experience.",
+    "evidence": "bringing our clinical mobile app to Android... likely in Flutter",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 9,
+    "reason": "Strong overlap in Flutter, backend (Python/Java), architecture, and DevOps; lacks healthcare domain knowledge.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for 'Senior' and 'several years'; candidate has 3 years experience.",
+    "evidence": "Several years of professional experience",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Hybrid role in Germany, which is a target country; no sponsorship restrictions mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate has professional English; German is only listed as an advantage.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter and Dart",
+   "Clean Architecture",
+   "Python and Java backend"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Senior-level experience",
+   "German language"
+  ],
+  "summary": "Technically strong match for the Flutter/Backend requirements, though slightly under-experienced for a Senior role.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role requires a mobile/backend hybrid, matching the candidate's Flutter and backend experience.",
+   "evidence": "bringing our clinical mobile app to Android... likely in Flutter"
+  },
+  "skills_match": {
+   "score": 9,
+   "reason": "Strong overlap in Flutter, backend (Python/Java), architecture, and DevOps; lacks healthcare domain knowledge.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for 'Senior' and 'several years'; candidate has 3 years experience.",
+   "evidence": "Several years of professional experience"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Hybrid role in Germany, which is a target country; no sponsorship restrictions mentioned.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate has professional English; German is only listed as an advantage.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter and Dart",
+   "Clean Architecture",
+   "Python and Java backend"
+  ],
+  "gaps": [
+   "Healthcare interoperability standards",
+   "Senior-level experience",
+   "German language"
+  ],
+  "summary": "Technically strong match for the Flutter/Backend requirements, though slightly under-experienced for a Senior role."
+ },
+ "evidence": {
+  "checked": 2,
+  "ok": 2,
+  "in_job": 2,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "bringing our clinical mobile app to Android... likely in Flutter",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Several years of professional experience",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

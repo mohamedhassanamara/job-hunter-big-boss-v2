@@ -1,0 +1,136 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2410,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 64.3,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a Data Engineer, which is a target role.\",\n      \"evidence\": \"\"\n    },\n    \"skills_match\": {\n      \"score\": 7,\n      \"reason\": \"Strong Python, SQL, and tool overlap, but lacks production AWS Lambda/Step Functions experience.\",\n      \"evidence\": \"\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"Job asks for production ETL experience; candidate's data experience is primarily personal projects.\",\n      \"evidence\": \"\"\n    },\n    \"location_eligibility\": {\n      \"score\": 8,\n      \"reason\": \"Remote role with travel to Vienna; no explicit work authorization restrictions stated.\",\n      \"evidence\": \"\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"Candidate has full professional English, matching the job's language.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python and SQL\",\n      \"Terraform and Docker\",\n      \"dbt and Airflow\"\n    ],\n    \"gaps\": [\n      \"Production AWS Lambda/Step Functions\",\n      \"Medallion Architecture\",\n      \"Production ETL experience\"\n    ],\n    \"summary\": \"Software engineer with strong data project skills, lacking production AWS and Medallion architecture experience.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5198,
+  "output": 520,
+  "thinking": 1035
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 80,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Data Engineer, which is a target role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong Python, SQL, and tool overlap, but lacks production AWS Lambda/Step Functions experience.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for production ETL experience; candidate's data experience is primarily personal projects.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Remote role with travel to Vienna; no explicit work authorization restrictions stated.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Candidate has full professional English, matching the job's language.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL",
+   "Terraform and Docker",
+   "dbt and Airflow"
+  ],
+  "gaps": [
+   "Production AWS Lambda/Step Functions",
+   "Medallion Architecture",
+   "Production ETL experience"
+  ],
+  "summary": "Software engineer with strong data project skills, lacking production AWS and Medallion architecture experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Data Engineer, which is a target role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong Python, SQL, and tool overlap, but lacks production AWS Lambda/Step Functions experience.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for production ETL experience; candidate's data experience is primarily personal projects.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Remote role with travel to Vienna; no explicit work authorization restrictions stated.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Candidate has full professional English, matching the job's language.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL",
+   "Terraform and Docker",
+   "dbt and Airflow"
+  ],
+  "gaps": [
+   "Production AWS Lambda/Step Functions",
+   "Medallion Architecture",
+   "Production ETL experience"
+  ],
+  "summary": "Software engineer with strong data project skills, lacking production AWS and Medallion architecture experience."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0,
+  "in_job": 0,
+  "quotes": []
+ }
+}

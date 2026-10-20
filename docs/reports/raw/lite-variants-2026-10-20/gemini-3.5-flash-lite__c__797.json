@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 797,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 5.5,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role focuses heavily on software testing and QA automation alongside AI, which is adjacent to the AI Engineer track.\",\n    \"evidence\": \"We are seeking a highly skilled Senior Automation Testing Engineer to thoroughly inspect our product updates prior to their launch.\"\n  },\n  \"skills_match\": {\n    \"score\": 4,\n    \"reason\": \"Candidate has Python and LLM experience, but lacks the extensive production QA automation and testing framework depth required.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for a senior engineer, while the candidate has 1 year of experience in the track.\",\n    \"evidence\": \"Senior AI Quality Engineer\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is remote in Cairo, Egypt (within candidate's region/target options) and does not specify work authorization restrictions.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"No specific language other than English is explicitly required by the job listing.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python\",\n    \"LLM applications\",\n    \"FastAPI\"\n  ],\n  \"gaps\": [\n    \"Senior QA automation experience\",\n    \"Playwright or Appium testing\",\n    \"Seniority level\"\n  ],\n  \"summary\": \"This senior QA automation and AI role requires extensive testing framework depth that exceeds the candidate's current experience level.\"\n}",
+ "tokens": {
+  "input": 5395,
+  "output": 556,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 56,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role focuses heavily on software testing and QA automation alongside AI, which is adjacent to the AI Engineer track.",
+    "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer to thoroughly inspect our product updates prior to their launch.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 4,
+    "reason": "Candidate has Python and LLM experience, but lacks the extensive production QA automation and testing framework depth required.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for a senior engineer, while the candidate has 1 year of experience in the track.",
+    "evidence": "Senior AI Quality Engineer",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is remote in Cairo, Egypt (within candidate's region/target options) and does not specify work authorization restrictions.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "No specific language other than English is explicitly required by the job listing.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Python",
+   "LLM applications",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Senior QA automation experience",
+   "Playwright or Appium testing",
+   "Seniority level"
+  ],
+  "summary": "This senior QA automation and AI role requires extensive testing framework depth that exceeds the candidate's current experience level.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role focuses heavily on software testing and QA automation alongside AI, which is adjacent to the AI Engineer track.",
+   "evidence": "We are seeking a highly skilled Senior Automation Testing Engineer to thoroughly inspect our product updates prior to their launch."
+  },
+  "skills_match": {
+   "score": 4,
+   "reason": "Candidate has Python and LLM experience, but lacks the extensive production QA automation and testing framework depth required.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for a senior engineer, while the candidate has 1 year of experience in the track.",
+   "evidence": "Senior AI Quality Engineer"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is remote in Cairo, Egypt (within candidate's region/target options) and does not specify work authorization restrictions.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "No specific language other than English is explicitly required by the job listing.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python",
+   "LLM applications",
+   "FastAPI"
+  ],
+  "gaps": [
+   "Senior QA automation experience",
+   "Playwright or Appium testing",
+   "Seniority level"
+  ],
+  "summary": "This senior QA automation and AI role requires extensive testing framework depth that exceeds the candidate's current experience level."
+ },
+ "evidence": {
+  "checked": 2,
+  "ok": 2
+ }
+}

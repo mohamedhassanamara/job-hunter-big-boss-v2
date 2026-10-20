@@ -1,0 +1,138 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 5316,
+ "retries": 2,
+ "retry_reasons": [
+  503,
+  503
+ ],
+ "errors": [],
+ "secs": 25.1,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an Analytics Engineer, which is a core role in the track.\",\n    \"evidence\": \"As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models\"\n  },\n  \"skills_match\": {\n    \"score\": 6,\n    \"reason\": \"Candidate has strong Python, SQL, and dbt experience, but lacks the required 3+ years.\",\n    \"evidence\": \"Strong proficiency in Python, SQL and experience with dbt for data modeling.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job requires 3+ years of dbt experience; the candidate has 1 year in track.\",\n    \"evidence\": \"3+ years of hands-on experience in data modeling using dbt.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Dubai, UAE, which is a target country for the candidate.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt data modeling\",\n    \"SQL and Python proficiency\",\n    \"Data pipeline orchestration\"\n  ],\n  \"gaps\": [\n    \"Insufficient years of experience\",\n    \"Lack of cloud warehouse experience\"\n  ],\n  \"summary\": \"The candidate is a strong match for the role's technical requirements but lacks the requested years of experience.\"\n}",
+ "tokens": {
+  "input": 4713,
+  "output": 569,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 78,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+    "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 6,
+    "reason": "Candidate has strong Python, SQL, and dbt experience, but lacks the required 3+ years.",
+    "evidence": "Strong proficiency in Python, SQL and experience with dbt for data modeling.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job requires 3+ years of dbt experience; the candidate has 1 year in track.",
+    "evidence": "3+ years of hands-on experience in data modeling using dbt.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Dubai, UAE, which is a target country for the candidate.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt data modeling",
+   "SQL and Python proficiency",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of cloud warehouse experience"
+  ],
+  "summary": "The candidate is a strong match for the role's technical requirements but lacks the requested years of experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+   "evidence": "As an Analytics Engineer, you will be responsible for transforming raw data into well-structured, reliable, and accessible data models"
+  },
+  "skills_match": {
+   "score": 6,
+   "reason": "Candidate has strong Python, SQL, and dbt experience, but lacks the required 3+ years.",
+   "evidence": "Strong proficiency in Python, SQL and experience with dbt for data modeling."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job requires 3+ years of dbt experience; the candidate has 1 year in track.",
+   "evidence": "3+ years of hands-on experience in data modeling using dbt."
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Dubai, UAE, which is a target country for the candidate.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt data modeling",
+   "SQL and Python proficiency",
+   "Data pipeline orchestration"
+  ],
+  "gaps": [
+   "Insufficient years of experience",
+   "Lack of cloud warehouse experience"
+  ],
+  "summary": "The candidate is a strong match for the role's technical requirements but lacks the requested years of experience."
+ },
+ "evidence": {
+  "checked": 3,
+  "ok": 3
+ }
+}

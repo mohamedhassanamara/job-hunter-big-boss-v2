@@ -1,0 +1,207 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 3924,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 90.8,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job is for a Senior Data Engineer, which is exactly the role the candidate targets in the Data/AI track.\",\n      \"evidence\": \"We are looking for a Senior Data Engineer into our engineering team at Doctolib.\"\n    },\n    \"skills_match\": {\n      \"score\": 5,\n      \"reason\": \"The candidate has the core required skills (Python, SQL, DBT) and AI experience, but lacks specific experience with Dagster, BigQuery, Tableau, and GCP.\",\n      \"evidence\": \"You are proficient in Python, SQL, and DBT for building data pipelines\"\n    },\n    \"seniority_fit\": {\n      \"score\": 0,\n      \"reason\": \"The job requires at least 7 years of experience in the track, while the candidate has only 1 year.\",\n      \"evidence\": \"You have at least 7+ years of experience as a Data Engineer, or a similar role\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The job is in France and explicitly offers relocation support for international mobility, which accommodates the candidate's need for sponsorship.\",\n      \"evidence\": \"Relocation support in case of international mobility\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job requires fluency in English, which the candidate possesses at a full professional level.\",\n      \"evidence\": \"You are fluent in English\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": true,\n        \"evidence\": \"at least 7+ years of experience as a Data Engineer\"\n      }\n    },\n    \"red_flags\": [\n      {\n        \"type\": \"seniority_mismatch\",\n        \"text\": \"Candidate has 1 year of experience in the track, but the role requires 7+ years.\",\n        \"evidence\": \"at least 7+ years of experience as a Data Engineer\"\n      }\n    ],\n    \"strengths\": [\n      \"Proficiency in Python, SQL, and DBT\",\n      \"Hands-on experience with AI products and LLMs\",\n      \"Experience building data pipelines\"\n    ],\n    \"gaps\": [\n      \"Significant seniority gap (1 year vs 7+ years)\",\n      \"Lack of GCP/BigQuery experience\",\n      \"No experience with Tableau or Dagster\"\n    ],\n    \"summary\": \"While the candidate possesses the core technical stack and AI experience, they are significantly under-qualified for this senior-level role requiring 7+ years of experience.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5710,
+  "output": 748,
+  "thinking": 866
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 70,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for a Senior Data Engineer, which is exactly the role the candidate targets in the Data/AI track.",
+    "evidence": "We are looking for a Senior Data Engineer into our engineering team at Doctolib.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "The candidate has the core required skills (Python, SQL, DBT) and AI experience, but lacks specific experience with Dagster, BigQuery, Tableau, and GCP.",
+    "evidence": "You are proficient in Python, SQL, and DBT for building data pipelines",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "The job requires at least 7 years of experience in the track, while the candidate has only 1 year.",
+    "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is in France and explicitly offers relocation support for international mobility, which accommodates the candidate's need for sponsorship.",
+    "evidence": "Relocation support in case of international mobility",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires fluency in English, which the candidate possesses at a full professional level.",
+    "evidence": "You are fluent in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 1 year of experience in the track, but the role requires 7+ years.",
+    "evidence": "at least 7+ years of experience as a Data Engineer",
+    "evidence_verified": true,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Proficiency in Python, SQL, and DBT",
+   "Hands-on experience with AI products and LLMs",
+   "Experience building data pipelines"
+  ],
+  "gaps": [
+   "Significant seniority gap (1 year vs 7+ years)",
+   "Lack of GCP/BigQuery experience",
+   "No experience with Tableau or Dagster"
+  ],
+  "summary": "While the candidate possesses the core technical stack and AI experience, they are significantly under-qualified for this senior-level role requiring 7+ years of experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for a Senior Data Engineer, which is exactly the role the candidate targets in the Data/AI track.",
+   "evidence": "We are looking for a Senior Data Engineer into our engineering team at Doctolib."
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "The candidate has the core required skills (Python, SQL, DBT) and AI experience, but lacks specific experience with Dagster, BigQuery, Tableau, and GCP.",
+   "evidence": "You are proficient in Python, SQL, and DBT for building data pipelines"
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "The job requires at least 7 years of experience in the track, while the candidate has only 1 year.",
+   "evidence": "You have at least 7+ years of experience as a Data Engineer, or a similar role"
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is in France and explicitly offers relocation support for international mobility, which accommodates the candidate's need for sponsorship.",
+   "evidence": "Relocation support in case of international mobility"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires fluency in English, which the candidate possesses at a full professional level.",
+   "evidence": "You are fluent in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": "at least 7+ years of experience as a Data Engineer"
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Candidate has 1 year of experience in the track, but the role requires 7+ years.",
+    "evidence": "at least 7+ years of experience as a Data Engineer"
+   }
+  ],
+  "strengths": [
+   "Proficiency in Python, SQL, and DBT",
+   "Hands-on experience with AI products and LLMs",
+   "Experience building data pipelines"
+  ],
+  "gaps": [
+   "Significant seniority gap (1 year vs 7+ years)",
+   "Lack of GCP/BigQuery experience",
+   "No experience with Tableau or Dagster"
+  ],
+  "summary": "While the candidate possesses the core technical stack and AI experience, they are significantly under-qualified for this senior-level role requiring 7+ years of experience."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 7,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "We are looking for a Senior Data Engineer into our engineering team at Doctolib.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "You are proficient in Python, SQL, and DBT for building data pipelines",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "You have at least 7+ years of experience as a Data Engineer, or a similar role",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Relocation support in case of international mobility",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "You are fluent in English",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:seniority_mismatch",
+    "quote": "at least 7+ years of experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:seniority_mismatch",
+    "quote": "at least 7+ years of experience as a Data Engineer",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

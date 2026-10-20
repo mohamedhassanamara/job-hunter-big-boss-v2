@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "c",
+ "prompt": "v4b",
+ "thinking_config": null,
+ "job_id": 2418,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 3.6,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 5,\n    \"reason\": \"The role requires full-stack work including mobile, which is adjacent to the candidate's track.\",\n    \"evidence\": \"Senior Fullstack Engineer \u2014 Mobile Healthcare Platform\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Candidate brings mobile and backend experience, though the role requires senior architecture and diverse stacks.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 'several years' of senior-level production experience, while the candidate has 3 years.\",\n    \"evidence\": \"Several years of professional experience building and operating software in production\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is on-site in Munich, Germany, which is a target country without explicit visa statements.\",\n    \"evidence\": \"M\u00fcnchen (DE)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires professional English communication skills, which the candidate possesses.\",\n    \"evidence\": \"Professional English communication skills\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Flutter development\",\n    \"Backend integration\",\n    \"Testing practices\"\n  ],\n  \"gaps\": [\n    \"Senior full-stack tenure\",\n    \"Agentic AI workflow experience\",\n    \"Healthcare interoperability\"\n  ],\n  \"summary\": \"This senior full-stack healthcare engineering role aligns with the candidate's mobile experience but seeks more seniority and specific tooling.\"\n}",
+ "tokens": {
+  "input": 5049,
+  "output": 554,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 66,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "The role requires full-stack work including mobile, which is adjacent to the candidate's track.",
+    "evidence": "Senior Fullstack Engineer \u2014 Mobile Healthcare Platform",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Candidate brings mobile and backend experience, though the role requires senior architecture and diverse stacks.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 'several years' of senior-level production experience, while the candidate has 3 years.",
+    "evidence": "Several years of professional experience building and operating software in production",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is on-site in Munich, Germany, which is a target country without explicit visa statements.",
+    "evidence": "M\u00fcnchen (DE)",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires professional English communication skills, which the candidate possesses.",
+    "evidence": "Professional English communication skills",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Backend integration",
+   "Testing practices"
+  ],
+  "gaps": [
+   "Senior full-stack tenure",
+   "Agentic AI workflow experience",
+   "Healthcare interoperability"
+  ],
+  "summary": "This senior full-stack healthcare engineering role aligns with the candidate's mobile experience but seeks more seniority and specific tooling.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "The role requires full-stack work including mobile, which is adjacent to the candidate's track.",
+   "evidence": "Senior Fullstack Engineer \u2014 Mobile Healthcare Platform"
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Candidate brings mobile and backend experience, though the role requires senior architecture and diverse stacks.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 'several years' of senior-level production experience, while the candidate has 3 years.",
+   "evidence": "Several years of professional experience building and operating software in production"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is on-site in Munich, Germany, which is a target country without explicit visa statements.",
+   "evidence": "M\u00fcnchen (DE)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires professional English communication skills, which the candidate possesses.",
+   "evidence": "Professional English communication skills"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Backend integration",
+   "Testing practices"
+  ],
+  "gaps": [
+   "Senior full-stack tenure",
+   "Agentic AI workflow experience",
+   "Healthcare interoperability"
+  ],
+  "summary": "This senior full-stack healthcare engineering role aligns with the candidate's mobile experience but seeks more seniority and specific tooling."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4
+ }
+}

@@ -1,0 +1,145 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "a",
+ "prompt": "v4",
+ "thinking_config": null,
+ "job_id": 1921,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 12.4,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role directly targets Data Engineering responsibilities.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 5,\n    \"reason\": \"Candidate has dbt and Terraform experience, but lacks GCP, BigQuery, and Airflow production scale.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 0,\n    \"reason\": \"Job asks for a senior data engineer while the candidate has 1 year in the track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Role is onsite in Paris, France, and listing mentions no visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"English is the implied operating language of the posting with no other language required.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": true,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"dbt\",\n    \"Terraform\",\n    \"Python\"\n  ],\n  \"gaps\": [\n    \"Seniority level\",\n    \"GCP and BigQuery experience\",\n    \"Apache Airflow scale\"\n  ],\n  \"summary\": \"This is a Senior Data Engineer role requiring extensive experience, which exceeds the candidate's one year in the track.\"\n}",
+ "tokens": {
+  "input": 4621,
+  "output": 505,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 67,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role directly targets Data Engineering responsibilities.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 5,
+    "reason": "Candidate has dbt and Terraform experience, but lacks GCP, BigQuery, and Airflow production scale.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 0,
+    "reason": "Job asks for a senior data engineer while the candidate has 1 year in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Role is onsite in Paris, France, and listing mentions no visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is the implied operating language of the posting with no other language required.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [
+   {
+    "type": "seniority_mismatch",
+    "text": "Seniority well above the candidate",
+    "evidence": "",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "dbt",
+   "Terraform",
+   "Python"
+  ],
+  "gaps": [
+   "Seniority level",
+   "GCP and BigQuery experience",
+   "Apache Airflow scale"
+  ],
+  "summary": "This is a Senior Data Engineer role requiring extensive experience, which exceeds the candidate's one year in the track.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role directly targets Data Engineering responsibilities.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 5,
+   "reason": "Candidate has dbt and Terraform experience, but lacks GCP, BigQuery, and Airflow production scale.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 0,
+   "reason": "Job asks for a senior data engineer while the candidate has 1 year in the track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Role is onsite in Paris, France, and listing mentions no visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is the implied operating language of the posting with no other language required.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": true,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "dbt",
+   "Terraform",
+   "Python"
+  ],
+  "gaps": [
+   "Seniority level",
+   "GCP and BigQuery experience",
+   "Apache Airflow scale"
+  ],
+  "summary": "This is a Senior Data Engineer role requiring extensive experience, which exceeds the candidate's one year in the track."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

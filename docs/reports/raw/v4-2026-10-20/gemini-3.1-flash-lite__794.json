@@ -1,0 +1,147 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 794,
+ "retries": 3,
+ "retry_reasons": [
+  503,
+  503,
+  503
+ ],
+ "errors": [],
+ "secs": 2.9,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job is for an Analytics Engineer, which is a core role in the track.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Candidate has strong Python, SQL, and LLM experience, aligning well with the required stack.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job requires 2-3 years of experience; the candidate has 1 year in this track.\",\n    \"evidence\": \"2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English proficiency, which the candidate possesses at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python and SQL proficiency\",\n    \"LLM and automation experience\",\n    \"Collaborative engineering practices\"\n  ],\n  \"gaps\": [\n    \"Limited professional data experience\",\n    \"Lack of Looker experience\"\n  ],\n  \"summary\": \"The candidate is a strong technical match for this Analytics Engineering role, though slightly junior in experience.\"\n}",
+ "tokens": {
+  "input": 5240,
+  "output": 541,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 84,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Candidate has strong Python, SQL, and LLM experience, aligning well with the required stack.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job requires 2-3 years of experience; the candidate has 1 year in this track.",
+    "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited professional data experience",
+   "Lack of Looker experience"
+  ],
+  "summary": "The candidate is a strong technical match for this Analytics Engineering role, though slightly junior in experience.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job is for an Analytics Engineer, which is a core role in the track.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Candidate has strong Python, SQL, and LLM experience, aligning well with the required stack.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job requires 2-3 years of experience; the candidate has 1 year in this track.",
+   "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role."
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "The job is in Spain, a target country, and does not explicitly forbid visa sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python and SQL proficiency",
+   "LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited professional data experience",
+   "Lack of Looker experience"
+  ],
+  "summary": "The candidate is a strong technical match for this Analytics Engineering role, though slightly junior in experience."
+ },
+ "evidence": {
+  "checked": 1,
+  "ok": 1,
+  "in_job": 1,
+  "quotes": [
+   {
+    "where": "seniority_fit",
+    "quote": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

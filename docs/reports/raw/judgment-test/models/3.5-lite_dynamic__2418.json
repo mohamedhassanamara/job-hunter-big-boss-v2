@@ -1,0 +1,131 @@
+{
+ "config": "3.5-lite dynamic",
+ "model": "gemini-3.5-flash-lite",
+ "thinking_config": {
+  "thinkingBudget": -1
+ },
+ "job": "2418",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 31.9,
+ "raw_text": "{\"role_match\":{\"score\":5,\"reason\":\"Full-stack role combining mobile and backend work.\",\"evidence\":\"\"},\"skills_match\":{\"score\":8,\"reason\":\"Strong match in Flutter and Python backend development.\",\"evidence\":\"\"},\"seniority_fit\":{\"score\":5,\"reason\":\"Job asks for senior experience while candidate has three years.\",\"evidence\":\"\"},\"location_eligibility\":{\"score\":8,\"reason\":\"On-site in Germany, a target country, without mentioning sponsorship.\",\"evidence\":\"\"},\"language_requirements\":{\"score\":10,\"reason\":\"English is required and spoken fluently; German is optional.\",\"evidence\":\"\"},\"flag_checks\":{\"no_visa_sponsorship\":{\"present\":false,\"evidence\":\"\"},\"work_authorization_required\":{\"present\":false,\"evidence\":\"\"},\"must_be_based_in\":{\"present\":false,\"evidence\":\"\"},\"nationality_restricted\":{\"present\":false,\"evidence\":\"\"},\"language_required\":{\"present\":false,\"evidence\":\"\"},\"seniority_mismatch\":{\"present\":false,\"evidence\":\"\"}},\"red_flags\":[],\"strengths\":[\"Flutter development\",\"Python backend\",\"CI/CD pipelines\"],\"gaps\":[\"senior leadership experience\",\"healthcare interoperability standards\"],\"summary\":\"Although the candidate matches the tech stack, the senior title exceeds their three years of experience.\"}",
+ "tokens": {
+  "input": 5147,
+  "output": 275,
+  "thinking": 2182
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 5,
+   "reason": "Full-stack role combining mobile and backend work.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Strong match in Flutter and Python backend development.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "Job asks for senior experience while candidate has three years.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site in Germany, a target country, without mentioning sponsorship.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "English is required and spoken fluently; German is optional.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Python backend",
+   "CI/CD pipelines"
+  ],
+  "gaps": [
+   "senior leadership experience",
+   "healthcare interoperability standards"
+  ],
+  "summary": "Although the candidate matches the tech stack, the senior title exceeds their three years of experience."
+ },
+ "record": {
+  "score": 68,
+  "sub_scores": {
+   "role_match": {
+    "score": 5,
+    "reason": "Full-stack role combining mobile and backend work.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Strong match in Flutter and Python backend development.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "Job asks for senior experience while candidate has three years.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site in Germany, a target country, without mentioning sponsorship.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "English is required and spoken fluently; German is optional.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Flutter development",
+   "Python backend",
+   "CI/CD pipelines"
+  ],
+  "gaps": [
+   "senior leadership experience",
+   "healthcare interoperability standards"
+  ],
+  "summary": "Although the candidate matches the tech stack, the senior title exceeds their three years of experience.",
+  "confidence": "high"
+ }
+}

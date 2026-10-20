@@ -1,0 +1,137 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "variant": "b",
+ "prompt": "v4",
+ "thinking_config": {
+  "thinkingBudget": 1024
+ },
+ "job_id": 794,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 7.7,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is an exact match for the track's Analytics Engineer role.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 8,\n    \"reason\": \"Candidate brings strong Python, SQL, and LLM skills matching the core requirements.\",\n    \"evidence\": \"\"\n  },\n  \"seniority_fit\": {\n    \"score\": 8,\n    \"reason\": \"The job asks for 2-3 years while the candidate has 1 year in track.\",\n    \"evidence\": \"\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"Hybrid role in Spain, which is a target country, with no explicit visa restrictions stated.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"Requires English proficiency, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python programming\",\n    \"SQL foundations\",\n    \"LLM integration experience\"\n  ],\n  \"gaps\": [\n    \"Looker BI experience\",\n    \"Analytics engineering tenure\"\n  ],\n  \"summary\": \"The candidate matches the Analytics Engineer role with strong technical skills, though slightly under the preferred experience level.\"\n}",
+ "tokens": {
+  "input": 5240,
+  "output": 500,
+  "thinking": 1138
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 88,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is an exact match for the track's Analytics Engineer role.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 8,
+    "reason": "Candidate brings strong Python, SQL, and LLM skills matching the core requirements.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "seniority_fit": {
+    "score": 8,
+    "reason": "The job asks for 2-3 years while the candidate has 1 year in track.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "Hybrid role in Spain, which is a target country, with no explicit visa restrictions stated.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "Requires English proficiency, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "SQL foundations",
+   "LLM integration experience"
+  ],
+  "gaps": [
+   "Looker BI experience",
+   "Analytics engineering tenure"
+  ],
+  "summary": "The candidate matches the Analytics Engineer role with strong technical skills, though slightly under the preferred experience level.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is an exact match for the track's Analytics Engineer role.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 8,
+   "reason": "Candidate brings strong Python, SQL, and LLM skills matching the core requirements.",
+   "evidence": ""
+  },
+  "seniority_fit": {
+   "score": 8,
+   "reason": "The job asks for 2-3 years while the candidate has 1 year in track.",
+   "evidence": ""
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "Hybrid role in Spain, which is a target country, with no explicit visa restrictions stated.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "Requires English proficiency, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python programming",
+   "SQL foundations",
+   "LLM integration experience"
+  ],
+  "gaps": [
+   "Looker BI experience",
+   "Analytics engineering tenure"
+  ],
+  "summary": "The candidate matches the Analytics Engineer role with strong technical skills, though slightly under the preferred experience level."
+ },
+ "evidence": {
+  "checked": 0,
+  "ok": 0
+ }
+}

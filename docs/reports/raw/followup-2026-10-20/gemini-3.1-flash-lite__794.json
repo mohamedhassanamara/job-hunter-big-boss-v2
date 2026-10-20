@@ -1,0 +1,208 @@
+{
+ "model": "gemini-3.1-flash-lite",
+ "job_id": 794,
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 17.2,
+ "finish": "STOP",
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The job title is Data Analytics Engineer, which is a direct match for the Analytics Engineer role in the candidate's track.\",\n    \"evidence\": \"This is an Analytics Engineer I role within Data Enablement\"\n  },\n  \"skills_match\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has strong SQL and Python skills, experience with Git, and hands-on experience with LLMs and automation, which are the core requirements.\",\n    \"evidence\": \"Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries. Working proficiency in Python\"\n  },\n  \"seniority_fit\": {\n    \"score\": 5,\n    \"reason\": \"The job asks for 2-3 years of experience. The candidate has 3 years of total experience but only 1 year specifically in the Data/AI track, making them slightly junior to the requirement.\",\n    \"evidence\": \"2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The job is based in Barcelona, Spain. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the job text.\",\n    \"evidence\": \"Location: Barcelona, Spain (ES)\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job requires English proficiency, which the candidate possesses at a full professional level.\",\n    \"evidence\": \"English proficiency: Good communication in English\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"Location: Barcelona, Spain (ES)\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"The role is based in Barcelona, Spain, and the candidate is based in Tunisia requiring visa sponsorship.\",\n      \"evidence\": \"Location: Barcelona, Spain (ES)\"\n    }\n  ],\n  \"strengths\": [\n    \"Strong SQL and Python proficiency\",\n    \"Hands-on LLM and automation experience\",\n    \"Collaborative engineering practices\"\n  ],\n  \"gaps\": [\n    \"Limited years of experience in the data track\",\n    \"Requires visa sponsorship for Spain\",\n    \"No prior professional experience with Looker\"\n  ],\n  \"summary\": \"The candidate is a strong technical match for the role, but the lack of existing work authorization for Spain and the location requirement make them ineligible for this specific position.\"\n}",
+ "tokens": {
+  "input": 5042,
+  "output": 747,
+  "thinking": 0
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 85,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job title is Data Analytics Engineer, which is a direct match for the Analytics Engineer role in the candidate's track.",
+    "evidence": "This is an Analytics Engineer I role within Data Enablement",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "The candidate has strong SQL and Python skills, experience with Git, and hands-on experience with LLMs and automation, which are the core requirements.",
+    "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries. Working proficiency in Python",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 2-3 years of experience. The candidate has 3 years of total experience but only 1 year specifically in the Data/AI track, making them slightly junior to the requirement.",
+    "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 5,
+    "reason": "The job is based in Barcelona, Spain. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the job text. (Adjusted to unknown: the listing doesn't state this requirement.)",
+    "evidence": "Location: Barcelona, Spain (ES)",
+    "evidence_verified": false,
+    "adjusted_from": 0
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+    "evidence": "English proficiency: Good communication in English",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is based in Barcelona, Spain, and the candidate is based in Tunisia requiring visa sponsorship.",
+    "evidence": "Location: Barcelona, Spain (ES)",
+    "evidence_verified": false,
+    "severity": "soft"
+   }
+  ],
+  "strengths": [
+   "Strong SQL and Python proficiency",
+   "Hands-on LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited years of experience in the data track",
+   "Requires visa sponsorship for Spain",
+   "No prior professional experience with Looker"
+  ],
+  "summary": "The candidate is a strong technical match for the role, but the lack of existing work authorization for Spain and the location requirement make them ineligible for this specific position.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job title is Data Analytics Engineer, which is a direct match for the Analytics Engineer role in the candidate's track.",
+   "evidence": "This is an Analytics Engineer I role within Data Enablement"
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "The candidate has strong SQL and Python skills, experience with Git, and hands-on experience with LLMs and automation, which are the core requirements.",
+   "evidence": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries. Working proficiency in Python"
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 2-3 years of experience. The candidate has 3 years of total experience but only 1 year specifically in the Data/AI track, making them slightly junior to the requirement.",
+   "evidence": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role."
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The job is based in Barcelona, Spain. The candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the job text.",
+   "evidence": "Location: Barcelona, Spain (ES)"
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job requires English proficiency, which the candidate possesses at a full professional level.",
+   "evidence": "English proficiency: Good communication in English"
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "Location: Barcelona, Spain (ES)"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "must_be_based_in",
+    "text": "The role is based in Barcelona, Spain, and the candidate is based in Tunisia requiring visa sponsorship.",
+    "evidence": "Location: Barcelona, Spain (ES)"
+   }
+  ],
+  "strengths": [
+   "Strong SQL and Python proficiency",
+   "Hands-on LLM and automation experience",
+   "Collaborative engineering practices"
+  ],
+  "gaps": [
+   "Limited years of experience in the data track",
+   "Requires visa sponsorship for Spain",
+   "No prior professional experience with Looker"
+  ],
+  "summary": "The candidate is a strong technical match for the role, but the lack of existing work authorization for Spain and the location requirement make them ineligible for this specific position."
+ },
+ "evidence": {
+  "checked": 7,
+  "ok": 7,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "This is an Analytics Engineer I role within Data Enablement",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong SQL foundations, with the ability to independently write, debug and optimise analytical queries. Working proficiency in Python",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "2-3 years of hands-on experience in Analytics Engineering, Data Analytics, BI, Data Engineering or a similar technical data role.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Location: Barcelona, Spain (ES)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "English proficiency: Good communication in English",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "flag:must_be_based_in",
+    "quote": "Location: Barcelona, Spain (ES)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "red:must_be_based_in",
+    "quote": "Location: Barcelona, Spain (ES)",
+    "in_job": false,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

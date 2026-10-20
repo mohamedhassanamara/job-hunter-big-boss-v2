@@ -1,0 +1,133 @@
+{
+ "config": "3.1-lite high",
+ "model": "gemini-3.1-flash-lite",
+ "thinking_config": {
+  "thinkingLevel": "high"
+ },
+ "job": "3923",
+ "retries": 0,
+ "retry_reasons": [],
+ "errors": [],
+ "secs": 42.0,
+ "raw_text": "{\n  \"role_match\": {\n    \"score\": 10,\n    \"reason\": \"The role is a Data Engineering position focused on data extraction and pipelines.\",\n    \"evidence\": \"\"\n  },\n  \"skills_match\": {\n    \"score\": 7,\n    \"reason\": \"Strong Python and data skills, though lacks professional experience with large-scale anti-bot scraping.\",\n    \"evidence\": \"Hands-on web scraping at scale, including firsthand experience with anti-bot defenses\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The candidate has 3 years of experience, meeting the minimum requirement.\",\n    \"evidence\": \"3+ years of professional software development\"\n  },\n  \"location_eligibility\": {\n    \"score\": 8,\n    \"reason\": \"On-site role in a target country; no explicit visa restrictions mentioned.\",\n    \"evidence\": \"\"\n  },\n  \"language_requirements\": {\n    \"score\": 10,\n    \"reason\": \"The job is in English, which the candidate speaks at a full professional level.\",\n    \"evidence\": \"\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [],\n  \"strengths\": [\n    \"Python development\",\n    \"Docker and containerization\",\n    \"LLM and data pipelines\"\n  ],\n  \"gaps\": [\n    \"Large-scale web scraping\",\n    \"Anti-bot defense experience\",\n    \"Professional cloud infrastructure\"\n  ],\n  \"summary\": \"Strong Python developer with relevant data and LLM skills, though lacking specific professional large-scale web scraping experience.\"\n}",
+ "tokens": {
+  "input": 4887,
+  "output": 536,
+  "thinking": 1057
+ },
+ "valid_first_try": true,
+ "valid_after_app_parse": true,
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The role is a Data Engineering position focused on data extraction and pipelines.",
+   "evidence": ""
+  },
+  "skills_match": {
+   "score": 7,
+   "reason": "Strong Python and data skills, though lacks professional experience with large-scale anti-bot scraping.",
+   "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of experience, meeting the minimum requirement.",
+   "evidence": "3+ years of professional software development"
+  },
+  "location_eligibility": {
+   "score": 8,
+   "reason": "On-site role in a target country; no explicit visa restrictions mentioned.",
+   "evidence": ""
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is in English, which the candidate speaks at a full professional level.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python development",
+   "Docker and containerization",
+   "LLM and data pipelines"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defense experience",
+   "Professional cloud infrastructure"
+  ],
+  "summary": "Strong Python developer with relevant data and LLM skills, though lacking specific professional large-scale web scraping experience."
+ },
+ "record": {
+  "score": 88,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The role is a Data Engineering position focused on data extraction and pipelines.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "skills_match": {
+    "score": 7,
+    "reason": "Strong Python and data skills, though lacks professional experience with large-scale anti-bot scraping.",
+    "evidence": "Hands-on web scraping at scale, including firsthand experience with anti-bot defenses",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of experience, meeting the minimum requirement.",
+    "evidence": "3+ years of professional software development",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 8,
+    "reason": "On-site role in a target country; no explicit visa restrictions mentioned.",
+    "evidence": "",
+    "evidence_verified": false
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is in English, which the candidate speaks at a full professional level.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python development",
+   "Docker and containerization",
+   "LLM and data pipelines"
+  ],
+  "gaps": [
+   "Large-scale web scraping",
+   "Anti-bot defense experience",
+   "Professional cloud infrastructure"
+  ],
+  "summary": "Strong Python developer with relevant data and LLM skills, though lacking specific professional large-scale web scraping experience.",
+  "confidence": "high"
+ }
+}

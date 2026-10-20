@@ -1,0 +1,205 @@
+{
+ "jobs": {
+  "good": {
+   "id": 3938,
+   "title": "Full-Stack Engineer (Backend Leaning) - Creative Agents",
+   "company": "ElevenLabs",
+   "description_level": "full",
+   "remote_type": "remote"
+  },
+  "medium": {
+   "id": 3935,
+   "title": "Senior Data Engineer - Real time analytics",
+   "company": "Aircall",
+   "description_level": "full",
+   "remote_type": "onsite"
+  },
+  "low": {
+   "id": 3950,
+   "title": "Data Collection Engineer ADAS (m/w/d)",
+   "company": "Ceis Gmbh",
+   "description_level": "full",
+   "remote_type": "onsite"
+  }
+ },
+ "baseline": {
+  "good": {
+   "score": 94,
+   "sub_scores": {
+    "role_match": {
+     "score": 10,
+     "reason": "The job is for a backend-leaning full-stack engineer, which aligns with the candidate's target role of Backend Engineer and their experience in both backend and mobile/frontend.",
+     "evidence": "backend-leaning full-stack engineer",
+     "evidence_verified": true
+    },
+    "skills_match": {
+     "score": 8,
+     "reason": "The candidate has strong overlap in backend skills (Spring Boot, Python, REST APIs), asynchronous processing (Airflow, MQTT), and specific AI agent experience (LLMs, Mistral, prompt-based systems).",
+     "evidence": "Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.",
+     "evidence_verified": true
+    },
+    "seniority_fit": {
+     "score": 10,
+     "reason": "The job does not specify a minimum number of years of experience and focuses on evidence of shipped products, which the candidate has (3 years total).",
+     "evidence": "",
+     "evidence_verified": false
+    },
+    "location_eligibility": {
+     "score": 10,
+     "reason": "The job is explicitly remote and states that they prioritize talent over location.",
+     "evidence": "We prioritize your talent, not your location.",
+     "evidence_verified": true
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "The job is in English and the candidate has full professional proficiency in English.",
+     "evidence": "",
+     "evidence_verified": false
+    }
+   },
+   "red_flags": [],
+   "strengths": [
+    "AI agent development (Mistral, LLMs)",
+    "Full-stack delivery (Spring Boot, Flutter)",
+    "Asynchronous pipelines (Airflow, Docker)"
+   ],
+   "gaps": [
+    "No explicit mention of MCP integrations",
+    "Limited experience with multimodal generation"
+   ],
+   "summary": "The candidate is a strong fit for this remote role, combining professional backend experience with a proven track record of building AI-driven agents and shipping full-stack products.",
+   "experience_version": "c19b26b20e9ec960",
+   "created_at": "2026-10-14 16:24:40.399156+00:00"
+  },
+  "medium": {
+   "score": 62,
+   "sub_scores": {
+    "role_match": {
+     "score": 10,
+     "reason": "The core responsibilities are exactly that of a Data Engineer, focusing on data pipelines and analytics platforms.",
+     "evidence": "Senior Data Engineer to join our growing Engineering Team",
+     "evidence_verified": true
+    },
+    "skills_match": {
+     "score": 5,
+     "reason": "The candidate has experience with Python, SQL, Airflow, S3, and star schema modeling, but lacks the specific real-time streaming stack (Kafka, Flink, Pinot) and Scala required for this senior role.",
+     "evidence": "AWS (Kinesis,Kafka, s3, DMS, Glue, EMR, EKS, Redshift, Spectrum), Apache Pinot, Apache Flink and Airflow.",
+     "evidence_verified": true
+    },
+    "seniority_fit": {
+     "score": 0,
+     "reason": "The job requires 5+ years of programming experience and 3+ years in real-time analytics; the candidate has only 1 year in the data track and 3 years total experience.",
+     "evidence": "5+ years experience with a modern programming language such as Scala, Python, Go, Typescript",
+     "evidence_verified": true
+    },
+    "location_eligibility": {
+     "score": 5,
+     "reason": "The job is onsite in Paris, and the candidate is based in Tunisia and requires visa sponsorship, which is not explicitly offered in the text. (Adjusted to unknown: the listing doesn't state this requirement.)",
+     "evidence": "Paris Office (FR)\nWork mode: onsite",
+     "evidence_verified": false,
+     "adjusted_from": 0
+    },
+    "language_requirements": {
+     "score": 10,
+     "reason": "The job is listed as an English-speaking role in France, and the candidate has full professional English and French skills.",
+     "evidence": "Find more English Speaking Jobs in France on Arbeitnow",
+     "evidence_verified": true
+    }
+   },
+   "red_flags": [
+    {
+     "type": "must_be_based_in",
+     "text": "Onsite role in Paris",
+     "evidence": "Paris Office (FR)\nWork mode: onsite",
+     "evidence_verified": false,
+     "severity": "soft"
+    },
+    {
+     "type": "seniority_mismatch",
+     "text": "Requires 5+ years experience; candidate has 3 total/1 in track",
+     "evidence": "5+ years experience with a modern programming language",
+     "evidence_verified": true,
+     "severity": "soft"
+    }
+   ],
+   "strengths": [
+    "Python and SQL",
+    "Airflow and S3",
+    "Star schema modeling"
+   ],
+   "gaps": [
+    "Real-time streaming (Kafka/Flink)",
+    "Scala experience",
+    "Senior-level professional experience"
+   ],
+   "summary": "The candidate is a junior-to-mid level engineer who lacks the required seniority and specific real-time streaming expertise for this onsite senior role in Paris.",
+   "experience_version": "c19b26b20e9ec960",
+   "created_at": "2026-10-14 16:24:19.389426+00:00"
+  },
+  "low": {
+   "score": 21,
+   "sub_scores": {
+    "role_match": {
+     "score": 0,
+     "reason": "The job is a hardware-centric data collection role for ADAS involving test-track activities and sensor integration, not a Data Engineering role focused on pipelines, ETL, or AI software development.",
+     "evidence": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.",
+     "evidence_verified": true
+    },
+    "skills_match": {
+     "score": 2,
+     "reason": "The candidate has basic Linux knowledge and general technical education, but lacks the specific ADAS, automotive sensor integration, and electronics skills required.",
+     "evidence": "Grundkenntnisse in Linux sind von Vorteil.",
+     "evidence_verified": true
+    },
+    "seniority_fit": {
+     "score": 10,
+     "reason": "The job asks for a technical degree or comparable experience, which the candidate possesses.",
+     "evidence": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.",
+     "evidence_verified": true
+    },
+    "location_eligibility": {
+     "score": 0,
+     "reason": "The job is onsite in Munich and requires a valid European driver's license, which the candidate (based in Tunisia) does not have.",
+     "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+     "evidence_verified": true
+    },
+    "language_requirements": {
+     "score": 0,
+     "reason": "The job requires fluent German and English; the candidate does not speak German.",
+     "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+     "evidence_verified": true
+    }
+   },
+   "red_flags": [
+    {
+     "type": "language_required",
+     "text": "Requires fluent German",
+     "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+     "evidence_verified": true,
+     "severity": "hard"
+    },
+    {
+     "type": "must_be_based_in",
+     "text": "Requires European driver's license",
+     "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+     "evidence_verified": true,
+     "severity": "hard"
+    }
+   ],
+   "strengths": [
+    "Technical degree",
+    "Linux basics"
+   ],
+   "gaps": [
+    "German language",
+    "European driver's license",
+    "ADAS/Automotive experience"
+   ],
+   "summary": "The candidate is a software/data engineer, whereas this is a hardware-focused automotive data collection role requiring German fluency and a European driver's license.",
+   "experience_version": "c19b26b20e9ec960",
+   "created_at": "2026-10-14 16:26:30.369616+00:00"
+  }
+ },
+ "prompt_version": "fit_score/v3",
+ "experience_version_now": "3812127ca20f8860"
+}

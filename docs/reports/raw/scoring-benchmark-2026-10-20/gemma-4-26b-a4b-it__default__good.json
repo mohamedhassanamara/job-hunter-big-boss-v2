@@ -1,0 +1,28 @@
+{
+ "model": "gemma-4-26b-a4b-it",
+ "mode": "default",
+ "job": "good",
+ "job_id": 3938,
+ "retries": 1,
+ "retry_reasons": [
+  500
+ ],
+ "adaptations": [
+  "native JSON schema rejected -> schema in prompt"
+ ],
+ "errors": [
+  "invalid output: 1 validation error for FitAssessment\n  Invalid JSON: EOF while parsing an object at line 1 column 2291 [type=json_invalid, input_value='{\"properties\":{\"role_mat...uild creative agents.\"}', input_type=str]\n    For further information visit https://err"
+ ],
+ "thinking_config": null,
+ "secs": 11.7,
+ "finish": "STOP",
+ "tokens": {
+  "input": 5659,
+  "output": 505,
+  "thinking": 0,
+  "total": 6164
+ },
+ "structured_native": false,
+ "raw_text": "```json\n{\"properties\":{\"role_match\":{\"score\":10,\"reason\":\"The job is for a Full-Stack Engineer (Backend Leaning), which aligns perfectly with the candidate's target track of Backend Engineer.\",\"evidence\":\"We are looking for a backend-leaning full-stack engineer to help build the next generation of Creative Agents at ElevenLabs.\"},\"skills_match\":{\"score\":10,\"reason\":\"The candidate has extensive experience in backend engineering (Spring Boot, FastAPI, Flask), AI/LLM development (Mistral, LLaMA, RAG), and full-stack/mobile development (Flutter), which matches the job's requirements for backend systems, agent development, and end-to-end ownership.\",\"evidence\":\"Strong backend engineering skills, experience operating production systems, and sound fundamentals in APIs, cloud infrastructure, storage and asynchronous processing.\"},\"seniority_fit\":{\"score\":10,\"reason\":\"The job is for an engineer role in a high-velocity startup environment and does not specify a minimum year requirement, making it suitable for a candidate with 3 years of experience.\",\"evidence\":\"\"},\"location_eligibility\":{\"score\":10,\"reason\":\"The job is remote and explicitly states 'We prioritize your talent, not your location.', which accommodates the candidate's need for remote work or relocation.\",\"evidence\":\"Global team: We prioritize your talent, not your location.\"},\"language_requirements\":{\"score\":10,\"reason\":\"The job requires English (implied by the posting language), which the candidate speaks at a full professional level.\",\"evidence\":\"\"},\"flag_checks\":{\"no_visa_sponsorship\":{\"present\":false,\"evidence\":\"\"},\"work_authorization_required\":{\"present\":false,\"evidence\":\"\"},\"must_be_based_in\":{\"present\":false,\"evidence\":\"\"},\"nationality_restricted\":{\"present\":false,\"evidence\":\"\"},\"language_required\":{\"present\":false,\"evidence\":\"\"},\"seniority_mismatch\":{\"present\":false,\"evidence\":\"\"}},\"red_flags\":[],\"strengths\":[\"Backend engineering (Spring Boot, FastAPI)\",\"AI/LLM & Agent development\",\"End-to-end product ownership\"],\"gaps\":[\"Experience with WebSockets (not explicitly mentioned)\",\"Experience with MCP integrations\"],\"summary\":\"The candidate is an excellent fit for this role, possessing the exact blend of backend engineering, AI/LLM expertise, and full-stack capability required to build creative agents.\"}\n```",
+ "valid_first_try": false
+}

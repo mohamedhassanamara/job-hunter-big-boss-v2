@@ -1,0 +1,231 @@
+{
+ "model": "gemma-4-31b-it",
+ "mode": "default",
+ "job": "low",
+ "job_id": 3950,
+ "retries": 0,
+ "retry_reasons": [],
+ "adaptations": [
+  "native JSON schema rejected -> schema in prompt"
+ ],
+ "errors": [],
+ "thinking_config": null,
+ "secs": 91.3,
+ "finish": "STOP",
+ "tokens": {
+  "input": 5312,
+  "output": 791,
+  "thinking": 1527,
+  "total": 7630
+ },
+ "structured_native": false,
+ "raw_text": "```json\n{\n  \"role_match\": {\n    \"score\": 0,\n    \"reason\": \"The job is a hardware-centric test and data collection role for autonomous driving (ADAS), involving test-track coordination and sensor integration, which is entirely different from the software-focused Data Engineering roles in the candidate's track.\",\n    \"evidence\": \"Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.\"\n  },\n  \"skills_match\": {\n    \"score\": 0,\n    \"reason\": \"The candidate lacks the core requirements: ADAS experience, a European driver's license, and knowledge of automotive communication protocols (CAN, FlexRay).\",\n    \"evidence\": \"Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.\"\n  },\n  \"seniority_fit\": {\n    \"score\": 10,\n    \"reason\": \"The job requires a technical degree or comparable experience, which the candidate possesses.\",\n    \"evidence\": \"Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.\"\n  },\n  \"location_eligibility\": {\n    \"score\": 0,\n    \"reason\": \"The role is onsite in Munich and explicitly requires a valid European driver's license, which the candidate (based in Tunisia) does not have.\",\n    \"evidence\": \"G\u00fcltiger europ\u00e4ischer F\u00fchrerschein\"\n  },\n  \"language_requirements\": {\n    \"score\": 0,\n    \"reason\": \"The job requires fluent German, which the candidate does not speak.\",\n    \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n  },\n  \"flag_checks\": {\n    \"no_visa_sponsorship\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"work_authorization_required\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"must_be_based_in\": {\n      \"present\": true,\n      \"evidence\": \"onsite\"\n    },\n    \"nationality_restricted\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    },\n    \"language_required\": {\n      \"present\": true,\n      \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n    },\n    \"seniority_mismatch\": {\n      \"present\": false,\n      \"evidence\": \"\"\n    }\n  },\n  \"red_flags\": [\n    {\n      \"type\": \"language_required\",\n      \"text\": \"Requires fluent German\",\n      \"evidence\": \"Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.\"\n    },\n    {\n      \"type\": \"must_be_based_in\",\n      \"text\": \"Onsite in Munich and requires European driver's license\",\n      \"evidence\": \"G\u00fcltiger europ\u00e4ischer F\u00fchrerschein\"\n    }\n  ],\n  \"strengths\": [\n    \"Technical degree\",\n    \"Linux basics\"\n  ],\n  \"gaps\": [\n    \"German language\",\n    \"European driver's license\",\n    \"ADAS/Automotive experience\"\n  ],\n  \"summary\": \"The candidate is entirely unsuitable for this role as it is a hardware-focused ADAS test engineering position requiring fluent German and a European driver's license, whereas the candidate is a software engineer based in Tunisia.\"\n}\n```",
+ "valid_first_try": true,
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is a hardware-centric test and data collection role for autonomous driving (ADAS), involving test-track coordination and sensor integration, which is entirely different from the software-focused Data Engineering roles in the candidate's track.",
+   "evidence": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge."
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The candidate lacks the core requirements: ADAS experience, a European driver's license, and knowledge of automotive communication protocols (CAN, FlexRay).",
+   "evidence": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil."
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The job requires a technical degree or comparable experience, which the candidate possesses.",
+   "evidence": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich."
+  },
+  "location_eligibility": {
+   "score": 0,
+   "reason": "The role is onsite in Munich and explicitly requires a valid European driver's license, which the candidate (based in Tunisia) does not have.",
+   "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein"
+  },
+  "language_requirements": {
+   "score": 0,
+   "reason": "The job requires fluent German, which the candidate does not speak.",
+   "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": true,
+    "evidence": "onsite"
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": true,
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires fluent German",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift."
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Onsite in Munich and requires European driver's license",
+    "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein"
+   }
+  ],
+  "strengths": [
+   "Technical degree",
+   "Linux basics"
+  ],
+  "gaps": [
+   "German language",
+   "European driver's license",
+   "ADAS/Automotive experience"
+  ],
+  "summary": "The candidate is entirely unsuitable for this role as it is a hardware-focused ADAS test engineering position requiring fluent German and a European driver's license, whereas the candidate is a software engineer based in Tunisia."
+ },
+ "record": {
+  "score": 15,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is a hardware-centric test and data collection role for autonomous driving (ADAS), involving test-track coordination and sensor integration, which is entirely different from the software-focused Data Engineering roles in the candidate's track.",
+    "evidence": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The candidate lacks the core requirements: ADAS experience, a European driver's license, and knowledge of automotive communication protocols (CAN, FlexRay).",
+    "evidence": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The job requires a technical degree or comparable experience, which the candidate possesses.",
+    "evidence": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 0,
+    "reason": "The role is onsite in Munich and explicitly requires a valid European driver's license, which the candidate (based in Tunisia) does not have.",
+    "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 0,
+    "reason": "The job requires fluent German, which the candidate does not speak.",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [
+   {
+    "type": "language_required",
+    "text": "Requires fluent German",
+    "evidence": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "evidence_verified": true,
+    "severity": "hard"
+   },
+   {
+    "type": "must_be_based_in",
+    "text": "Onsite in Munich and requires European driver's license",
+    "evidence": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+    "evidence_verified": true,
+    "severity": "hard"
+   }
+  ],
+  "strengths": [
+   "Technical degree",
+   "Linux basics"
+  ],
+  "gaps": [
+   "German language",
+   "European driver's license",
+   "ADAS/Automotive experience"
+  ],
+  "summary": "The candidate is entirely unsuitable for this role as it is a hardware-focused ADAS test engineering position requiring fluent German and a European driver's license, whereas the candidate is a software engineer based in Tunisia.",
+  "confidence": "high"
+ },
+ "evidence": {
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Integration verschiedener Systeme, Kameras und Sensoren, einschlie\u00dflich dGPS und Ground Truth (GT), in Prototypen und Serienfahrzeuge.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Kenntnisse von Kommunikationsprotokollen wie CAN, FlexRay oder Ethernet sind von Vorteil.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "Abgeschlossenes technisches Studium oder vergleichbare Berufserfahrung im ADAS-Bereich.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "flag_check:must_be_based_in",
+    "quote": "onsite",
+    "in_job": false,
+    "in_experience": false,
+    "ok": false
+   },
+   {
+    "where": "flag_check:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "red_flag:language_required",
+    "quote": "Flie\u00dfende Englisch- und Deutschkenntnisse in Wort und Schrift.",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   },
+   {
+    "where": "red_flag:must_be_based_in",
+    "quote": "G\u00fcltiger europ\u00e4ischer F\u00fchrerschein",
+    "in_job": true,
+    "in_experience": false,
+    "ok": true
+   }
+  ],
+  "checked": 9,
+  "ok": 8,
+  "in_job": 8
+ }
+}

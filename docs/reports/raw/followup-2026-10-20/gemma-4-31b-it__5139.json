@@ -1,0 +1,169 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 5139,
+ "retries": 3,
+ "retry_reasons": [
+  503,
+  503,
+  503
+ ],
+ "errors": [],
+ "secs": 57.0,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 10,\n      \"reason\": \"The job requires a software engineer to create tasks for AI coding models, which aligns perfectly with the candidate's background as a software engineer specializing in AI.\",\n      \"evidence\": \"experienced software engineers to build AI coding tasks\"\n    },\n    \"skills_match\": {\n      \"score\": 10,\n      \"reason\": \"The candidate meets all core technical requirements: 3 years of professional experience, proficiency in Python, Java, and C++, and solid experience with Docker, Linux, Git, and automated testing.\",\n      \"evidence\": \"Strong in at least one of Python, TypeScript, Go, Rust, Java or C++\"\n    },\n    \"seniority_fit\": {\n      \"score\": 10,\n      \"reason\": \"The candidate has 3 years of professional experience, exceeding the minimum requirement of 2 years.\",\n      \"evidence\": \"2+ years of professional software engineering\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The job is explicitly open to any location worldwide.\",\n      \"evidence\": \"Remote, any location.\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The job is written in English and the candidate has full professional proficiency in English.\",\n      \"evidence\": \"\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Proficiency in Python, Java, and C++\",\n      \"Experience with Docker, Linux, and Git\",\n      \"Hands-on experience building LLM-based systems\"\n    ],\n    \"gaps\": [\n      \"No explicit mention of public open-source contributions\"\n    ],\n    \"summary\": \"The candidate is an excellent fit, possessing the required software engineering seniority and a strong AI background to create high-quality coding tasks for model training.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5191,
+  "output": 616,
+  "thinking": 1099
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 100,
+  "sub_scores": {
+   "role_match": {
+    "score": 10,
+    "reason": "The job requires a software engineer to create tasks for AI coding models, which aligns perfectly with the candidate's background as a software engineer specializing in AI.",
+    "evidence": "experienced software engineers to build AI coding tasks",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 10,
+    "reason": "The candidate meets all core technical requirements: 3 years of professional experience, proficiency in Python, Java, and C++, and solid experience with Docker, Linux, Git, and automated testing.",
+    "evidence": "Strong in at least one of Python, TypeScript, Go, Rust, Java or C++",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 10,
+    "reason": "The candidate has 3 years of professional experience, exceeding the minimum requirement of 2 years.",
+    "evidence": "2+ years of professional software engineering",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job is explicitly open to any location worldwide.",
+    "evidence": "Remote, any location.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The job is written in English and the candidate has full professional proficiency in English.",
+    "evidence": "",
+    "evidence_verified": false
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Proficiency in Python, Java, and C++",
+   "Experience with Docker, Linux, and Git",
+   "Hands-on experience building LLM-based systems"
+  ],
+  "gaps": [
+   "No explicit mention of public open-source contributions"
+  ],
+  "summary": "The candidate is an excellent fit, possessing the required software engineering seniority and a strong AI background to create high-quality coding tasks for model training.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 10,
+   "reason": "The job requires a software engineer to create tasks for AI coding models, which aligns perfectly with the candidate's background as a software engineer specializing in AI.",
+   "evidence": "experienced software engineers to build AI coding tasks"
+  },
+  "skills_match": {
+   "score": 10,
+   "reason": "The candidate meets all core technical requirements: 3 years of professional experience, proficiency in Python, Java, and C++, and solid experience with Docker, Linux, Git, and automated testing.",
+   "evidence": "Strong in at least one of Python, TypeScript, Go, Rust, Java or C++"
+  },
+  "seniority_fit": {
+   "score": 10,
+   "reason": "The candidate has 3 years of professional experience, exceeding the minimum requirement of 2 years.",
+   "evidence": "2+ years of professional software engineering"
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job is explicitly open to any location worldwide.",
+   "evidence": "Remote, any location."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The job is written in English and the candidate has full professional proficiency in English.",
+   "evidence": ""
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Proficiency in Python, Java, and C++",
+   "Experience with Docker, Linux, and Git",
+   "Hands-on experience building LLM-based systems"
+  ],
+  "gaps": [
+   "No explicit mention of public open-source contributions"
+  ],
+  "summary": "The candidate is an excellent fit, possessing the required software engineering seniority and a strong AI background to create high-quality coding tasks for model training."
+ },
+ "evidence": {
+  "checked": 4,
+  "ok": 4,
+  "in_job": 4,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "experienced software engineers to build AI coding tasks",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong in at least one of Python, TypeScript, Go, Rust, Java or C++",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "2+ years of professional software engineering",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Remote, any location.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}

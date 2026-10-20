@@ -1,0 +1,177 @@
+{
+ "model": "gemma-4-31b-it",
+ "job_id": 2427,
+ "retries": 1,
+ "retry_reasons": [
+  500
+ ],
+ "errors": [],
+ "secs": 70.1,
+ "finish": "STOP",
+ "raw_text": "```json\n{\n  \"properties\": {\n    \"role_match\": {\n      \"score\": 0,\n      \"reason\": \"The job is a specialized aerospace engineering role focusing on propulsion systems and fluid dynamics, which is entirely different from the candidate's target roles in Data/AI engineering.\",\n      \"evidence\": \"Propulsion Functional Systems Engineer to contribute to the development, testing, analysis, prediction and refinement of the functional architecture for Nyx Earth Propulsion System\"\n    },\n    \"skills_match\": {\n      \"score\": 0,\n      \"reason\": \"The candidate lacks the core domain requirements of the role, specifically thermodynamics, fluid dynamics, and combustion principles. Only general Python proficiency overlaps.\",\n      \"evidence\": \"Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles.\"\n    },\n    \"seniority_fit\": {\n      \"score\": 5,\n      \"reason\": \"The job asks for 3+ years of related experience, while the candidate has 1 year in the Data/AI track.\",\n      \"evidence\": \"+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing.\"\n    },\n    \"location_eligibility\": {\n      \"score\": 10,\n      \"reason\": \"The job explicitly offers relocation assistance and visa sponsorship.\",\n      \"evidence\": \"Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.\"\n    },\n    \"language_requirements\": {\n      \"score\": 10,\n      \"reason\": \"The candidate has full professional proficiency in English, which is the only language required.\",\n      \"evidence\": \"Fluency in English.\"\n    },\n    \"flag_checks\": {\n      \"no_visa_sponsorship\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"work_authorization_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"must_be_based_in\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"nationality_restricted\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"language_required\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      },\n      \"seniority_mismatch\": {\n        \"present\": false,\n        \"evidence\": \"\"\n      }\n    },\n    \"red_flags\": [],\n    \"strengths\": [\n      \"Python proficiency\",\n      \"Data analysis experience\"\n    ],\n    \"gaps\": [\n      \"Thermodynamics and fluid dynamics\",\n      \"Combustion principles\",\n      \"EcosimPro experience\"\n    ],\n    \"summary\": \"The candidate is a software and data engineer, but this is a specialized aerospace propulsion role requiring deep mechanical engineering knowledge that the candidate does not possess.\"\n  }\n}\n```",
+ "tokens": {
+  "input": 5723,
+  "output": 639,
+  "thinking": 1052
+ },
+ "valid_first_try": false,
+ "valid_after_app_parse": true,
+ "record": {
+  "score": 32,
+  "sub_scores": {
+   "role_match": {
+    "score": 0,
+    "reason": "The job is a specialized aerospace engineering role focusing on propulsion systems and fluid dynamics, which is entirely different from the candidate's target roles in Data/AI engineering.",
+    "evidence": "Propulsion Functional Systems Engineer to contribute to the development, testing, analysis, prediction and refinement of the functional architecture for Nyx Earth Propulsion System",
+    "evidence_verified": true
+   },
+   "skills_match": {
+    "score": 0,
+    "reason": "The candidate lacks the core domain requirements of the role, specifically thermodynamics, fluid dynamics, and combustion principles. Only general Python proficiency overlaps.",
+    "evidence": "Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles.",
+    "evidence_verified": true
+   },
+   "seniority_fit": {
+    "score": 5,
+    "reason": "The job asks for 3+ years of related experience, while the candidate has 1 year in the Data/AI track.",
+    "evidence": "+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing.",
+    "evidence_verified": true
+   },
+   "location_eligibility": {
+    "score": 10,
+    "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+    "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.",
+    "evidence_verified": true
+   },
+   "language_requirements": {
+    "score": 10,
+    "reason": "The candidate has full professional proficiency in English, which is the only language required.",
+    "evidence": "Fluency in English.",
+    "evidence_verified": true
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Data analysis experience"
+  ],
+  "gaps": [
+   "Thermodynamics and fluid dynamics",
+   "Combustion principles",
+   "EcosimPro experience"
+  ],
+  "summary": "The candidate is a software and data engineer, but this is a specialized aerospace propulsion role requiring deep mechanical engineering knowledge that the candidate does not possess.",
+  "confidence": "high"
+ },
+ "assessment": {
+  "role_match": {
+   "score": 0,
+   "reason": "The job is a specialized aerospace engineering role focusing on propulsion systems and fluid dynamics, which is entirely different from the candidate's target roles in Data/AI engineering.",
+   "evidence": "Propulsion Functional Systems Engineer to contribute to the development, testing, analysis, prediction and refinement of the functional architecture for Nyx Earth Propulsion System"
+  },
+  "skills_match": {
+   "score": 0,
+   "reason": "The candidate lacks the core domain requirements of the role, specifically thermodynamics, fluid dynamics, and combustion principles. Only general Python proficiency overlaps.",
+   "evidence": "Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles."
+  },
+  "seniority_fit": {
+   "score": 5,
+   "reason": "The job asks for 3+ years of related experience, while the candidate has 1 year in the Data/AI track.",
+   "evidence": "+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing."
+  },
+  "location_eligibility": {
+   "score": 10,
+   "reason": "The job explicitly offers relocation assistance and visa sponsorship.",
+   "evidence": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable."
+  },
+  "language_requirements": {
+   "score": 10,
+   "reason": "The candidate has full professional proficiency in English, which is the only language required.",
+   "evidence": "Fluency in English."
+  },
+  "flag_checks": {
+   "no_visa_sponsorship": {
+    "present": false,
+    "evidence": ""
+   },
+   "work_authorization_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "must_be_based_in": {
+    "present": false,
+    "evidence": ""
+   },
+   "nationality_restricted": {
+    "present": false,
+    "evidence": ""
+   },
+   "language_required": {
+    "present": false,
+    "evidence": ""
+   },
+   "seniority_mismatch": {
+    "present": false,
+    "evidence": ""
+   }
+  },
+  "red_flags": [],
+  "strengths": [
+   "Python proficiency",
+   "Data analysis experience"
+  ],
+  "gaps": [
+   "Thermodynamics and fluid dynamics",
+   "Combustion principles",
+   "EcosimPro experience"
+  ],
+  "summary": "The candidate is a software and data engineer, but this is a specialized aerospace propulsion role requiring deep mechanical engineering knowledge that the candidate does not possess."
+ },
+ "evidence": {
+  "checked": 5,
+  "ok": 5,
+  "in_job": 5,
+  "quotes": [
+   {
+    "where": "role_match",
+    "quote": "Propulsion Functional Systems Engineer to contribute to the development, testing, analysis, prediction and refinement of the functional architecture for Nyx Earth Propulsion System",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "skills_match",
+    "quote": "Strong engineering fundamentals in thermodynamics, fluid dynamics, and combustion principles.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "seniority_fit",
+    "quote": "+3 years of related experience in complex fluid systems, fluidic modeling, data analysis and data post processing.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "location_eligibility",
+    "quote": "Relocation assistance is provided for those willing to relocate including visa sponsorship where applicable.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   },
+   {
+    "where": "language_requirements",
+    "quote": "Fluency in English.",
+    "in_job": true,
+    "in_exp": false,
+    "in_prompt": true,
+    "ok": true
+   }
+  ]
+ }
+}
