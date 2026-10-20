@@ -291,6 +291,7 @@ export const TOURS: Record<TourId, Tour> = {
     resolveRoute: async () => '/linkedin',
     steps: [
       { target: 'linkedin-searches', title: "Today's searches", body: 'One LinkedIn job search per role and target country, posted in the past 24 hours, newest first. Click one: it opens in a new tab and is marked opened today. You browse; the app never visits LinkedIn.', placement: 'bottom' },
+      { target: 'linkedin-viewers', title: 'Viewed my profile', body: 'LinkedIn Premium shows who looked at your profile. Add them here (name, title, company, profile URL): they join the LinkedIn track for your best open job at their company, with the reason "viewed my profile on <date>" that only you see. No job there yet? They are kept as a lead and link themselves when one appears. Drafts for them open warmly and never mention the visit.', placement: 'bottom' },
       { target: 'linkedin-bookmark', title: 'One-click import', body: 'Drag “Save to Job Hunter” to your bookmarks bar. On a LinkedIn job page, click it: a small window shows what it read (and how), you check it, save, and the job is scored right away.', placement: 'top' },
     ],
   },
@@ -306,6 +307,8 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'linkedin-groups', title: 'Who to message', body: 'In this order: the hiring team (captured with the bookmark), alumni of your school, team leads in your field, then recruiters. Each group has a LinkedIn search link built for this company; you pick people and add them (paste their profile header).', placement: 'bottom' },
       { target: 'linkedin-person', title: 'A note per person', body: 'Claude drafts a connection note within your limit (200 characters on a free account), different for the hiring team, alumni and others. The school angle is for alumni only. You copy it, send it yourself, and mark it sent; the counter tracks your daily requests.', placement: 'top' },
+      { target: 'linkedin-inmail', title: 'InMail (Premium)', body: 'For someone you are not connected with: Claude drafts a subject and a body of up to 1,000 characters (your limit in Settings → LinkedIn), with the same grounding, honesty and banned-phrase checks. Claude then checks every claim of the exact text; Copy and "I sent the InMail" unlock after that. You send it on LinkedIn yourself.', placement: 'left' },
+      { target: 'linkedin-credits', title: 'InMail credits', body: 'Your monthly allowance (Settings → LinkedIn) minus the InMails you sent this month. When they reply within 90 days LinkedIn gives the credit back, and so does the counter. Undo "I sent the InMail" and the credit is back too.', placement: 'bottom' },
       { target: 'linkedin-person', title: 'After they accept', body: 'Draft the follow-up: one proof from your experience and one direct ask (a referral, or who to talk to). Reminders come up when nobody answers. An email and a LinkedIn request never go to the same person within 3 days.', placement: 'top' },
     ],
   },

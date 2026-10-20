@@ -433,6 +433,8 @@ class LinkedInMessage(BaseModel):
     """A LinkedIn connection note or follow-up, as one short text. Facts about you cite pool
     ids; the program checks length, grounding, years and banned phrases."""
 
+    subject: str = Field(default="", description="InMail only: the subject line (at most 80 "
+                                                  "characters); empty for a note or follow-up")
     text: str = Field(description="The whole message, ready to paste (no greeting line breaks)")
     citations: list[int] = Field(default_factory=list,
                                  description="Pool ids of every fact about you it states")
@@ -441,9 +443,9 @@ class LinkedInMessage(BaseModel):
 
 
 class LinkedInRequest(BaseModel):
-    kind: str  # note | followup
+    kind: str  # note | followup | inmail
     job: dict[str, Any]
-    person: dict[str, Any]  # first_name, full_name, title, group, alumni
+    person: dict[str, Any]  # first_name, full_name, title, group, alumni, warm_opener
     candidate: dict[str, Any]
     pool: dict[str, Any]
     rules: dict[str, Any]

@@ -19,7 +19,7 @@ from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceHistory, ExperienceItem
 from app.models.interview import InterviewPrep
 from app.models.job import FitConfirmation, FitScore, Job
-from app.models.linkedin import CVFit, LinkedInLinkOpen, LinkedInOutreach
+from app.models.linkedin import CVFit, LinkedInLead, LinkedInLinkOpen, LinkedInOutreach
 from app.models.motivation import (
     ChestOpen,
     GoalTile,
@@ -62,6 +62,7 @@ __all__ = [
     "WinEntry",
     "Woop",
     "CVFit",
+    "LinkedInLead",
     "LinkedInLinkOpen",
     "LinkedInOutreach",
     "AppSetting",

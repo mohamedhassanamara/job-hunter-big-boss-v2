@@ -1,6 +1,7 @@
 """LinkedIn section: daily search links (built in code), and the one-click import of a job
 page you capture with the bookmark. Nothing here requests linkedin.com."""
 
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -153,9 +154,15 @@ class PersonOut(BaseModel):
     # The claim verifier on the current text: passed | failed | error | stale | none.
     note_verification_state: str = "none"
     followup_verification_state: str = "none"
+    inmail_verification_state: str = "none"
     status: str
     note: dict[str, Any] | None
     followup: dict[str, Any] | None
+    inmail: dict[str, Any] | None = None  # {subject, text, violations, verification, ...}
+    inmail_sent_at: Any = None
+    inmail_refunded_at: Any = None  # the credit came back (they replied within 90 days)
+    source: str = "manual"  # manual | captured | viewed_profile
+    reason: str = ""  # for you only: "viewed my profile on 20 Oct"
     critique: dict[str, Any] | None
     sent_at: Any = None
     accepted_at: Any = None
@@ -179,6 +186,8 @@ class PanelOut(BaseModel):
     company_id: int
     school: str | None
     max_chars: int
+    inmail_max_chars: int = 1000
+    credits: dict[str, Any] = {}  # InMail credits this month (Premium)
     requests_today: int
     daily_limit: int
     groups: list[GroupOut]
@@ -199,6 +208,8 @@ class PersonIn(BaseModel):
 class PersonPatch(BaseModel):
     note: str | None = None
     followup: str | None = None
+    inmail_text: str | None = None
+    inmail_subject: str | None = None
     group: str | None = None
     alumni: bool | None = None
 
@@ -215,20 +226,25 @@ def _person(s, row) -> PersonOut:  # noqa: ANN001
     return PersonOut(id=row.id, contact_id=c.id, full_name=c.full_name, title=c.title,
                      linkedin_url=c.linkedin_url, group=row.group, alumni=row.alumni,
                      hiring_team=row.hiring_team,
-                     status=row.status, note=row.note, followup=row.followup,
+                     status=row.status, note=row.note, followup=row.followup, inmail=row.inmail,
+                     inmail_sent_at=row.inmail_sent_at, inmail_refunded_at=row.inmail_refunded_at,
+                     source=row.source, reason=row.reason,
                      critique=row.critique, sent_at=row.sent_at, accepted_at=row.accepted_at,
                      messaged_at=row.messaged_at, replied_at=row.replied_at,
                      gap_hint=lt.gap_hint(s, c.id),
                      note_verification_state=_vstate(row.note),
-                     followup_verification_state=_vstate(row.followup))
+                     followup_verification_state=_vstate(row.followup),
+                     inmail_verification_state=_vstate(row.inmail, "inmail"))
 
 
-def _vstate(message: dict | None) -> str:
+def _vstate(message: dict | None, kind: str = "note") -> str:
     from app.services import verifier
+    from app.services.linkedin_check import inmail_text
 
     if not message or not message.get("text"):
         return "none"
-    return verifier.state(message.get("verification"), message["text"])
+    text = inmail_text(message) if kind == "inmail" else message["text"]
+    return verifier.state(message.get("verification"), text)
 
 
 def _panel(s, app) -> PanelOut:  # noqa: ANN001
@@ -248,6 +264,7 @@ def _panel(s, app) -> PanelOut:  # noqa: ANN001
     return PanelOut(application_id=app.id, job_id=job.id,
                     company=s.get(Company, job.company_id).name, company_id=job.company_id,
                     school=lt.school(load_pool(s))[0], max_chars=int(cfg["note_max_chars"]),
+                    inmail_max_chars=int(cfg["inmail_max_chars"]), credits=lt.credits(s),
                     requests_today=lt.requests_today(s), daily_limit=int(cfg["daily_requests"]),
                     groups=[GroupOut(**g) for g in lt.suggestions(s, app)],
                     people=[_person(s, r) for r in people], order_hint=order,
@@ -306,6 +323,10 @@ def patch_person(row_id: int, body: PersonPatch, session: SessionDep) -> PersonO
         lt.edit(session, row, "note", body.note)
     if body.followup is not None:
         lt.edit(session, row, "followup", body.followup)
+    if body.inmail_text is not None or body.inmail_subject is not None:
+        if not row.inmail:
+            raise HTTPException(409, "Draft the InMail first")
+        lt.edit(session, row, "inmail", body.inmail_text, body.inmail_subject)
     session.add(row)
     session.commit()
     session.refresh(row)
@@ -349,12 +370,12 @@ def verify_message(row_id: int, session: SessionDep, workspace: WorkspaceDep,
     """Check every claim of the note (or follow-up) with Claude: Copy unlocks when it passes."""
     from app.services import verifier
 
-    if kind not in ("note", "followup"):
-        raise HTTPException(422, "kind is note or followup")
+    if kind not in ("note", "followup", "inmail"):
+        raise HTTPException(422, "kind is note, followup or inmail")
     row = _row(session, row_id)
     try:
-        verifier.code_checks_first(((row.note if kind == "note" else row.followup) or {})
-                                   .get("violations"))
+        verifier.code_checks_first(({"note": row.note, "followup": row.followup,
+                                     "inmail": row.inmail}[kind] or {}).get("violations"))
         verifier.verify_linkedin(session, row, kind, verifier.for_workspace(session, workspace))
     except verifier.VerifyError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -406,6 +427,127 @@ def draft_followup(row_id: int, session: SessionDep, engine: EngineDep,
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()
     return _person(session, _row(session, row.id))
+
+
+@router.post("/linkedin/people/{row_id}/inmail", response_model=PersonOut)
+def draft_inmail(row_id: int, session: SessionDep, engine: EngineDep,
+                 workspace: WorkspaceDep) -> PersonOut:
+    """Claude drafts a LinkedIn Premium InMail (subject + body, claude -p on your subscription),
+    checked in code like the note. You send it yourself."""
+    from app.services import linkedin_track as lt
+
+    _row(session, row_id)
+    try:
+        row = lt.draft_inmail(engine, row_id, _drafter(workspace))
+    except lt.LinkedInError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.expire_all()
+    return _person(session, _row(session, row.id))
+
+
+@router.post("/linkedin/people/{row_id}/inmail/sent", response_model=PersonOut)
+def inmail_sent(row_id: int, session: SessionDep) -> PersonOut:
+    """You sent the InMail on LinkedIn: it uses a credit. Needs the exact text verified."""
+    from app.services import linkedin_track as lt
+
+    row = _row(session, row_id)
+    if _vstate(row.inmail, "inmail") != "passed":
+        raise HTTPException(409, "Verify the InMail first: every claim must hold before you "
+                                 "send it")
+    try:
+        lt.send_inmail(session, row)
+    except lt.LinkedInError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    session.refresh(row)
+    return _person(session, row)
+
+
+@router.post("/linkedin/people/{row_id}/inmail/unsent", response_model=PersonOut)
+def inmail_unsent(row_id: int, session: SessionDep) -> PersonOut:
+    """Undo "I sent the InMail": the credit comes back."""
+    from app.services import linkedin_track as lt
+
+    row = _row(session, row_id)
+    try:
+        lt.unsend_inmail(session, row)
+    except lt.LinkedInError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    session.refresh(row)
+    return _person(session, row)
+
+
+@router.get("/linkedin/credits")
+def linkedin_credits(session: SessionDep) -> dict[str, Any]:
+    """InMail credits this month and the Premium end-date reminder (Settings → LinkedIn)."""
+    from app.services import linkedin_track as lt
+
+    return jsonable({"credits": lt.credits(session), "premium": lt.premium(session)})
+
+
+class ViewerIn(BaseModel):
+    full_name: str
+    title: str | None = None
+    company: str
+    linkedin_url: str | None = None
+    viewed_on: date | None = None  # default: today
+
+
+class LinkIn(BaseModel):
+    application_id: int
+
+
+@router.post("/linkedin/viewers")
+def add_viewer(body: ViewerIn, session: SessionDep) -> dict[str, Any]:
+    """Quick-add someone who viewed your profile: a person in the LinkedIn track with the reason
+    "viewed my profile on <date>", linked to your best open job at their company, or kept as a
+    lead until a job at that company exists. The reason is for you; drafts never mention it."""
+    from app.services import linkedin_track as lt
+
+    try:
+        result = lt.add_viewer(session, full_name=body.full_name, title=body.title,
+                               company=body.company, linkedin_url=body.linkedin_url,
+                               viewed_on=body.viewed_on)
+    except (lt.LinkedInError, ValueError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return jsonable(result)
+
+
+@router.get("/linkedin/leads")
+def linkedin_leads(session: SessionDep) -> list[dict[str, Any]]:
+    """Viewer leads still waiting for a job at their company (those whose company now has one are
+    linked first)."""
+    from app.services import linkedin_track as lt
+
+    out = lt.leads(session)
+    session.commit()
+    return jsonable(out)
+
+
+@router.post("/linkedin/leads/{lead_id}/link")
+def link_lead(lead_id: int, body: LinkIn, session: SessionDep) -> dict[str, Any]:
+    from app.api.deps import get_or_404
+    from app.models import LinkedInLead
+    from app.services import linkedin_track as lt
+
+    lead = get_or_404(session, LinkedInLead, lead_id, "Lead")
+    try:
+        row = lt.link_lead(session, lead, body.application_id)
+    except lt.LinkedInError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return {"row_id": row.id, "application_id": body.application_id}
+
+
+@router.delete("/linkedin/leads/{lead_id}", status_code=204)
+def remove_lead(lead_id: int, session: SessionDep) -> None:
+    from app.api.deps import get_or_404
+    from app.models import LinkedInLead
+
+    session.delete(get_or_404(session, LinkedInLead, lead_id, "Lead"))
+    session.commit()
 
 
 @router.get("/linkedin/summary")

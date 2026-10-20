@@ -382,12 +382,18 @@ years wording), `duration_ms`, `error`.
 - `linkedin_outreach.hiring_team` (migration 0018): they posted this job (captured poster). `group` is then the
   note's angle (recruiter | lead | alumni | other), detected from the title and overridable; 0018 moved old
   `hiring_team` groups to the flag.
+- `linkedin_outreach` (migration 0029, LinkedIn Premium): `inmail` (JSON: subject, text, citations, violations,
+  verification, model, edited, max_chars), `inmail_sent_at`, `inmail_refunded_at` (a reply within 90 days),
+  `source` (manual | captured | viewed_profile), `reason` ("viewed my profile on 20 Oct": for the user only,
+  never given to a model) and `viewed_on`. Credits are computed (sent this month, refunds dated by the reply).
+- `linkedin_lead` (migration 0029): someone who viewed your profile whose company has no job yet (name, title,
+  company_name, profile URL, viewed_on, reason, `linked_outreach_id` once linked).
 - `linkedin_link_open`: (key, day) for the "opened today" mark on search links.
 - `cv_fit`: per approved CV version: base fit id/score, the tailored score and sub-scores, model, prompt version,
   status (pending | ok | failed), the lexical report.
 - `job.linkedin_job_id` (indexed), `job.capture` (how each field of an import was found, plus warnings);
   `source = linkedin` (never a discovery source).
-- Settings `linkedin`: `note_max_chars` 200, `daily_requests` 10, `followup_days` 5, `gap_days` 3,
+- Settings `linkedin` (also `inmail_monthly_credits` 5, `inmail_max_chars` 1000, `premium_end_date`, `premium_remind_days` 14): `note_max_chars` 200, `daily_requests` 10, `followup_days` 5, `gap_days` 3,
   `geo_ids` {ISO code: {id, verified}}.
 
 ### interview

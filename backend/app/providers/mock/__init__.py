@@ -333,6 +333,22 @@ class MockLinkedInDrafter:
         person, job = request.person, request.job
         first = person.get("first_name") or "there"
         limit = int(request.rules.get("max_chars") or 200)
+        if request.kind == "inmail":
+            group = person.get("group")
+            asks = {"recruiter": "Could I send you my CV?",
+                    "alumni": "Could you share some advice, or point me to the right person?"}
+            ask = asks.get(group, "Could we have a short chat about what the team needs?")
+            opener = (f"Hello {first},\n\n" if person.get("warm_opener") else f"Hi {first},\n\n")
+            if person.get("alumni") and request.candidate.get("school"):
+                opener += f"Fellow {request.candidate['school']} graduate here. "
+            body = (f"{opener}I work on data systems and the {job.get('title')} opening at "
+                    f"{job.get('company')} caught my attention. The role sits close to what I do "
+                    "every day: building reliable data products, taking an idea from a first "
+                    "prototype to something a team can depend on, and keeping it clear enough "
+                    "for the next person to pick up.\n\nI would value hearing how the team "
+                    f"approaches this work and what it needs most right now. {ask}")
+            return LinkedInMessage(subject=f"Interested in the {job.get('title')} role",
+                                   text=body[:limit])
         if request.kind == "followup":
             role = next((r for r in request.pool.get("roles", []) if r.get("facts")), None)
             proof = (f" At {role['org']} I {next(iter(role['facts'].values()))[0].lower()}"

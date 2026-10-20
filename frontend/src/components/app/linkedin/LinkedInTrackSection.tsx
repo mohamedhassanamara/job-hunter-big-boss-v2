@@ -1,4 +1,4 @@
-import { ClipboardPaste, Copy, ExternalLink, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
+import { ClipboardPaste, Copy, ExternalLink, Mail, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -16,7 +16,7 @@ import { relativeTime } from '@/lib/format'
 import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
-import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
+import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useInMailSent, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
 import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import { verified } from '@/lib/verify'
 import type { JobDetail, LinkedInGroup, LinkedInPanel, LinkedInPerson } from '@/lib/types'
@@ -171,6 +171,152 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   )
 }
 
+/** A LinkedIn Premium InMail: subject + a longer body for someone you are not connected with.
+ * Same checks and claim verification as the note; you send it yourself, and it uses a credit. */
+function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId: number; panel: LinkedInPanel }) {
+  const draft = person.inmail
+  const run = useDraftLinkedIn(appId)
+  const edit = useEditLinkedIn(appId)
+  const verify = useVerifyLinkedIn(appId)
+  const sent = useInMailSent(appId)
+  const max = draft?.max_chars ?? panel.inmail_max_chars
+  const [text, setText] = useState(draft?.text ?? '')
+  const [subject, setSubject] = useState(draft?.subject ?? '')
+  const pendingEdit = edit.isPending || (draft?.text ?? '') !== text || (draft?.subject ?? '') !== subject
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const save = (next: { inmail_text?: string; inmail_subject?: string }) => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => edit.mutate({ id: person.id, ...next }), 700)
+  }
+  const errors = (draft?.violations ?? []).filter((v) => v.severity === 'error')
+  const warnings = (draft?.violations ?? []).filter((v) => v.severity !== 'error')
+  const vstate = person.inmail_verification_state
+  const ok = !!draft && verified(vstate) && !pendingEdit
+  const credits = panel.credits
+  const copy = (value: string, what: string) => navigator.clipboard.writeText(value).then(() => toast.success(`${what} copied: paste it on LinkedIn`))
+  const already = !!person.inmail_sent_at
+  return (
+    <div className="space-y-1.5 rounded-md border border-border bg-bg-subtle p-3" data-tour="linkedin-inmail">
+      <div className="flex items-center gap-2">
+        <Mail className="size-3.5 text-fg-subtle" />
+        <span className="text-xs font-medium text-fg-subtle">InMail (Premium)</span>
+        {draft && (
+          <span className="text-2xs text-fg-subtle">
+            {draft.edited ? 'edited · ' : ''}
+            {draft.via === 'claude -p' ? `${draft.model} via claude -p${draft.auth === 'none' ? ' · subscription' : ''}` : draft.model} · {relativeTime(draft.created_at)}
+          </span>
+        )}
+        <span className="ml-auto text-2xs text-fg-subtle tabular-nums">
+          {credits.left} of {credits.allowance} credits left
+        </span>
+      </div>
+      {draft ? (
+        <>
+          <div className="flex items-center gap-2">
+            <Input value={subject} disabled={already} onChange={(e) => (setSubject(e.target.value), save({ inmail_subject: e.target.value, inmail_text: text }))} placeholder="Subject" aria-label="InMail subject" className="h-8 text-sm" />
+            <span className={cn('shrink-0 text-2xs tabular-nums', subject.length > 80 ? 'text-danger-fg' : 'text-fg-subtle')}>{subject.length} / 80</span>
+          </div>
+          <Textarea value={text} disabled={already} onChange={(e) => (setText(e.target.value), save({ inmail_text: e.target.value, inmail_subject: subject }))} className="min-h-40 text-sm" aria-label="InMail body" />
+          <div className="flex justify-end text-2xs tabular-nums">
+            <span className={text.length > max ? 'text-danger-fg' : 'text-fg-subtle'}>
+              {text.length} / {max}
+            </span>
+          </div>
+        </>
+      ) : (
+        <p className="text-xs text-fg-muted">
+          Claude drafts a subject and a body of up to {max} characters for this person: why them, one or two proofs from your experience, one ask. It is checked like the note.
+          {person.source === 'viewed_profile' && ' It opens warmly and never mentions that they looked at your profile.'}
+        </p>
+      )}
+      {[...errors, ...warnings].length > 0 && (
+        <ul className="space-y-0.5">
+          {errors.map((v, i) => (
+            <li key={`e${i}`} className="flex items-start gap-1.5 text-xs text-danger-fg">
+              <TriangleAlert className="mt-0.5 size-3 shrink-0" />
+              {v.message}
+            </li>
+          ))}
+          {warnings.map((v, i) => (
+            <li key={`w${i}`} className="flex items-start gap-1.5 text-xs text-warning-fg">
+              <TriangleAlert className="mt-0.5 size-3 shrink-0" />
+              {v.message}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {!already && (
+          <Button
+            size="sm"
+            variant={draft ? 'ghost' : 'secondary'}
+            disabled={run.isPending}
+            onClick={() => run.mutate({ id: person.id, kind: 'inmail' }, { onSuccess: () => toast.success('InMail drafted'), onError: (e) => toast.error(e.message) })}
+          >
+            <Sparkles />
+            {run.isPending ? 'Drafting…' : draft ? 'Redraft' : 'Draft InMail with Claude'}
+          </Button>
+        )}
+        {draft && (
+          <>
+            <Tooltip content={ok ? null : 'Copy unlocks once Claude has checked every claim of this exact subject and body'}>
+              <span className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" disabled={!ok} onClick={() => copy(subject, 'Subject')}>
+                  <Copy />
+                  Copy subject
+                </Button>
+                <Button size="sm" variant="ghost" disabled={!ok} onClick={() => copy(text, 'Body')}>
+                  <Copy />
+                  Copy body
+                </Button>
+              </span>
+            </Tooltip>
+            {!already ? (
+              <Tooltip content={credits.left <= 0 ? `No InMail credits left this month (${credits.used} used of ${credits.allowance}); LinkedIn won't let you send one` : `After you send it on LinkedIn. Uses 1 credit (${credits.left} left); a reply within 90 days gives it back.`}>
+                <span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!ok || sent.isPending}
+                    onClick={() =>
+                      sent.mutate(
+                        { id: person.id, sent: true },
+                        { onSuccess: () => toast.success(`InMail to ${person.full_name} marked sent: 1 credit used`, { duration: 8000, action: { label: 'Undo', onClick: () => sent.mutate({ id: person.id, sent: false }) } }), onError: (e) => toast.error(e.message) },
+                      )
+                    }
+                  >
+                    I sent the InMail
+                  </Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <span className="flex items-center gap-2 text-xs text-fg-muted">
+                <ToneBadge tone={person.inmail_refunded_at ? 'green' : 'amber'}>{person.inmail_refunded_at ? 'Credit refunded' : '1 credit used'}</ToneBadge>
+                Sent {relativeTime(person.inmail_sent_at)}
+                <Button size="xs" variant="ghost" onClick={() => sent.mutate({ id: person.id, sent: false }, { onSuccess: () => toast.success('InMail unmarked: the credit is back'), onError: (e) => toast.error(e.message) })}>
+                  <Undo2 />
+                  Undo
+                </Button>
+              </span>
+            )}
+          </>
+        )}
+        {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
+      </div>
+      {draft && !already && (
+        <ClaimCheck
+          compact
+          verification={draft.verification}
+          state={pendingEdit ? 'stale' : vstate}
+          verifying={verify.isPending}
+          gate="Copy"
+          onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind: 'inmail' }, { onError: (e) => toast.error(e.message) })}
+        />
+      )}
+    </div>
+  )
+}
+
 function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedInPanel }) {
   const appId = panel.application_id
   const status = useLinkedInStatus(appId)
@@ -211,6 +357,15 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           </span>
         </Tooltip>
         {person.alumni && person.group !== 'alumni' && <ToneBadge tone="teal">Alumni</ToneBadge>}
+        {person.reason && (
+          <Tooltip content="Only you see this. Drafts open warmly and never mention that they looked at your profile.">
+            <span>
+              <ToneBadge tone="violet" dot={false}>
+                {person.reason.charAt(0).toUpperCase() + person.reason.slice(1)}
+              </ToneBadge>
+            </span>
+          </Tooltip>
+        )}
         <ToneBadge tone={st.tone}>{st.label}</ToneBadge>
         <span className="ml-auto flex items-center gap-1">
           {person.linkedin_url && (
@@ -252,8 +407,11 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
       {(person.status === 'to_contact' || person.status === 'sent') && (
         <MessageEditor key={`note-${person.note?.created_at}`} person={person} kind="note" appId={appId} max={panel.max_chars} />
       )}
-      {(person.status === 'accepted' || person.status === 'messaged' || person.status === 'replied') && (
+      {(person.status === 'accepted' || person.status === 'messaged' || person.status === 'replied') && (!person.inmail_sent_at || person.followup) && (
         <MessageEditor key={`followup-${person.followup?.created_at}`} person={person} kind="followup" appId={appId} max={panel.max_chars} />
+      )}
+      {(person.status === 'to_contact' || person.status === 'sent' || person.inmail || person.inmail_sent_at) && (
+        <InMailEditor key={`inmail-${person.inmail?.created_at}-${person.inmail_sent_at}`} person={person} appId={appId} panel={panel} />
       )}
       <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2.5">
         {person.status === 'to_contact' && (
@@ -284,6 +442,8 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           <span className="ml-auto text-2xs text-fg-subtle">
             {person.replied_at
               ? `Replied ${relativeTime(person.replied_at)}`
+              : person.inmail_sent_at
+                ? `InMail sent ${relativeTime(person.inmail_sent_at)}`
               : person.messaged_at
                 ? `Messaged ${relativeTime(person.messaged_at)}`
                 : person.accepted_at
@@ -293,7 +453,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
                     : ''}
           </span>
         )}
-        {person.status !== 'to_contact' && (
+        {person.status !== 'to_contact' && !person.inmail_sent_at && (
           <Tooltip content="Go back one step">
             <Button
               size="icon-sm"
@@ -330,6 +490,13 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
             <span className={cn('tabular-nums', data.requests_today >= data.daily_limit && 'text-warning-fg')}>
               {data.requests_today} / {data.daily_limit} requests today
             </span>
+          )}
+          {data && data.credits.allowance > 0 && (
+            <Tooltip content={`${data.credits.used} sent and ${data.credits.refunded} refunded in ${data.credits.month}; renews ${data.credits.renews_on}`}>
+              <span className={cn('tabular-nums', data.credits.left <= 1 && 'text-warning-fg')} data-tour="linkedin-credits">
+                {data.credits.left} / {data.credits.allowance} InMail credits
+              </span>
+            </Tooltip>
           )}
           <TourButton tour="linkedin-messages" label="How it works" />
         </span>

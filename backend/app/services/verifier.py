@@ -313,7 +313,7 @@ def send_gate(draft: OutreachDraft, subject: str, body: str,
 
 def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
                     verifier: Any) -> dict[str, Any]:
-    message = dict((row.note if kind == "note" else row.followup) or {})
+    message = dict({"note": row.note, "followup": row.followup, "inmail": row.inmail}[kind] or {})
     if not message.get("text"):
         raise VerifyError("Draft the message first")
     app = s.get(Application, row.application_id)
@@ -324,13 +324,14 @@ def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
         | signal_sources(s, job.company_id, ids or None) \
         | {"listing": f"{job.title}\n{job.description or ''}"} \
         | recipient_source(s, job, row.contact_id)
-    record = run(verifier, f"LinkedIn {'connection note' if kind == 'note' else 'follow-up'}",
-                 message["text"], sources)
+    from app.services.linkedin_check import inmail_text
+
+    label = {"note": "LinkedIn connection note", "followup": "LinkedIn follow-up",
+             "inmail": "LinkedIn InMail (subject line, then body)"}[kind]
+    record = run(verifier, label, inmail_text(message) if kind == "inmail" else message["text"],
+                 sources)
     message["verification"] = record
-    if kind == "note":
-        row.note = message
-    else:
-        row.followup = message
+    setattr(row, kind, message)
     s.add(row)
     return record
 

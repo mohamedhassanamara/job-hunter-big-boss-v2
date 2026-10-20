@@ -14,6 +14,7 @@ import { relativeTime } from '@/lib/format'
 import { useJobs } from '@/lib/queries/jobs'
 import { useLinkedInLinks, useLinkedInSummary, useOpenLink } from '@/lib/queries/linkedin'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
+import { ViewersCard } from '@/components/app/linkedin/ViewersCard'
 import { cn } from '@/lib/utils'
 
 /** Today's LinkedIn searches: one per role × country, past 24 hours, newest first. Clicking
@@ -174,6 +175,7 @@ export default function LinkedInPage() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl space-y-4 px-6 py-5">
           <ToDo />
+          <ViewersCard />
           <SearchLinks />
           <ImportedJobs />
           <Section title="The bookmark">
