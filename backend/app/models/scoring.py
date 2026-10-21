@@ -35,6 +35,7 @@ class ScoringTask(TableBase, table=True):
     run_id: int = Field(foreign_key="scoring_run.id", index=True)
     job_id: int = Field(foreign_key="job.id", index=True)
     force: bool = False  # explicit rescore: ignore the cache
+    open_only: bool = True  # re-checked at pick time (False: per-job Rescore)
     position: float = Field(default=0, index=True)  # smaller = sooner; front = min - 1
     status: ScoringTaskStatus = enum_field(ScoringTaskStatus.queued, index=True)
     attempts: int = 0  # counted for real failures only (never for concurrency 429s)

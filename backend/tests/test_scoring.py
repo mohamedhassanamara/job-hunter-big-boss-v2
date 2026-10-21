@@ -83,7 +83,7 @@ def test_queue_runs_in_background_and_can_cancel(seeded: None) -> None:
     queue = scoring.ScoringQueue(engine, lambda model: scorer)
     with Session(engine) as s:
         ids = list(s.exec(select(Job.id)).all())[:6]
-    assert queue.enqueue(ids, force=True) == 6
+    assert queue.enqueue(ids, force=True, only_open=False) == 6
     assert queue.enqueue(ids[:2]) == 0  # already queued: deduplicated
     status = queue.status()
     assert status["running"] and status["total"] == 6
@@ -235,3 +235,57 @@ def test_editing_the_exclusion_list_recomputes_stored_scores_without_a_rescore(
     assert scorer.calls == 1  # recomputed, never rescored
     client.put("/api/settings/scoring", json={"value": {**cfg, "never_cap_on": ["Mainframe"]}})
     assert client.get(f"/api/jobs/{job_id}").json()["fit_detail"]["score"] == 80
+
+
+def _close(job_id: int) -> None:
+    from app.models import Application
+    from app.models.enums import Stage
+    with Session(engine) as s:
+        app_row = s.exec(select(Application).where(Application.job_id == job_id)).one()
+        app_row.stage = Stage.closed
+        s.add(app_row)
+        s.commit()
+
+
+def test_open_jobs_helper_excludes_closed_and_duplicates(seeded: None) -> None:
+    from app.services import open_jobs
+    with Session(engine) as s:
+        ids = list(s.exec(select(Job.id)).all())
+        before = open_jobs.open_ids(s, ids)
+        closed, dup = next(iter(before)), None
+        dup = next(i for i in before if i != closed)
+    _close(closed)
+    with Session(engine) as s:
+        job = s.get(Job, dup)
+        job.duplicate_of_id = closed
+        s.add(job)
+        s.commit()
+        after = open_jobs.open_ids(s, ids)
+        assert closed not in after and dup not in after
+        assert after == before - {closed, dup}
+        split = open_jobs.split_open(s, [closed, dup])
+        assert split.open == [] and split.skipped == 2
+
+
+def test_queue_skips_a_job_closed_while_it_waited(seeded: None) -> None:
+    from app.models import ScoringTask
+    from app.models.enums import ScoringTaskStatus
+    from app.services import open_jobs
+    scorer = CountingScorer()
+    queue = scoring.ScoringQueue(engine, lambda model: scorer)
+    with Session(engine) as s:
+        ids = [i for i in s.exec(select(Job.id)).all() if open_jobs.is_open(s, i)][:2]
+        run = queue._new_run(s, "manual")
+        for n, job_id in enumerate(ids):
+            s.add(ScoringTask(run_id=run.id, job_id=job_id, position=n))
+        s.commit()
+    _close(ids[0])
+    task = queue._claim()
+    assert task is not None and task.job_id == ids[1]
+    with Session(engine) as s:
+        first = s.exec(select(ScoringTask).where(ScoringTask.job_id == ids[0])).one()
+        assert first.status == ScoringTaskStatus.cancelled
+    # The per-job Rescore still works on a closed job.
+    assert queue.enqueue([ids[0]], force=True, only_open=False) == 1
+    assert queue.enqueue([ids[0]], force=True) == 0
+    assert queue.wait()

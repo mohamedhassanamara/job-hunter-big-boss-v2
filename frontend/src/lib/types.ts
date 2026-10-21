@@ -1247,7 +1247,10 @@ export interface ScoringRunInfo {
 
 export interface RescorePreview {
   scope: string
+  /** Open jobs only. */
   count: number
+  /** Not open (closed, duplicate, filtered, expired): left alone. */
+  skipped: number
   model: string
   eta_seconds: number | null
   /** Gemini only: days of quota this takes (today's remaining quota counts) and per-day capacity. */

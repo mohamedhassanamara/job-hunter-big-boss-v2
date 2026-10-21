@@ -536,10 +536,15 @@ class ScoringQueue:
 
     def enqueue(
         self, job_ids: Iterable[int], *, force: bool = False, front: bool = False,
-        trigger: str = "manual",
+        trigger: str = "manual", only_open: bool = True,
     ) -> int:
+        """`only_open=False` is for the per-job Rescore (any job, closed ones included)."""
         ids = list(dict.fromkeys(job_ids))
         with self._lock, Session(self.engine) as s:
+            if only_open:
+                from app.services.open_jobs import open_ids
+                keep = open_ids(s, ids)
+                ids = [i for i in ids if i in keep]
             busy = set(s.exec(select(ScoringTask.job_id).where(
                 col(ScoringTask.status).in_(_ACTIVE))).all())
             new = [i for i in ids if i not in busy]
@@ -553,7 +558,7 @@ class ScoringQueue:
                     base = (max(positions) if positions else 0) + 1
                 for n, job_id in enumerate(new):
                     s.add(ScoringTask(run_id=run.id, job_id=job_id, force=force,
-                                      position=base + n))
+                                      open_only=only_open, position=base + n))
                 s.commit()
         if new:
             self.start()
@@ -568,8 +573,24 @@ class ScoringQueue:
                          .order_by(col(Job.id))).all()
         return self.enqueue(ids, trigger=trigger)
 
+    def drop_not_open(self) -> int:
+        """Cancel queued tasks (not in-progress ones) whose job is no longer open."""
+        from app.services.open_jobs import open_ids
+        with self._lock, Session(self.engine) as s:
+            tasks = s.exec(select(ScoringTask).where(
+                ScoringTask.status == ScoringTaskStatus.queued,
+                col(ScoringTask.open_only).is_(True))).all()
+            keep = open_ids(s, [t.job_id for t in tasks])
+            dropped = [t for t in tasks if t.job_id not in keep]
+            for t in dropped:
+                t.status, t.finished_at = ScoringTaskStatus.cancelled, utcnow()
+                s.add(t)
+            s.commit()
+        return len(dropped)
+
     def resume(self) -> int:
         """At startup: tasks interrupted by a restart go back to the queue, then it runs on."""
+        self.drop_not_open()
         with self._lock, Session(self.engine) as s:
             for task in s.exec(select(ScoringTask).where(
                     ScoringTask.status == ScoringTaskStatus.in_progress)).all():
@@ -765,11 +786,19 @@ class ScoringQueue:
         with self._lock, Session(self.engine) as s:
             if self._stop:
                 return None
-            task = s.exec(select(ScoringTask).where(
-                ScoringTask.status == ScoringTaskStatus.queued
-            ).order_by(col(ScoringTask.position), col(ScoringTask.id))).first()
-            if task is None:
-                return None
+            from app.services.open_jobs import is_open
+            while True:
+                task = s.exec(select(ScoringTask).where(
+                    ScoringTask.status == ScoringTaskStatus.queued
+                ).order_by(col(ScoringTask.position), col(ScoringTask.id))).first()
+                if task is None:
+                    return None
+                if task.open_only and not is_open(s, task.job_id):
+                    task.status, task.finished_at = ScoringTaskStatus.cancelled, utcnow()
+                    s.add(task)  # closed while it waited: skipped, the score stays as it is
+                    s.commit()
+                    continue
+                break
             task.status = ScoringTaskStatus.in_progress
             s.add(task)
             s.commit()

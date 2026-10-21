@@ -50,6 +50,7 @@ export function RescoreConfirmDialog({
                   ? `in about ${p.days} ${p.days === 1 ? 'day' : 'days'} of free quota (${p.daily_capacity}/day, best jobs first, it carries on by itself)`
                   : formatDuration(p.eta_seconds)}
                 . Their current scores are replaced when the new ones arrive; labels and stages don't change.
+                {p.skipped > 0 && ` ${pluralize(p.skipped, 'job')} skipped as not open (closed, duplicate, filtered or expired).`}
               </p>
             )
           )}

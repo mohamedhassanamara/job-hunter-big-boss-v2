@@ -24,7 +24,7 @@ from app.schemas.scoring import (
     ScoringHealth,
     ScoringStatus,
 )
-from app.services import scoring
+from app.services import open_jobs, scoring
 from app.services.gemini_keys import configured_keys, pool_for
 from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
 from app.services.text import html_to_text
@@ -110,7 +110,17 @@ def _outdated_ids(session) -> list[int]:  # noqa: ANN001
                   if i in latest else (False, 0, i))
 
 
-def _scope_ids(session, scope: str, job_ids: list[int]) -> list[int]:  # noqa: ANN001
+def _scope_ids(session, scope: str, job_ids: list[int]) -> tuple[list[int], int]:  # noqa: ANN001
+    """The jobs a scope would score (open ones only, except an explicit selection) and how many
+    were skipped as not open."""
+    ids = _raw_scope_ids(session, scope, job_ids)
+    if scope == "jobs":
+        return ids, 0
+    split = open_jobs.split_open(session, ids)
+    return split.open, split.skipped
+
+
+def _raw_scope_ids(session, scope: str, job_ids: list[int]) -> list[int]:  # noqa: ANN001
     if scope == "outdated":
         return _outdated_ids(session)
     counts = scoring.counts(session)
@@ -128,7 +138,7 @@ def rescore_preview(scope: str, session: SessionDep, workspace: WorkspaceDep) ->
     """What a bulk rescore would do: how many jobs, which model, roughly how long."""
     if scope not in ("stale", "failed", "unscored", "all", "outdated"):
         raise HTTPException(422, f"Unknown scope {scope}")
-    ids = _scope_ids(session, scope, [])
+    ids, skipped = _scope_ids(session, scope, [])
     ctx = scoring.load_context(session)
     eta = scoring.estimate_seconds(session, ctx, len(ids))
     days = capacity = None
@@ -138,8 +148,8 @@ def rescore_preview(scope: str, session: SessionDep, workspace: WorkspaceDep) ->
         capacity = len(usable) * snap["limits"]["rpd"]
         left = max(0, len(ids) - snap["remaining_today"])
         days = 1 if left == 0 else (1 + math.ceil(left / capacity) if capacity else None)
-    return RescorePreview(scope=scope, count=len(ids), model=ctx.model, eta_seconds=eta,
-                          days=days, daily_capacity=capacity)
+    return RescorePreview(scope=scope, count=len(ids), skipped=skipped,
+                          model=ctx.model, eta_seconds=eta, days=days, daily_capacity=capacity)
 
 
 @router.post("/scoring/rescore", response_model=Enqueued)
@@ -148,9 +158,10 @@ def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> En
         raise HTTPException(
             409, "Rescoring existing scores needs confirmation (see /scoring/rescore-preview)"
         )
-    ids = _scope_ids(session, body.scope, body.job_ids)
+    ids, _ = _scope_ids(session, body.scope, body.job_ids)
     queue = scoring.workspace_queue(workspace)
-    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale"), trigger="rescore")
+    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale"),
+                         trigger="rescore", only_open=body.scope != "jobs")
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)
@@ -225,7 +236,7 @@ def cancel(workspace: WorkspaceDep) -> Enqueued:
 def rescore_job(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> Enqueued:
     get_or_404(session, Job, job_id, "Job")
     queue = scoring.workspace_queue(workspace)
-    added = queue.enqueue([job_id], force=True, front=True)
+    added = queue.enqueue([job_id], force=True, front=True, only_open=False)
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)

@@ -128,6 +128,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   (`ConcurrencyLimited`, `QuotaExceeded`, `TransientError`, `ScoringFailed`; `ollama.classify_error`): 429 concurrency →
   same job to the front + backoff + adaptive limit (`ConcurrencyController`), quota → fallback model for the rest of the
   run, others → 3 attempts + one end-of-run retry.
+- Bulk scoring only touches **open** jobs (`services/open_jobs.py`: not closed/dismissed, not a duplicate, not hidden by the location/remote filters, not past max age from a paused source). `enqueue(only_open=True)` filters, `_claim` re-checks per task, the per-job Rescore passes `only_open=False`; `recompute_all` covers every job.
 - Discovery is additive and only calls `enqueue_never_scored()`. Bulk rescore of existing scores requires `confirm: true`.
 - Roles live only in `search_profile.tracks`; `services/roles.py` is the language lexicon (variants, matching).
   `tests/test_roles.py` fails if role titles get hardcoded in services/providers/prompts.
