@@ -17,13 +17,15 @@ from tests.test_outreach import job_ready  # noqa: F401 (fixture)
 
 def test_approving_and_rejecting_record_cases(job_ready: dict, client) -> None:  # noqa: F811, ANN001
     d = outreach.generate(engine, job_ready["app"], MockEmailDrafter(),
-                          researcher=research.MockResearcher(), fetcher=Site())
+                          researcher=research.MockResearcher(), fetcher=Site(),
+                          mode="speculative")
     client.post(f"/api/outreach/drafts/{d.id}/reject")
     with Session(engine) as s:
         row = s.exec(select(EmailExample).where(EmailExample.draft_id == d.id)).one()
         assert row.kind == "rejected" and row.inputs["request"]["rules"]["signals"]
     d2 = outreach.generate(engine, job_ready["app"], MockEmailDrafter(),
-                           researcher=research.MockResearcher(), fetcher=Site())
+                           researcher=research.MockResearcher(), fetcher=Site(),
+                           mode="speculative")
     assert client.post(f"/api/outreach/drafts/{d2.id}/approve").status_code == 200
     with Session(engine) as s:
         assert s.exec(select(EmailExample).where(EmailExample.draft_id == d2.id)).one().kind \
@@ -40,7 +42,8 @@ def test_examples_import_once(seeded: None, tmp_path: Path) -> None:
 
 def test_eval_writes_old_and_new_side_by_side(job_ready: dict, client, tmp_path: Path) -> None:  # noqa: F811, ANN001
     d = outreach.generate(engine, job_ready["app"], MockEmailDrafter(),
-                          researcher=research.MockResearcher(), fetcher=Site())
+                          researcher=research.MockResearcher(), fetcher=Site(),
+                          mode="speculative")
     client.post(f"/api/outreach/drafts/{d.id}/reject")
     with Session(engine) as s:
         case = s.exec(select(EmailExample).where(EmailExample.draft_id == d.id)).one().id

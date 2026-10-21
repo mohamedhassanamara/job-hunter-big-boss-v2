@@ -37,6 +37,7 @@ from app.providers.base import (
     OutgoingEmail,
     SendFailed,
 )
+from app.services import applied_check as ac
 from app.services import get_contact, pipeline
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
@@ -65,6 +66,9 @@ DEFAULT_OUTREACH: dict[str, Any] = {
     },
 }
 _one_at_a_time = threading.Lock()
+# "applied": the job-linked email, an honest application follow-up (prompt v11). "speculative":
+# the research-based introduction, for a company with no posting (the older structure).
+EMAIL_MODES = ("applied", "speculative")
 
 
 class OutreachError(ValueError):
@@ -117,6 +121,15 @@ def email_language(s: Session, job: Job) -> str:
 
         return detect_language(f"{job.title}\n{job.description or ''}")
     return lang
+
+
+def email_mode(job: Job, requested: str | None = None) -> str:
+    """Which email to write: an application follow-up when there is a posting, else the
+    speculative introduction. `requested` (the API's `mode`) wins when valid."""
+    if requested in EMAIL_MODES:
+        return str(requested)
+    return "applied" if (job.description or "").strip() or job.url or job.apply_url \
+        else "speculative"
 
 
 def application_mention(s: Session, app: Application) -> str | None:
@@ -265,11 +278,20 @@ def full_body(s: Session, draft: OutreachDraft) -> str:
 
 
 def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
-             fetcher: Any = None, progress: Any = None,
-             hook_checker: Any = None) -> OutreachDraft:
-    """Draft the email for one job (never in bulk: one generation at a time). Drafters that
-    write introductions (prompt v4+: Claude, the mock) research the company first; the older
-    reply-style path remains for the send-queue tests."""
+             fetcher: Any = None, progress: Any = None, hook_checker: Any = None,
+             mode: str | None = None) -> OutreachDraft:
+    """Draft the email for one job (never in bulk: one generation at a time). A job with a
+    posting gets the application follow-up (prompt v11 `applied`, no research started); a
+    speculative email (`mode`, or a company with no posting) researches the company first
+    (prompt v4+: Claude, the mock). The older reply-style path remains for the send-queue
+    tests."""
+    if hasattr(drafter, "draft_applied"):
+        with Session(engine) as s:
+            app = s.get(Application, app_id)
+            job = s.get(Job, app.job_id) if app else None
+            chosen = email_mode(job, mode) if job else "speculative"
+        if chosen == "applied":
+            return generate_applied(engine, app_id, drafter, progress=progress)
     if hasattr(drafter, "draft_intro"):
         return generate_intro(engine, app_id, drafter, researcher=researcher, fetcher=fetcher,
                               progress=progress, hook_checker=hook_checker)
@@ -466,6 +488,11 @@ def recheck(s: Session, draft: OutreachDraft) -> list[dict[str, str]]:
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if contact is None:
         return []
+    if (draft.plan or {}).get("format") == "applied":
+        ctx = applied_context(s, app, job, company, contact, load_pool(s),
+                              language=draft.plan.get("language") or "en",
+                              exclude_draft=draft.id)
+        return ac.check_text(draft.subject, draft.body, ctx)
     if (draft.plan or {}).get("format") == "intro":
         from app.services import hook_check
 
@@ -582,7 +609,8 @@ def intro_context(s: Session, app: Application, job: Job, company: Company, cont
         years_statement_fr=french, banned=base.banned + list(
             letter_settings(s)["banned_phrases"].get(language) or []),
         jargon=list(letter_settings(s).get("jargon") or []), places=_places(pool),
-        examples=reference_examples(s), others=base.others, honesty=honesty_rules(s))
+        examples=reference_examples(s), others=base.others, honesty=honesty_rules(s),
+        other_companies=base.other_companies)
 
 
 def intro_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
@@ -623,6 +651,165 @@ def intro_request(s: Session, app: Application, job: Job, company: Company, cont
                       "one direct question about an opening. Warm, plain, specific."}
     return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
                         pool=request.pool, rules=rules)
+
+
+# ------------------------------------------------- the application follow-up (prompt v11)
+
+
+_AUTH_TEXT = {"needs_sponsorship": "would need visa sponsorship to work in the job's country",
+              "eu_authorized": "authorized to work in the EU"}
+
+
+def logistics(pool: Pool) -> dict[str, str]:
+    """Where you are and what you'd need, in the words a constraint sentence may use (Settings →
+    Candidate; languages as the profile lists them: a language requirement may be answered with
+    these and never with a language that isn't listed). Willing to relocate unless the profile
+    says `willing_to_relocate: false`. The verifier reads the same lines as FACTS, so a
+    sentence stating them is supported."""
+    p = pool.profile
+    langs = ", ".join(f"{x.get('language')} ({x.get('level')})" for x in p.get("languages") or []
+                      if x.get("language"))
+    return {"based_in": (p.get("based_in") or "").strip(),
+            "languages": langs,
+            "work_authorization": _AUTH_TEXT.get(p.get("work_authorization") or "", ""),
+            "relocation": "willing to relocate for the job"
+            if p.get("willing_to_relocate", True) else ""}
+
+
+def application_facts(app: Application) -> dict[str, Any]:
+    """Whether the application is already sent (Mark applied), for the opening's tense."""
+    return {"applied": app.web_applied_at is not None,
+            "date": app.web_applied_at.date().isoformat() if app.web_applied_at else None}
+
+
+def applied_context(s: Session, app: Application, job: Job, company: Company, contact: Contact,
+                    pool: Pool, *, language: str, exclude_draft: int | None = None) -> ic.Context:
+    ctx = intro_context(s, app, job, company, contact, pool, language=language, intro="",
+                        exclude_draft=exclude_draft)
+    ctx.min_words, ctx.max_words = ac.MIN_WORDS, ac.MAX_WORDS
+    ctx.candidate_name = (pool.profile.get("full_name") or "").strip()
+    ctx.examples = []  # the approved examples set the shape; their wording is not policed here
+    return ctx
+
+
+def applied_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
+                    cv: CVVersion, pool: Pool, language: str) -> EmailRequest:
+    from app.services import honesty, research
+    from app.services.cover_letter import _statements
+    from app.services.cv_service import _tracks
+
+    request = build_request(s, app, job, company, contact, cv, pool)
+    first_name, source = email_first_name(s, company.id, contact)
+    request.contact["first_name"] = first_name
+    if source:
+        request.contact["name_source"] = source
+    _facts, english, french = _statements(s, pool)
+    hr = honesty.rules(s)
+    projects = {t.name for t in hr.projects}
+    tracks = [t.get("name") for t in _tracks(s) if t.get("name") and t.get("name") not in projects]
+    candidate = {"first_name": (pool.profile.get("full_name") or "").split(" ")[0],
+                 "full_name": pool.profile.get("full_name") or "",
+                 "years_statement": english, "years_statement_fr": french,
+                 "areas_you_can_use": tracks + honesty.professional_areas(
+                     [i.title for i in pool.of("skill")], hr),
+                 **honesty.prompt_facts(hr), "logistics": logistics(pool),
+                 "application": application_facts(app),
+                 "current_role": request.candidate.get("current_role")}
+    signals = [{"id": x.id, "kind": x.kind, "fact": x.fact, "quote": x.quote}
+               for x in research.signals(s, company.id, selected_only=True)]
+    rules = {"language": language, "min_words": ac.MIN_WORDS, "max_words": ac.MAX_WORDS,
+             "banned_phrases": request.rules.get("banned_phrases"),
+             "jargon": request.rules.get("jargon"), "signals": signals,
+             "style": "an honest, direct application follow-up: say you applied (or are "
+                      "applying) and wanted to reach out; 2-4 sentences of the experience that "
+                      "matches the listing; any requirement you don't meet said once, plainly; "
+                      "a simple ask. Plain and warm."}
+    return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
+                        pool=request.pool, rules=rules)
+
+
+def generate_applied(engine: Engine, app_id: int, drafter: Any, *,
+                     progress: Any = None) -> OutreachDraft:
+    """The job-linked email draft: one call (plus one retry with the problems as feedback). No
+    research is started: signals the company already has are optional extras."""
+    progress = progress or (lambda *_: None)
+    if not _one_at_a_time.acquire(blocking=False):
+        raise OutreachError("Another email is being drafted; one at a time")
+    try:
+        with Session(engine) as s:
+            app = s.get(Application, app_id)
+            if app is None:
+                raise OutreachError("Application not found")
+            try:  # the Get contact step: a verified contact first
+                get_contact.require_ready(s, app)
+            except get_contact.GetContactError as exc:
+                raise OutreachError(str(exc)) from exc
+            job, contact = s.get(Job, app.job_id), s.get(Contact, app.contact_id)
+            company = s.get(Company, job.company_id)
+            if not contact.email:
+                raise OutreachError(f"{contact.full_name} has no email address")
+            cv = approved_cv(s, app)
+            if cv is None:
+                raise OutreachError("Approve the CV first: the email is written from it and "
+                                    "attaches it")
+            language = email_language(s, job)
+            pool = load_pool(s)
+            progress("drafting", 0, 1)
+            request = applied_request(s, app, job, company, contact, cv, pool, language)
+            ctx = applied_context(s, app, job, company, contact, pool, language=language)
+
+            def checked(plan: Any) -> list[dict[str, str]]:
+                plan.greeting = ic.greeting_line(request.contact["first_name"], language)
+                return ac.check_plan(plan, ctx)
+
+            started = time.monotonic()
+            try:
+                plan = drafter.draft_applied(request)
+                found = checked(plan)
+                attempts = 1
+                if oc.errors(found):  # one retry with the problems as feedback
+                    retry = drafter.draft_applied(request, oc.feedback(found))
+                    retry_found = checked(retry)
+                    attempts = 2
+                    if len(oc.errors(retry_found)) <= len(oc.errors(found)):
+                        plan, found = retry, retry_found
+            except DraftFailed as exc:
+                raise OutreachError(str(exc)) from exc
+            for old in s.exec(select(OutreachDraft).where(
+                    OutreachDraft.application_id == app_id,
+                    OutreachDraft.status == DraftStatus.draft)).all():
+                old.status = DraftStatus.rejected  # regenerate replaces the draft under review
+                s.add(old)
+            draft = OutreachDraft(
+                application_id=app_id, contact_id=app.contact_id,
+                subject=ac.subject_line(plan.role, ctx.candidate_name, language),
+                body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
+                plan={"format": "applied", "mode": "applied", "plan": plan.model_dump(),
+                      "attempts": attempts, "language": language,
+                      "signal_ids": plan.signal.signal_ids,
+                      "signals": request.rules.get("signals") or [],
+                      "application": application_facts(app),
+                      "name_source": request.contact.get("name_source"),
+                      "request": request.model_dump(),
+                      "via": getattr(drafter, "via", "mock"),
+                      "auth": getattr(drafter, "auth_source", None)},
+                violations=found, prompt_version=drafter.prompt_version,
+                duration_ms=int((time.monotonic() - started) * 1000))
+            if app.route == Route.undecided:
+                app.route = Route.cold_email
+                s.add(app)
+            s.add(draft)
+            problems = len(oc.errors(found))
+            pipeline.log_event(s, app, EventKind.draft_created,
+                               f"Email draft created for {contact.full_name}"
+                               + (f" ({problems} problem{'s' if problems > 1 else ''} to "
+                                  "review)" if problems else ""))
+            s.commit()
+            s.refresh(draft)
+            progress("done", 1, 1)
+            return draft
+    finally:
+        _one_at_a_time.release()
 
 
 # ----------------------------------------------------------------------------------- sending

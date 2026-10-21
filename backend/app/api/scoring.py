@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.db import engine_for
 from app.models import Company, FitScore, Job
 from app.models.base import utcnow
-from app.models.enums import DescriptionLevel
+from app.models.enums import DescriptionLevel, Source
 from app.providers.ollama import OllamaFitScorer
 from app.schemas.jobs import JobListItem
 from app.schemas.scoring import (
@@ -241,6 +241,10 @@ def fetch_full(job_id: int, session: SessionDep, workspace: WorkspaceDep) -> Ful
     if workspace == "demo":
         return FullListingOut(ok=False, can_paste=True,
                               message="Sample data: paste a description to try it.")
+    if job.source == Source.linkedin or "linkedin.com/" in (job.url or "").lower():
+        return FullListingOut(ok=False, can_paste=True,
+                              message="LinkedIn listings are never fetched by the app: open the "
+                                      "listing and paste the description.")
     try:
         listing = fetch_full_listing(job.url)
     except ListingUnavailable as exc:

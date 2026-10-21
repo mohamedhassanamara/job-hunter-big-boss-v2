@@ -132,6 +132,18 @@ def candidate_sources(s: Session, pool: Pool, cv: CVVersion | None) -> dict[str,
     lines += [f"Track {t['track']}: experience is {t['experience']}"
               + (f" ({t['how']})" if t.get("how") else "")
               for t in facts["experience_by_track"]]
+    from app.services.outreach import logistics
+
+    where = logistics(pool)
+    if where["based_in"]:
+        lines.append(f"Based in: {where['based_in']}")
+    if where["work_authorization"]:
+        lines.append(f"Work authorization: the candidate {where['work_authorization']}")
+    if where["languages"]:
+        lines.append(f"Languages the candidate works in: {where['languages']} (no other language "
+                     "is claimed)")
+    if where["relocation"]:
+        lines.append(f"Relocation: the candidate is {where['relocation']}")
     if words := glossary.verifier_lines(pool.profile):
         lines.append(words)
     out = {"facts": "\n".join(lines)}
@@ -164,6 +176,15 @@ def recipient_source(s: Session, job: Job, contact_id: int | None = None) -> dic
         lines.append(f"Contact: {contact.full_name}" + (f", {contact.title}" if contact.title
                                                         else ""))
     return {"recipient": "\n".join(lines)}
+
+
+def application_line(app: Application) -> str:
+    """Whether the candidate has applied, as of now (Mark applied may have come after a draft)."""
+    from app.services.outreach import application_facts
+
+    facts = application_facts(app)
+    return "\nApplication: " + (f"the candidate applied for this job on {facts['date']}"
+                                if facts["applied"] else "the candidate is applying for this job")
 
 
 def _approved_cv(s: Session, app_id: int) -> CVVersion | None:
@@ -279,8 +300,12 @@ def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, A
         col(CompanySignal.selected).is_(True))).all()})
     sources = candidate_sources(s, load_pool(s), cv) | signal_sources(s, job.company_id, ids) \
         | recipient_source(s, job, draft.contact_id)
-    record = run(verifier, "cold email (with its subject)", email_text(s, draft), sources,
-                 email_attachment(s, draft))
+    kind = "cold email (with its subject)"
+    if plan.get("format") == "applied":  # the follow-up names the job: the listing is a source
+        sources["listing"] = f"{job.title}\n{job.description or ''}"
+        sources["facts"] += application_line(app)
+        kind = "email about a job application, to the person at the company (with its subject)"
+    record = run(verifier, kind, email_text(s, draft), sources, email_attachment(s, draft))
     draft.verification = record
     s.add(draft)
     return record
@@ -324,6 +349,7 @@ def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
         | signal_sources(s, job.company_id, ids or None) \
         | {"listing": f"{job.title}\n{job.description or ''}"} \
         | recipient_source(s, job, row.contact_id)
+    sources["facts"] += application_line(app)
     from app.services.linkedin_check import inmail_text
 
     label = {"note": "LinkedIn connection note", "followup": "LinkedIn follow-up",

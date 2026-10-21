@@ -1,9 +1,11 @@
-"""Checks for LinkedIn messages (connection notes and follow-ups). No model calls.
+"""Checks for LinkedIn messages (connection notes, follow-ups, InMails). No model calls.
 
-The same rules as the email where they apply: grounding of numbers and tools (your pool, the
-listing, the signals), years wording, banned phrases and jargon, never your location /
-nationality / visa. LinkedIn only: the school may be named, for alumni only. Plus: the length
-limit (a free account's note is 200 characters), no links, and a question.
+Blocking (errors), as for the job-linked email: grounding of numbers and tools (your pool, the
+listing, the signals), the years wording and the honesty rules, never a hint that you saw their
+profile visit, no links, the school for alumni only, and LinkedIn's own length limits. Style is a
+warning, never a block: banned phrases, jargon, the ask, an example's wording, and your location
+or visa when the listing states no requirement about it (when it does, saying it once, plainly,
+is the honest thing to do). The claim verifier is the other half of the guard.
 """
 
 import re
@@ -48,6 +50,9 @@ _EASY_ASK = re.compile(r"\b(?:cv|resume|résumé|send|share|envoyer|partager)\b"
 _CHAT = re.compile(r"\b(?:chat|call|talk|coffee|minutes|échanger|échange|appel|discuter)\b", re.I)
 _ADVICE = re.compile(r"\b(?:advice|tips|refer\w*|recommend\w*|conseil\w*|recommand\w*|"
                      r"cooptation|parrain\w*|point me|who should)\b", re.I)
+_ASK_WORDS = re.compile(r"\b(?:would you|could you|can you|could i|can i|please|take a look|"
+                        r"look at|have a look|vous pourriez|pourriez-vous|pourrais-je|"
+                        r"jeter un œil|regarder)\b", re.I)
 _URL = re.compile(r"https?://|www\.|linkedin\.com/", re.I)
 _PLACE = re.compile(r"\b(?:visa|sponsor\w*|parrainage|work authori[sz]ation|work permit|permis de "
                     r"travail|titre de séjour|relocat\w*|based (?:in|out of)|bas[ée]e?s? (?:à|en)|"
@@ -98,8 +103,9 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
                              "body"))
     if _URL.search(text):
         out.append(violation("link", "No links in the message", "body", "error"))
-    if "?" not in text:
-        out.append(violation("ask", "Ask one real question", "body", "error"))
+    if "?" not in text and not _ASK_WORDS.search(text):
+        out.append(violation("ask", "End with a simple ask (a question, or “I've attached my "
+                             "CV, would you take a look?”)", "body"))
     if "!" in text:
         out.append(violation("tone", "Exclamation mark", "body"))
     folded = oc.fold(text)
@@ -112,17 +118,11 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
     for s in (ctx.school_full, ctx.school):
         if s:
             scrubbed = re.sub(re.escape(s), " ", scrubbed, flags=re.I)
-    place = _PLACE.search(scrubbed)
-    places = [p for p in ctx.places
-              if p and re.search(rf"\b{re.escape(oc.fold(p))}\b", oc.fold(scrubbed))]
-    if place or places:
-        found = place.group(0) if place else places[0]
-        out.append(violation("location", f"“{found}”: never mention where you are, your "
-                             "nationality, visa or work authorization", "body", "error"))
+    out += _location(scrubbed, ctx, "body")
     for phrase in [*ctx.banned, *LINKEDIN_BANNED]:
         key = oc.fold(phrase.replace("’", "'"))
         if key and re.search(rf"\b{re.escape(key)}\b", oc.fold(text.replace("’", "'"))):
-            out.append(violation("banned", f"Banned phrase: “{phrase}”", "body", "error"))
+            out.append(violation("banned", f"Banned phrase: “{phrase}”", "body"))
             break
     if ctx.first_name and oc.fold(ctx.first_name) not in folded and ctx.kind in ("note", "inmail"):
         out.append(violation("name", f"Address {ctx.first_name} by name", "body"))
@@ -142,9 +142,24 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
         run = _longest_run(text, example)
         if run >= 8:
             out.append(violation("example_copy", f"{run} words in a row from a reference note: "
-                                 "write it fresh", "body", "error"))
+                                 "write it fresh", "body"))
             break
     return out
+
+
+def _location(text: str, ctx: Context, where: str) -> list[dict[str, str]]:
+    """Where you are, a visa need or relocation: fine when the listing states a requirement about
+    it (said once, plainly), a warning when nothing asked for it. Never a block."""
+    from app.services.applied_check import listing_states_constraint
+
+    place = _PLACE.search(text)
+    places = [p for p in ctx.places
+              if p and re.search(rf"\b{re.escape(oc.fold(p))}\b", oc.fold(text))]
+    if (place or places) and not listing_states_constraint(ctx.job_text):
+        found = place.group(0) if place else places[0]
+        return [violation("location", f"“{found}”: the listing states no residency, work-permit "
+                          "or language requirement, so leave your location and visa out", where)]
+    return []
 
 
 def inmail_text(message: dict[str, Any] | None) -> str:
@@ -164,23 +179,19 @@ def check_subject(subject: str, ctx: Context) -> list[dict[str, str]]:
         out.append(violation("subject_length", f"{len(subject)} characters: keep the subject "
                              f"under {SUBJECT_MAX_CHARS}", "subject", "error"))
     if "!" in subject:
-        out.append(violation("subject_tone", "No exclamation mark in the subject", "subject",
-                             "error"))
+        out.append(violation("subject_tone", "No exclamation mark in the subject", "subject"))
     if _URL.search(subject):
         out.append(violation("subject_link", "No links in the subject", "subject", "error"))
     if _VIEWED.search(subject):
         out.append(violation("viewed", "Never mention that they looked at your profile",
                              "subject", "error"))
-    if _PLACE.search(subject) or any(
-            p and re.search(rf"\b{re.escape(oc.fold(p))}\b", oc.fold(subject)) for p in ctx.places):
-        out.append(violation("location", "Never mention where you are, your nationality, visa "
-                             "or work authorization", "subject", "error"))
+    out += _location(subject, ctx, "subject")
     folded = oc.fold(subject.replace("’", "'"))
     for phrase in [*ctx.banned, *LINKEDIN_BANNED]:
         key = oc.fold(phrase.replace("’", "'"))
         if key and re.search(rf"\b{re.escape(key)}\b", folded):
-            out.append(violation("banned", f"Banned phrase in the subject: “{phrase}”", "subject",
-                                 "error"))
+            out.append(violation("banned", f"Banned phrase in the subject: “{phrase}”",
+                                 "subject"))
             break
     if sum(1 for w in subject.split() if len(w) > 2 and w.isupper()) >= 2:
         out.append(violation("subject_caps", "Avoid shouting (ALL CAPS) in the subject", "subject"))
@@ -200,7 +211,7 @@ def _group_rules(text: str, ctx: Context) -> list[dict[str, str]]:
         jargon = [j for j in JARGON if re.search(rf"\b{re.escape(oc.fold(j))}\b", folded)]
         if jargon:
             out.append(violation("jargon", f"Jargon for a recruiter: {', '.join(jargon[:3])}. "
-                                 "Say it plainly", "body", "error"))
+                                 "Say it plainly", "body"))
         from app.services.intro_check import _tools
 
         allowed = {t.lower() for t in ctx.matching_tools}

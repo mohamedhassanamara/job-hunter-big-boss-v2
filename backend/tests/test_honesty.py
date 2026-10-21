@@ -108,8 +108,10 @@ def test_recruiter_notes_are_plain_with_an_easy_ask(seeded: None) -> None:
                 if v["severity"] == "error"}
 
     assert not errors(APPROVED.replace("Alex", "Lea"), honesty=RULES)
-    assert "jargon" in errors("Hi Lea, I built an idempotent lakehouse with schema drift "
-                              "handling. Could I send you my CV?")
+    jargon = "Hi Lea, I built an idempotent lakehouse with schema drift handling. Could I send " \
+             "you my CV?"
+    assert "jargon" in {v["type"] for v in lc.check(jargon, ctx(group="recruiter"))}
+    assert "jargon" not in errors(jargon)  # plain language is a style warning, never a block
     found = lc.check("Hi Lea, I build data pipelines. Open to a quick chat?",
                      ctx(group="recruiter"))
     assert "ask" in {v["type"] for v in found}
@@ -120,7 +122,8 @@ def test_recruiter_notes_are_plain_with_an_easy_ask(seeded: None) -> None:
 def test_a_reference_note_is_never_copied(seeded: None) -> None:
     note = APPROVED.replace("Alex", "Lea")
     found = lc.check(note, ctx(group="recruiter", examples=[note]))
-    assert "example_copy" in {v["type"] for v in found if v["severity"] == "error"}
+    assert "example_copy" in {v["type"] for v in found}
+    assert "example_copy" not in {v["type"] for v in found if v["severity"] == "error"}
 
 
 def test_the_transition_line_names_project_tools_not_concepts(seeded: None) -> None:

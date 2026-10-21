@@ -268,7 +268,12 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
              signals: list[dict[str, Any]] | None = None) -> tuple[LinkedInRequest, lc.Context]:
     from app.services import agency, honesty
     from app.services.cover_letter import _statements
-    from app.services.outreach import _places, email_language
+    from app.services.outreach import (
+        _places,
+        application_facts,
+        email_language,
+        logistics,
+    )
     from app.services.outreach_check import DEFAULT_BANNED
 
     app = s.get(Application, row.application_id)
@@ -304,6 +309,8 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
                    "years_statement": english if language != "fr" else french,
                    "school": short if alumni else None,
                    "matching_tools": tools,
+                   # Said only when the listing states a requirement they don't meet (prompt v4).
+                   "logistics": logistics(pool), "application": application_facts(app),
                    "transition": transition and {k: transition[k] for k in ("use", "text", "how")},
                    **honesty.prompt_facts(rules_)},
         pool=prompt_pool(pool),

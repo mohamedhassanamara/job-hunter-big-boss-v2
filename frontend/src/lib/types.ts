@@ -476,7 +476,7 @@ export interface Draft {
   auth: string | null // the CLI's apiKeySource ("none" = subscription)
   application_mention: string | null // "I have also applied through your careers page on …"
   mention_included: boolean
-  format: 'intro' | 'reply'
+  format: 'applied' | 'intro' | 'reply' // applied = job-linked follow-up, intro = speculative
   signals: { id: number; kind: string; fact: string; quote: string; source_url: string; page_date: string | null }[]
   needs_signal: boolean
   research_note: string | null
@@ -519,6 +519,8 @@ export interface WhoToContact {
   apollo: { company: string; domain: string; titles: string[]; seniority: string[] }
 }
 
+export type EmailMode = 'applied' | 'speculative'
+
 export interface OutreachStep {
   step: OutreachStepName
   route: Route
@@ -527,6 +529,10 @@ export interface OutreachStep {
   has_contact: boolean
   has_email: boolean
   cv_version: number | null
+  email_mode: EmailMode // the default: application follow-up when the job has a posting
+  listing_chars: number
+  listing_short: boolean // under ~1,500 characters: requirements like residency can't be seen
+  can_fetch_listing: boolean // never for LinkedIn jobs
   draft: Draft | null
   queue_position: number | null
   queue_eta: string | null

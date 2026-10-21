@@ -1,9 +1,10 @@
-import { ArrowRight, CircleCheck, Clock, FileText, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, CircleCheck, Clock, Download, FileText, LoaderCircle, Send, Sparkles, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { GetContactPanel } from '@/components/app/contact/GetContactPanel'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
+import { PasteDescriptionDialog } from '@/components/app/PasteDescriptionDialog'
 import { Section } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
@@ -11,10 +12,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { clockTime, relativeTime } from '@/lib/format'
-import { useDraftAction, useDraftRun, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
+import { useDraftAction, useDraftRun, useFetchFullListing, useOutreachStep, useSentManually } from '@/lib/queries/workflow'
 import { DraftProgressLine } from '@/components/app/outreach/DraftProgressLine'
 import { todayIso } from '@/lib/tracking'
-import type { JobDetail, OutreachStepName } from '@/lib/types'
+import type { EmailMode, JobDetail, OutreachStep, OutreachStepName } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const STEPS: { key: OutreachStepName[]; label: string }[] = [
@@ -81,6 +82,63 @@ function SentMyselfDialog({ appId, open, onOpenChange }: { appId: number; open: 
   )
 }
 
+const MODES: { value: EmailMode; label: string; hint: string }[] = [
+  { value: 'applied', label: 'Application follow-up', hint: 'You applied (or are applying): a short, honest email with your best proof and any requirement you do not meet. No research.' },
+  { value: 'speculative', label: 'Speculative email', hint: 'No posting: the company is researched first, then a short introduction from its signals asks about an opening.' },
+]
+
+/** The draft step's two choices: which email to write, and the full listing when only a snippet is stored. */
+function DraftChoices({ jobId, data, mode, onMode }: { jobId: number; data: OutreachStep; mode: EmailMode; onMode: (m: EmailMode) => void }) {
+  const fetchFull = useFetchFullListing()
+  const [pasting, setPasting] = useState(false)
+  const runFetch = () =>
+    fetchFull.mutate(jobId, {
+      onSuccess: (r) => {
+        if (r.ok) toast.success(r.message, { description: `${r.characters.toLocaleString()} characters` })
+        else if (r.can_paste) toast(r.message, { action: { label: 'Paste it', onClick: () => setPasting(true) }, duration: 10000 })
+        else toast.error(r.message)
+      },
+      onError: (e) => toast.error(e.message),
+    })
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5" data-tour="outreach-mode">
+        <div role="radiogroup" aria-label="Email type" className="flex gap-1.5">
+          {MODES.map((m) => (
+            <Button key={m.value} size="sm" variant={mode === m.value ? 'outline' : 'ghost'} role="radio" aria-checked={mode === m.value} onClick={() => onMode(m.value)}>
+              {m.label}
+            </Button>
+          ))}
+        </div>
+        <p className="text-xs text-fg-subtle">{MODES.find((m) => m.value === mode)?.hint}</p>
+      </div>
+      {mode === 'applied' && data.listing_short && (
+        <div className="flex items-start gap-2 rounded-md border border-border bg-warning-bg px-3 py-2 text-sm" data-tour="outreach-listing">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning-fg" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <p className="font-medium text-warning-fg">Listing is a short snippet: paste the full description or fetch it</p>
+            <p className="text-xs text-fg-muted">
+              Only {data.listing_chars.toLocaleString()} characters are saved. You can draft without it, but constraints like residency or a language requirement can't be detected. Saving the full text rescores the job.
+            </p>
+            <div className="flex gap-1.5">
+              {data.can_fetch_listing && (
+                <Button size="xs" variant="ghost" onClick={runFetch} disabled={fetchFull.isPending}>
+                  {fetchFull.isPending ? <LoaderCircle className="animate-spin" /> : <Download />}
+                  Fetch it
+                </Button>
+              )}
+              <Button size="xs" variant="ghost" onClick={() => setPasting(true)}>
+                Paste description
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <PasteDescriptionDialog jobId={jobId} open={pasting} onClose={() => setPasting(false)} />
+    </div>
+  )
+}
+
 /** The cold-email route on the Job page: the next action is always visible. */
 export function OutreachSection({ job }: { job: JobDetail }) {
   const app = job.application
@@ -89,6 +147,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
   const autoStarted = useRef(false)
   const action = useDraftAction()
   const [sentMyself, setSentMyself] = useState(false)
+  const [pickedMode, setPickedMode] = useState<EmailMode | null>(null)
   const ready = !isPending && !!data
   // Arriving from the Pipeline or Today with #outreach: bring the section into view.
   useEffect(() => {
@@ -155,20 +214,23 @@ export function OutreachSection({ job }: { job: JobDetail }) {
           </div>
         )}
         {data.step === 'draft' && (
-          <div className="flex items-center gap-3 p-4 text-sm">
-            <Sparkles className="size-4 text-fg-subtle" />
-            <span className="flex-1 text-fg-muted">
-              {job.contact ? `${job.contact.full_name} (verified)` : 'Contact'} and CV v{data.cv_version} ready. The company is researched first (reused when fresh), then Claude writes a short introduction from its signals and your CV; you review everything before it goes anywhere.
-              {!data.has_email && ' The contact has no email address yet.'}
-            </span>
-            {run.running ? (
-              <DraftProgressLine state={run.state} />
-            ) : (
-              <Button size="sm" disabled={!data.has_email} onClick={() => run.start(undefined, { onError: (e) => toast.error(e.message) })}>
-                <Sparkles />
-                Draft email with AI
-              </Button>
-            )}
+          <div className="space-y-3 p-4 text-sm">
+            <div className="flex items-center gap-3">
+              <Sparkles className="size-4 text-fg-subtle" />
+              <span className="flex-1 text-fg-muted">
+                {job.contact ? `${job.contact.full_name} (verified)` : 'Contact'} and CV v{data.cv_version} ready. Claude writes the email from your approved CV; you review everything before it goes anywhere.
+                {!data.has_email && ' The contact has no email address yet.'}
+              </span>
+              {run.running ? (
+                <DraftProgressLine state={run.state} />
+              ) : (
+                <Button size="sm" disabled={!data.has_email} onClick={() => run.start(pickedMode ?? data.email_mode, { onError: (e) => toast.error(e.message) })}>
+                  <Sparkles />
+                  Draft email with AI
+                </Button>
+              )}
+            </div>
+            {!run.running && <DraftChoices jobId={job.id} data={data} mode={pickedMode ?? data.email_mode} onMode={setPickedMode} />}
           </div>
         )}
         {draft && ['review', 'queue'].includes(data.step) && (

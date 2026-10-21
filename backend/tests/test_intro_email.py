@@ -49,7 +49,7 @@ def draft(job_ready: dict, site: Site | None = None):  # noqa: F811, ANN201
 
     return outreach.generate(engine, job_ready["app"], MockEmailDrafter(),
                              researcher=research.MockResearcher(), fetcher=site or Site(),
-                             hook_checker=MockHookChecker())
+                             hook_checker=MockHookChecker(), mode="speculative")
 
 
 def test_research_then_draft_with_the_signal_cited(job_ready: dict) -> None:  # noqa: F811

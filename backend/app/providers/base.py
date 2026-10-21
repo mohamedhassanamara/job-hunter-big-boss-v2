@@ -340,6 +340,36 @@ class IntroEmailPlan(BaseModel):
     ask: str = Field(description="A direct question: do they have an opening where this helps")
 
 
+class AppliedEmailPlan(BaseModel):
+    """An honest application follow-up for a job the candidate applied (or is applying) for.
+    Code builds the greeting and the subject and assembles: opening, experience, constraint,
+    signal, ask."""
+
+    role: str = Field(description=(
+        "The role's name in plain words for the subject line (e.g. 'Mobile Developer'): the "
+        "JOB title without gender tags, location or tech suffixes"))
+    greeting: str = Field(description="'Hi <first name>,' / 'Bonjour <prénom>,'")
+    opening: str = Field(description=(
+        "One or two sentences: the candidate applied (or is applying) for the role at the "
+        "company and wanted to reach out directly. The role and the listing may be named"))
+    experience: list[EmailSentence] = Field(description=(
+        "One or two sentences (at most two proofs, one sentence each) from the EXPERIENCE POOL "
+        "on the experience that best answers the listing's core requirements, plain "
+        "language, each citing pool ids"))
+    constraint: str = Field(default="", description=(
+        "Empty unless the listing states a requirement the candidate doesn't meet "
+        "(residency, work permit, language): then one plain statement, once, using FACTS."
+        "logistics only"))
+    constraint_quote: str = Field(default="", description=(
+        "The exact words of the JOB that state that requirement; empty when constraint is empty"))
+    signal: HookSentence = Field(default_factory=lambda: HookSentence(text=""), description=(
+        "Optional: one company fact from SIGNALS that genuinely adds something, with its id. "
+        "Empty text when none"))
+    ask: str = Field(description=(
+        "A simple, natural ask (look at the attached CV, a short call); a statement or a "
+        "question"))
+
+
 class EmailRequest(BaseModel):
     job: dict[str, Any]
     contact: dict[str, Any]
@@ -499,6 +529,8 @@ class EmailDrafter(Protocol):
     def draft(self, request: EmailRequest, feedback: str = "") -> EmailDraftPlan: ...
 
     def draft_intro(self, request: EmailRequest, feedback: str = "") -> IntroEmailPlan: ...
+
+    def draft_applied(self, request: EmailRequest, feedback: str = "") -> AppliedEmailPlan: ...
 
 
 class LetterDrafter(Protocol):

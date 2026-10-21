@@ -91,16 +91,31 @@ def ctx(**kw) -> lc.Context:  # noqa: ANN003
 @pytest.mark.parametrize(("text", "kind", "alumni"), [
     ("Hi Lea, fellow INSAT graduate here. Could I ask how your team works?", None, True),
     ("Hi Lea, fellow INSAT graduate here. Could I ask how your team works?", "school", False),
-    ("Hi Lea, I'm based in Tunis and work on data. Could I ask how your team works?",
-     "location", False),
-    ("Hi Lea, I would love to connect. How does your team work?", "banned", False),
     ("Hi Lea, see https://example.com. How does your team work?", "link", False),
     ("Hi Lea, I build data pipelines. " + "Really. " * 30 + "Could we talk?", "length", False),
-    ("Hi Lea, I work on data pipelines at scale.", "ask", False),
 ])
 def test_linkedin_checks(seeded: None, text: str, kind: str | None, alumni: bool) -> None:
     errors = {v["type"] for v in lc.check(text, ctx(alumni=alumni)) if v["severity"] == "error"}
     assert (kind in errors) if kind else not errors, errors
+
+
+@pytest.mark.parametrize(("text", "kind"), [
+    ("Hi Lea, I'm based in Tunis and work on data. Could I ask how your team works?", "location"),
+    ("Hi Lea, I would love to connect. How does your team work?", "banned"),
+    ("Hi Lea, I work on data pipelines at scale.", "ask"),
+])
+def test_style_and_an_unprompted_location_are_warnings_never_blocks(seeded: None, text: str,
+                                                                    kind: str) -> None:
+    found = lc.check(text, ctx())
+    assert kind in {v["type"] for v in found}
+    assert not [v for v in found if v["severity"] == "error"], found
+
+
+def test_a_location_the_listing_asks_about_is_fine_to_state(seeded: None) -> None:
+    text = "Hi Lea, I'm based in Tunis, and would relocate. Could I send you my CV?"
+    stated = lc.check(text, ctx(job_text="Data Engineer. German residency required."))
+    assert "location" not in {v["type"] for v in stated}
+    assert "location" in {v["type"] for v in lc.check(text, ctx(job_text="Data Engineer."))}
 
 
 def test_statuses_dates_counter_replies_and_undo(seeded: None) -> None:
@@ -203,8 +218,8 @@ def test_the_panel_endpoint(seeded: None, client) -> None:  # noqa: ANN001
     noted = client.post(f"/api/linkedin/people/{row_id}/note").json()
     assert noted["note"]["text"] and noted["note"]["prompt_version"] == "linkedin/mock"
     edited = client.patch(f"/api/linkedin/people/{row_id}",
-                          json={"note": "Hi Pat, I'd love to connect!"}).json()
-    assert {v["type"] for v in edited["note"]["violations"]} >= {"banned", "ask"}
+                          json={"note": "Hi Pat, I'd love to connect! See https://example.com"}).json()
+    assert {v["type"] for v in edited["note"]["violations"]} >= {"banned", "link"}
     # Not verified yet: "I sent it" is refused until the exact text passes the claim verifier.
     blocked = client.post(f"/api/linkedin/people/{row_id}/status", json={"status": "sent"})
     assert blocked.status_code == 409 and "Verify the note" in blocked.json()["detail"]

@@ -83,6 +83,8 @@ class Context:
     others: list[tuple[int, str, str]] = field(default_factory=list)  # drafts to others
     min_words: int = MIN_WORDS
     max_words: int = MAX_WORDS
+    other_companies: list[str] = field(default_factory=list)  # in drafts to other companies
+    candidate_name: str = ""  # your full name (the applied email's subject)
     honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
 
 

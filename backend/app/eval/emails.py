@@ -3,8 +3,11 @@
 Cases are your reference examples (data/eval/email_examples.json, imported once) and every email
 you approve or reject (recorded automatically, with the request it was written from). The eval
 writes each case again with the current prompt, runs the checks, and writes a side-by-side
-report (old vs new) to data/eval/emails/. A change to app/prompts/outreach.md is adopted only
-after a run: prompts/eval_log.json records the report for each version (tests check it).
+report (old vs new) to data/eval/emails/. A case's `mode` (inputs) is "applied" (the job-linked
+application follow-up) or "speculative" (the research-based introduction); must_fail rows belong
+to the claim verifier's set (`make eval-verifier`) and are skipped here. A change to
+app/prompts/outreach.md is adopted only after a run: prompts/eval_log.json records the
+report for each version (tests check it).
 
     .venv/bin/python -m app.eval.emails --import          # load the reference examples
     .venv/bin/python -m app.eval.emails [--limit N] [--case ID] [--mock]
@@ -39,6 +42,7 @@ def record(s: Session, draft: OutreachDraft, kind: str) -> EmailExample:
                        company=company.name if company else "",
                        inputs={"request": plan.get("request"),
                                "application_id": draft.application_id,
+                               "mode": plan.get("mode") or "speculative",
                                "prompt_version": draft.prompt_version})
     s.add(row)
     return row
@@ -57,7 +61,9 @@ def import_examples(engine: Engine, path: Path = EXAMPLES_FILE) -> int:
             s.add(EmailExample(kind=e["kind"], language=e.get("language", "en"),
                                subject=e["subject"], body=e["body"],
                                company=e.get("company", ""), note=e.get("note", ""),
-                               inputs={"application_id": e.get("application_id")}))
+                               inputs={"application_id": e.get("application_id"),
+                                       **{k: e[k] for k in ("mode", "case", "expect")
+                                          if k in e}}))
             added += 1
         s.commit()
     return added
@@ -81,6 +87,17 @@ def _request(s: Session, example: EmailExample) -> tuple[EmailRequest | None, st
     from app.services import honesty, outreach
 
     inputs = example.inputs or {}
+    if inputs.get("mode") == "applied" and not inputs.get("request"):
+        app = s.get(Application, inputs.get("application_id") or -1)
+        contact = case_contact(s, example, app)
+        cv = outreach.approved_cv(s, app) if app else None
+        if app is None or contact is None or cv is None:
+            return None, example.language
+        from app.services.cv_pool import load_pool
+
+        job = s.get(Job, app.job_id)
+        return outreach.applied_request(s, app, job, s.get(Company, job.company_id), contact,
+                                        cv, load_pool(s), example.language), example.language
     if inputs.get("request"):
         # The snapshot, with today's honesty facts (they're rules, not the case's inputs).
         req = EmailRequest.model_validate(inputs["request"])
@@ -118,7 +135,8 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
         if case is not None:
             stmt = stmt.where(EmailExample.id == case)
         examples = [e for e in s.exec(stmt).all()
-                    if (e.inputs or {}).get("channel") != "linkedin"]  # emails only
+                    if (e.inputs or {}).get("channel") != "linkedin"  # emails only
+                    and e.kind != "must_fail"]  # the verifier's set
         examples = examples[:limit] if limit else examples
         for ex in examples:
             request, language = _request(s, ex)
@@ -130,6 +148,9 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
                 results.append(row)
                 continue
             app = s.get(Application, (ex.inputs or {}).get("application_id") or -1)
+            if (ex.inputs or {}).get("mode") == "applied" or "application" in request.candidate:
+                results.append(_applied_row(s, row, ex, request, language, app, drafter))
+                continue
             plan = drafter.draft_intro(request)
             plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
             plan.subject = ic.subject_line(str((request.job or {}).get("company") or ex.company),
@@ -166,6 +187,35 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
     path.write_text(render_md(results, getattr(drafter, "prompt_version", "?")))
     path.with_suffix(".json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
     return path, results
+
+
+def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: EmailRequest,
+                 language: str, app: Application | None, drafter: Any) -> dict[str, Any]:
+    """One case in the job-linked mode: written again with the application follow-up prompt
+    and checked with the applied rules (errors protect facts, everything else is a warning)."""
+    from app.services import applied_check as ac
+    from app.services import intro_check as ic
+    from app.services import outreach
+    from app.services import outreach_check as oc
+    from app.services.cv_pool import load_pool
+
+    plan = drafter.draft_applied(request)
+    plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
+    name = str(request.candidate.get("full_name") or "")
+    text = ac.body(plan)
+    subject = ac.subject_line(plan.role, name, language)
+    found: list[dict] = []
+    contact = case_contact(s, ex, app)
+    if app is not None and contact is not None:
+        job = s.get(Job, app.job_id)
+        ctx = outreach.applied_context(s, app, job, s.get(Company, job.company_id), contact,
+                                       load_pool(s), language=language)
+        found = ac.check_plan(plan, ctx)
+    row.update(new={"subject": subject, "body": text},
+               errors=[v["message"] for v in found if v["severity"] == "error"],
+               warnings=[v["message"] for v in found if v["severity"] != "error"],
+               similarity_to_old=round(oc.similarity(text, ex.body), 2))
+    return row
 
 
 def render_md(results: list[dict], version: str) -> str:

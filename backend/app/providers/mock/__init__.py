@@ -10,6 +10,7 @@ from app.providers.base import (
     AnswerDraft,
     AnswersPlan,
     AnswersRequest,
+    AppliedEmailPlan,
     ConfirmationAnswer,
     CoverLetterPlan,
     CritiqueIssue,
@@ -238,6 +239,32 @@ class MockEmailDrafter:
             proofs=proofs,
             ask="Auriez-vous actuellement une ouverture où cela pourrait être utile ?" if fr
             else "Do you currently have an opening where this would be useful?")
+
+    def draft_applied(self, request: EmailRequest, feedback: str = "") -> AppliedEmailPlan:
+        """A grounded application follow-up from the request (no model)."""
+        fr = request.rules.get("language") == "fr"
+        company, title = request.job.get("company"), request.job.get("title")
+        applied = (request.candidate.get("application") or {}).get("applied")
+        role = next((r for r in request.pool.get("roles", []) if r.get("tags")), None)
+        experience = []
+        if role:
+            tag = role["tags"][0]
+            experience.append(EmailSentence(
+                text=(f"Chez {role.get('org')}, j'ai construit des systèmes avec {tag}, de la "
+                      "conception à la mise en production, avec une équipe réduite."
+                      if fr else f"At {role.get('org')}, I built production systems with {tag}, "
+                                 "from the first design to release, with a small team."),
+                citations=[role["id"]]))
+        opening = (
+            f"J'ai {'postulé' if applied else 'postule'} au poste de {title} chez {company} et "
+            "je voulais vous écrire directement." if fr else
+            f"I've {'just applied' if applied else 'started applying'} for the {title} role at "
+            f"{company} and wanted to reach out to you directly.")
+        return AppliedEmailPlan(
+            role=str(title), greeting=f"Hi {request.contact.get('first_name')},",
+            opening=opening, experience=experience,
+            ask="Pourriez-vous regarder mon CV, joint à ce message ?" if fr
+            else "Would you take a look at my CV? It's attached.")
 
     @staticmethod
     def sample(title: str, company: str, first_name: str) -> tuple[str, str]:

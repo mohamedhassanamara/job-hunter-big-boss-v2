@@ -1,7 +1,10 @@
 """The claim verifier's regression set (`make eval-verifier`; ARGS="--mock", "--case 5").
 
 Must pass: your approved examples (email_example kind reference_good / approved, emails and
-LinkedIn notes). Must fail: the "must_fail" rows (added here once if missing): "mentoring other
+LinkedIn notes; a job-linked email carries `mode: applied` and is checked with the listing and its
+application status as sources). Must fail: the "must_fail" rows (imported from
+data/eval/email_examples.json, e.g. a Gemini draft that invents facts about you and the company,
+or added here once if missing): "mentoring other
 developers" (your experience says one junior developer) and "3 years of experience building
 data pipelines" (your years are professional mobile and backend; data is project-based).
 
@@ -86,6 +89,11 @@ def text_and_sources(s: Session, ex: EmailExample) -> tuple[str, str, dict[str, 
     if inputs.get("channel") == "linkedin":
         sources["listing"] = f"{job.title}\n{job.description or ''}"
         return "LinkedIn connection note", ex.body, sources
+    if inputs.get("mode") == "applied":  # the job-linked email names the job: listing + status
+        sources["listing"] = f"{job.title}\n{job.description or ''}"
+        sources["facts"] += verifier.application_line(app)
+        return ("email about a job application, to the person at the company (with its "
+                "subject)", f"Subject: {ex.subject}\n\n{ex.body}", sources)
     return "cold email (with its subject)", f"Subject: {ex.subject}\n\n{ex.body}", sources
 
 

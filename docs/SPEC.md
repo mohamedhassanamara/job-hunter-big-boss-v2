@@ -249,7 +249,37 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   searches left this month (reading them is free) before each use; finding an email costs 1 search and fills the
   form (you confirm; saved with source hunter), "Verify with Hunter" checks an email that looks wrong (1
   verification). Paid calls are never retried. Without a key the button says so.
-- **The email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v9). The listing
+- **Two email modes (prompt `outreach.md` v11, `outreach.email_mode`).** A job with a posting gets the
+  **application follow-up** (`applied`, below); a company with no posting, or `POST /applications/{id}/draft/generate
+  ?mode=speculative`, gets the research-based introduction (the rest of this bullet list). The mode is stored in
+  `plan.mode`; the draft's `format` is `applied` or `intro`.
+- **The draft step's two choices (Job page → Outreach).** A toggle picks the email type: *Application follow-up*
+  (the default when the job has a posting, `OutreachStep.email_mode`) or *Speculative email*; it sends `?mode=`.
+  When the stored listing is under 1,500 characters (`listing_short`) the follow-up choice shows "Listing is a
+  short snippet: paste the full description or fetch it": **Fetch it** (`POST /jobs/{id}/fetch-full`, one polite
+  request with the honest User-Agent, never for LinkedIn jobs) and **Paste description** (`PUT /jobs/{id}/description`,
+  the same dialog as the Fit card). Both save the full text and rescore the job. Drafting still works without
+  it; the draft then carries the warning "constraints like residency or a language requirement can't be
+  detected".
+- **The application follow-up (mode `applied`, `services/applied_check.py`)** is an honest, direct email, not a
+  pitch. Parts, assembled by code: greeting (code) · **opening** (you applied, or are applying, for the role at
+  the company, and wanted to reach out directly; nothing else) · **experience** (at most two proofs, one plain
+  sentence each, from the approved CV's pool items: the strongest for the listing's core requirements, each cited) · optional **signal** (a company fact
+  from a selected signal, almost always empty, never "what it shows about them") · **constraint** (only when the
+  listing states a requirement you don't meet: residency, work permit, a language; said once and plainly from
+  Settings → Candidate: where you're based, that you'd relocate, that you'd need sponsorship, which languages you
+  work in for a language requirement; the listing's own
+  words are quoted; nothing when the listing states nothing) · a simple natural **ask** (the CV, a short call;
+  a statement or a question). The subject is code: "<Role> application – <your name>" ("Candidature <rôle> – …"),
+  editable. No research is started. The listing, the role and your location are allowed to be mentioned.
+  **Blocking (errors):** facts only: sentences cited to your pool with grounded numbers/tools, the years wording and
+  honesty rules, company facts from the listing or a selected signal, the contact's first name, no other
+  company's name, a non-empty subject. **Warnings, never blocks:** 90-170 words (the prompt aims at 90-120), more than two proofs, a proof over ~45 words, a short listing snippet, tool
+  lists over 5, banned phrases, jargon, restating the listing, a long opening, a signal that guesses, location/visa
+  when the listing states no requirement, a constraint said twice. Approval still runs the Claude claim verifier,
+  with the listing, your situation ("Based in", "Work authorization", "Relocation") and the application status as
+  sources.
+- **The speculative email is a personal introduction, not a reply to the listing** (prompt `outreach.md` v9). The listing
   is private intel: it decides what to talk about and is never mentioned. Four parts, assembled by code:
   0. **greeting**: built by code in the email's language ("Hi …," / "Bonjour …,"). The first name is spelled
      as the company's researched pages write the contact's full name (Stéphane vs Apollo's Stephane), otherwise
@@ -363,17 +393,21 @@ linkedin.com).
   recruiters), each with a code-built people search (company-scoped when its slug is known). You add people (paste
   their profile header). Claude (`claude -p`, prompt `linkedin.md`) drafts a connection note within
   `linkedin.note_max_chars` (200 on a free account), different per group; the school angle is for alumni only and
-  only on LinkedIn (email rules unchanged). After "accepted", a follow-up: one proof, one direct ask (a referral, or
+  only on LinkedIn. Messages are tied to a job (prompt `linkedin.md` v4): naming the role and the listing is fine,
+  and when the listing states a requirement you don't meet an InMail or follow-up says it once, plainly, from
+  FACTS.logistics (a 200-character note has no room for it). After "accepted", a follow-up: one proof, one direct ask (a referral, or
   who to talk to); company research is reused, or run only at that step. Checks on every message: length, no links,
-  a question, banned phrases, grounding of numbers and tools, years, never location/visa. Statuses to contact →
+  grounding of numbers and tools, years and honesty, no links, no hint of a profile visit (these block); a simple
+  ask, banned phrases, jargon, a reference note's wording and location/visa when the listing states no requirement
+  are warnings. Statuses to contact →
   request sent → accepted → messaged → replied (one-step undo), a daily request counter (a warning), reminders,
   and the gap rule (no email and LinkedIn request to the same person within `linkedin.gap_days`, 3: a hint).
 - **LinkedIn Premium additions (limited time; prompt `linkedin.md` v3):**
   - **InMail** is a message type per person, for someone you are not connected with: a subject (at most 80
     characters) and a longer body (up to `linkedin.inmail_max_chars`, 1,000 by default, in Settings → LinkedIn). Claude
-    drafts it with the same grounding, honesty (years), banned-phrase and no-location/visa checks as the note, the
+    drafts it with the same blocking grounding and honesty (years) checks as the note (style is a warning), the
     recruiter / hiring-manager / alumni styles, and an ask suited to the group; the subject has its own checks
-    (length, no exclamation mark, links, clichés, location, grounding). The exact subject + body is verified by the claim
+    (length, links, a profile-visit hint and grounding block; exclamation mark, clichés and an unprompted location warn). The exact subject + body is verified by the claim
     verifier before Copy and "I sent the InMail" unlock. You send it yourself. Sending it marks the person
     messaged (the no-reply reminder starts) and never counts as a connection request.
   - **InMail credits:** the monthly allowance is a setting (default 5; Career 5, Business 15, Sales Navigator 50).

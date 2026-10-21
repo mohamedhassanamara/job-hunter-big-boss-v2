@@ -324,6 +324,13 @@ Answers to an application form's questions (`services/answers.py`).
 kind (reference_good | reference_bad | approved | rejected), language, subject, body, draft_id, company, inputs
 (the `EmailRequest` snapshot, or the application to rebuild it from), note.
 
+Job-linked drafts (prompt v11) store `format: "applied"`, `mode: "applied"`, the plan (role, opening, experience
+sentences with citations, constraint + its listing quote, optional signal with ids, ask), `application`
+(`{applied, date}` when drafted), `language`, `signal_ids`, `signals`, the request, attempts, `via`, `auth` and
+`name_source`; the subject is `<Role> application – <name>`. Speculative drafts store `mode: "speculative"` or,
+older ones, no mode. `email_example.inputs.mode` is `applied` | `speculative`; `kind: must_fail` rows (with
+`case` and `expect: fail`) belong to the verifier's regression set.
+
 Outreach drafts written as introductions store in `plan`: `format: "intro"`, the plan (hook with signal ids,
 intro focus, problem, proofs, ask), `intro_line`, `language`, `signal_ids`, the signals snapshot,
 `research_run_id`, the request, attempts, `via`, `auth`, `hook_check` (`{status: ok|unchecked|skipped, hash
