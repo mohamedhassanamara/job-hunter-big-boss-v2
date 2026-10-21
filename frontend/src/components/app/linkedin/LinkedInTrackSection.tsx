@@ -16,7 +16,8 @@ import { relativeTime } from '@/lib/format'
 import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
-import { useAddLinkedInPerson, useDraftLinkedIn, useEditLinkedIn, useInMailSent, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
+import { RegenerateDialog } from '@/components/app/RegenerateDialog'
+import { useAddLinkedInPerson, useDraftLinkedIn, useRestoreLinkedIn, useEditLinkedIn, useInMailSent, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
 import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import { verified } from '@/lib/verify'
 import type { JobDetail, LinkedInGroup, LinkedInPanel, LinkedInPerson } from '@/lib/types'
@@ -80,6 +81,36 @@ function AddPerson({ appId, group, school, onDone }: { appId: number; group: Lin
   )
 }
 
+/** Earlier versions of a note, follow-up or InMail with what you asked to change; Restore goes back. */
+function VersionHistory({ person, kind, appId, draft }: { person: LinkedInPerson; kind: 'note' | 'followup' | 'inmail'; appId: number; draft: NonNullable<LinkedInPerson['note']> }) {
+  const restore = useRestoreLinkedIn(appId)
+  const history = draft.history ?? []
+  if (history.length === 0) return null
+  return (
+    <details className="text-xs text-fg-muted">
+      <summary className="cursor-default">
+        Earlier versions ({history.length}){draft.feedback ? ` · this one: “${draft.feedback}”` : ''}
+      </summary>
+      <ul className="mt-1 divide-y divide-border">
+        {history
+          .map((h, index) => ({ h, index }))
+          .reverse()
+          .map(({ h, index }) => (
+            <li key={index} className="flex items-start gap-2 py-1">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{h.subject ? `${h.subject}: ` : ''}{h.text}</span>
+                {h.feedback && <span className="block text-fg-subtle">asked: “{h.feedback}”</span>}
+              </span>
+              <Button size="xs" variant="ghost" disabled={restore.isPending} onClick={() => restore.mutate({ id: person.id, kind, index }, { onSuccess: () => toast.success('Back to that version'), onError: (e) => toast.error(e.message) })}>
+                Restore
+              </Button>
+            </li>
+          ))}
+      </ul>
+    </details>
+  )
+}
+
 /** A note or follow-up: Claude drafts it, you edit (autosaved, checked again), copy, send. */
 function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; kind: 'note' | 'followup'; appId: number; max: number }) {
   const draft = kind === 'note' ? person.note : person.followup
@@ -87,6 +118,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const edit = useEditLinkedIn(appId)
   const verify = useVerifyLinkedIn(appId)
   const vstate = kind === 'note' ? person.note_verification_state : person.followup_verification_state
+  const [regen, setRegen] = useState(false)
   const [text, setText] = useState(draft?.text ?? '')
   const pendingEdit = edit.isPending || (draft?.text ?? '') !== text
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -139,7 +171,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           size="sm"
           variant={draft ? 'ghost' : 'secondary'}
           disabled={run.isPending}
-          onClick={() => run.mutate({ id: person.id, kind }, { onSuccess: () => toast.success(`${label} drafted`), onError: (e) => toast.error(e.message) })}
+          onClick={() => (draft ? setRegen(true) : run.mutate({ id: person.id, kind }, { onSuccess: () => toast.success(`${label} drafted`), onError: (e) => toast.error(e.message) }))}
         >
           <Sparkles />
           {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with Claude`}
@@ -167,6 +199,17 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind }, { onError: (e) => toast.error(e.message) })}
         />
       )}
+      {draft && <VersionHistory person={person} kind={kind} appId={appId} draft={draft} />}
+      <RegenerateDialog
+        open={regen}
+        onClose={() => setRegen(false)}
+        title={`Redraft the ${kind === 'note' ? 'note' : 'follow-up'}`}
+        pending={run.isPending}
+        onSubmit={(feedback) => {
+          setRegen(false)
+          run.mutate({ id: person.id, kind, feedback }, { onSuccess: () => toast.success(`${label} drafted`), onError: (e) => toast.error(e.message) })
+        }}
+      />
     </div>
   )
 }
@@ -179,6 +222,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
   const edit = useEditLinkedIn(appId)
   const verify = useVerifyLinkedIn(appId)
   const sent = useInMailSent(appId)
+  const [regen, setRegen] = useState(false)
   const max = draft?.max_chars ?? panel.inmail_max_chars
   const [text, setText] = useState(draft?.text ?? '')
   const [subject, setSubject] = useState(draft?.subject ?? '')
@@ -251,7 +295,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
             size="sm"
             variant={draft ? 'ghost' : 'secondary'}
             disabled={run.isPending}
-            onClick={() => run.mutate({ id: person.id, kind: 'inmail' }, { onSuccess: () => toast.success('InMail drafted'), onError: (e) => toast.error(e.message) })}
+            onClick={() => (draft ? setRegen(true) : run.mutate({ id: person.id, kind: 'inmail' }, { onSuccess: () => toast.success('InMail drafted'), onError: (e) => toast.error(e.message) }))}
           >
             <Sparkles />
             {run.isPending ? 'Drafting…' : draft ? 'Redraft' : 'Draft InMail with Claude'}
@@ -313,6 +357,17 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
           onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind: 'inmail' }, { onError: (e) => toast.error(e.message) })}
         />
       )}
+      {draft && <VersionHistory person={person} kind="inmail" appId={appId} draft={draft} />}
+      <RegenerateDialog
+        open={regen}
+        onClose={() => setRegen(false)}
+        title="Redraft the InMail"
+        pending={run.isPending}
+        onSubmit={(feedback) => {
+          setRegen(false)
+          run.mutate({ id: person.id, kind: 'inmail', feedback }, { onSuccess: () => toast.success('InMail drafted'), onError: (e) => toast.error(e.message) })
+        }}
+      />
     </div>
   )
 }

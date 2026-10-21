@@ -495,6 +495,68 @@ export interface Draft {
   next_contact: Contact | null
   verification: Verification // the claim verifier's last run (Claude)
   verification_state: VerificationState
+  // The email type and the language it is written in, with why (services/language.py)
+  mode: EmailMode | null
+  language: 'en' | 'fr' | null
+  language_detected: string | null // the listing's language (en | fr | de | es | ar)
+  language_reason: string | null
+  language_source: 'auto' | 'override' | 'job' | 'setting' | null
+  // Draft history: what you asked to change to get this version
+  feedback: string
+  parent_id: number | null
+  source: 'generated' | 'external'
+  // Approved without the claim verifier: when, and every issue that was ignored
+  unverified_approval: UnverifiedApproval | null
+}
+
+export interface UnverifiedApproval {
+  at: string
+  ignored: { type: string; severity: 'error' | 'warning'; message: string }[]
+  verification_state: string
+}
+
+export interface DraftHistoryItem {
+  id: number
+  version: number
+  status: DraftStatus
+  created_at: string
+  subject: string
+  words: number
+  feedback: string
+  parent_id: number | null
+  mode: EmailMode | null
+  language: string | null
+  source: 'generated' | 'external'
+  prompt_version: string | null
+  unverified: boolean
+  current: boolean
+}
+
+export type DraftGenerateInput = {
+  mode?: EmailMode
+  language?: 'auto' | 'en' | 'fr' // auto clears a language you picked for this draft
+  feedback?: string
+  base_draft_id?: number
+}
+
+export interface ExternalPrompt {
+  prompt: string
+  mode: EmailMode
+  language: { language: string; detected: string; source: string; reason: string }
+  chars: number
+  items: number[]
+  note: string
+  listing_short: boolean
+}
+
+export interface ExternalCheck {
+  subject: string
+  body: string
+  mode: EmailMode
+  language: { language: string; detected: string; source: string; reason: string }
+  violations: Violation[]
+  verification: Verification
+  errors: number
 }
 
 export interface DraftReviewItem {
@@ -577,6 +639,7 @@ export interface QueueItem {
   contact_name: string | null
   contact_email: string | null
   company_name: string
+  unverified: boolean // approved without the claim verifier
 }
 
 export interface Queue {
@@ -1368,6 +1431,7 @@ export interface CoverLetter {
   question: string | null
   char_limit: number | null
   length: number // characters of the text
+  feedback: string // what you asked to change to get this version
   salutation: string
   paragraphs: LetterParagraph[]
   ask: string
@@ -1606,6 +1670,9 @@ export interface LinkedInDraft {
   edited: boolean
   max_chars: number
   verification?: Verification
+  /** What you asked to change to get this version, and every earlier version (go back). */
+  feedback?: string
+  history?: { text: string; subject?: string; created_at?: string; feedback?: string }[]
 }
 
 export interface LinkedInPerson {

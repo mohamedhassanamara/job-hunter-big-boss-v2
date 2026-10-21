@@ -142,6 +142,15 @@ def import_job(body: CaptureIn, engine: EngineDep, workspace: WorkspaceDep) -> I
 # ------------------------------------------------------------------- the LinkedIn messages track
 
 
+class RegenerateIn(BaseModel):
+    feedback: str = ""  # "What should change?" (optional)
+
+
+class RestoreIn(BaseModel):
+    kind: str  # note | followup | inmail
+    index: int  # into the message's `history`
+
+
 class PersonOut(BaseModel):
     id: int
     contact_id: int
@@ -391,14 +400,16 @@ def _drafter(workspace: str):  # noqa: ANN202
 
 
 @router.post("/linkedin/people/{row_id}/note", response_model=PersonOut)
-def draft_note(row_id: int, session: SessionDep, engine: EngineDep,
-               workspace: WorkspaceDep) -> PersonOut:
-    """Claude drafts the connection note (claude -p, your subscription), checked in code."""
+def draft_note(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+               body: RegenerateIn | None = None) -> PersonOut:
+    """Claude drafts the connection note (claude -p, your subscription), checked in code. With
+    feedback ("What should change?") it edits the current note toward it."""
     from app.services import linkedin_track as lt
 
     _row(session, row_id)
     try:
-        row = lt.draft_note(engine, row_id, _drafter(workspace))
+        row = lt.draft_note(engine, row_id, _drafter(workspace),
+                           (body or RegenerateIn()).feedback)
     except lt.LinkedInError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()
@@ -406,8 +417,8 @@ def draft_note(row_id: int, session: SessionDep, engine: EngineDep,
 
 
 @router.post("/linkedin/people/{row_id}/followup", response_model=PersonOut)
-def draft_followup(row_id: int, session: SessionDep, engine: EngineDep,
-                   workspace: WorkspaceDep) -> PersonOut:
+def draft_followup(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+                   body: RegenerateIn | None = None) -> PersonOut:
     """After they accept: one proof and one direct ask (company research reused, or run here
     if the company has none)."""
     from app.api.outreach import _research_models
@@ -422,7 +433,8 @@ def draft_followup(row_id: int, session: SessionDep, engine: EngineDep,
         row = lt.draft_followup(engine, row_id, _drafter(workspace),
                                 researcher=research_provider(mock=True if demo else None,
                                                              model=model, fallback=fallback),
-                                fetcher=SampleFetcher() if demo else None)
+                                fetcher=SampleFetcher() if demo else None,
+                                feedback=(body or RegenerateIn()).feedback)
     except lt.LinkedInError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()
@@ -430,19 +442,34 @@ def draft_followup(row_id: int, session: SessionDep, engine: EngineDep,
 
 
 @router.post("/linkedin/people/{row_id}/inmail", response_model=PersonOut)
-def draft_inmail(row_id: int, session: SessionDep, engine: EngineDep,
-                 workspace: WorkspaceDep) -> PersonOut:
+def draft_inmail(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+                 body: RegenerateIn | None = None) -> PersonOut:
     """Claude drafts a LinkedIn Premium InMail (subject + body, claude -p on your subscription),
     checked in code like the note. You send it yourself."""
     from app.services import linkedin_track as lt
 
     _row(session, row_id)
     try:
-        row = lt.draft_inmail(engine, row_id, _drafter(workspace))
+        row = lt.draft_inmail(engine, row_id, _drafter(workspace),
+                             (body or RegenerateIn()).feedback)
     except lt.LinkedInError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()
     return _person(session, _row(session, row.id))
+
+
+@router.post("/linkedin/people/{row_id}/restore", response_model=PersonOut)
+def restore_version(row_id: int, body: RestoreIn, session: SessionDep) -> PersonOut:
+    """Go back to an earlier version of the note, follow-up or InMail (its `history`)."""
+    from app.services import linkedin_track as lt
+
+    row = _row(session, row_id)
+    try:
+        lt.restore_version(session, row, body.kind, body.index)
+    except lt.LinkedInError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return _person(session, _row(session, row_id))
 
 
 @router.post("/linkedin/people/{row_id}/inmail/sent", response_model=PersonOut)

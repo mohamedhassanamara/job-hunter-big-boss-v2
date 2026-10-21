@@ -284,7 +284,7 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     facts, english, french = _statements(s, pool)
     short, full = school(pool)
     cfg = linkedin.linkedin_settings(s)
-    language = email_language(s, job)
+    language = email_language(s, job, app)
     max_chars = (int(cfg["note_max_chars"]) if kind == "note"
                  else int(cfg["inmail_max_chars"]) if kind == "inmail" else FOLLOWUP_MAX_CHARS)
     warm = row.source == "viewed_profile"
@@ -328,9 +328,39 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     return request, ctx
 
 
-def _draft(drafter: Any, request: LinkedInRequest, ctx: lc.Context) -> dict[str, Any]:
+MAX_HISTORY = 10
+
+
+def _snapshot(message: dict[str, Any]) -> dict[str, Any]:
+    keep = ("text", "subject", "created_at", "feedback", "prompt_version", "edited", "attempts")
+    return {k: message[k] for k in keep if k in message}
+
+
+def _revise(request: LinkedInRequest, previous: dict[str, Any] | None, feedback: str) -> None:
+    """A regeneration with feedback: the model gets the previous message and what you want
+    changed, with the normal sources and rules (the facts checks still apply)."""
+    if previous and previous.get("text") and (feedback or "").strip():
+        request.rules["revision"] = {"previous_text": previous["text"],
+                                     "previous_subject": previous.get("subject"),
+                                     "feedback": feedback.strip()}
+
+
+def _with_history(new: dict[str, Any], previous: dict[str, Any] | None,
+                  feedback: str) -> dict[str, Any]:
+    """The new version keeps what you asked for and every earlier version (you can go back)."""
+    history = list((previous or {}).get("history") or [])
+    if previous and previous.get("text"):
+        history.append(_snapshot(previous))
+    new["history"] = history[-MAX_HISTORY:]
+    new["feedback"] = (feedback or "").strip()
+    return new
+
+
+def _draft(drafter: Any, request: LinkedInRequest, ctx: lc.Context,
+           previous: dict[str, Any] | None = None, feedback: str = "") -> dict[str, Any]:
     from app.services import outreach_check as oc
 
+    _revise(request, previous, feedback)
     def checks(m: Any) -> list[dict[str, str]]:
         found = lc.check(m.text, ctx)
         return found + lc.check_subject(m.subject, ctx) if ctx.kind == "inmail" else found
@@ -347,21 +377,24 @@ def _draft(drafter: Any, request: LinkedInRequest, ctx: lc.Context) -> dict[str,
                 msg, found = retry, retry_found
     except DraftFailed as exc:
         raise LinkedInError(str(exc)) from exc
-    return {"text": msg.text.strip(), "citations": msg.citations, "signal_ids": msg.signal_ids,
+    return _with_history({"text": msg.text.strip(), "citations": msg.citations,
+            "signal_ids": msg.signal_ids,
             **({"subject": " ".join(msg.subject.split())} if ctx.kind == "inmail" else {}),
             "violations": found, "attempts": attempts, "model": drafter.model,
             "prompt_version": drafter.prompt_version, "via": getattr(drafter, "via", "mock"),
             "auth": getattr(drafter, "auth_source", None), "created_at": utcnow().isoformat(),
-            "edited": False, "max_chars": ctx.max_chars}
+            "edited": False, "max_chars": ctx.max_chars}, previous, feedback)
 
 
-def draft_note(engine: Engine, row_id: int, drafter: Any) -> LinkedInOutreach:
+def draft_note(engine: Engine, row_id: int, drafter: Any,
+               feedback: str = "") -> LinkedInOutreach:
     with Session(engine) as s:
         row = s.get(LinkedInOutreach, row_id)
         if row is None:
             raise LinkedInError("Person not found")
         request, ctx = _request(s, row, "note")
-    note = _draft(drafter, request, ctx)
+        previous = dict(row.note or {})
+    note = _draft(drafter, request, ctx, previous, feedback)
     with Session(engine) as s:
         row = s.get(LinkedInOutreach, row_id)
         row.note = note
@@ -371,7 +404,8 @@ def draft_note(engine: Engine, row_id: int, drafter: Any) -> LinkedInOutreach:
         return row
 
 
-def draft_inmail(engine: Engine, row_id: int, drafter: Any) -> LinkedInOutreach:
+def draft_inmail(engine: Engine, row_id: int, drafter: Any,
+                 feedback: str = "") -> LinkedInOutreach:
     """A LinkedIn Premium InMail (subject + a longer body) for someone you're not connected with.
     Same grounding, honesty and banned-phrase checks as the note; you send it yourself."""
     with Session(engine) as s:
@@ -381,7 +415,8 @@ def draft_inmail(engine: Engine, row_id: int, drafter: Any) -> LinkedInOutreach:
         if row.inmail_sent_at is not None:
             raise LinkedInError("The InMail was already sent: undo that first to redraft")
         request, ctx = _request(s, row, "inmail")
-    inmail = _draft(drafter, request, ctx)
+        previous = dict(row.inmail or {})
+    inmail = _draft(drafter, request, ctx, previous, feedback)
     with Session(engine) as s:
         row = s.get(LinkedInOutreach, row_id)
         row.inmail = inmail
@@ -395,7 +430,7 @@ inmail_text = lc.inmail_text
 
 
 def draft_followup(engine: Engine, row_id: int, drafter: Any, *, researcher: Any = None,
-                   fetcher: Any = None) -> LinkedInOutreach:
+                   fetcher: Any = None, feedback: str = "") -> LinkedInOutreach:
     """After they accept: one proof and one direct ask. Fresh company signals are reused; the
     company is researched here only if it has none (same trigger rules as the email)."""
     from app.services import research
@@ -417,7 +452,8 @@ def draft_followup(engine: Engine, row_id: int, drafter: Any, *, researcher: Any
         signals = [{"id": x.id, "fact": x.fact, "quote": x.quote}
                    for x in research.signals(s, company_id, selected_only=True)]
         request, ctx = _request(s, row, "followup", signals)
-    followup = _draft(drafter, request, ctx)
+        previous = dict(row.followup or {})
+    followup = _draft(drafter, request, ctx, previous, feedback)
     with Session(engine) as s:
         row = s.get(LinkedInOutreach, row_id)
         row.followup = followup
@@ -425,6 +461,29 @@ def draft_followup(engine: Engine, row_id: int, drafter: Any, *, researcher: Any
         s.commit()
         s.refresh(row)
         return row
+
+
+def restore_version(s: Session, row: LinkedInOutreach, which: str,
+                    index: int) -> LinkedInOutreach:
+    """Go back to an earlier version of the note, follow-up or InMail: it becomes the current
+    one (checked again, verification stale) and the current one joins the history."""
+    kind = which if which in ("note", "inmail") else "followup"
+    current = dict(getattr(row, kind) or {})
+    history = list(current.get("history") or [])
+    if not 0 <= index < len(history):
+        raise LinkedInError("That version doesn't exist")
+    chosen = history.pop(index)
+    history.append(_snapshot(current))
+    _req, ctx = _request(s, row, kind)
+    restored = {**current, **chosen, "history": history[-MAX_HISTORY:]}
+    restored.pop("verification", None)
+    found = lc.check(restored.get("text", ""), ctx)
+    if kind == "inmail":
+        found += lc.check_subject(restored.get("subject", ""), ctx)
+    restored.update(violations=found, edited=True, max_chars=ctx.max_chars)
+    setattr(row, kind, restored)
+    s.add(row)
+    return row
 
 
 def edit(s: Session, row: LinkedInOutreach, which: str, text: str | None = None,

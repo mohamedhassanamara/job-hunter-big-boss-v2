@@ -60,6 +60,79 @@ class DraftOut(BaseModel):
     # The claim verifier (services/verifier.py): its last run and whether it still applies.
     verification: dict[str, Any] = {}
     verification_state: str = "none"  # passed | failed | error | stale | none
+    # The email type and the language it is written in, with why (services/language.py).
+    mode: str | None = None  # applied | speculative
+    language: str | None = None
+    language_detected: str | None = None  # the listing's language
+    language_reason: str | None = None
+    language_source: str | None = None  # auto | override | job | setting
+    # Draft history: what you asked to change to get this version, and where it came from.
+    feedback: str = ""
+    parent_id: int | None = None
+    source: str = "generated"  # generated | external (pasted from another AI)
+    # Approved without the claim verifier: {at, ignored: [{type, severity, message}], …} or null.
+    unverified_approval: dict[str, Any] | None = None
+
+
+class DraftHistoryItem(BaseModel):
+    id: int
+    version: int
+    status: str
+    created_at: datetime
+    subject: str
+    words: int
+    feedback: str = ""
+    parent_id: int | None = None
+    mode: str | None = None
+    language: str | None = None
+    source: str = "generated"
+    prompt_version: str | None = None
+    unverified: bool = False
+    current: bool = False  # still alive (under review, approved, queued or sent)
+
+
+class GenerateIn(BaseModel):
+    """Optional body of the draft step: what to change, a language, the email type."""
+
+    feedback: str = ""  # "What should change?" (optional): the model edits the draft toward it
+    language: str | None = None  # en | fr: your override (kept for regenerations); auto clears it
+    mode: str | None = None  # applied | speculative
+    base_draft_id: int | None = None  # the draft to edit (default: the one under review)
+
+
+class ApproveUnverifiedIn(BaseModel):
+    confirm: bool = False
+
+
+class ExternalPromptIn(BaseModel):
+    mode: str | None = None
+    language: str | None = None
+
+
+class ExternalPromptOut(BaseModel):
+    prompt: str
+    mode: str
+    language: dict[str, str]
+    chars: int
+    items: list[int]
+    note: str
+    listing_short: bool
+
+
+class ExternalDraftIn(BaseModel):
+    text: str
+    mode: str | None = None
+    language: str | None = None
+
+
+class ExternalCheckOut(BaseModel):
+    subject: str
+    body: str
+    mode: str
+    language: dict[str, str]
+    violations: list[dict[str, Any]]
+    verification: dict[str, Any]
+    errors: int
 
 
 class DraftProgress(BaseModel):
@@ -94,6 +167,7 @@ class QueueItemOut(BaseModel):
     contact_name: str | None
     contact_email: str | None
     company_name: str
+    unverified: bool = False  # approved without the claim verifier
 
 
 class QueueCounts(BaseModel):

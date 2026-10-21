@@ -108,6 +108,12 @@ class OutreachDraft(TableBase, table=True):
     prompt_version: str | None = None
     duration_ms: int | None = None
     error: str | None = Field(default=None, sa_type=Text)
+    # Draft history: the draft this one was regenerated from, and what you asked to change.
+    parent_id: int | None = Field(default=None, foreign_key="outreach_draft.id")
+    feedback: str = Field(default="", sa_type=Text)
+    # Approved without the claim verifier (this draft only): {at, ignored: [violations],
+    # hash, attachment_sha256, contact_id, cv_version_id}. Empty = a normal approval.
+    unverified_approval: dict[str, Any] = json_field(dict)
     test_sent_at: datetime | None = dt_field()
     sent_at: datetime | None = dt_field()
     message_id: str | None = None
@@ -136,6 +142,7 @@ class CoverLetter(TableBase, table=True):
     cv_version_id: int | None = Field(default=None, foreign_key="cv_version.id")
     generator_model: str = "mock"
     prompt_version: str | None = None
+    feedback: str = Field(default="", sa_type=Text)  # what you asked to change (a regeneration)
     plan: dict[str, Any] = json_field(dict)  # the model's output and attempts
     violations: list[dict[str, Any]] = json_field()
     # The claim verifier's last run on this exact text (services/verifier.py).

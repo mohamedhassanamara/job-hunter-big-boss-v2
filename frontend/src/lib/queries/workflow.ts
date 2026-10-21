@@ -10,7 +10,11 @@ import type {
   DiscoveryStatus,
   Draft,
   DraftProgress,
+  DraftGenerateInput,
+  DraftHistoryItem,
   EmailMode,
+  ExternalCheck,
+  ExternalPrompt,
   FullListingResult,
   NavCounts,
   OutreachStep,
@@ -220,7 +224,7 @@ export function useDraftRun(appId: number | undefined, onDone?: (result: { draft
     last.current = status
   }, [status, qc, onDone, progress.data?.draft_id, progress.data?.error])
   const start = useMutation({
-    mutationFn: (mode?: EmailMode) => api.post<DraftProgress>(`/applications/${appId}/draft/generate${mode ? `?mode=${mode}` : ''}`),
+    mutationFn: (input?: DraftGenerateInput) => api.post<DraftProgress>(`/applications/${appId}/draft/generate`, input ?? {}),
     onSuccess: (state) => qc.setQueryData(key, state),
   })
   return { start: start.mutate, starting: start.isPending, state: progress.data, running: status === 'running' || start.isPending, startError: start.error }
@@ -421,5 +425,48 @@ export function useVerifyDraft() {
   return useMutation({
     mutationFn: (id: number) => api.post<Draft>(`/outreach/drafts/${id}/verify`),
     onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** Every version of a job's email with the feedback that made it (go back with Restore). */
+export function useDraftHistory(appId: number | undefined) {
+  return useQuery({
+    queryKey: ['draft-history', appId],
+    queryFn: () => api.get<DraftHistoryItem[]>(`/applications/${appId}/draft/history`),
+    enabled: appId !== undefined,
+  })
+}
+
+/** Approve THIS draft without the claim verifier or the blocking checks (the dialog lists them). */
+export function useApproveUnverified() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post<Draft>(`/outreach/drafts/${id}/approve-unverified`, { confirm: true }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** One prompt for another AI (Gemini, ChatGPT…): the listing, the recipient, the relevant experience, the rules. */
+export function useExternalPrompt(appId: number) {
+  return useMutation({
+    mutationFn: (input: { mode?: EmailMode; language?: 'en' | 'fr' }) => api.post<ExternalPrompt>(`/applications/${appId}/external-prompt`, input),
+  })
+}
+
+/** The checks and the claim verifier (Claude, ~20-60 s) on a draft pasted from another AI. */
+export function useExternalCheck(appId: number) {
+  return useMutation({
+    mutationFn: (input: { text: string; mode?: EmailMode }) => api.post<ExternalCheck>(`/applications/${appId}/external-draft/check`, input),
+  })
+}
+
+export function useExternalSave(appId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { text: string; mode?: EmailMode }) => api.post<Draft>(`/applications/${appId}/external-draft`, input),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['draft-history', appId] })
+      invalidateWork(qc)
+    },
   })
 }

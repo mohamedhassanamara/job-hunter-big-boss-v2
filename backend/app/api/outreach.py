@@ -33,10 +33,17 @@ from app.providers.base import SendFailed
 from app.providers.registry import email_drafter, hook_checker, mailer
 from app.providers.registry import researcher as research_provider
 from app.schemas.outreach import (
+    ApproveUnverifiedIn,
     DraftContact,
+    DraftHistoryItem,
     DraftOut,
     DraftPatch,
     DraftProgress,
+    ExternalCheckOut,
+    ExternalDraftIn,
+    ExternalPromptIn,
+    ExternalPromptOut,
+    GenerateIn,
     MentionIn,
     OutreachStep,
     QueueCounts,
@@ -47,7 +54,7 @@ from app.schemas.outreach import (
 )
 from app.services import applied_check as ac
 from app.services import contacts as contacts_svc
-from app.services import get_contact, outreach, pipeline, send_queue, verifier
+from app.services import external_ai, get_contact, outreach, pipeline, send_queue, verifier
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -186,6 +193,14 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 verification=d.verification or {},
                 verification_state=verifier.state(d.verification,
                                                   verifier.email_text(session, d)),
+                mode=(d.plan or {}).get("mode"),
+                language=(d.plan or {}).get("language"),
+                language_detected=((d.plan or {}).get("language_choice") or {}).get("detected"),
+                language_reason=((d.plan or {}).get("language_choice") or {}).get("reason"),
+                language_source=((d.plan or {}).get("language_choice") or {}).get("source"),
+                feedback=d.feedback or "", parent_id=d.parent_id,
+                source=(d.plan or {}).get("source") or "generated",
+                unverified_approval=d.unverified_approval or None,
             )
         )
     return out
@@ -274,6 +289,7 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
         session.commit()  # keep the verdicts: the review screen shows each claim
         raise HTTPException(409, str(exc)) from exc
     d.status = DraftStatus.approved
+    d.unverified_approval = {}  # a verified approval
     session.add(d)
     from app.eval.emails import record
 
@@ -384,7 +400,13 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.rejected:
         raise HTTPException(409, "Only rejected drafts can be restored")
+    for other in session.exec(select(OutreachDraft).where(
+            OutreachDraft.application_id == d.application_id,
+            OutreachDraft.status == DraftStatus.draft, OutreachDraft.id != d.id)).all():
+        other.status = DraftStatus.rejected  # one version under review at a time
+        session.add(other)
     d.status = DraftStatus.draft
+    d.unverified_approval = {}
     session.add(d)
     app = get_or_404(session, Application, d.application_id)
     pipeline.log_event(session, app, EventKind.note, "Email draft restored")
@@ -419,12 +441,18 @@ def draft_progress_state(workspace: str, app_id: int) -> dict[str, Any] | None:
 
 @router.post("/applications/{app_id}/draft/generate", status_code=202,
              response_model=DraftProgress)
-def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
-                   workspace: WorkspaceDep, mode: str | None = None) -> DraftProgress:
+def generate_draft(app_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+                   mode: str | None = None, body: GenerateIn | None = None) -> DraftProgress:
     """The email draft step: research the company (fresh signals are reused), then Claude (your
     subscription) writes the introduction; the mock in the sandbox and tests. A job with a
     posting gets the application follow-up instead (no research); `?mode=speculative` asks for
-    the introduction anyway, `?mode=applied` for the follow-up. Poll /draft/progress."""
+    the introduction anyway, `?mode=applied` for the follow-up. The optional body regenerates
+    with feedback ("What should change?": the model edits the draft under review toward it), or
+    in a language you pick. Poll /draft/progress."""
+    body = body or GenerateIn()
+    mode = mode or body.mode
+    if body.language not in (None, "auto", "en", "fr"):
+        raise HTTPException(422, "language must be auto, en or fr")
     if mode not in (None, *outreach.EMAIL_MODES):
         raise HTTPException(422, f"mode must be one of {', '.join(outreach.EMAIL_MODES)}")
     get_or_404(session, Application, app_id, "Application")
@@ -448,7 +476,9 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
         try:
             draft = outreach.generate(engine, app_id, drafter, researcher=researcher,
                                       fetcher=_demo_fetcher() if demo else None,
-                                      progress=progress, hook_checker=checker, mode=mode)
+                                      progress=progress, hook_checker=checker, mode=mode,
+                                      language=body.language, feedback=body.feedback,
+                                      base_draft_id=body.base_draft_id)
             with _draft_runs_lock:
                 _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
         except Exception as exc:  # noqa: BLE001 (shown to the user)
@@ -464,6 +494,74 @@ def _demo_fetcher():  # noqa: ANN202
     from app.services.research import SampleFetcher
 
     return SampleFetcher()
+
+
+@router.get("/applications/{app_id}/draft/history", response_model=list[DraftHistoryItem])
+def draft_history(app_id: int, session: SessionDep) -> list[dict[str, Any]]:
+    """Every version of this job's email with the feedback that produced it (newest first);
+    "Go back" is Restore on an older one."""
+    get_or_404(session, Application, app_id, "Application")
+    return outreach.draft_history(session, app_id)
+
+
+@router.post("/outreach/drafts/{draft_id}/approve-unverified", response_model=DraftOut)
+def approve_unverified(draft_id: int, body: ApproveUnverifiedIn, session: SessionDep) -> DraftOut:
+    """Approve this draft WITHOUT the claim verifier or the blocking checks (this draft only;
+    `confirm` must be true: the dialog lists what is outstanding). It is marked "approved without
+    verification" with the date and the ignored issues; the send gate still holds the exact text,
+    attachment, contact and CV version."""
+    if not body.confirm:
+        raise HTTPException(422, "Confirm that you want to approve without verification")
+    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
+    from app.services import contact_check
+
+    alerts = contact_check.active(session, d.contact_id) if d.contact_id else []
+    try:
+        outreach.approve_unverified(session, d, alerts)
+    except outreach.OutreachError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    session.refresh(d)
+    return _drafts_out(session, [d])[0]
+
+
+@router.post("/applications/{app_id}/external-prompt", response_model=ExternalPromptOut)
+def external_prompt(app_id: int, body: ExternalPromptIn, session: SessionDep) -> dict[str, Any]:
+    """One self-contained prompt for another AI (Gemini, ChatGPT…): the listing, the recipient,
+    only the relevant experience, the structure and rules, the language rule and an approved
+    example for tone. No phone, no email address, no other contacts."""
+    if body.mode not in (None, *outreach.EMAIL_MODES):
+        raise HTTPException(422, f"mode must be one of {', '.join(outreach.EMAIL_MODES)}")
+    try:
+        return external_ai.build_prompt(session, app_id, mode=body.mode, language=body.language)
+    except external_ai.ExternalError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@router.post("/applications/{app_id}/external-draft/check", response_model=ExternalCheckOut)
+def external_check(app_id: int, body: ExternalDraftIn, session: SessionDep,
+                   workspace: WorkspaceDep) -> dict[str, Any]:
+    """The checks and the claim verifier (Claude, ~20-60 s) on a draft pasted from another AI:
+    each claim with its verdict. Nothing is stored; save it as a draft or discard it."""
+    try:
+        return external_ai.check_pasted(session, app_id, body.text, mode=body.mode,
+                                        verifier_=verifier.for_workspace(session, workspace),
+                                        language=body.language)
+    except external_ai.ExternalError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@router.post("/applications/{app_id}/external-draft", response_model=DraftOut)
+def external_save(app_id: int, body: ExternalDraftIn, session: SessionDep,
+                  workspace: WorkspaceDep) -> DraftOut:
+    """Keep the pasted draft as the draft under review (checked and verified as above)."""
+    try:
+        d = external_ai.save_pasted(session, app_id, body.text, mode=body.mode,
+                                    verifier_=verifier.for_workspace(session, workspace),
+                                    language=body.language)
+    except external_ai.ExternalError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return _drafts_out(session, [d])[0]
 
 
 @router.get("/applications/{app_id}/draft/progress", response_model=DraftProgress)
@@ -588,6 +686,7 @@ def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
                 contact_name=d.contact.full_name if d.contact else None,
                 contact_email=d.contact.email if d.contact else None,
                 company_name=d.company_name,
+                unverified=bool(d.unverified_approval),
             )
         )
     # Pending first (in send order), then history newest first.

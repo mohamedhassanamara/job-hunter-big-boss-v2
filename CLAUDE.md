@@ -253,6 +253,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   unprompted location/visa, a listing under `applied_check.SNIPPET_CHARS` (1,500) are warnings (the Job page offers
   Fetch/Paste first; fetching never touches LinkedIn). The Claude verifier gets the listing, "Based in / Work authorization /
   Relocation" facts and the application status for these emails. Don't re-add the old blocking rules here.
+- Language (`services/language.py`): detected among en/fr/de/es/ar; write in the listing's language only if it is a
+  working-level language in the profile AND en/fr (the app builds greetings/subjects/years in those two), else English;
+  explicit choices (draft dropdown, `application.letter_language`, Settings → Email) win; `plan.language_choice` stores
+  the reason. Never add a two-language voter again: it read German as French.
+- Regenerate with feedback: `outreach.generate(feedback=, base_draft_id=, language=)` puts `rules["revision"]` (previous
+  draft + feedback) in the request; prompt sections `revise` (outreach v13, linkedin v5, cover_letter v8). Drafts are kept
+  (`parent_id`, `feedback`, `draft_history`); LinkedIn keeps `history` in the message JSON; letters keep versions.
+- Approval without verification (`outreach.approve_unverified`, `verifier.send_gate`): this draft only, records
+  `unverified_approval` (ignored issues + hashes); the send gate still checks text/attachment hash, contact and CV
+  version; a send-back clears it; it is never recorded in the regression set.
+- Copy for another AI (`services/external_ai.py`, prompt sections `external*`): prompt = listing + recipient + only the
+  relevant experience + rules + language + an approved example; never phone/email/other contacts. A pasted draft is
+  checked (code + Claude verifier) before it can be saved as a draft.
 - The **speculative email** (no posting, or `?mode=speculative`) keeps the introduction: hook from verified signals,
   intro line built by code (`intro_check.intro_line`), their problem + 1-2 proofs, a direct opening question.
   Checks in `services/intro_check.py`. The listing is never mentioned, nor location/visa.

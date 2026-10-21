@@ -121,19 +121,10 @@ def html_to_text(value: str | None) -> str:
 
 # ------------------------------------------------------------------------------ language
 
-_STOP_WORDS = {
-    "fr": {"le", "la", "les", "des", "du", "de", "et", "est", "pour", "dans", "une", "un",
-           "avec", "vous", "nous", "sur", "au", "aux", "ce", "cette", "qui", "que", "en", "par",
-           "sont", "être", "notre", "nos", "votre", "vos", "ou", "il", "elle", "leur", "chez",
-           "poste", "équipe", "expérience", "d", "l", "à"},
-    "en": {"the", "and", "of", "to", "in", "for", "with", "you", "we", "our", "is", "are", "be",
-           "on", "as", "at", "by", "this", "that", "will", "your", "an", "or", "from", "have",
-           "team", "role", "experience", "who", "it", "can", "about", "their"},
-}
-
-
 def detect_language(text: str | None) -> str:
-    """"fr" or "en" for a listing: a stop-word vote (English when there's nothing to go on)."""
-    words = re.findall(r"[a-zà-ÿœæ]+", (text or "").lower().replace("’", "'"))
-    votes = {lang: sum(w in stops for w in words) for lang, stops in _STOP_WORDS.items()}
-    return "fr" if votes["fr"] > votes["en"] else "en"
+    """"fr" or "en" for a listing (what a letter or note can be written in): French only when the
+    listing really is French; a German listing is English here (services/language.py decides the
+    emails' language with your profile)."""
+    from app.services.language import detect
+
+    return "fr" if detect(text)[0] == "fr" else "en"

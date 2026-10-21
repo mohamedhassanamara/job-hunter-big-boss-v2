@@ -194,6 +194,7 @@ def _back_to_review(s: Session, item: SendQueueItem, draft: OutreachDraft, entry
     message = f"Not sent: {reason}. It's back in review: approve it again to re-verify"
     item.status, item.error = QueueItemStatus.cancelled, message
     draft.status = DraftStatus.draft
+    draft.unverified_approval = {}  # approving it again (or unverified again) is a new decision
     draft.violations = [v for v in draft.violations or [] if v.get("type") != "send_gate"] \
         + [violation("send_gate", message, "body")]
     entry.error = message
@@ -247,7 +248,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
                 email.attachment_name
             # The final gate: exactly the text and CV that were approved and verified.
             if reason := verifier.send_gate(draft, email.subject, email.body,
-                                            email.attachment_path):
+                                            email.attachment_path, email.to):
                 _back_to_review(s, item, draft, entry, reason, now)
                 return "blocked"
             message_id = mailer_for(s).send(email)

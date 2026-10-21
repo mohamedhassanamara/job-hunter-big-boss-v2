@@ -433,6 +433,13 @@ a ghosting suggestion at `applied_at + ghost_after_days`. This table only record
 | model | str | |
 | edited | bool | True once the user changed the generated text |
 
+`outreach_draft` also stores `parent_id` (the draft it was regenerated from), `feedback` (what you asked to change)
+and `unverified_approval` (`{at, ignored: [{type, severity, message}], hash, attachment_sha256, contact_id,
+recipient, cv_version_id, verification_state}` for an approval without the claim verifier; empty = a normal
+approval); `plan.language_choice` = `{language, detected, source: auto|override|job|setting, reason}` and
+`plan.source: "external"` for a draft pasted from another AI. `cover_letter.feedback` keeps the same for letters;
+LinkedIn messages keep `feedback` and `history` inside their JSON. Migration 0030.
+
 `outreach_draft` also stores `cv_version_id` (the approved CV it's written from and attaches), `plan` (the
 model's sentences with citations, attempts), `violations` (the checks), `prompt_version`, `duration_ms`, `error`,
 `test_sent_at`, `sent_at`, `message_id`. `body` is your text only; the signature (sign-off + name; contact line opt-in) and an optional last line are added at send time.

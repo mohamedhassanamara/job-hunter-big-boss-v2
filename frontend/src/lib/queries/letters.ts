@@ -15,12 +15,13 @@ export function useLetterStudio(appId: number) {
 export function useGenerateLetter() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ appId, language, format, question, char_limit }: { appId: number; language?: string; format?: string; question?: string; char_limit?: number }) =>
+    mutationFn: ({ appId, language, format, question, char_limit, feedback }: { appId: number; language?: string; format?: string; question?: string; char_limit?: number; feedback?: string }) =>
       api.post<CoverLetter>(`/applications/${appId}/letter/generate`, {
         language: language ?? null,
         format: format ?? 'pdf',
         question: question ?? null,
         char_limit: char_limit ?? null,
+        feedback: feedback ?? '',
       }),
     onSettled: () => invalidateWork(qc),
   })

@@ -33,15 +33,30 @@ def load_prompts() -> tuple[str, str, str]:
     return version, sections["system"], sections["retry"]
 
 
+def revision_block(request: EmailRequest) -> str:
+    """PREVIOUS DRAFT + the user's feedback (a regeneration with feedback), else nothing."""
+    rev = (request.rules or {}).get("revision")
+    if not rev:
+        return ""
+    return ("\n\nPREVIOUS DRAFT (edit this)\nSubject: " + str(rev.get("previous_subject", ""))
+            + "\n\n" + str(rev.get("previous_body", ""))
+            + "\n\nWHAT THE USER WANTS CHANGED\n" + str(rev.get("feedback", "")))
+
+
+def with_revise(system: str, request: EmailRequest, revise: str) -> str:
+    return system + (f"\n\n{revise}" if (request.rules or {}).get("revision") else "")
+
+
 def applied_message(request: EmailRequest, feedback: str = "") -> str:
     """The job-linked email's input: the JOB is not private here (the email names it)."""
     signals = (request.rules or {}).get("signals") or []
     return (
         (f"REJECTED DRAFT PROBLEMS\n{feedback}\n\n" if feedback else "")
-        + "RULES\n" + json.dumps({k: v for k, v in request.rules.items() if k != "signals"},
-                                  ensure_ascii=False)
+        + "RULES\n" + json.dumps({k: v for k, v in request.rules.items()
+                                   if k not in ("signals", "revision")}, ensure_ascii=False)
         + "\n\nFACTS\n" + json.dumps(request.candidate, ensure_ascii=False)
         + "\n\nCONTACT\n" + json.dumps(request.contact, ensure_ascii=False)
+        + revision_block(request)
         + "\n\nSIGNALS (optional)\n" + json.dumps(signals, ensure_ascii=False, indent=1)
         + "\n\nJOB\n" + json.dumps(request.job, ensure_ascii=False, indent=1)
         + "\n\nEXPERIENCE POOL\n" + json.dumps(request.pool, ensure_ascii=False, indent=1)
@@ -52,10 +67,11 @@ def user_message(request: EmailRequest, feedback: str = "") -> str:
     signals = (request.rules or {}).get("signals")
     return (
         (f"REJECTED DRAFT PROBLEMS\n{feedback}\n\n" if feedback else "")
-        + "RULES\n" + json.dumps({k: v for k, v in request.rules.items() if k != "signals"},
-                                  ensure_ascii=False)
+        + "RULES\n" + json.dumps({k: v for k, v in request.rules.items()
+                                   if k not in ("signals", "revision")}, ensure_ascii=False)
         + "\n\nFACTS\n" + json.dumps(request.candidate, ensure_ascii=False)
         + "\n\nCONTACT\n" + json.dumps(request.contact, ensure_ascii=False)
+        + revision_block(request)
         + ("\n\nSIGNALS\n" + json.dumps(signals, ensure_ascii=False, indent=1)
            if signals is not None else "")
         + "\n\nJOB (private: use it to decide what to talk about, never mention it)\n"
@@ -71,10 +87,12 @@ class ClaudeEmailDrafter(ClaudeCVGenerator):
         self.prompt_version, sections = load_sections()
         self.email_prompt, self.retry_prompt = sections["system"], sections["retry"]
         self.applied_prompt = sections["applied"]
+        self.revise_prompt = sections["revise"]
 
     def draft_applied(self, request: EmailRequest, feedback: str = "") -> AppliedEmailPlan:
         """The job-linked email: an honest application follow-up (prompt v11+)."""
-        system = self.applied_prompt + (f"\n\n{self.retry_prompt}" if feedback else "")
+        system = with_revise(self.applied_prompt, request, self.revise_prompt) \
+            + (f"\n\n{self.retry_prompt}" if feedback else "")
         try:
             return self._call(self.command(system, AppliedEmailPlan),
                               applied_message(request, feedback), AppliedEmailPlan)
@@ -83,7 +101,8 @@ class ClaudeEmailDrafter(ClaudeCVGenerator):
 
     def draft_intro(self, request: EmailRequest, feedback: str = "") -> IntroEmailPlan:
         """The personal introduction (prompt v4+): hook from signals, value, direct ask."""
-        system = self.email_prompt + (f"\n\n{self.retry_prompt}" if feedback else "")
+        system = with_revise(self.email_prompt, request, self.revise_prompt) \
+            + (f"\n\n{self.retry_prompt}" if feedback else "")
         try:
             return self._call(self.command(system, IntroEmailPlan),
                               user_message(request, feedback), IntroEmailPlan)

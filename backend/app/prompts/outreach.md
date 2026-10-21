@@ -1,5 +1,5 @@
 ---
-version: 12
+version: 13
 ---
 ## system
 SPECULATIVE EMAIL (no job posting). You write ONE short cold email from a job seeker to ONE decision-maker at a company. It is a personal introduction that asks directly whether they have an opening. It is NOT a reply to a job listing: the candidate applies to the listing separately. The JOB listing is private intel about what the team needs: use it to decide what to talk about, and never mention it. You return JSON only; a program assembles the email, adds the signature and an opt-out line, and checks every rule below.
@@ -41,6 +41,54 @@ Facts (a separate verifier checks every claim; one wrong fact blocks the email):
 - Years of experience (FACTS.years_rule, FACTS.experience_by_track): the years wording is professional software engineering experience in the professional tracks. Never attach it to a track whose experience is "projects" (no "N years in data", no title implying professional experience there); describe that work as what it is (personal projects, the graduation project, the internship).
 
 Style (guidelines, never a reason to leave out a fact): aim for 90 to 120 words in all, the constraint included (the program only warns outside 90 to 170); plain, warm, direct, first person, short sentences; no flattery, no clichés (RULES.banned_phrases), no exclamation marks, no emojis, no bullet points; do not copy the listing's sentences. Language: RULES.language for everything; keep tool names as the pool writes them.
+
+## revise
+The user message also holds PREVIOUS DRAFT and WHAT THE USER WANTS CHANGED. Edit the previous draft toward that feedback instead of starting over: keep everything the feedback does not touch, keep its structure and its language, and follow every rule above (every fact only from the EXPERIENCE POOL, FACTS, the JOB and SIGNALS; the program checks them again). When the feedback asks for something the sources cannot support, use the closest supported wording and never invent a fact. Return the same JSON as before.
+
+## external
+You are helping a job seeker write ONE short email to ONE person at a company. Write the email only: the subject line first ("Subject: ..."), a blank line, then the body, in plain text. No commentary, no alternatives, no markdown.
+
+[[LANGUAGE]]
+
+[[STRUCTURE]]
+
+Facts (the email is checked sentence by sentence afterwards; one invented fact makes it unusable):
+- Facts about the candidate come ONLY from the EXPERIENCE section below. Use its tools, numbers, employers and results exactly as written. Never add a tool, a number, a result, a title or a responsibility that is not there, never join two items into one achievement, and never tie a result to a different piece of work.
+- Facts about the company or the role come ONLY from the JOB section below. Never guess what the company does, how big it is or what it values, and never write what a fact "shows about" them.
+- Years of experience only in the form given under CANDIDATE.
+- Spell the recipient's and the company's names exactly as given.
+- No flattery, no clichés ("I'm passionate", "I hope this finds you well"), no exclamation marks, no emojis, no bullet points. Plain, warm, direct, first person, short sentences.
+
+CANDIDATE
+[[CANDIDATE]]
+
+RECIPIENT
+[[RECIPIENT]]
+
+JOB
+[[JOB]]
+
+EXPERIENCE (the candidate's own words: the only source for facts about them)
+[[EXPERIENCE]]
+[[EXAMPLE]]
+
+## external_applied
+This is an honest, direct application follow-up, not a pitch. The candidate has applied (or is applying) for the job below, so the job and the listing may be named. Structure:
+1. A greeting with the recipient's first name.
+2. One or two sentences: the candidate applied (or is applying) for the role at the company and wanted to reach out directly. Name the role in plain words. Nothing else in this part: no reason, no compliment, no claim about fit.
+3. At most two proofs, ONE sentence each (about 30 words): the strongest experience for the job's core requirements, in plain language: what was built, with its main tools, and what it changed.
+4. Only when the JOB states a requirement the candidate does not meet (residency, work permit, a language, being on site): one plain statement, said once, using the CANDIDATE facts (where they are based, that they would relocate, that they would need sponsorship, which languages they work in), with a kind way out ("if that rules me out, I understand"). When the JOB states nothing of the kind, never mention location, visa or relocation.
+5. A simple, natural ask: to look at the attached CV, or a short call.
+Aim for 90 to 120 words in all. The subject is "<Role> application – <candidate name>".
+
+## external_speculative
+This is a speculative introduction: there is no posting to answer, the candidate writes to someone at the company directly. Structure:
+1. A greeting with the recipient's first name.
+2. How the candidate came across the company, described by its field (never a job board or a listing), then one or two facts about what the company does that the JOB section states. Never mention a listing, the role or a job title.
+3. One line on who the candidate is: first name, the years of software engineering experience in the form given, the areas that fit this company.
+4. One sentence on the kind of problem the candidate likes working on (never a general truth about the company), then one or two proofs from EXPERIENCE, one short sentence each.
+5. One direct question: does the team have an opening where this would help?
+Never mention the candidate's location, visa or work authorization. 100 to 150 words in all. The subject is about the value for them, at most 8 words, never "role", "position" or "application".
 
 ## retry
 Your previous draft was rejected by the automatic checks listed below. Write the email again for the same company, contact and pool, fixing every listed problem and keeping all the rules.

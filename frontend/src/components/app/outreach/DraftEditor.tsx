@@ -1,18 +1,21 @@
-import { CircleCheck, CircleX, FileText, ListPlus, Mail, RefreshCw, RotateCcw, Send, TriangleAlert, X } from 'lucide-react'
+import { CircleCheck, CircleX, FileText, ListPlus, Mail, RefreshCw, RotateCcw, Send, ShieldOff, TriangleAlert, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, ToneBadge } from '@/components/app/badges'
 import { ContactAlertBanner } from '@/components/app/ContactAlertBanner'
+import { ApproveUnverifiedDialog, UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
+import { RegenerateDialog } from '@/components/app/RegenerateDialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input, Textarea } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useDraftAction, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend, useVerifyDraft } from '@/lib/queries/workflow'
+import { useApproveUnverified, useDraftAction, useDraftHistory, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend, useVerifyDraft } from '@/lib/queries/workflow'
 import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft, Violation } from '@/lib/types'
@@ -49,6 +52,71 @@ function Checks({ violations, contactFlagged = false }: { violations: Violation[
         </li>
       ))}
     </ul>
+  )
+}
+
+const LANGUAGE_NAME: Record<string, string> = { en: 'English', fr: 'French', de: 'German', es: 'Spanish', ar: 'Arabic' }
+
+/** The language the email is written in and why, with a dropdown to override it (regenerates). */
+function LanguageLine({ draft, editable, onPick, busy }: { draft: Draft; editable: boolean; onPick: (l: 'auto' | 'en' | 'fr') => void; busy: boolean }) {
+  if (!draft.language) return null
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs text-fg-muted" data-tour="outreach-language">
+      <span>
+        <span className="font-medium text-fg">Language: {LANGUAGE_NAME[draft.language] ?? draft.language}</span>
+        {draft.language_reason ? ` · ${draft.language_reason.replace(/^[A-Za-z]+: /, '')}` : ''}
+      </span>
+      {editable && (
+        <Select
+          aria-label="Email language"
+          size="sm"
+          disabled={busy}
+          value={draft.language_source === 'override' ? draft.language : 'auto'}
+          onValueChange={(v) => onPick(v as 'auto' | 'en' | 'fr')}
+          options={[
+            { value: 'auto', label: 'Automatic' },
+            { value: 'en', label: 'Write in English' },
+            { value: 'fr', label: 'Write in French' },
+          ]}
+          className="w-44"
+        />
+      )}
+    </div>
+  )
+}
+
+/** Every version of this email with the feedback that made it; Restore goes back to one. */
+function DraftHistory({ draft }: { draft: Draft }) {
+  const history = useDraftHistory(draft.application_id)
+  const action = useDraftAction()
+  const rows = history.data ?? []
+  if (rows.length < 2) return null
+  return (
+    <details className="rounded-md border border-border bg-surface px-3 py-2 text-sm" data-tour="outreach-history">
+      <summary className="cursor-default text-xs font-medium text-fg-subtle">Versions ({rows.length}): each with what you asked to change</summary>
+      <ul className="mt-2 divide-y divide-border">
+        {rows.map((r) => (
+          <li key={r.id} className="flex items-start gap-2 py-1.5">
+            <span className="w-8 shrink-0 text-xs font-medium text-fg-muted tabular-nums">v{r.version}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate">{r.subject}</span>
+              <span className="block text-xs text-fg-subtle">
+                {relativeTime(r.created_at)} · {r.words} words{r.source === 'external' ? ' · from another AI' : ''}
+                {r.feedback ? ` · “${r.feedback}”` : r.parent_id ? ' · regenerated' : ''}
+              </span>
+            </span>
+            {r.id === draft.id ? (
+              <span className="text-xs text-fg-subtle">this one</span>
+            ) : r.status === 'rejected' && draft.status === 'draft' ? (
+              <Button size="xs" variant="ghost" disabled={action.isPending} onClick={() => action.mutate({ id: r.id, action: 'restore' }, { onSuccess: () => toast.success(`Back to v${r.version}`), onError: (e) => toast.error(e.message) })}>
+                <RotateCcw />
+                Restore
+              </Button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </details>
   )
 }
 
@@ -106,6 +174,9 @@ export function DraftEditor({
   const queueDraft = useQueueDraft()
   const mention = useMentionApplication()
   const verify = useVerifyDraft()
+  const approveUnverified = useApproveUnverified()
+  const [regenOpen, setRegenOpen] = useState(false)
+  const [unverifiedOpen, setUnverifiedOpen] = useState(false)
   const errors = draft.violations.filter((v) => v.severity === 'error')
   const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
@@ -179,6 +250,27 @@ export function DraftEditor({
             </span>
           </Tooltip>
         </div>
+        <LanguageLine
+          draft={draft}
+          editable={editable}
+          busy={regenerate.running}
+          onPick={(l) => regenerate.start({ language: l, base_draft_id: draft.id }, { onError: (e) => toast.error(e.message) })}
+        />
+        {draft.unverified_approval && (
+          <div className="space-y-1">
+            <UnverifiedBadge at={draft.unverified_approval.at} ignored={draft.unverified_approval.ignored.length} />
+            {draft.unverified_approval.ignored.length > 0 && (
+              <details className="text-xs text-fg-muted">
+                <summary className="cursor-default">Ignored when you approved it</summary>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                  {draft.unverified_approval.ignored.map((i, n) => (
+                    <li key={n}>{i.message}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
@@ -287,6 +379,7 @@ export function DraftEditor({
           </div>
         )}
         <Sources draft={draft} />
+        <DraftHistory draft={draft} />
         {draft.test_sent_at && (
           <p className="text-xs text-fg-subtle">Test sent to you {relativeTime(draft.test_sent_at)}</p>
         )}
@@ -313,10 +406,7 @@ export function DraftEditor({
                 <Kbd>R</Kbd>
               </Button>
               <CritiqueButton kind="email" id={draft.id} />
-              <Button
-                onClick={() => regenerate.start(undefined, { onError: (e) => toast.error(e.message) })}
-                disabled={regenerate.running}
-              >
+              <Button onClick={() => setRegenOpen(true)} disabled={regenerate.running}>
                 <RefreshCw className={regenerate.running ? 'animate-spin' : undefined} />
                 {regenerate.running ? 'Drafting…' : 'Regenerate'}
               </Button>
@@ -333,6 +423,14 @@ export function DraftEditor({
                 <Send />
                 {testSend.isPending ? 'Sending…' : 'Send test to me'}
               </Button>
+              <Tooltip content="Skips the claim verifier and the blocking checks for this draft only; you confirm what is ignored">
+                <span>
+                  <Button variant="outline" onClick={() => setUnverifiedOpen(true)} disabled={approving || verify.isPending || approveUnverified.isPending}>
+                    <ShieldOff />
+                    Approve without verification
+                  </Button>
+                </span>
+              </Tooltip>
               <Tooltip
                 content={
                   draft.contact_alerts.length
@@ -393,6 +491,31 @@ export function DraftEditor({
           )}
         </div>
       </div>
+      <RegenerateDialog
+        open={regenOpen}
+        onClose={() => setRegenOpen(false)}
+        title="Regenerate this email"
+        pending={regenerate.running}
+        onSubmit={(feedback) => {
+          setRegenOpen(false)
+          regenerate.start({ feedback, base_draft_id: draft.id }, { onError: (e) => toast.error(e.message) })
+        }}
+      />
+      <ApproveUnverifiedDialog
+        draft={draft}
+        open={unverifiedOpen}
+        onClose={() => setUnverifiedOpen(false)}
+        pending={approveUnverified.isPending}
+        onConfirm={() =>
+          approveUnverified.mutate(draft.id, {
+            onSuccess: () => {
+              setUnverifiedOpen(false)
+              toast.success('Approved without verification', { description: 'It is marked as such in the queue and on the job.' })
+            },
+            onError: (e) => toast.error(e.message),
+          })
+        }
+      />
     </div>
   )
 }
