@@ -1,0 +1,315 @@
+{
+ "config": {
+  "name": "gemini-3.5-flash-lite__no-thinking",
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  }
+ },
+ "cv_total_seconds": 46.9,
+ "cv": {
+  "page_count": 1,
+  "fill_pct": 87.9,
+  "violations": {
+   "errors": [],
+   "warnings": [
+    "[summary_style] summary: The summary still breaks the writing guide after one retry: opens like another CV (“Software engineer with 3…”): vary the opening"
+   ]
+  },
+  "bullets_changed": [],
+  "numbers_or_terms_added": [],
+  "numbers_or_terms_dropped": [],
+  "summary": "Software engineer with 3 years of experience in mobile and backend development, specializing in cross-platform applications and scalable API integrations. Recent work includes building production Flutter applications, refactoring legacy codebases to Riverpod, and developing a privacy-first resume parsing engine.",
+  "summary_numbers_not_in_pool": [],
+  "skills": [
+   "Mobile & Frontend: Flutter, Clean Architecture, Riverpod, Provider, GetX, GoRouter, RESTful APIs, Unit/Widget/Integration Testing",
+   "Core Languages: Dart, Python, Java, SQL, Bash",
+   "DevOps, Cloud & Release: Docker, Git, GitHub Actions (CI/CD), Firebase (Auth, Crashlytics, Remote Config), Google Play Console, TestFlight",
+   "Backend & Data Engineering: Spring Boot, FastAPI, PostgreSQL, MQTT"
+  ],
+  "tailoring_report": {
+   "adapted": 0,
+   "original": 21,
+   "fallbacks": [],
+   "verifier": null
+  },
+  "summary_grounding": {
+   "attempts": 2,
+   "rejected": [
+    [
+     {
+      "text": "Mobile engineer with 3 years of experience building production Flutter applications and scalable backend integrations.",
+      "citations": [
+       21,
+       23
+      ],
+      "reasons": [
+       "years claim “3 years” isn't allowed (write exactly “3 years of software engineering experience”)"
+      ]
+     }
+    ]
+   ],
+   "fallback": null,
+   "style": [
+    {
+     "summary": [
+      "opens like another CV (“Software engineer with 3…”): vary the opening"
+     ],
+     "short": []
+    },
+    {
+     "summary": [
+      "opens like another CV (“Software engineer with 3…”): vary the opening"
+     ],
+     "short": []
+    }
+   ]
+  }
+ },
+ "cv_verifier_records": [],
+ "cv_model": {
+  "calls": 2,
+  "valid_json_first_try": [
+   true,
+   true
+  ],
+  "valid_schema_first_try": [
+   true,
+   true
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 2,
+  "retries_429": 0,
+  "retries_503": 0,
+  "retries_other": 0,
+  "model_seconds": 44.8,
+  "tokens_in": 15250,
+  "tokens_out": 2216,
+  "tokens_thinking": 0,
+  "keys_used": [
+   "key 1",
+   "key 2"
+  ]
+ },
+ "email_total_seconds": 5.7,
+ "email": {
+  "language_chosen": "en",
+  "language_rule": "en",
+  "language_matches_rule": true,
+  "detected_language_of_text": [
+   "en",
+   25
+  ],
+  "words": 127,
+  "words_range": "90-170",
+  "attempts": 2,
+  "violations": {
+   "errors": [],
+   "warnings": [
+    "[cv_copy] experience 1: “Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.” reads like a CV bullet",
+    "[cv_copy] experience 2: “Engineered the complete Flutter frontend for the \"Lovester\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.” reads like a CV bullet"
+   ]
+  },
+  "subject": "Flutter developer application – Mohamed Hassen Amara",
+  "full_text": "Subject: Flutter developer application – Mohamed Hassen Amara\n\nHi Adam,\n\nI'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.\n\nShipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization. Engineered the complete Flutter frontend for the \"Lovester\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.\n\nI am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.\n\nPlease take a look at my attached CV, and let me know if you are open to a short call.\n\nBest regards,\nMohamed Hassen Amara",
+  "verifier_status": "passed",
+  "verifier_would_run_in_production": true,
+  "claims": [
+   {
+    "sentence": "Subject: Flutter developer application – Mohamed Hassen Amara",
+    "claim": "The candidate is applying for the Flutter developer role",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": ""
+   },
+   {
+    "sentence": "Subject: Flutter developer application – Mohamed Hassen Amara",
+    "claim": "The candidate's name is Mohamed Hassen Amara",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Name: Mohamed Hassen Amara",
+    "reason": ""
+   },
+   {
+    "sentence": "Hi Adam,",
+    "claim": "Greeting",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a greeting."
+   },
+   {
+    "sentence": "I'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.",
+    "claim": "The candidate is applying for the Flutter developer position",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": ""
+   },
+   {
+    "sentence": "I'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.",
+    "claim": "The position is at Healy World GmbH",
+    "about": "company",
+    "verdict": "supported",
+    "source_id": "recipient",
+    "source_quote": "Company: Healy World GmbH",
+    "reason": ""
+   },
+   {
+    "sentence": "I'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.",
+    "claim": "Wanted to reach out directly",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This states the writer's own intention."
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "Shipped a full-stack sports management platform to the App Store and Google Play Store",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "Shipped a full-stack sports management platform to the App Store and Google Play Store",
+    "reason": ""
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "Built 10+ data-driven Flutter screens",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "building 10+ data-driven Flutter screens",
+    "reason": ""
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "Integrated 15+ RESTful backend services for real-time data synchronization",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "integrating 15+ RESTful backend services for real-time data synchronization",
+    "reason": ""
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "Engineered the complete Flutter frontend for the Lovester dating application",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "Engineered the complete Flutter frontend for the \"Lovester\" dating application",
+    "reason": ""
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "Achieved fluid 60fps user interfaces",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "achieving fluid 60fps user interfaces",
+    "reason": ""
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "Built complex custom animations across 25+ unique screens",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "complex custom animations across 25+ unique screens",
+    "reason": ""
+   },
+   {
+    "sentence": "I am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.",
+    "claim": "The candidate is based in Tunis, Tunisia",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Based in: Tunis, Tunisia",
+    "reason": ""
+   },
+   {
+    "sentence": "I am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.",
+    "claim": "The candidate would need visa sponsorship to work in Germany",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Work authorization: the candidate would need visa sponsorship to work in the job's country",
+    "reason": ""
+   },
+   {
+    "sentence": "I am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.",
+    "claim": "The candidate is willing to relocate for the job",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Relocation: the candidate is willing to relocate for the job",
+    "reason": ""
+   },
+   {
+    "sentence": "I am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.",
+    "claim": "If that rules me out, I understand",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a courtesy."
+   },
+   {
+    "sentence": "Please take a look at my attached CV, and let me know if you are open to a short call.",
+    "claim": "Request to review the CV and arrange a call",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a request."
+   },
+   {
+    "sentence": "Best regards,",
+    "claim": "Sign-off",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a sign-off."
+   },
+   {
+    "sentence": "Mohamed Hassen Amara",
+    "claim": "Writer's name",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is the sign-off with the writer's name."
+   }
+  ]
+ },
+ "email_model": {
+  "calls": 2,
+  "valid_json_first_try": [
+   true,
+   true
+  ],
+  "valid_schema_first_try": [
+   true,
+   true
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 2,
+  "retries_429": 0,
+  "retries_503": 0,
+  "retries_other": 0,
+  "model_seconds": 5.6,
+  "tokens_in": 10262,
+  "tokens_out": 552,
+  "tokens_thinking": 0,
+  "keys_used": [
+   "key 3",
+   "key 4"
+  ]
+ }
+}

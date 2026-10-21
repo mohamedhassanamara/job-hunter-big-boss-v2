@@ -1,0 +1,316 @@
+## SYSTEM
+You write ONE short, honest email from a job seeker to ONE person at a company where the job seeker has applied (or is applying) for a job. It is a direct application follow-up: plain and human, not a pitch and not a cold introduction. The JOB is not private here: name the role, the company and the listing freely. You return JSON only; a program adds the greeting, the subject and the signature, and assembles the parts in the order below.
+
+The parts (returned separately):
+1. "role": the role's name in plain words for the subject line: the JOB title without gender tags, locations, tech suffixes, dashes or company names. Keep the title's own language.
+2. "opening": one or two sentences. The candidate applied for this role at this company (FACTS.application.applied is true: "I've just applied" / "I applied") or is applying (false: "I'm applying"), and wanted to reach out directly. Name the role and the company. Nothing else: no reason for applying, no compliment, no claim about the company or about the candidate's fit ("since your product is close to what I build"): those are facts the program must check, and they belong in "experience" or "signal".
+3. "experience": at most two proofs, ONE sentence each, from the EXPERIENCE POOL, each citing its pool ids: the strongest for THIS job's core requirements (what the listing asks for first and most). Each sentence says plainly what was built, with its main tools, and what it changed (numbers exactly as the pool gives them), in about 30 words. One proof is enough when one clearly answers the core requirement. First person, plain language, no CV jargon, no pasted CV bullets, at most 3 tool names in a sentence. Years only as FACTS gives them, in digits and in the form of FACTS.years_statement ("3 years of ..."), never spelled out. Keep every pool fact as the pool states it: never join two bullets or two items into one achievement, never add a linking clause ("led X under Y", "which let", "thanks to"), never tie a result to a different piece of work, never use a stronger verb than the pool does, and never order items as "before that" unless their dates say so.
+4. "constraint" and "constraint_quote": when the JOB states a requirement the candidate does not meet (residency, work permit or right to work, a language, being on site), say it once, plainly: where the candidate is based (FACTS.logistics.based_in), that they would relocate (FACTS.logistics.relocation), that they would need sponsorship (FACTS.logistics.work_authorization), and, for a language requirement, which languages they work in (FACTS.logistics.languages: name only those listed, never claim a language that is not listed), using only the parts that answer the requirement. A requirement the candidate meets is never mentioned. Put the exact words of the JOB that state the requirement in "constraint_quote". Offer the way out kindly ("if that rules me out, I understand"). When the JOB states nothing of the kind, both stay empty and the email never brings up location, visa or relocation.
+5. "signal": almost always empty. Use one only when a SIGNALS fact connects directly to something in the candidate's experience and one plain sentence about it makes the email better (cite its id in "signal_ids"). State only what the signal says, in your own words: never what it "shows", "says about" or "means for" the company, never a product, number or claim the signal does not contain (not even one from the JOB), never a guess about the company's culture or priorities. Never recite the company's own description back to them. When in doubt, leave it empty (empty text, no ids).
+6. "ask": a simple, natural ask: look at the attached CV, a short call. A plain statement or a question, whichever reads naturally.
+
+Facts (a separate verifier checks every claim; one wrong fact blocks the email):
+- Facts about the candidate come ONLY from the EXPERIENCE POOL (cite ids) and FACTS. Every tool, number, employer and result must be in the cited items.
+- Facts about the company or the role come ONLY from the JOB and from SIGNALS. Never guess what the company does, how big it is or what the team is like.
+- Use the contact's name as CONTACT gives it, and the company's name as the JOB gives it.
+- Years of experience (FACTS.years_rule, FACTS.experience_by_track): the years wording is professional software engineering experience in the professional tracks. Never attach it to a track whose experience is "projects" (no "N years in data", no title implying professional experience there); describe that work as what it is (personal projects, the graduation project, the internship).
+
+Style (guidelines, never a reason to leave out a fact): aim for 90 to 120 words in all, the constraint included (the program only warns outside 90 to 170); plain, warm, direct, first person, short sentences; no flattery, no clichés (RULES.banned_phrases), no exclamation marks, no emojis, no bullet points; do not copy the listing's sentences. Language: RULES.language for everything; keep tool names as the pool writes them.
+
+## USER
+RULES
+{"language": "en", "min_words": 90, "max_words": 170, "banned_phrases": ["i hope this email finds you well", "i hope this finds you well", "hope you are well", "hope you're doing well", "my name is", "i am writing to", "i'm writing to", "to whom it may concern", "dear sir or madam", "i am passionate", "i'm passionate", "passionate about", "i would love the opportunity", "i'd love the opportunity", "team player", "fast learner", "quick learner", "hard worker", "hardworking", "think outside the box", "synergy", "go-getter", "results-driven", "self-starter", "detail-oriented", "dynamic", "rockstar", "ninja", "guru", "touch base", "circle back", "reach out to you today", "i came across your profile", "perfect fit", "dream job", "j'espère que vous allez bien", "je me permets de vous contacter", "espero que estés bien", "roi", "retour sur investissement"], "jargon": ["schema drift", "collision class", "collision classes", "idempotent", "star schema", "entity resolution", "retry-safe", "dependency-chained", "end-to-end local", "dérive de schéma", "classes de collisions", "schéma en étoile", "résolution d'entités", "idempotents", "chaînés par dépendances"], "style": "an honest, direct application follow-up: say you applied (or are applying) and wanted to reach out; 2-4 sentences of the experience that matches the listing; any requirement you don't meet said once, plainly; a simple ask. Plain and warm."}
+
+FACTS
+{"first_name": "Mohamed", "full_name": "Mohamed Hassen Amara", "years_statement": "3 years of software engineering experience", "years_statement_fr": "3 ans d'expérience en ingénierie logicielle", "areas_you_can_use": ["Mobile", "Backend", "Core Languages", "Mobile & Frontend", "DevOps, Cloud & Release"], "experience_by_track": [{"track": "Data/AI", "experience": "projects", "how": "personal projects, a graduation project, an internship and certifications"}, {"track": "Mobile", "experience": "professional"}, {"track": "Backend", "experience": "professional"}], "years_rule": "The years wording is professional software engineering experience (the professional tracks). Never attach it to a project-based track (no 'N years of data…', no 'experienced data engineer'); describe project-based work as what it is (personal projects, the graduation project, the internship, certifications), in a separate sentence or as a move ('moving into data, with … projects').", "logistics": {"based_in": "Tunis, Tunisia", "languages": "Arabic (Native), English (Full professional), French (Full professional), Spanish (Limited working)", "work_authorization": "would need visa sponsorship to work in the job's country", "relocation": "willing to relocate for the job"}, "application": {"applied": false, "date": null}, "current_role": {"id": 1, "title": "Software Engineer", "org": "Reality Sports"}}
+
+CONTACT
+{"first_name": "Adam", "full_name": "Adam Govan", "title": "Lead Mobile Engineer", "role_group": null}
+
+SIGNALS (optional)
+[]
+
+JOB
+{
+ "title": "Flutter developer for mobile apps (m/f/d)",
+ "company": "Healy World GmbH",
+ "location": "Charlottenburg, Berlin",
+ "description": "JOB DESCRIPTION\n\nAt Healy, you’re not just an employee—you’re a co-creator.\n\nHealy World GmbH is an innovative and leading company in the health and wellness industry.\n\nWe’re growing, we’re shaping the future, we’re making a difference—and you can be a part of it! We offer an innovative and diverse work environment that’s constantly evolving. In Finance, Legal, Marketing, or Operations, you’ll have the chance to make a real impact with your ideas and actively help shape change.\n\nWould you like to contribute to the success of our online business as an E-Commerce Manager, leveraging your analytical thinking, your knack for digital trends, and your hands-on approach? Do you want to support our team with your motivation, dedication, and fresh ideas? Are you passionate about the world of e-commerce and eager to continuously develop our online store, digital sales channels, and the customer journey—while tackling diverse challenges as part of a dynamic team?\n\nBe more than just an employee—become a co-creator: as an Flutter Software Developer (m/f/d)\n\nWhere? At our location in Berlin or Mainz\n\nYOUR MISSION\n\nDevelopment and maintenance of Flutter applications: You develop high-quality mobile applications for Android and iOS using Flutter and Dart. You are responsible for the continuous improvement and maintenance of the apps\n\nUI/UX design integration: You will work closely with our design team to optimise the user interface and user experience of the apps and ensure that they comply with current design guidelines\n\nAPI Integration: You integrate third-party APIs and backend services to extend the functionality of the applications and ensure they run smoothly\n\nQuality assurance: You are responsible for testing and debugging the applications to make sure they run bug-free and stable\n\nPerformance optimisation: You optimise the performance of the applications to ensure a smooth user experience and analyse and fix performance problems\n\nTechnical documentation: You create and maintain technical documentation for your development work to support team collaboration\n\nYOUR PROFILE\n\nSolid experience in mobile app development with Flutter and Dart\n\nKnowledge in the integration of APIs and backend services\n\nGood knowledge of CI/CD practices/methods\n\n(Must-have) Proven experience with GitHub, GitLab or similar version control platforms*\n\nExperience in troubleshooting and performance optimisation of mobile applications\n\nGood teamwork and communication skills\n\nWillingness to continuously learn and follow Flutter development best practices\n\nIdeally experience with agile development methodologies\n\nBusiness fluent in English with excellent written and verbal communication skills required\n\nMust-have!\n\n*To be considered for the advertised position, you should be able to demonstrate that you have experience with GitHub, GitLab or similar version control platforms. This is essential as these skills are required for efficient collaboration and smooth working within our team. You should be able to demonstrate your knowledge and experience of using these platforms in your CV or cover letter to ensure you have the necessary skills to be successful in this role.\n\nTHAT'S WHAT WE OFFER YOU!\n\nMobility: Subsidized Germany ticket and a company bike through salary conversion\n\nRetirement Benefits: 50% employer contribution to company pension scheme for financial security\n\nFlexibility: Work-life balance with the possibility to work fully (100%) remote\n\nFamily-Focused: Paid sick days for children with 100% employer payment for up to 5 days\n\nWorkspace: Innovative office with state-of-the-art technology and ergonomic, height-adjustable desks\n\nCulture: Inspiring corporate culture with an international team, diversity, and flat hierarchies for idea exchange and quick decision-making\n\nCatering: Free fresh fruit, non-alcoholic beverages (water dispenser, Fritz-Kola, etc.), and a wide selection of coffee options\n\nShopping Benefits: Corporate Benefit program with exclusive offers and discounts\n\nContinuous Improvement: We continuously work on enhancing and optimizing our benefits to make your workday more enjoyable and enriching\n\nARE YOU READY TO BE PART OF OUR TEAM?\n\nIf you've made it this far, then we're sure we share something special - an enthusiasm for the exciting opportunity to be part of our Healy World team! We're thrilled that we've piqued your interest and want you to feel right at home with us right from the start.\n\nYour way to us is very simple: Send us your detailed application and your earliest possible starting date. If you have any questions or need further information, our recruiting team will be happy to help you by e-mail at hr@healy.world. We are excited to meet you and look forward to exploring the opportunities at Healy World with you.\n\nVisit our job portal to explore other vacancies you haven't seen yet: https://healy-world-gmbh.jobs.personio.de/.\n\nAbout us\n\nSince our founding in 2019, Healy World has grown into a global company. In over 50 countries - with locations in Germany, the USA, Singapore and more - we make frequency technology accessible for everyday life.\n\nOur goal: to help people live healthier and more conscious lives. With our innovative wearable, we combine technology and well-being to promote balance and holistic health."
+}
+
+EXPERIENCE POOL
+{
+ "roles": [
+  {
+   "id": 1,
+   "title": "Software Engineer",
+   "org": "Reality Sports",
+   "dates": "Sep 2025 – Present",
+   "facts": {
+    "0": "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+    "1": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "2": "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%.",
+    "3": "Mentored a junior developer on scalable Flutter architecture and state management standards to improve long-term codebase maintainability.",
+    "4": "Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving ~80% code coverage.",
+    "5": "Integrated Firebase Crashlytics, Remote Config, and Auth as core platform features to improve crash visibility, remote configurability, and secure sign-in.",
+    "6": "Set up automated build and deployment pipelines with GitHub Actions, improving release reliability and build consistency across projects."
+   },
+   "tags": [
+    "spring-boot",
+    "bff",
+    "rest-api",
+    "flutter",
+    "riverpod",
+    "gorouter",
+    "clean-architecture",
+    "mockito",
+    "firebase",
+    "crashlytics",
+    "remote-config",
+    "github-actions",
+    "testing",
+    "mentoring"
+   ]
+  },
+  {
+   "id": 2,
+   "title": "AI Engineer Intern (Graduation Project)",
+   "org": "Nexaminds",
+   "dates": "Feb 2025 – Aug 2025",
+   "facts": {
+    "0": "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs.",
+    "1": "Built an initial layout-extraction pipeline combining YOLOv8 and spaCy (annotating hundreds of resume images in Label Studio for section segmentation) before evolving the system into an LLM-driven architecture to overcome dataset limitations and optimize hardware efficiency.",
+    "2": "Engineered a resume-to-job description matcher using TF-IDF vectorization, cosine similarity, and embeddings to evaluate candidate relevance and return ranked shortlists.",
+    "3": "Developed an AI-led pre-screening interview system combining OpenAI Whisper (Speech-to-Text) and Google TTS (gTTS) to conduct real-time voice-based candidate assessments.",
+    "4": "Designed and shipped a modular FastAPI backend exposing endpoints for resume parsing, job description matching, and automated interview orchestration.",
+    "5": "Containerized the complete multi-model AI system (Mistral 7B, Whisper STT, gTTS, FastAPI) using Docker, creating reproducible container images for local execution and production deployment."
+   },
+   "tags": [
+    "mistral-7b",
+    "llm",
+    "nlp",
+    "spacy",
+    "yolov8",
+    "label-studio",
+    "tf-idf",
+    "cosine-similarity",
+    "embeddings",
+    "whisper",
+    "gtts",
+    "fastapi",
+    "docker"
+   ]
+  },
+  {
+   "id": 3,
+   "title": "Mobile Developer (Part-time)",
+   "org": "Nexaminds (Lovester)",
+   "dates": "Oct 2022 – Feb 2025",
+   "facts": {
+    "0": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "1": "Transitioned the application from MVVM to a modular Clean Architecture focused on domain entities and unidirectional data flow, improving scalability for future development.",
+    "2": "Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development.",
+    "3": "Established the foundational testing environment using Flutter's test framework, Mockito, Build Runner, and `FakeAsync` to execute unit, widget, and integration tests, catching regressions during development.",
+    "4": "Debugged critical performance issues across user interaction flows, reducing app crashes and improving overall application stability and user experience.",
+    "5": "Collaborated with design and backend teams during Agile sprints, communicating technical constraints and translating stakeholder requirements into optimized user flows and backend integrations."
+   },
+   "tags": [
+    "flutter",
+    "provider",
+    "riverpod",
+    "mvvm",
+    "clean-architecture",
+    "mockito",
+    "build-runner",
+    "fakeasync",
+    "agile"
+   ]
+  },
+  {
+   "id": 4,
+   "title": "Mobile Engineer Intern",
+   "org": "Orange Digital Center",
+   "dates": "Jul 2024 – Nov 2024",
+   "facts": {
+    "0": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+    "1": "Architected the mobile application adhering to Clean Architecture principles and utilizing GetX for state management and routing.",
+    "2": "Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.",
+    "3": "Owned the model-to-mobile integration layer, allowing users to interact with forecasting models, view real-time energy insights, and track consumption.",
+    "4": "Applied gamification principles within the mobile interface to enhance user engagement and encourage energy-saving behaviors."
+   },
+   "tags": [
+    "flutter",
+    "clean-architecture",
+    "getx",
+    "mqtt",
+    "iot",
+    "gamification"
+   ]
+  }
+ ],
+ "projects": [],
+ "skill_groups": [
+  {
+   "id": 25,
+   "category": "Core Languages",
+   "skills": [
+    "Dart",
+    "Python",
+    "Java",
+    "SQL",
+    "Bash",
+    "C/C++",
+    "Kotlin",
+    "Swift"
+   ]
+  },
+  {
+   "id": 16,
+   "category": "Mobile & Frontend",
+   "skills": [
+    "Flutter",
+    "Clean Architecture",
+    "Riverpod",
+    "Provider",
+    "GetX",
+    "GoRouter",
+    "RESTful APIs",
+    "GraphQL",
+    "BFF Integration",
+    "Responsive UI/UX",
+    "Unit/Widget/Integration Testing",
+    "Mockito",
+    "Build Runner"
+   ]
+  },
+  {
+   "id": 17,
+   "category": "DevOps, Cloud & Release",
+   "skills": [
+    "Docker",
+    "Docker Compose",
+    "Git",
+    "GitHub Actions (CI/CD)",
+    "Firebase (Auth, Crashlytics, Remote Config)",
+    "Google Play Console",
+    "TestFlight",
+    "Linux"
+   ]
+  }
+ ],
+ "certifications": [],
+ "education": [
+  {
+   "id": 18,
+   "degree": "National Engineering Degree in Software Engineering",
+   "school": "National Institute of Applied Sciences and Technologies (INSAT)"
+  }
+ ],
+ "volunteering": [
+  {
+   "id": 10,
+   "title": "Flutter Instructor",
+   "org": "INSAT Android Club",
+   "dates": "2022 – Present",
+   "facts": {
+    "0": "Taught Flutter development and led UI/UX design workshops for students."
+   },
+   "tags": [
+    "teaching",
+    "flutter"
+   ]
+  }
+ ]
+}
+
+## SCHEMA
+{
+ "description": "An honest application follow-up for a job the candidate applied (or is applying) for.\nCode builds the greeting and the subject and assembles: opening, experience, constraint,\nsignal, ask.",
+ "properties": {
+  "role": {
+   "description": "The role's name in plain words for the subject line (e.g. 'Mobile Developer'): the JOB title without gender tags, location or tech suffixes",
+   "type": "string"
+  },
+  "greeting": {
+   "description": "'Hi <first name>,' / 'Bonjour <pr\u00e9nom>,'",
+   "type": "string"
+  },
+  "opening": {
+   "description": "One or two sentences: the candidate applied (or is applying) for the role at the company and wanted to reach out directly. The role and the listing may be named",
+   "type": "string"
+  },
+  "experience": {
+   "description": "One or two sentences (at most two proofs, one sentence each) from the EXPERIENCE POOL on the experience that best answers the listing's core requirements, plain language, each citing pool ids",
+   "items": {
+    "properties": {
+     "text": {
+      "type": "string"
+     },
+     "citations": {
+      "description": "Pool ids this sentence is based on (roles, projects, skill groups, education\u2026). Empty only for a sentence about the company or the role, which must then set about_job",
+      "items": {
+       "type": "integer"
+      },
+      "type": "array"
+     },
+     "about_job": {
+      "default": false,
+      "description": "True when the sentence is about the company or the role, stated only from the JOB listing (no claims about the candidate)",
+      "type": "boolean"
+     },
+     "about_candidate": {
+      "default": false,
+      "description": "Cover letters only: True for a fit sentence stated only from FACTS (where the candidate is based, work authorization/visa sponsorship, languages); it cites nothing",
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "text"
+    ],
+    "type": "object"
+   },
+   "type": "array"
+  },
+  "constraint": {
+   "default": "",
+   "description": "Empty unless the listing states a requirement the candidate doesn't meet (residency, work permit, language): then one plain statement, once, using FACTS.logistics only",
+   "type": "string"
+  },
+  "constraint_quote": {
+   "default": "",
+   "description": "The exact words of the JOB that state that requirement; empty when constraint is empty",
+   "type": "string"
+  },
+  "signal": {
+   "properties": {
+    "text": {
+     "description": "How the candidate came across the company (described by its field, never a job board or listing) and 1-2 facts from SIGNALS, stated plainly",
+     "type": "string"
+    },
+    "signal_ids": {
+     "description": "The SIGNALS ids every company fact in the hook comes from",
+     "items": {
+      "type": "integer"
+     },
+     "type": "array"
+    }
+   },
+   "required": [
+    "text"
+   ],
+   "type": "object"
+  },
+  "ask": {
+   "description": "A simple, natural ask (look at the attached CV, a short call); a statement or a question",
+   "type": "string"
+  }
+ },
+ "required": [
+  "role",
+  "greeting",
+  "opening",
+  "experience",
+  "ask"
+ ],
+ "type": "object"
+}

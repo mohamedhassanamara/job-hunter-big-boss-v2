@@ -1,0 +1,449 @@
+## SYSTEM
+You tailor a one-page CV to ONE job, using ONLY the candidate's experience pool given as JSON. You never write LaTeX and never invent anything.
+
+Hard rules (a program checks them):
+- Use only facts from the pool. The pool is the candidate's own wording and is never changed: a bullet in the CV is either the pool fact exactly, or a LIGHT adaptation of it for this job.
+- A light adaptation may: change the verb, reorder clauses, and use the listing's term for something the candidate actually did (e.g. "REST APIs" for "RESTful backend services"). It must NOT: drop or change any number, tool, product or outcome clause; shorten or lengthen the bullet by more than 15%; merge two facts or split one; add anything the source fact doesn't say. When unsure, return the source fact word for word. A program checks every adapted bullet against its source (numbers, tools and products kept, length within ±15%, nothing added) and a second reviewer compares each to its original; any failure puts the original text back.
+- Every number in a bullet (40%, 10+, 2nd, 140K+, 2,000) must appear exactly as in its source fact, and every number of the source fact must stay.
+- Reference pool items only by their "id". Bullet "source_index" is the key of the fact in that item's "facts".
+- "roles": include EVERY role from the pool (never drop a job: it would leave a gap in the timeline). For each role, return ALL of its facts as bullets, kept or lightly adapted for this job and ranked by "priority" (1 = most relevant). Code decides how many are shown per role (see LAYOUT: the current role gets the most, internships at most 2), so rank each role's own facts carefully.
+- Every bullet gets a "strength" (1-5): 5 = a concrete outcome or impact, 3 = a specific thing built, 1 = a generic process line ("collaborated in Agile sprints"). Generic bullets are only shown when nothing else fits.
+- Bullets read like a person wrote them: impact first (what was built and why it mattered), one idea per bullet, varied strong verbs, natural phrasing, no keyword stuffing. Not every bullet needs a metric. Match the STYLE EXEMPLAR's bullet length.
+- "projects": the relevant projects, most relevant first, each with its facts reworded and ranked, and "stack" = at most 5 of its most relevant tags (only its tags). At most 2 projects are shown, each with 2-3 bullets.
+- "skills": you only SELECT and ORDER. At most 4 skill groups in the order that suits the job (most relevant group first); inside each group the most relevant skills first, at most 8 per group. Each skill must be copied character for character from that group's "skills" list (an entry such as "LLMs (Mistral 7B, LLaMA 3 8B, Ollama)" is one skill: copy it whole). Never rename, merge, split or respell a skill or a category, and never add one. Omit groups or skills that are irrelevant.
+- Project "stack" entries are copied from the project's tags exactly as written.
+- "relevance" (1-10) for every role/project: how much it matters for THIS job.
+- "summary_sentences": exactly 2 full sentences, about 45 words in total, following the WRITING GUIDE. Each sentence has a grammatical subject, and there is no "I"/"my": a sentence may never start with a bare verb ("Brings…", "Built…", "Delivered…", "At X, built…"). Good subjects for sentence 2: "Recent work includes…", "Projects include…", "That work spans…". Sentence 1 = who the candidate is, positioned for this job's track; for Data/AI jobs lead with what they build (e.g. "Software engineer building data pipelines and local LLM systems"), not with a career change. Sentence 2 = what they bring to THIS role, naming at least one concrete thing they built from the cited items (e.g. "a privacy-first resume parser on a local Mistral LLM", "a dbt/Airflow lakehouse for football data"). Vary the opening: don't start with "Software engineer transitioning into". No phrase from the guide's banned list, no numbers that also appear in bullets, no certifications, no internships, no tool lists (never an enumeration like "Python, SQL, dbt and Airflow"; tools may appear inside the description of something built, e.g. "a dbt/Airflow lakehouse"). Plain, specific wording like the STYLE EXEMPLAR's summary. EVERY sentence cites, in "citations", the ids of the pool items it is based on (summary snippets, roles, projects, skill groups, education, certifications). A sentence may only state what its cited items say: every tool, skill, number, capability and scope (e.g. "mentored a junior developer", never "mentored developers") must be in those items. No generic filler ("passionate", "fast learner"). "summary_short_sentences": ONE sentence, about 20 words, also cited.
+- Years of experience: state a number of years ONLY as given in FACTS ("years"), with its wording (e.g. "3+ years of mobile development"). Never compute or estimate years yourself, and never put years in bullets.
+- Honesty about years (FACTS.years_rule, FACTS.experience_by_track): the years wording is professional software engineering experience in the professional tracks. Never attach it to a track whose experience is "projects" (no "N years in data", no "N years building data pipelines", no "experienced data engineer", no title implying professional experience there); keep the years sentence and that work separate, and describe the work as what it is (personal projects, the graduation project, the internship, certifications). A program rejects any sentence that breaks this. In the summary: sentence 1 carries the years and only the professional tracks (no projects-track work, no "data-focused" or projects-track title in it); sentence 2 names the projects-track work as projects ("Projects include…", "In personal projects, …").
+- Glossary (FACTS.glossary, when given): the candidate's OWN translations of their experience into the target field's words ("from" = how the pool writes it, "to" = the term for the field). You may use a "to" term only to name work whose pool item contains the matching "from" term, in a sentence that cites that item. An entry adds a NAME only: never a tool, number, scale, team size, year or responsibility, and never professional experience in a track whose experience is "projects" (the honesty rules above still apply). Never use a "to" term for work the pool does not describe with its "from" term.
+- "certification_ids" and "education_ids": the ones worth showing (education normally always).
+- "volunteering": only if it strengthens this application, like roles.
+- Write concise, strong English bullets that start with a verb. No first person.
+
+Tailoring:
+- The job's "matched_track" tells you which of the candidate's fields this job belongs to. Lead with the experience, skills and projects most relevant to it. "emphasis" (when given) lists the skill groups and tags the candidate wants first for this track.
+- Use the job description, and the fit "strengths"/"gaps", to rank; never claim a gap as a skill.
+
+Answer with JSON only, matching the schema.
+
+Rewrite ONLY the CV summary for the same job and pool. Your previous summary was rejected by an automatic check (the problems are listed below). Return "summary_sentences" (exactly 2 full sentences, each with a grammatical subject and never starting with a bare verb such as "Built…"; sentence 2 can start "Recent work includes…" or "Projects include…"; no "I", about 45 words, naming at least one concrete thing built from the cited items, following the WRITING GUIDE and avoiding its banned phrases) and "summary_short_sentences" (one sentence, about 20 words), every sentence citing the ids of the pool items it is based on, and stating only what those items say (FACTS.glossary terms only as the system rules allow). Years only as given in FACTS, never attached to a track whose experience is projects (FACTS.years_rule): sentence 1 = the years with the professional tracks only, sentence 2 = the projects-track work as projects. No numbers from the bullets, no certifications, no internships, no tool lists.
+
+## USER
+REJECTED SENTENCES
+- “Mobile engineer with 3 years of experience building production Flutter applications and scalable backend integrations.” (cited [21, 23]): years claim “3 years” isn't allowed (write exactly “3 years of software engineering experience”)
+- Summary: opens like another CV (“Software engineer with 3…”): vary the opening
+
+WRITING GUIDE (follow it)
+Summary: two full sentences with a subject (never a fragment like "Brings…", never a figure as the subject like "3 years of experience spans…"), no "I", about 45 words. Sentence 1: who I am, positioned for this job's track, with my years attached only to the tracks where my experience is professional (e.g. "Software engineer with 3 years of experience in mobile and backend development, …"). Sentence 2: what I bring to THIS role, naming at least one concrete thing I built from the cited items (e.g. "a privacy-first resume parser on a local Mistral LLM", "a dbt/Airflow lakehouse for football data"); work in a track that is projects only is said to be projects. Give sentence 2 a subject without "I" (e.g. "Recent work includes…", "Projects include…"), never a bare verb like "Built…" or "Delivered…". Vary the opening between CVs. No numbers that also appear in bullets, no certifications, no internships, no tool lists. In Data/AI summaries, state track years only when they are 2 or more; otherwise the total years, or no years at all.
+Bullets: impact first (what I built and why it mattered), strong and varied verbs, one idea per bullet. Prefer bullets with concrete outcomes; skip generic ones ("collaborated in Agile sprints") unless nothing else fits.
+Don't repeat the same fact in the summary, the skills and the bullets.
+Human tone: natural phrasing, no keyword stuffing; not every bullet needs a metric.
+Use the style exemplar for tone, bullet length and summary length (its content is already in the pool).
+Never use these phrases: hands-on experience; well suited; strong foundation; real-world applications; production-ready; brings experience; passionate; proven track record; leveraging; moving into; moving from; transitioning into; career change
+
+STYLE EXEMPLAR (tone, summary length and bullet length only; its content is already in the pool)
+{
+ "summary": "Software and AI Engineer with over 2 years of experience developing robust data pipelines, scalable backend integrations, and mobile architectures. Proven expertise across batch ETL/ELT orchestration, local LLM systems, and high-performance Flutter applications.",
+ "bullets": [
+  "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to accelerate mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+  "Shipped a full-stack sports management platform, managing mobile client releases to the App Store and Google Play while coordinating real-time backend synchronization.",
+  "Spearheaded refactoring legacy code to Riverpod and GoRouter, eliminating 90% of critical bugs on core flows and reducing app size by 15%.",
+  "Engineered 10+ custom Flutter screens and established a unit/widget testing culture achieving ~80% code coverage.",
+  "Designed a privacy-first resume parsing engine using a local Mistral LLM, replacing external APIs to guarantee data confidentiality and cut operational costs.",
+  "Programmed an AI pre-screen interview system using Whisper (STT) and Google TTS to conduct real-time automated candidate assessments.",
+  "Dockerized the multi-model pipeline, creating reproducible container images to streamline local execution and deployment.",
+  "Engineered the frontend architecture for “Lovester”, delivering fluid 60fps animations across 25+ unique application screens.",
+  "Migrated architecture from Provider to Riverpod and built testing pipelines, cutting regression bugs by 20%.",
+  "Built “Voltisense,” an IoT mobile app visualizing household energy metrics via sub-second MQTT streaming."
+ ]
+}
+
+LAYOUT (what code will show; rank facts with this in mind)
+{"roles": {"1": "current: 3-4 bullets", "2": "internship: 1-2 bullets", "3": "long role: 2-3 bullets", "4": "internship: 1-2 bullets"}, "projects": "at most 2 projects, 2-3 bullets each", "skills": "at most 4 groups, 8 skills each", "summary": "at most 2 sentences, about 45 words"}
+
+FACTS (the only years claims allowed)
+{"years": [{"label": "total experience (Settings)", "years": 3, "wording": "3 years of software engineering experience", "kind": "total", "exact": true, "short_wording": "3 years of experience", "short_wording_when": "the same sentence already says “software engineer”"}], "experience_by_track": [{"track": "Data/AI", "experience": "projects", "how": "personal projects, a graduation project, an internship and certifications"}, {"track": "Mobile", "experience": "professional"}, {"track": "Backend", "experience": "professional"}], "years_rule": "The years wording is professional software engineering experience (the professional tracks). Never attach it to a project-based track (no 'N years of data…', no 'experienced data engineer'); describe project-based work as what it is (personal projects, the graduation project, the internship, certifications), in a separate sentence or as a move ('moving into data, with … projects').", "honesty_tracks": [{"name": "Data/AI", "experience": "projects", "experience_note": "personal projects, a graduation project, an internship and certifications", "roles": [{"title": "Data Engineer"}, {"title": "Big Data Engineer"}, {"title": "Data Platform Engineer"}, {"title": "Analytics Engineer"}, {"title": "AI Engineer"}, {"title": "ML Engineer"}, {"title": "MLOps Engineer"}, {"title": "LLM Engineer"}, {"title": "GenAI Engineer"}]}, {"name": "Mobile", "experience": "professional", "experience_note": "", "roles": [{"title": "Flutter Developer"}, {"title": "Flutter Engineer"}, {"title": "Mobile Developer"}, {"title": "Mobile Engineer"}, {"title": "Cross-platform Developer"}]}, {"name": "Backend", "experience": "professional", "experience_note": "", "roles": [{"title": "Backend Developer"}, {"title": "Backend Engineer"}, {"title": "Java Developer"}, {"title": "Spring Boot Developer"}, {"title": "Python Developer"}]}]}
+
+JOB
+{
+ "title": "Flutter developer for mobile apps (m/f/d)",
+ "company": "Healy World GmbH",
+ "location": "Charlottenburg, Berlin",
+ "description": "JOB DESCRIPTION\n\nAt Healy, you’re not just an employee—you’re a co-creator.\n\nHealy World GmbH is an innovative and leading company in the health and wellness industry.\n\nWe’re growing, we’re shaping the future, we’re making a difference—and you can be a part of it! We offer an innovative and diverse work environment that’s constantly evolving. In Finance, Legal, Marketing, or Operations, you’ll have the chance to make a real impact with your ideas and actively help shape change.\n\nWould you like to contribute to the success of our online business as an E-Commerce Manager, leveraging your analytical thinking, your knack for digital trends, and your hands-on approach? Do you want to support our team with your motivation, dedication, and fresh ideas? Are you passionate about the world of e-commerce and eager to continuously develop our online store, digital sales channels, and the customer journey—while tackling diverse challenges as part of a dynamic team?\n\nBe more than just an employee—become a co-creator: as an Flutter Software Developer (m/f/d)\n\nWhere? At our location in Berlin or Mainz\n\nYOUR MISSION\n\nDevelopment and maintenance of Flutter applications: You develop high-quality mobile applications for Android and iOS using Flutter and Dart. You are responsible for the continuous improvement and maintenance of the apps\n\nUI/UX design integration: You will work closely with our design team to optimise the user interface and user experience of the apps and ensure that they comply with current design guidelines\n\nAPI Integration: You integrate third-party APIs and backend services to extend the functionality of the applications and ensure they run smoothly\n\nQuality assurance: You are responsible for testing and debugging the applications to make sure they run bug-free and stable\n\nPerformance optimisation: You optimise the performance of the applications to ensure a smooth user experience and analyse and fix performance problems\n\nTechnical documentation: You create and maintain technical documentation for your development work to support team collaboration\n\nYOUR PROFILE\n\nSolid experience in mobile app development with Flutter and Dart\n\nKnowledge in the integration of APIs and backend services\n\nGood knowledge of CI/CD practices/methods\n\n(Must-have) Proven experience with GitHub, GitLab or similar version control platforms*\n\nExperience in troubleshooting and performance optimisation of mobile applications\n\nGood teamwork and communication skills\n\nWillingness to continuously learn and follow Flutter development best practices\n\nIdeally experience with agile development methodologies\n\nBusiness fluent in English with excellent written and verbal communication skills required\n\nMust-have!\n\n*To be considered for the advertised position, you should be able to demonstrate that you have experience with GitHub, GitLab or similar version control platforms. This is essential as these skills are required for efficient collaboration and smooth working within our team. You should be able to demonstrate your knowledge and experience of using these platforms in your CV or cover letter to ensure you have the necessary skills to be successful in this role.\n\nTHAT'S WHAT WE OFFER YOU!\n\nMobility: Subsidized Germany ticket and a company bike through salary conversion\n\nRetirement Benefits: 50% employer contribution to company pension scheme for financial security\n\nFlexibility: Work-life balance with the possibility to work fully (100%) remote\n\nFamily-Focused: Paid sick days for children with 100% employer payment for up to 5 days\n\nWorkspace: Innovative office with state-of-the-art technology and ergonomic, height-adjustable desks\n\nCulture: Inspiring corporate culture with an international team, diversity, and flat hierarchies for idea exchange and quick decision-making\n\nCatering: Free fresh fruit, non-alcoholic beverages (water dispenser, Fritz-Kola, etc.), and a wide selection of coffee options\n\nShopping Benefits: Corporate Benefit program with exclusive offers and discounts\n\nContinuous Improvement: We continuously work on enhancing and optimizing our benefits to make your workday more enjoyable and enriching\n\nARE YOU READY TO BE PART OF OUR TEAM?\n\nIf you've made it this far, then we're sure we share something special - an enthusiasm for the exciting opportunity to be part of our Healy World team! We're thrilled that we've piqued your interest and want you to feel right at home with us right from the start.\n\nYour way to us is very simple: Send us your detailed application and your earliest possible starting date. If you have any questions or need further information, our recruiting team will be happy to help you by e-mail at hr@healy.world. We are excited to meet you and look forward to exploring the opportunities at Healy World with you.\n\nVisit our job portal to explore other vacancies you haven't seen yet: https://healy-world-gmbh.jobs.personio.de/.\n\nAbout us\n\nSince our founding in 2019, Healy World has grown into a global company. In over 50 countries - with locations in Germany, the USA, Singapore and more - we make frequency technology accessible for everyday life.\n\nOur goal: to help people live healthier and more conscious lives. With our innovative wearable, we combine technology and well-being to promote balance and holistic health.",
+ "matched_track": "Mobile",
+ "matched_role": "Flutter Developer",
+ "strengths": [
+  "Flutter and Dart",
+  "API integration",
+  "GitHub CI/CD"
+ ],
+ "gaps": [
+  "Germany location ties",
+  "Visa sponsorship unspecified"
+ ]
+}
+
+EMPHASIS FOR THIS TRACK
+{"skill_groups": ["Mobile & Frontend", "Core Languages", "DevOps, Cloud & Release"], "tags": ["Flutter", "Riverpod", "Clean Architecture", "GoRouter", "Firebase (Auth, Crashlytics, Remote Config)"]}
+
+EXPERIENCE POOL
+{
+ "summary_snippets": [
+  {
+   "id": 21,
+   "text": "Mobile engineer specializing in Flutter, building production apps since 2022 and shipping releases to the App Store and Google Play. Experienced with Clean Architecture, Riverpod and GoRouter, including migrating and refactoring legacy codebases to modern state management. Focused on reliable apps backed by strong testing practices and well-designed backend integrations."
+  },
+  {
+   "id": 22,
+   "text": "Software engineer moving into AI and Data Engineering, with hands-on experience building local LLM systems and batch data pipelines. Built a privacy-first resume parsing engine on a local Mistral LLM and an automated interview pre-screen system using Whisper, then containerized the pipeline with Docker. Designed an end-to-end data lakehouse with dbt, Airflow and DuckDB, backed by DeepLearning.AI and DataCamp data engineering certifications."
+  },
+  {
+   "id": 23,
+   "text": "Software engineer working across mobile, backend and data. Builds Flutter applications, Backend-for-Frontend services in Spring Boot, and Python data pipelines, and has taken products from development through to store release. Values clean architecture, testable code and systems that are simple to run and maintain."
+  }
+ ],
+ "roles": [
+  {
+   "id": 1,
+   "title": "Software Engineer",
+   "org": "Reality Sports",
+   "dates": "Sep 2025 – Present",
+   "facts": {
+    "0": "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+    "1": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "2": "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%.",
+    "3": "Mentored a junior developer on scalable Flutter architecture and state management standards to improve long-term codebase maintainability.",
+    "4": "Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving ~80% code coverage.",
+    "5": "Integrated Firebase Crashlytics, Remote Config, and Auth as core platform features to improve crash visibility, remote configurability, and secure sign-in.",
+    "6": "Set up automated build and deployment pipelines with GitHub Actions, improving release reliability and build consistency across projects."
+   },
+   "tags": [
+    "spring-boot",
+    "bff",
+    "rest-api",
+    "flutter",
+    "riverpod",
+    "gorouter",
+    "clean-architecture",
+    "mockito",
+    "firebase",
+    "crashlytics",
+    "remote-config",
+    "github-actions",
+    "testing",
+    "mentoring"
+   ]
+  },
+  {
+   "id": 2,
+   "title": "AI Engineer Intern (Graduation Project)",
+   "org": "Nexaminds",
+   "dates": "Feb 2025 – Aug 2025",
+   "facts": {
+    "0": "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs.",
+    "1": "Built an initial layout-extraction pipeline combining YOLOv8 and spaCy (annotating hundreds of resume images in Label Studio for section segmentation) before evolving the system into an LLM-driven architecture to overcome dataset limitations and optimize hardware efficiency.",
+    "2": "Engineered a resume-to-job description matcher using TF-IDF vectorization, cosine similarity, and embeddings to evaluate candidate relevance and return ranked shortlists.",
+    "3": "Developed an AI-led pre-screening interview system combining OpenAI Whisper (Speech-to-Text) and Google TTS (gTTS) to conduct real-time voice-based candidate assessments.",
+    "4": "Designed and shipped a modular FastAPI backend exposing endpoints for resume parsing, job description matching, and automated interview orchestration.",
+    "5": "Containerized the complete multi-model AI system (Mistral 7B, Whisper STT, gTTS, FastAPI) using Docker, creating reproducible container images for local execution and production deployment."
+   },
+   "tags": [
+    "mistral-7b",
+    "llm",
+    "nlp",
+    "spacy",
+    "yolov8",
+    "label-studio",
+    "tf-idf",
+    "cosine-similarity",
+    "embeddings",
+    "whisper",
+    "gtts",
+    "fastapi",
+    "docker"
+   ]
+  },
+  {
+   "id": 3,
+   "title": "Mobile Developer (Part-time)",
+   "org": "Nexaminds (Lovester)",
+   "dates": "Oct 2022 – Feb 2025",
+   "facts": {
+    "0": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "1": "Transitioned the application from MVVM to a modular Clean Architecture focused on domain entities and unidirectional data flow, improving scalability for future development.",
+    "2": "Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development.",
+    "3": "Established the foundational testing environment using Flutter's test framework, Mockito, Build Runner, and `FakeAsync` to execute unit, widget, and integration tests, catching regressions during development.",
+    "4": "Debugged critical performance issues across user interaction flows, reducing app crashes and improving overall application stability and user experience.",
+    "5": "Collaborated with design and backend teams during Agile sprints, communicating technical constraints and translating stakeholder requirements into optimized user flows and backend integrations."
+   },
+   "tags": [
+    "flutter",
+    "provider",
+    "riverpod",
+    "mvvm",
+    "clean-architecture",
+    "mockito",
+    "build-runner",
+    "fakeasync",
+    "agile"
+   ]
+  },
+  {
+   "id": 4,
+   "title": "Mobile Engineer Intern",
+   "org": "Orange Digital Center",
+   "dates": "Jul 2024 – Nov 2024",
+   "facts": {
+    "0": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+    "1": "Architected the mobile application adhering to Clean Architecture principles and utilizing GetX for state management and routing.",
+    "2": "Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.",
+    "3": "Owned the model-to-mobile integration layer, allowing users to interact with forecasting models, view real-time energy insights, and track consumption.",
+    "4": "Applied gamification principles within the mobile interface to enhance user engagement and encourage energy-saving behaviors."
+   },
+   "tags": [
+    "flutter",
+    "clean-architecture",
+    "getx",
+    "mqtt",
+    "iot",
+    "gamification"
+   ]
+  }
+ ],
+ "projects": [
+  {
+   "id": 5,
+   "title": "FPL Batch Data Lakehouse",
+   "org": "Personal project",
+   "dates": "",
+   "facts": {
+    "0": "Built an end-to-end local data lakehouse ingesting 5 seasons (~140K+ records) of Premier League data into LocalStack S3, with idempotent, retry-safe Python pipelines handling schema drift automatically.",
+    "1": "Designed a dbt star schema on DuckDB with custom entity resolution reconciling ~2,000 player identities across disparate schemas, achieving 10/10 passing tests across 4 resolved collision classes.",
+    "2": "Orchestrated full ingest-to-transform pipelines using dependency-chained Apache Airflow DAGs within Docker Compose."
+   },
+   "tags": [
+    "Python",
+    "dbt",
+    "Apache Airflow",
+    "DuckDB",
+    "LocalStack (S3)",
+    "Docker",
+    "Terraform"
+   ]
+  }
+ ],
+ "skill_groups": [
+  {
+   "id": 25,
+   "category": "Core Languages",
+   "skills": [
+    "Dart",
+    "Python",
+    "Java",
+    "SQL",
+    "Bash",
+    "C/C++",
+    "Kotlin",
+    "Swift"
+   ]
+  },
+  {
+   "id": 16,
+   "category": "Mobile & Frontend",
+   "skills": [
+    "Flutter",
+    "Clean Architecture",
+    "Riverpod",
+    "Provider",
+    "GetX",
+    "GoRouter",
+    "RESTful APIs",
+    "GraphQL",
+    "BFF Integration",
+    "Responsive UI/UX",
+    "Unit/Widget/Integration Testing",
+    "Mockito",
+    "Build Runner"
+   ]
+  },
+  {
+   "id": 14,
+   "category": "Backend & Data Engineering",
+   "skills": [
+    "Spring Boot",
+    "FastAPI",
+    "Flask",
+    "Apache Airflow",
+    "dbt",
+    "DuckDB",
+    "PostgreSQL",
+    "LocalStack (S3)",
+    "MQTT",
+    "Terraform"
+   ]
+  },
+  {
+   "id": 15,
+   "category": "AI & Machine Learning",
+   "skills": [
+    "LLMs (Mistral 7B, LLaMA 3 8B, Ollama)",
+    "RAG",
+    "FAISS",
+    "NLP (spaCy, TF-IDF, Cosine Similarity)",
+    "Computer Vision (YOLOv8, CNN)",
+    "OpenAI Whisper (STT)",
+    "Google TTS (gTTS)",
+    "Meta Prophet",
+    "MLflow",
+    "ZenML",
+    "Label Studio",
+    "Scikit-Learn",
+    "PyTorch",
+    "TensorFlow"
+   ]
+  },
+  {
+   "id": 17,
+   "category": "DevOps, Cloud & Release",
+   "skills": [
+    "Docker",
+    "Docker Compose",
+    "Git",
+    "GitHub Actions (CI/CD)",
+    "Firebase (Auth, Crashlytics, Remote Config)",
+    "Google Play Console",
+    "TestFlight",
+    "Linux"
+   ]
+  }
+ ],
+ "certifications": [
+  {
+   "id": 19,
+   "name": "Data Engineer",
+   "issuer": "DataCamp"
+  },
+  {
+   "id": 20,
+   "name": "Data Engineering Specialization",
+   "issuer": "DeepLearning.AI"
+  }
+ ],
+ "education": [
+  {
+   "id": 18,
+   "degree": "National Engineering Degree in Software Engineering",
+   "school": "National Institute of Applied Sciences and Technologies (INSAT)"
+  }
+ ],
+ "volunteering": [
+  {
+   "id": 10,
+   "title": "Flutter Instructor",
+   "org": "INSAT Android Club",
+   "dates": "2022 – Present",
+   "facts": {
+    "0": "Taught Flutter development and led UI/UX design workshops for students."
+   },
+   "tags": [
+    "teaching",
+    "flutter"
+   ]
+  },
+  {
+   "id": 11,
+   "title": "Webmaster",
+   "org": "IEEE INSAT Student Branch",
+   "dates": "07/2023 – 05/2024",
+   "facts": {
+    "0": "Managed the student branch website and organized technical events."
+   },
+   "tags": [
+    "web"
+   ]
+  },
+  {
+   "id": 12,
+   "title": "Webmaster",
+   "org": "National Robotics Weekend 5.0",
+   "dates": "01/2023 – 06/2023",
+   "facts": {
+    "0": "Developed the event website and facilitated participant registration."
+   },
+   "tags": [
+    "web"
+   ]
+  },
+  {
+   "id": 13,
+   "title": "Member",
+   "org": "Junior Entreprise INSAT",
+   "dates": "10/2021 – 01/2023",
+   "facts": {
+    "0": "Provided consulting services to local businesses and engaged in project management."
+   },
+   "tags": [
+    "consulting"
+   ]
+  }
+ ]
+}
+
+## SCHEMA
+{
+ "description": "The summary only (used for the one regeneration after grounding rejects a sentence).",
+ "properties": {
+  "summary_sentences": {
+   "description": "2-3 sentences, each cited",
+   "items": {
+    "properties": {
+     "text": {
+      "type": "string"
+     },
+     "citations": {
+      "description": "Pool ids this sentence is based on (summary snippets, roles, projects, skill groups\u2026)",
+      "items": {
+       "type": "integer"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "text",
+     "citations"
+    ],
+    "type": "object"
+   },
+   "type": "array"
+  },
+  "summary_short_sentences": {
+   "description": "About half the length, each cited (used when the page is tight)",
+   "items": {
+    "properties": {
+     "text": {
+      "type": "string"
+     },
+     "citations": {
+      "description": "Pool ids this sentence is based on (summary snippets, roles, projects, skill groups\u2026)",
+      "items": {
+       "type": "integer"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "text",
+     "citations"
+    ],
+    "type": "object"
+   },
+   "type": "array"
+  }
+ },
+ "required": [
+  "summary_sentences",
+  "summary_short_sentences"
+ ],
+ "type": "object"
+}

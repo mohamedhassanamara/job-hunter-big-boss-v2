@@ -1,0 +1,184 @@
+{
+ "cv": {
+  "page_count": 1,
+  "fill_pct": 98.2,
+  "violations": {
+   "errors": [],
+   "warnings": []
+  },
+  "bullets_changed": [
+   {
+    "item": "Mobile Engineer Intern (Orange Digital Center)",
+    "bullet": "4:0",
+    "original": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place ** in the Orange Summer Challenge.",
+    "final": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+    "numbers_dropped": [],
+    "numbers_added": [
+     "20+"
+    ],
+    "terms_dropped": [],
+    "terms_added": []
+   }
+  ],
+  "numbers_or_terms_added": [
+   "20+"
+  ],
+  "numbers_or_terms_dropped": [],
+  "summary": "Flutter engineer with 3 years of software engineering experience shipping production mobile apps to the App Store and Google Play. Recent work includes refactoring a dating app to Riverpod and Clean Architecture, and integrating Firebase and BFF services into a sports platform at Reality Sports.",
+  "summary_numbers_not_in_pool": [],
+  "skills": [
+   "Mobile & Frontend: Flutter, Clean Architecture, Riverpod, GoRouter, Provider, GetX, Unit/Widget/Integration Testing, Mockito",
+   "Core Languages: Dart, Kotlin, Swift, Java, Python, SQL, Bash, C/C++",
+   "DevOps, Cloud & Release: Firebase (Auth, Crashlytics, Remote Config), Google Play Console, TestFlight, GitHub Actions (CI/CD), Git, Docker, Docker Compose, Linux"
+  ],
+  "tailoring_report": {
+   "adapted": 0,
+   "original": 28,
+   "fallbacks": [],
+   "verifier": null
+  },
+  "summary_grounding": {
+   "attempts": 1,
+   "rejected": [],
+   "fallback": null,
+   "style": []
+  }
+ },
+ "email": {
+  "language_chosen": "en",
+  "language_rule": "en",
+  "language_matches_rule": true,
+  "detected_language_of_text": [
+   "en",
+   24
+  ],
+  "words": 98,
+  "words_range": "90-170",
+  "attempts": 1,
+  "violations": {
+   "errors": [],
+   "warnings": [
+    "[company] body: The company name “Healy World GmbH” isn't mentioned"
+   ]
+  },
+  "subject": "Flutter Developer application – Mohamed Hassen Amara",
+  "full_text": "Subject: Flutter Developer application – Mohamed Hassen Amara\n\nHi Adam,\n\nI'm applying for the Flutter Developer role at Healy World and wanted to reach out directly.\n\nAt Reality Sports I built the Flutter frontend for a sports management app with 10+ screens and integrated 15+ RESTful backend services for real-time data sync. I also set up GitHub Actions pipelines for automated builds and releases, and refactored a legacy codebase under Clean Architecture, cutting the app's binary size by 15%.\n\nWould you be able to take a look at my attached CV and let me know if you'd recommend me for the role?\n\nBest regards,\nMohamed Hassen Amara",
+  "verifier_status": "passed",
+  "claims": [
+   {
+    "sentence": "Subject: Flutter Developer application – Mohamed Hassen Amara",
+    "claim": "The candidate is applying for the Flutter Developer role.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": "FACTS says the candidate is applying, and RECIPIENT names the job as a Flutter developer role."
+   },
+   {
+    "sentence": "Subject: Flutter Developer application – Mohamed Hassen Amara",
+    "claim": "The candidate's name is Mohamed Hassen Amara.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Name: Mohamed Hassen Amara",
+    "reason": "The name matches FACTS."
+   },
+   {
+    "sentence": "Hi Adam,",
+    "claim": "Greeting to Adam.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "recipient",
+    "source_quote": "Contact: Adam Govan, Lead Mobile Engineer",
+    "reason": "This is a greeting, and the name matches the contact in RECIPIENT."
+   },
+   {
+    "sentence": "I'm applying for the Flutter Developer role at Healy World and wanted to reach out directly.",
+    "claim": "The candidate is applying for the Flutter Developer role at Healy World.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": "FACTS confirms the application, and RECIPIENT names Healy World GmbH and the Flutter developer job."
+   },
+   {
+    "sentence": "I'm applying for the Flutter Developer role at Healy World and wanted to reach out directly.",
+    "claim": "The candidate wanted to reach out directly.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This states the writer's intent, not a fact."
+   },
+   {
+    "sentence": "At Reality Sports I built the Flutter frontend for a sports management app with 10+ screens and integrated 15+ RESTful backend services for real-time data sync.",
+    "claim": "At Reality Sports the candidate built the Flutter frontend for a sports management app with 10+ screens.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens",
+    "reason": ""
+   },
+   {
+    "sentence": "At Reality Sports I built the Flutter frontend for a sports management app with 10+ screens and integrated 15+ RESTful backend services for real-time data sync.",
+    "claim": "At Reality Sports the candidate integrated 15+ RESTful backend services for real-time data sync.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "integrating 15+ RESTful backend services for real-time data synchronization",
+    "reason": ""
+   },
+   {
+    "sentence": "I also set up GitHub Actions pipelines for automated builds and releases, and refactored a legacy codebase under Clean Architecture, cutting the app's binary size by 15%.",
+    "claim": "The candidate set up GitHub Actions pipelines for automated builds and releases.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "Set up automated build and deployment pipelines with GitHub Actions",
+    "reason": ""
+   },
+   {
+    "sentence": "I also set up GitHub Actions pipelines for automated builds and releases, and refactored a legacy codebase under Clean Architecture, cutting the app's binary size by 15%.",
+    "claim": "The candidate refactored a legacy codebase under Clean Architecture.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture",
+    "reason": ""
+   },
+   {
+    "sentence": "I also set up GitHub Actions pipelines for automated builds and releases, and refactored a legacy codebase under Clean Architecture, cutting the app's binary size by 15%.",
+    "claim": "The refactor cut the app's binary size by 15%.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "reducing overall app binary size by 15%",
+    "reason": "The same bullet ties the 15% reduction to the refactor."
+   },
+   {
+    "sentence": "Would you be able to take a look at my attached CV and let me know if you'd recommend me for the role?",
+    "claim": "Request to review the CV and recommend the candidate.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a request."
+   },
+   {
+    "sentence": "Best regards,\nMohamed Hassen Amara",
+    "claim": "Sign-off with the writer's name.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a sign-off."
+   }
+  ]
+ },
+ "cv_version": 1,
+ "draft_id": 25,
+ "model": "claude-sonnet-5",
+ "email_model": "claude-sonnet-5",
+ "cv_generation_ms": 75449,
+ "email_duration_ms": 7469
+}

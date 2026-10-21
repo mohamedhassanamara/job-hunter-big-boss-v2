@@ -1,0 +1,293 @@
+{
+ "config": {
+  "name": "gemini-3.5-flash-lite__dynamic-thinking",
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingBudget": -1
+  }
+ },
+ "cv_total_seconds": 31.1,
+ "cv": {
+  "page_count": 1,
+  "fill_pct": 91.5,
+  "violations": {
+   "errors": [],
+   "warnings": [
+    "[summary_style] summary: The summary still breaks the writing guide after one retry: opens like another CV (“Software engineer with 3…”): vary the opening"
+   ]
+  },
+  "bullets_changed": [],
+  "numbers_or_terms_added": [],
+  "numbers_or_terms_dropped": [],
+  "summary": "Software engineer with 3 years of experience specializing in Flutter, building production applications and shipping releases to the App Store and Google Play. Recent work includes architecting custom Backend-for-Frontend endpoints in Spring Boot and refactoring legacy codebases under Clean Architecture.",
+  "summary_numbers_not_in_pool": [],
+  "skills": [
+   "Mobile & Frontend: Flutter, Clean Architecture, Riverpod, GoRouter, RESTful APIs, BFF Integration, Unit/Widget/Integration Testing, Mockito",
+   "Core Languages: Dart, Python, Java, SQL",
+   "DevOps, Cloud & Release: Docker, GitHub Actions (CI/CD), Firebase (Auth, Crashlytics, Remote Config), Google Play Console, TestFlight, Git",
+   "Backend & Data Engineering: Spring Boot, FastAPI, PostgreSQL"
+  ],
+  "tailoring_report": {
+   "adapted": 0,
+   "original": 27,
+   "fallbacks": [],
+   "verifier": null
+  },
+  "summary_grounding": {
+   "attempts": 2,
+   "rejected": [
+    [],
+    [
+     {
+      "text": "Mobile and backend developer with 3 years of professional experience designing cross-platform Flutter applications and backend services.",
+      "citations": [
+       21,
+       23
+      ],
+      "reasons": [
+       "years claim “3 years” isn't allowed (write exactly “3 years of software engineering experience”)"
+      ]
+     }
+    ]
+   ],
+   "fallback": null,
+   "style": [
+    {
+     "summary": [
+      "opens like another CV (“Software engineer with 3…”): vary the opening"
+     ],
+     "short": []
+    },
+    {
+     "summary": [],
+     "short": []
+    }
+   ]
+  }
+ },
+ "cv_verifier_records": [],
+ "cv_model": {
+  "calls": 2,
+  "valid_json_first_try": [
+   true,
+   true
+  ],
+  "valid_schema_first_try": [
+   true,
+   true
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 2,
+  "retries_429": 0,
+  "retries_503": 0,
+  "retries_other": 0,
+  "model_seconds": 28.9,
+  "tokens_in": 15199,
+  "tokens_out": 2758,
+  "tokens_thinking": 7133,
+  "keys_used": [
+   "key 1",
+   "key 2"
+  ]
+ },
+ "email_total_seconds": 13.9,
+ "email": {
+  "language_chosen": "en",
+  "language_rule": "en",
+  "language_matches_rule": true,
+  "detected_language_of_text": [
+   "en",
+   22
+  ],
+  "words": 108,
+  "words_range": "90-170",
+  "attempts": 1,
+  "violations": {
+   "errors": [],
+   "warnings": [
+    "[cv_copy] experience 1: “Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.” reads like a CV bullet",
+    "[cv_copy] experience 2: “Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.” reads like a CV bullet"
+   ]
+  },
+  "subject": "Flutter Developer application – Mohamed Hassen Amara",
+  "full_text": "Subject: Flutter Developer application – Mohamed Hassen Amara\n\nHi Adam,\n\nI'm applying for the Flutter Developer role at Healy World GmbH and wanted to reach out directly to connect with the team.\n\nShipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization. Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.\n\nPlease take a look at my attached CV, and I would welcome a short call to discuss how my mobile development experience aligns with your work.\n\nBest regards,\nMohamed Hassen Amara",
+  "verifier_status": "passed",
+  "verifier_would_run_in_production": true,
+  "claims": [
+   {
+    "sentence": "Subject: Flutter Developer application – Mohamed Hassen Amara",
+    "claim": "The candidate is applying for the Flutter Developer role.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": "FACTS says the candidate is applying, and RECIPIENT gives the job title 'Flutter developer for mobile apps (m/f/d)', shortened here to its plain role name."
+   },
+   {
+    "sentence": "Subject: Flutter Developer application – Mohamed Hassen Amara",
+    "claim": "The candidate's name is Mohamed Hassen Amara.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Name: Mohamed Hassen Amara",
+    "reason": "FACTS gives this exact name."
+   },
+   {
+    "sentence": "Hi Adam,",
+    "claim": "Greeting to Adam.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a greeting."
+   },
+   {
+    "sentence": "I'm applying for the Flutter Developer role at Healy World GmbH and wanted to reach out directly to connect with the team.",
+    "claim": "The candidate is applying for the Flutter Developer role.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Application: the candidate is applying for this job",
+    "reason": "FACTS confirms the application, and RECIPIENT names the role."
+   },
+   {
+    "sentence": "I'm applying for the Flutter Developer role at Healy World GmbH and wanted to reach out directly to connect with the team.",
+    "claim": "The role is at Healy World GmbH.",
+    "about": "company",
+    "verdict": "supported",
+    "source_id": "recipient",
+    "source_quote": "Company: Healy World GmbH",
+    "reason": "RECIPIENT names this company."
+   },
+   {
+    "sentence": "I'm applying for the Flutter Developer role at Healy World GmbH and wanted to reach out directly to connect with the team.",
+    "claim": "The candidate wanted to reach out directly to connect with the team.",
+    "about": "candidate",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This states the writer's own wish."
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "The candidate shipped a full-stack sports management platform to the App Store and Google Play Store.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "Shipped a full-stack sports management platform to the App Store and Google Play Store",
+    "reason": "The Reality Sports item states this word for word."
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "The candidate built 10+ data-driven Flutter screens.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "building 10+ data-driven Flutter screens",
+    "reason": "The Reality Sports item states this word for word."
+   },
+   {
+    "sentence": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+    "claim": "The candidate integrated 15+ RESTful backend services for real-time data synchronization.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:1",
+    "source_quote": "integrating 15+ RESTful backend services for real-time data synchronization",
+    "reason": "The Reality Sports item states this word for word."
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "The candidate engineered the complete Flutter frontend for the Lovester dating application (lovester.net).",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`)",
+    "reason": "The Lovester item states this word for word."
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "The candidate achieved fluid 60fps user interfaces.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "achieving fluid 60fps user interfaces",
+    "reason": "The Lovester item states this word for word."
+   },
+   {
+    "sentence": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+    "claim": "The candidate built complex custom animations across 25+ unique screens.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "pool:3",
+    "source_quote": "complex custom animations across 25+ unique screens",
+    "reason": "The Lovester item states this word for word."
+   },
+   {
+    "sentence": "Please take a look at my attached CV, and I would welcome a short call to discuss how my mobile development experience aligns with your work.",
+    "claim": "Request to look at the attached CV.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a request."
+   },
+   {
+    "sentence": "Please take a look at my attached CV, and I would welcome a short call to discuss how my mobile development experience aligns with your work.",
+    "claim": "The candidate has mobile development experience.",
+    "about": "candidate",
+    "verdict": "supported",
+    "source_id": "facts",
+    "source_quote": "Track Mobile: experience is professional",
+    "reason": "FACTS says the candidate's mobile experience is professional."
+   },
+   {
+    "sentence": "Please take a look at my attached CV, and I would welcome a short call to discuss how my mobile development experience aligns with your work.",
+    "claim": "The candidate would welcome a short call.",
+    "about": "candidate",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This states the writer's own wish."
+   },
+   {
+    "sentence": "Best regards,",
+    "claim": "Sign-off.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is a sign-off."
+   },
+   {
+    "sentence": "Mohamed Hassen Amara",
+    "claim": "Signed with the writer's name.",
+    "about": "other",
+    "verdict": "not_a_claim",
+    "source_id": "",
+    "source_quote": "",
+    "reason": "This is the sign-off with the writer's name."
+   }
+  ]
+ },
+ "email_model": {
+  "calls": 1,
+  "valid_json_first_try": [
+   true
+  ],
+  "valid_schema_first_try": [
+   true
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 1,
+  "retries_429": 0,
+  "retries_503": 0,
+  "retries_other": 0,
+  "model_seconds": 13.8,
+  "tokens_in": 5095,
+  "tokens_out": 257,
+  "tokens_thinking": 5007,
+  "keys_used": [
+   "key 3"
+  ]
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "candidates": [
+  {
+   "content": {
+    "parts": [
+     {
+      "text": "{\n  \"role\": \"Flutter Developer\",\n  \"greeting\": \"Hi Adam,\",\n  \"opening\": \"I'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.\",\n  \"experience\": [\n    {\n      \"text\": \"Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.\",\n      \"citations\": [\n        1\n      ]\n    },\n    {\n      \"text\": \"Set up automated build and deployment pipelines with GitHub Actions, improving release reliability and build consistency across projects.\",\n      \"citations\": [\n        6\n      ]\n    }\n  ],\n  \"constraint\": \"I am based in Tunis, Tunisia, would need visa sponsorship to work in the job's country, and am willing to relocate for the job. If that rules me out, I understand.\",\n  \"constraint_quote\": \"\",\n  \"signal\": {\n    \"text\": \"\",\n    \"signal_ids\": []\n  },\n  \"ask\": \"Would you be open to a short call to discuss my CV?\"\n}",
+      "thoughtSignature": "EmAKXgFpFH0TLvW0rw/vBM9Q73yYxoSxDl5e4KHRUjs1ObYWuCc0gQrN7sxaXx48kA2tHDhPHPxQ4kZu+DH6iUdtpwIQyKWvpAWXFwh5zszPbwXjBUgFDeYuS4I4eQkuJtY="
+     }
+    ],
+    "role": "model"
+   },
+   "finishReason": "STOP",
+   "index": 0
+  }
+ ],
+ "usageMetadata": {
+  "promptTokenCount": 5095,
+  "candidatesTokenCount": 264,
+  "totalTokenCount": 5359,
+  "cachedContentTokenCount": 1719,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 5095
+   }
+  ],
+  "cacheTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 1719
+   }
+  ],
+  "serviceTier": "standard"
+ },
+ "modelVersion": "gemini-3.5-flash-lite",
+ "responseId": "mPLYariSIczuxs0PidyjyQg"
+}

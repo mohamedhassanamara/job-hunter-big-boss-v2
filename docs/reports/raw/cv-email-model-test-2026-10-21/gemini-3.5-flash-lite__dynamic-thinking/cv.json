@@ -1,0 +1,566 @@
+{
+ "version": 3,
+ "status": "draft",
+ "generator_model": "gemini-3.5-flash-lite__dynamic-thinking",
+ "page_count": 1,
+ "fill": 0.915,
+ "content": {
+  "summary": "Software engineer with 3 years of experience specializing in Flutter, building production applications and shipping releases to the App Store and Google Play. Recent work includes architecting custom Backend-for-Frontend endpoints in Spring Boot and refactoring legacy codebases under Clean Architecture.",
+  "skills": [
+   {
+    "category": "Mobile & Frontend",
+    "items": [
+     "Flutter",
+     "Clean Architecture",
+     "Riverpod",
+     "GoRouter",
+     "RESTful APIs",
+     "BFF Integration",
+     "Unit/Widget/Integration Testing",
+     "Mockito"
+    ]
+   },
+   {
+    "category": "Core Languages",
+    "items": [
+     "Dart",
+     "Python",
+     "Java",
+     "SQL"
+    ]
+   },
+   {
+    "category": "DevOps, Cloud & Release",
+    "items": [
+     "Docker",
+     "GitHub Actions (CI/CD)",
+     "Firebase (Auth, Crashlytics, Remote Config)",
+     "Google Play Console",
+     "TestFlight",
+     "Git"
+    ]
+   },
+   {
+    "category": "Backend & Data Engineering",
+    "items": [
+     "Spring Boot",
+     "FastAPI",
+     "PostgreSQL"
+    ]
+   }
+  ],
+  "roles": [
+   {
+    "item_id": 1,
+    "title": "Software Engineer",
+    "org": "Reality Sports",
+    "location": "Tunis, Tunisia",
+    "start": "Sep 2025",
+    "end": "Present",
+    "bullets": [
+     "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+     "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+     "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%."
+    ]
+   },
+   {
+    "item_id": 2,
+    "title": "AI Engineer Intern (Graduation Project)",
+    "org": "Nexaminds",
+    "location": "Tunis, Tunisia",
+    "start": "Feb 2025",
+    "end": "Aug 2025",
+    "bullets": [
+     "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs."
+    ]
+   },
+   {
+    "item_id": 3,
+    "title": "Mobile Developer (Part-time)",
+    "org": "Nexaminds (Lovester)",
+    "location": "Tunis, Tunisia / UAE (Remote)",
+    "start": "Oct 2022",
+    "end": "Feb 2025",
+    "bullets": [
+     "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+     "Transitioned the application from MVVM to a modular Clean Architecture focused on domain entities and unidirectional data flow, improving scalability for future development."
+    ]
+   },
+   {
+    "item_id": 4,
+    "title": "Mobile Engineer Intern",
+    "org": "Orange Digital Center",
+    "location": "Tunis, Tunisia",
+    "start": "Jul 2024",
+    "end": "Nov 2024",
+    "bullets": [
+     "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge."
+    ]
+   }
+  ],
+  "projects": [],
+  "certifications": [
+   {
+    "item_id": 19,
+    "name": "Data Engineer",
+    "issuer": "DataCamp",
+    "credential_id": "DE0015568725673",
+    "url": ""
+   },
+   {
+    "item_id": 20,
+    "name": "Data Engineering Specialization",
+    "issuer": "DeepLearning.AI",
+    "credential_id": "8154W4WB0W5O",
+    "url": ""
+   }
+  ],
+  "education": [
+   {
+    "item_id": 18,
+    "school": "National Institute of Applied Sciences and Technologies (INSAT)",
+    "degree": "National Engineering Degree in Software Engineering",
+    "location": "Tunis, Tunisia",
+    "start": "Sep 2020",
+    "end": "June 2025"
+   }
+  ],
+  "volunteering": [
+   {
+    "item_id": 10,
+    "title": "Flutter Instructor",
+    "org": "INSAT Android Club",
+    "location": "",
+    "start": "2022",
+    "end": "Present",
+    "bullets": [
+     "Taught Flutter development and led UI/UX design workshops for students."
+    ]
+   }
+  ]
+ },
+ "plan": {
+  "prompt_version": "cv_generate/v10",
+  "summary_grounding": {
+   "attempts": 2,
+   "rejected": [
+    [],
+    [
+     {
+      "text": "Mobile and backend developer with 3 years of professional experience designing cross-platform Flutter applications and backend services.",
+      "citations": [
+       21,
+       23
+      ],
+      "reasons": [
+       "years claim “3 years” isn't allowed (write exactly “3 years of software engineering experience”)"
+      ]
+     }
+    ]
+   ],
+   "fallback": null,
+   "style": [
+    {
+     "summary": [
+      "opens like another CV (“Software engineer with 3…”): vary the opening"
+     ],
+     "short": []
+    },
+    {
+     "summary": [],
+     "short": []
+    }
+   ]
+  },
+  "tailoring": {
+   "adapted": 0,
+   "original": 27,
+   "fallbacks": [],
+   "verifier": null
+  },
+  "cost_usd": null,
+  "generation_ms": 7025,
+  "plan": {
+   "summary": "Software engineer with 3 years of experience specializing in Flutter, building production applications and shipping releases to the App Store and Google Play. Recent work includes architecting custom Backend-for-Frontend endpoints in Spring Boot and refactoring legacy codebases under Clean Architecture.",
+   "summary_short": "Software engineer with 3 years of experience building production Flutter applications and scalable backend integrations.",
+   "summary_source_ids": [
+    1,
+    21,
+    23
+   ],
+   "summary_sentences": [
+    {
+     "text": "Software engineer with 3 years of experience specializing in Flutter, building production applications and shipping releases to the App Store and Google Play.",
+     "citations": [
+      21,
+      23
+     ]
+    },
+    {
+     "text": "Recent work includes architecting custom Backend-for-Frontend endpoints in Spring Boot and refactoring legacy codebases under Clean Architecture.",
+     "citations": [
+      1
+     ]
+    }
+   ],
+   "summary_short_sentences": [
+    {
+     "text": "Software engineer with 3 years of experience building production Flutter applications and scalable backend integrations.",
+     "citations": [
+      21,
+      23
+     ]
+    }
+   ],
+   "skills": [
+    {
+     "item_id": 16,
+     "items": [
+      "Flutter",
+      "Clean Architecture",
+      "Riverpod",
+      "GoRouter",
+      "RESTful APIs",
+      "BFF Integration",
+      "Unit/Widget/Integration Testing",
+      "Mockito"
+     ]
+    },
+    {
+     "item_id": 25,
+     "items": [
+      "Dart",
+      "Python",
+      "Java",
+      "SQL"
+     ]
+    },
+    {
+     "item_id": 17,
+     "items": [
+      "Docker",
+      "GitHub Actions (CI/CD)",
+      "Firebase (Auth, Crashlytics, Remote Config)",
+      "Google Play Console",
+      "TestFlight",
+      "Git"
+     ]
+    },
+    {
+     "item_id": 14,
+     "items": [
+      "Spring Boot",
+      "FastAPI",
+      "PostgreSQL"
+     ]
+    }
+   ],
+   "roles": [
+    {
+     "item_id": 1,
+     "relevance": 10,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+       "priority": 2,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%.",
+       "priority": 3,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving ~80% code coverage.",
+       "priority": 4,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Integrated Firebase Crashlytics, Remote Config, and Auth as core platform features to improve crash visibility, remote configurability, and secure sign-in.",
+       "priority": 5,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Mentored a junior developer on scalable Flutter architecture and state management standards to improve long-term codebase maintainability.",
+       "priority": 6,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 6,
+       "text": "Set up automated build and deployment pipelines with GitHub Actions, improving release reliability and build consistency across projects.",
+       "priority": 7,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 2,
+     "relevance": 6,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Designed and shipped a modular FastAPI backend exposing endpoints for resume parsing, job description matching, and automated interview orchestration.",
+       "priority": 2,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Containerized the complete multi-model AI system (Mistral 7B, Whisper STT, gTTS, FastAPI) using Docker, creating reproducible container images for local execution and production deployment.",
+       "priority": 3,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Built an initial layout-extraction pipeline combining YOLOv8 and spaCy (annotating hundreds of resume images in Label Studio for section segmentation) before evolving the system into an LLM-driven architecture to overcome dataset limitations and optimize hardware efficiency.",
+       "priority": 4,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Engineered a resume-to-job description matcher using TF-IDF vectorization, cosine similarity, and embeddings to evaluate candidate relevance and return ranked shortlists.",
+       "priority": 5,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Developed an AI-led pre-screening interview system combining OpenAI Whisper (Speech-to-Text) and Google TTS (gTTS) to conduct real-time voice-based candidate assessments.",
+       "priority": 6,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 3,
+     "relevance": 9,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Transitioned the application from MVVM to a modular Clean Architecture focused on domain entities and unidirectional data flow, improving scalability for future development.",
+       "priority": 2,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development.",
+       "priority": 3,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Established the foundational testing environment using Flutter's test framework, Mockito, Build Runner, and `FakeAsync` to execute unit, widget, and integration tests, catching regressions during development.",
+       "priority": 4,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Debugged critical performance issues across user interaction flows, reducing app crashes and improving overall application stability and user experience.",
+       "priority": 5,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Collaborated with design and backend teams during Agile sprints, communicating technical constraints and translating stakeholder requirements into optimized user flows and backend integrations.",
+       "priority": 6,
+       "strength": 1,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 4,
+     "relevance": 8,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Architected the mobile application adhering to Clean Architecture principles and utilizing GetX for state management and routing.",
+       "priority": 2,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.",
+       "priority": 3,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Owned the model-to-mobile integration layer, allowing users to interact with forecasting models, view real-time energy insights, and track consumption.",
+       "priority": 4,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Applied gamification principles within the mobile interface to enhance user engagement and encourage energy-saving behaviors.",
+       "priority": 5,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    }
+   ],
+   "projects": [
+    {
+     "item_id": 5,
+     "relevance": 5,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Built an end-to-end local data lakehouse ingesting 5 seasons (~140K+ records) of Premier League data into LocalStack S3, with idempotent, retry-safe Python pipelines handling schema drift automatically.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Designed a dbt star schema on DuckDB with custom entity resolution reconciling ~2,000 player identities across disparate schemas, achieving 10/10 passing tests across 4 resolved collision classes.",
+       "priority": 2,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      }
+     ],
+     "stack": [
+      "Python",
+      "dbt",
+      "Apache Airflow",
+      "DuckDB",
+      "Docker"
+     ]
+    }
+   ],
+   "certification_ids": [
+    19,
+    20
+   ],
+   "education_ids": [
+    18
+   ],
+   "volunteering": [
+    {
+     "item_id": 10,
+     "relevance": 8,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Taught Flutter development and led UI/UX design workshops for students.",
+       "priority": 1,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    }
+   ]
+  },
+  "fit": {
+   "counts": {
+    "role:1": 3,
+    "role:2": 1,
+    "role:3": 2,
+    "role:4": 1,
+    "project:5": 0,
+    "volunteering:10": 1
+   },
+   "short_summary": false
+  },
+  "history": [
+   {
+    "pass": 0,
+    "pages": 2,
+    "fill": 0.019,
+    "ok": true
+   },
+   {
+    "pass": 1,
+    "pages": 1,
+    "fill": 0.915,
+    "ok": true
+   }
+  ]
+ },
+ "violations": [
+  {
+   "type": "summary_style",
+   "severity": "warning",
+   "message": "The summary still breaks the writing guide after one retry: opens like another CV (“Software engineer with 3…”): vary the opening",
+   "where": "summary"
+  }
+ ],
+ "overrides": {}
+}

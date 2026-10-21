@@ -1,0 +1,539 @@
+{
+ "version": 1,
+ "status": "approved",
+ "generator_model": "claude-sonnet-5",
+ "page_count": 1,
+ "fill": 0.982,
+ "content": {
+  "summary": "Flutter engineer with 3 years of software engineering experience shipping production mobile apps to the App Store and Google Play. Recent work includes refactoring a dating app to Riverpod and Clean Architecture, and integrating Firebase and BFF services into a sports platform at Reality Sports.",
+  "skills": [
+   {
+    "category": "Mobile & Frontend",
+    "items": [
+     "Flutter",
+     "Clean Architecture",
+     "Riverpod",
+     "GoRouter",
+     "Provider",
+     "GetX",
+     "Unit/Widget/Integration Testing",
+     "Mockito"
+    ]
+   },
+   {
+    "category": "Core Languages",
+    "items": [
+     "Dart",
+     "Kotlin",
+     "Swift",
+     "Java",
+     "Python",
+     "SQL",
+     "Bash",
+     "C/C++"
+    ]
+   },
+   {
+    "category": "DevOps, Cloud & Release",
+    "items": [
+     "Firebase (Auth, Crashlytics, Remote Config)",
+     "Google Play Console",
+     "TestFlight",
+     "GitHub Actions (CI/CD)",
+     "Git",
+     "Docker",
+     "Docker Compose",
+     "Linux"
+    ]
+   }
+  ],
+  "roles": [
+   {
+    "item_id": 1,
+    "title": "Software Engineer",
+    "org": "Reality Sports",
+    "location": "Tunis, Tunisia",
+    "start": "Sep 2025",
+    "end": "Present",
+    "bullets": [
+     "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+     "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%.",
+     "Integrated Firebase Crashlytics, Remote Config, and Auth as core platform features to improve crash visibility, remote configurability, and secure sign-in.",
+     "Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving ~80% code coverage.",
+     "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles."
+    ]
+   },
+   {
+    "item_id": 2,
+    "title": "AI Engineer Intern (Graduation Project)",
+    "org": "Nexaminds",
+    "location": "Tunis, Tunisia",
+    "start": "Feb 2025",
+    "end": "Aug 2025",
+    "bullets": [
+     "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs."
+    ]
+   },
+   {
+    "item_id": 3,
+    "title": "Mobile Developer (Part-time)",
+    "org": "Nexaminds (Lovester)",
+    "location": "Tunis, Tunisia / UAE (Remote)",
+    "start": "Oct 2022",
+    "end": "Feb 2025",
+    "bullets": [
+     "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+     "Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development."
+    ]
+   },
+   {
+    "item_id": 4,
+    "title": "Mobile Engineer Intern",
+    "org": "Orange Digital Center",
+    "location": "Tunis, Tunisia",
+    "start": "Jul 2024",
+    "end": "Nov 2024",
+    "bullets": [
+     "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+     "Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.",
+     "Architected the mobile application adhering to Clean Architecture principles and utilizing GetX for state management and routing."
+    ]
+   }
+  ],
+  "projects": [
+   {
+    "item_id": 7,
+    "name": "Driver Distraction Detection System & MLOps Pipeline",
+    "stack": [
+     "Flutter",
+     "Python",
+     "CNN",
+     "Flask",
+     "ZenML"
+    ],
+    "label": "Personal project",
+    "bullets": [
+     "Developed a Flutter mobile application connected to a Flask backend server via ngrok tunneling to deploy the model and interpret driver states in real time.",
+     "Trained a Convolutional Neural Network (CNN) model on the Kaggle State Farm dataset to detect and classify driver distraction states in real time."
+    ]
+   }
+  ],
+  "certifications": [],
+  "education": [
+   {
+    "item_id": 18,
+    "school": "National Institute of Applied Sciences and Technologies (INSAT)",
+    "degree": "National Engineering Degree in Software Engineering",
+    "location": "Tunis, Tunisia",
+    "start": "Sep 2020",
+    "end": "June 2025"
+   }
+  ],
+  "volunteering": []
+ },
+ "plan": {
+  "prompt_version": "cv_generate/v10",
+  "summary_grounding": {
+   "attempts": 1,
+   "rejected": [],
+   "fallback": null,
+   "style": []
+  },
+  "tailoring": {
+   "adapted": 0,
+   "original": 28,
+   "fallbacks": [],
+   "verifier": null
+  },
+  "cost_usd": 0.12857939999999998,
+  "generation_ms": 75449,
+  "plan": {
+   "summary": "Flutter engineer with 3 years of software engineering experience shipping production mobile apps to the App Store and Google Play. Recent work includes refactoring a dating app to Riverpod and Clean Architecture, and integrating Firebase and BFF services into a sports platform at Reality Sports.",
+   "summary_short": "Flutter engineer with 3 years of software engineering experience building production mobile apps with Clean Architecture and Riverpod.",
+   "summary_source_ids": [
+    1,
+    3,
+    4,
+    21
+   ],
+   "summary_sentences": [
+    {
+     "text": "Flutter engineer with 3 years of software engineering experience shipping production mobile apps to the App Store and Google Play.",
+     "citations": [
+      21,
+      1,
+      3,
+      4
+     ]
+    },
+    {
+     "text": "Recent work includes refactoring a dating app to Riverpod and Clean Architecture, and integrating Firebase and BFF services into a sports platform at Reality Sports.",
+     "citations": [
+      1,
+      3
+     ]
+    }
+   ],
+   "summary_short_sentences": [
+    {
+     "text": "Flutter engineer with 3 years of software engineering experience building production mobile apps with Clean Architecture and Riverpod.",
+     "citations": [
+      21,
+      1,
+      3
+     ]
+    }
+   ],
+   "skills": [
+    {
+     "item_id": 16,
+     "items": [
+      "Flutter",
+      "Clean Architecture",
+      "Riverpod",
+      "GoRouter",
+      "Provider",
+      "GetX",
+      "Unit/Widget/Integration Testing",
+      "Mockito"
+     ]
+    },
+    {
+     "item_id": 25,
+     "items": [
+      "Dart",
+      "Kotlin",
+      "Swift",
+      "Java",
+      "Python",
+      "SQL",
+      "Bash",
+      "C/C++"
+     ]
+    },
+    {
+     "item_id": 17,
+     "items": [
+      "Firebase (Auth, Crashlytics, Remote Config)",
+      "Google Play Console",
+      "TestFlight",
+      "GitHub Actions (CI/CD)",
+      "Git",
+      "Docker",
+      "Docker Compose",
+      "Linux"
+     ]
+    }
+   ],
+   "roles": [
+    {
+     "item_id": 1,
+     "relevance": 10,
+     "bullets": [
+      {
+       "source_index": 1,
+       "text": "Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15%.",
+       "priority": 2,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Integrated Firebase Crashlytics, Remote Config, and Auth as core platform features to improve crash visibility, remote configurability, and secure sign-in.",
+       "priority": 3,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving ~80% code coverage.",
+       "priority": 4,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 0,
+       "text": "Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40% and unblocking parallel development cycles.",
+       "priority": 5,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Mentored a junior developer on scalable Flutter architecture and state management standards to improve long-term codebase maintainability.",
+       "priority": 6,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 6,
+       "text": "Set up automated build and deployment pipelines with GitHub Actions, improving release reliability and build consistency across projects.",
+       "priority": 7,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 2,
+     "relevance": 3,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Designed a privacy-first resume parsing and candidate scoring engine using a locally hosted Mistral 7B LLM, replacing commercial third-party APIs to guarantee data confidentiality and cut operational costs.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Containerized the complete multi-model AI system (Mistral 7B, Whisper STT, gTTS, FastAPI) using Docker, creating reproducible container images for local execution and production deployment.",
+       "priority": 2,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Designed and shipped a modular FastAPI backend exposing endpoints for resume parsing, job description matching, and automated interview orchestration.",
+       "priority": 3,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Developed an AI-led pre-screening interview system combining OpenAI Whisper (Speech-to-Text) and Google TTS (gTTS) to conduct real-time voice-based candidate assessments.",
+       "priority": 4,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Engineered a resume-to-job description matcher using TF-IDF vectorization, cosine similarity, and embeddings to evaluate candidate relevance and return ranked shortlists.",
+       "priority": 5,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Built an initial layout-extraction pipeline combining YOLOv8 and spaCy (annotating hundreds of resume images in Label Studio for section segmentation) before evolving the system into an LLM-driven architecture to overcome dataset limitations and optimize hardware efficiency.",
+       "priority": 6,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 3,
+     "relevance": 9,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Engineered the complete Flutter frontend for the \"Lovester\" dating application (`lovester.net`), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development.",
+       "priority": 2,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Transitioned the application from MVVM to a modular Clean Architecture focused on domain entities and unidirectional data flow, improving scalability for future development.",
+       "priority": 3,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Established the foundational testing environment using Flutter's test framework, Mockito, Build Runner, and `FakeAsync` to execute unit, widget, and integration tests, catching regressions during development.",
+       "priority": 4,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Debugged critical performance issues across user interaction flows, reducing app crashes and improving overall application stability and user experience.",
+       "priority": 5,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 5,
+       "text": "Collaborated with design and backend teams during Agile sprints, communicating technical constraints and translating stakeholder requirements into optimized user flows and backend integrations.",
+       "priority": 6,
+       "strength": 1,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    },
+    {
+     "item_id": 4,
+     "relevance": 7,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Built the end-to-end Flutter frontend for \"Voltisense,\" an IoT-connected household energy monitoring application that won **2nd Place out of 20+ engineering teams** in the Orange Summer Challenge.",
+       "priority": 1,
+       "strength": 5,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.",
+       "priority": 2,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 1,
+       "text": "Architected the mobile application adhering to Clean Architecture principles and utilizing GetX for state management and routing.",
+       "priority": 3,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 3,
+       "text": "Owned the model-to-mobile integration layer, allowing users to interact with forecasting models, view real-time energy insights, and track consumption.",
+       "priority": 4,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 4,
+       "text": "Applied gamification principles within the mobile interface to enhance user engagement and encourage energy-saving behaviors.",
+       "priority": 5,
+       "strength": 2,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    }
+   ],
+   "projects": [
+    {
+     "item_id": 7,
+     "relevance": 6,
+     "bullets": [
+      {
+       "source_index": 1,
+       "text": "Developed a Flutter mobile application connected to a Flask backend server via ngrok tunneling to deploy the model and interpret driver states in real time.",
+       "priority": 1,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 0,
+       "text": "Trained a Convolutional Neural Network (CNN) model on the Kaggle State Farm dataset to detect and classify driver distraction states in real time.",
+       "priority": 2,
+       "strength": 4,
+       "adapted": false,
+       "fallback": null
+      },
+      {
+       "source_index": 2,
+       "text": "Implemented continuous data collection and automated MLOps CI/CD pipelines using ZenML to extract recorded images and automate model training, testing, and redeployment.",
+       "priority": 3,
+       "strength": 3,
+       "adapted": false,
+       "fallback": null
+      }
+     ],
+     "stack": [
+      "Flutter",
+      "Python",
+      "CNN",
+      "Flask",
+      "ZenML"
+     ]
+    }
+   ],
+   "certification_ids": [],
+   "education_ids": [
+    18
+   ],
+   "volunteering": [
+    {
+     "item_id": 10,
+     "relevance": 5,
+     "bullets": [
+      {
+       "source_index": 0,
+       "text": "Taught Flutter development and led UI/UX design workshops for students.",
+       "priority": 1,
+       "strength": 2,
+       "adapted": false,
+       "fallback": null
+      }
+     ]
+    }
+   ]
+  },
+  "fit": {
+   "counts": {
+    "role:1": 4,
+    "role:2": 1,
+    "role:3": 2,
+    "role:4": 1,
+    "project:7": 2,
+    "volunteering:10": 0
+   },
+   "short_summary": false
+  },
+  "history": [
+   {
+    "pass": 0,
+    "pages": 1,
+    "fill": 0.982,
+    "ok": true
+   }
+  ]
+ },
+ "violations": [],
+ "overrides": {
+  "force_in": [
+   "role:1:0",
+   "role:1:4",
+   "role:1:5",
+   "role:1:2",
+   "role:1:1",
+   "role:4:1",
+   "role:4:2"
+  ],
+  "force_out": []
+ }
+}

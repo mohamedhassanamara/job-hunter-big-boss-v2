@@ -1,0 +1,31 @@
+{
+ "candidates": [
+  {
+   "content": {
+    "parts": [
+     {
+      "text": "{\n  \"role\": \"Flutter developer\",\n  \"greeting\": \"Hi Adam,\",\n  \"opening\": \"I'm applying for the Flutter developer position at Healy World GmbH and wanted to reach out directly.\",\n  \"experience\": [\n    {\n      \"text\": \"Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.\",\n      \"citations\": [1]\n    },\n    {\n      \"text\": \"Engineered the complete Flutter frontend for the \\\"Lovester\\\" dating application, achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.\",\n      \"citations\": [3]\n    }\n  ],\n  \"constraint\": \"I am based in Tunis, Tunisia, and would need visa sponsorship to work in Germany, though I am fully willing to relocate for the job if that rules me out, I understand.\",\n  \"constraint_quote\": \"Where? At our location in Berlin or Mainz\",\n  \"signal\": {\n    \"text\": \"\",\n    \"signal_ids\": []\n  },\n  \"ask\": \"Please take a look at my attached CV, and let me know if you are open to a short call.\"\n}",
+      "thoughtSignature": "EmAKXgFpFH0Tda0wkp8EUQq7xg1g/xSpxQUY7sMf7RYZSxpC7RD4xe/++wujWOCvafJF2zlWuZiEUX0DZ97gzTa1w3qJDohgiUhM1dSPWhQ/CurV/xlHlnYGcrAgUJFJUp0="
+     }
+    ],
+    "role": "model"
+   },
+   "finishReason": "STOP",
+   "index": 0
+  }
+ ],
+ "usageMetadata": {
+  "promptTokenCount": 5167,
+  "candidatesTokenCount": 288,
+  "totalTokenCount": 5455,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 5167
+   }
+  ],
+  "serviceTier": "standard"
+ },
+ "modelVersion": "gemini-3.5-flash-lite",
+ "responseId": "m_LYavXXJvvnvdIP_667wAk"
+}
