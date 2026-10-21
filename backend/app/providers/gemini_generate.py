@@ -210,8 +210,8 @@ class _GeminiMixin:
         return ["gemini", system or self.system_prompt, schema]  # type: ignore[attr-defined]
 
     def _call(self, cmd: list[Any], message: str, model: type) -> Any:
-        summary_prompt = getattr(self, "summary_prompt", "")
-        label = "summary-retry" if summary_prompt and summary_prompt in cmd[1] else "main"
+        prompts = [getattr(self, "summary_prompt", ""), getattr(self, "revise_prompt", "")]
+        label = "summary-retry" if any(p and p in cmd[1] for p in prompts) else "main"
         started = time.monotonic()
         try:
             return self.runner.call(cmd[1], message, model, label)

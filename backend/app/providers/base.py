@@ -454,8 +454,10 @@ class CVGenerator(Protocol):
         """Raises CVGenerationFailed with a human-readable reason."""
         ...
 
-    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
-        """Only the summary again, told which sentences were rejected and why."""
+    def generate_summary(self, request: CVRequest, feedback: str, current: str = "",
+                         user_feedback: str = "") -> SummaryDraft:
+        """Only the summary again, told which sentences were rejected and why; with `current` and
+        `user_feedback` it edits the current summary toward the user's feedback."""
         ...
 
 

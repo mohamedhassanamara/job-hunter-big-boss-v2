@@ -330,6 +330,9 @@ export interface CVViolation {
   severity: 'error' | 'warning'
   message: string
   where: string
+  /** Summary checks: the text that triggered it (when there is one) and the rule broken. */
+  phrase?: string | null
+  rule?: string
 }
 
 export interface CVVersion {
@@ -347,8 +350,18 @@ export interface CVVersion {
   duration_ms: number | null
   error: string | null
   has_pdf: boolean
+  /** Summary warnings showing when this CV was approved (empty = approved clean). */
+  approved_summary_warnings: CVViolation[]
   created_at: string
   updated_at: string
+}
+
+export interface CVSummaryHistoryEntry {
+  index: number
+  text: string
+  feedback: string | null
+  kind: 'generated' | 'edited'
+  at: string | null
 }
 
 export interface CVUsageBullet {
@@ -397,6 +410,9 @@ export interface CVUsage {
     edited: boolean
     sentences: { text: string; citations: CVSummaryCitation[] }[]
     grounding: { attempts: number; fallback: string | null; rejected: { text: string; reasons: string[] }[][] } | null
+    /** What you asked to change in the current summary (null = a plain new summary). */
+    feedback: string | null
+    history: CVSummaryHistoryEntry[]
   }
   roles: CVUsageEntry[]
   projects: CVUsageEntry[]

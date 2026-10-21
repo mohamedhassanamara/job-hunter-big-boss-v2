@@ -37,11 +37,19 @@ TIMEOUT = 240
 
 def load_prompts() -> tuple[str, str, str]:
     """(version id, system prompt, summary-retry instructions) from app/prompts/cv_generate.md."""
+    version, system, summary, _ = load_all_prompts()
+    return version, system, summary
+
+
+def load_all_prompts() -> tuple[str, str, str, str]:
+    """(version id, system, summary-retry, summary-revise instructions)."""
     text = PROMPT_FILE.read_text()
     version = re.search(r"^version:\s*(\S+)", text, re.M)
     body = text.split("## system", 1)[1]
-    system, _, summary = body.partition("## summary")
-    return f"cv_generate/v{version.group(1) if version else '0'}", system.strip(), summary.strip()
+    system, _, rest = body.partition("## summary")
+    summary, _, revise = rest.partition("## revise")
+    return (f"cv_generate/v{version.group(1) if version else '0'}", system.strip(),
+            summary.strip(), revise.strip())
 
 
 def load_system_prompt() -> tuple[str, str]:
@@ -66,9 +74,15 @@ def plan_schema(model: type = CVPlanDraft) -> dict[str, Any]:
     return resolve(schema)
 
 
-def user_message(request: CVRequest, feedback: str = "") -> str:
+def user_message(request: CVRequest, feedback: str = "", current: str = "",
+                 user_feedback: str = "") -> str:
+    revision = (
+        (f"CURRENT SUMMARY\n{current}\n\n" if current else "")
+        + (f"FEEDBACK (what should change)\n{user_feedback}\n\n" if user_feedback else "")
+        + (f"CHECK PROBLEMS\n{feedback}\n\n" if feedback and current else ""))
     return (
-        (f"REJECTED SENTENCES\n{feedback}\n\n" if feedback else "")
+        revision
+        + (f"REJECTED SENTENCES\n{feedback}\n\n" if feedback and not current else "")
         + (f"WRITING GUIDE (follow it)\n{request.guide}\n\n" if request.guide else "")
         + ("STYLE EXEMPLAR (tone, summary length and bullet length only; its content is already "
            "in the pool)\n" + json.dumps(request.style, ensure_ascii=False, indent=1) + "\n\n"
@@ -90,7 +104,8 @@ class ClaudeCVGenerator:
         self.binary = binary or shutil.which("claude") or "claude"
         self.runner = runner
         self.timeout = timeout
-        self.prompt_version, self.system_prompt, self.summary_prompt = load_prompts()
+        (self.prompt_version, self.system_prompt, self.summary_prompt,
+         self.revise_prompt) = load_all_prompts()
         self.last_cost_usd: float | None = None  # notional for subscriptions; not billed
         self.auth_source: str | None = None
         self.last_duration_ms: int | None = None
@@ -117,10 +132,14 @@ class ClaudeCVGenerator:
         draft = self._call(self.command(), user_message(request), CVPlanDraft)
         return plan_from_draft(draft)
 
-    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
-        system = f"{self.system_prompt}\n\n{self.summary_prompt}"
-        return self._call(self.command(system, SummaryDraft), user_message(request, feedback),
-                          SummaryDraft)
+    def generate_summary(self, request: CVRequest, feedback: str, current: str = "",
+                         user_feedback: str = "") -> SummaryDraft:
+        """Only the summary again. `feedback` = what the automatic checks found; with `current`
+        (and the user's `user_feedback`) the model edits that summary instead of rewriting."""
+        revise = bool(current or user_feedback)
+        system = f"{self.system_prompt}\n\n{self.revise_prompt if revise else self.summary_prompt}"
+        return self._call(self.command(system, SummaryDraft),
+                          user_message(request, feedback, current, user_feedback), SummaryDraft)
 
     def _call(self, cmd: list[str], message: str, model: type) -> Any:
         started = time.monotonic()

@@ -1,10 +1,12 @@
-import { ChevronDown, CircleAlert, Eye, EyeOff, TriangleAlert, Undo2 } from 'lucide-react'
+import { ChevronDown, CircleAlert, Eye, EyeOff, History, TriangleAlert, Undo2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/ui/tooltip'
-import type { CVPatchInput, CVUsage, CVUsageEntry, CVVersion, ReadinessItem } from '@/lib/types'
+import { useRestoreSummary, useSummaryCheck } from '@/lib/queries/workflow'
+import type { CVPatchInput, CVUsage, CVUsageEntry, CVVersion, CVViolation, ReadinessItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { wordDiff } from '@/lib/wordDiff'
 
@@ -55,18 +57,8 @@ export function CVContentPanel({
       )}
       <Violations version={version} />
 
-      <Section title="Summary" hint="Each sentence cites the experience it comes from (hover). Sentences without valid citations are rejected in code.">
-        <CitedSummary usage={usage} />
-        <EditableText
-          key={usage.summary.text}
-          value={usage.summary.text}
-          readOnly={readOnly}
-          onSave={(text) => onPatch({ text: { summary: text } })}
-          rows={4}
-        />
-        {usage.summary.text !== usage.summary.short && usage.summary.short && (
-          <p className="mt-1 text-2xs text-fg-subtle">Short version (used when the page is tight): {usage.summary.short}</p>
-        )}
+      <Section title="Summary" hint="Each sentence cites the experience it comes from (hover). The checks below are information: they never stop you approving.">
+        <SummaryBlock version={version} usage={usage} readOnly={readOnly} onSave={(text) => onPatch({ text: { summary: text } })} />
       </Section>
 
       <Section title="Experience" hint="Every role stays on the CV (no gaps); choose which bullets show. Bullets may be lightly adapted to the job; your pool text is never changed.">
@@ -120,7 +112,7 @@ const KIND_LABEL: Record<string, string> = {
 }
 
 function CitedSummary({ usage }: { usage: CVUsage }) {
-  const { sentences, grounding, edited } = usage.summary
+  const { sentences, grounding, edited, feedback } = usage.summary
   if (!sentences.length) return null
   return (
     <div className="mb-1.5 rounded-md bg-bg-subtle px-2.5 py-2 text-xs leading-5">
@@ -144,17 +136,122 @@ function CitedSummary({ usage }: { usage: CVUsage }) {
         )).reduce<React.ReactNode[]>((acc, el, i) => (i ? [...acc, ' ', el] : [el]), [])}
       </p>
       <p className="mt-1 text-2xs text-fg-subtle">
-        {edited ? 'You edited the summary below; these citations are for the generated version.' : 'Generated and grounded.'}
-        {grounding && grounding.attempts > 1 && ` Regenerated once after ${grounding.rejected[0]?.length ?? 0} sentence(s) failed the check.`}
-        {grounding?.fallback && ` Fallback: ${grounding.fallback}.`}
+        {edited ? 'You edited the summary below; these citations are for the generated version.' : 'Generated from the cited experience.'}
+        {!edited && feedback && ` Written with your feedback: “${feedback}”.`}
+        {grounding && grounding.attempts > 1 && ` Regenerated once automatically after the checks found problems.`}
       </p>
+    </div>
+  )
+}
+
+/** The summary: generated text and its citations, an editor with live checks (information only),
+ * and the history of earlier summaries with the feedback that produced them. */
+function SummaryBlock({ version, usage, readOnly, onSave }: { version: CVVersion; usage: CVUsage; readOnly: boolean; onSave: (text: string) => void }) {
+  const [live, setLive] = useState(usage.summary.text)
+  const [settled, setSettled] = useState(usage.summary.text)
+  const timer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+  const type = (text: string) => {
+    setLive(text)
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setSettled(text), 450)
+  }
+  const check = useSummaryCheck(version.id, settled, true)
+  const warnings: CVViolation[] = check.data?.warnings ?? version.violations.filter((v) => v.where === 'summary')
+
+  return (
+    <>
+      <CitedSummary usage={usage} />
+      <EditableText key={usage.summary.text} value={usage.summary.text} readOnly={readOnly} onSave={onSave} onType={type} rows={4} />
+      {usage.summary.text !== usage.summary.short && usage.summary.short && (
+        <p className="mt-1 text-2xs text-fg-subtle">Short version (used when the page is tight): {usage.summary.short}</p>
+      )}
+      <SummaryWarnings warnings={warnings} pending={check.isFetching || live !== settled} />
+      <SummaryHistory version={version} usage={usage} readOnly={readOnly} />
+    </>
+  )
+}
+
+function highlight(message: string, phrase: string | null | undefined) {
+  const at = phrase ? message.indexOf(phrase) : -1
+  if (!phrase || at < 0) return message
+  return (
+    <>
+      {message.slice(0, at)}
+      <mark className="rounded-sm bg-warning-bg px-0.5 text-warning-fg">{phrase}</mark>
+      {message.slice(at + phrase.length)}
+    </>
+  )
+}
+
+function SummaryWarnings({ warnings, pending }: { warnings: CVViolation[]; pending: boolean }) {
+  if (!warnings.length) return pending ? <p className="mt-1.5 text-2xs text-fg-subtle">Checking…</p> : null
+  return (
+    <div className="mt-1.5 rounded-md border border-border px-3 py-2" aria-live="polite">
+      <p className="mb-1 flex items-center gap-1.5 text-2xs font-medium text-fg-muted">
+        <TriangleAlert className="size-3 text-warning-dot" />
+        {warnings.length} summary warning{warnings.length === 1 ? '' : 's'}
+        <span className="font-normal text-fg-subtle">· information only, you can still approve{pending ? ' · checking…' : ''}</span>
+      </p>
+      <ul className="space-y-1 text-xs">
+        {warnings.map((w, i) => (
+          <li key={`${w.type}-${i}`} className="flex gap-2">
+            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-warning-dot" />
+            <span>
+              {w.phrase && !w.message.includes(w.phrase) && <mark className="mr-1 rounded-sm bg-warning-bg px-0.5 text-warning-fg">{w.phrase}</mark>}
+              {highlight(w.rule ?? w.message, w.phrase)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SummaryHistory({ version, usage, readOnly }: { version: CVVersion; usage: CVUsage; readOnly: boolean }) {
+  const [open, setOpen] = useState(false)
+  const restore = useRestoreSummary()
+  const history = [...usage.summary.history].reverse()
+  if (!history.length) return null
+  const canRestore = version.status === 'draft' && !readOnly
+  return (
+    <div className="mt-1.5">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex items-center gap-1.5 text-2xs text-fg-subtle hover:text-fg">
+        <History className="size-3" />
+        Earlier summaries ({history.length})
+        <ChevronDown className={cn('size-3 transition-transform duration-120', !open && '-rotate-90')} />
+      </button>
+      {open && (
+        <ul className="mt-1.5 space-y-1.5">
+          {history.map((h) => (
+            <li key={h.index} className="rounded-md bg-bg-subtle px-2.5 py-2 text-xs leading-5">
+              <p className="text-fg-muted">{h.text}</p>
+              <p className="mt-1 flex items-center gap-2 text-2xs text-fg-subtle">
+                <span className="min-w-0 flex-1 truncate">
+                  {h.kind === 'edited' ? 'Typed by you' : 'Generated'}
+                  {h.feedback ? ` · you asked: “${h.feedback}”` : ''}
+                </span>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  disabled={!canRestore || restore.isPending}
+                  onClick={() => restore.mutate({ cvId: version.id, index: h.index }, { onSuccess: () => toast.success('Earlier summary restored'), onError: (e) => toast.error(e.message) })}
+                >
+                  <Undo2 />
+                  Use this
+                </Button>
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
 
 function Violations({ version }: { version: CVVersion }) {
   const [open, setOpen] = useState(true)
-  const items = version.violations
+  const items = version.violations.filter((v) => v.where !== 'summary') // the summary's sit under it
   if (!items.length) return null
   const errors = items.filter((v) => v.severity === 'error').length
   return (
@@ -317,7 +414,7 @@ function ToggleRow({ shown, disabled, onToggle, children }: { shown: boolean; di
 
 /** Text that saves 900ms after typing stops (then the page re-fits). Callers key it by the saved
  * value, so a server-side change resets the draft text. */
-function EditableText({ value, readOnly, onSave, rows = 1, muted = false }: { value: string; readOnly: boolean; onSave: (t: string) => void; rows?: number; muted?: boolean }) {
+function EditableText({ value, readOnly, onSave, onType, rows = 1, muted = false }: { value: string; readOnly: boolean; onSave: (t: string) => void; onType?: (t: string) => void; rows?: number; muted?: boolean }) {
   const [text, setText] = useState(value)
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -329,6 +426,7 @@ function EditableText({ value, readOnly, onSave, rows = 1, muted = false }: { va
       onChange={(e) => {
         const next = e.target.value
         setText(next)
+        onType?.(next)
         window.clearTimeout(timer.current)
         timer.current = window.setTimeout(() => {
           if (next.trim() && next !== value) onSave(next.trim())

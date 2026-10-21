@@ -163,6 +163,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'cv-editor', title: 'Force in, leave out, edit', body: 'The eye toggles a bullet, project or certification. Edit any text inline. The page re-fits in code, without calling Claude again. Every role stays on the CV so your timeline has no gaps.', placement: 'right' },
       { target: 'cv-preview', title: 'The real PDF', body: 'Rendered from a style-only LaTeX template and fitted to exactly one full page: low-value bullets are dropped when it overflows, more are added when it is short.', placement: 'left' },
       { target: 'cv-versions', title: 'Versions and templates', body: 'Regenerate makes a new draft; older versions are kept. With several templates you can switch style per CV.' },
+      { target: 'cv-new-summary', title: 'Rewrite the summary', body: 'New summary asks what should change (optional, with a few quick chips). The CV model from Settings → Models edits the current summary toward your note; earlier summaries stay under it with the feedback that produced them. Its checks show as warnings with the phrase and the rule: they never stop you approving, whether the summary is generated or typed.', placement: 'bottom' },
       { target: 'cv-approve', title: 'Approve', body: 'Approving offers the next step: draft the email when there is a contact, otherwise the job moves to Ready to apply. Download uses your filename pattern.' },
     ],
   },

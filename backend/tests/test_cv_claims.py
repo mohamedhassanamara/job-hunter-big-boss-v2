@@ -112,24 +112,24 @@ def test_rejected_summary_is_regenerated_once_and_passes() -> None:
     assert report["attempts"] == 2 and report["fallback"] is None and not issues
 
 
-def test_second_failure_falls_back_to_the_snippet_verbatim() -> None:
+def test_second_failure_keeps_the_text_and_warns_never_a_fallback() -> None:
     pool = make_pool(ROLE, PROJECT, SKILLS, NLP, SNIPPET)
     gen = SummaryScript([[s("Unix wizard with 9 years of experience.", 1)]])
     plan, issues, report = cv_service.ground_summary(
         plan_with([s("Expert in Kubernetes.", 1)]), pool, REQUEST, gen)
-    assert plan.summary == SNIPPET.summary
-    assert plan.summary_sentences[0].citations == [SNIPPET.id]
-    assert report["fallback"] == f"snippet {SNIPPET.id}"
-    assert issues[0]["type"] == "summary_fallback"
+    assert plan.summary != SNIPPET.summary and report["fallback"] is None
+    assert plan.summary in ("Unix wizard with 9 years of experience.", "Expert in Kubernetes.")
+    assert issues and all(i["severity"] == "warning" and i["where"] == "summary" for i in issues)
+    assert any(i["type"] == "summary_grounding" and i["phrase"] for i in issues)
 
 
-def test_without_a_snippet_only_grounded_sentences_stay() -> None:
+def test_grounded_sentences_are_not_dropped_when_another_fails() -> None:
     gen = SummaryScript([[s("Unix wizard.", 1)]])
-    plan, issues, report = cv_service.ground_summary(
+    plan, issues, _report = cv_service.ground_summary(
         plan_with([s("Designed a dbt star schema on DuckDB.", 2), s("Kubernetes guru.", 1)]),
         POOL, REQUEST, gen)
-    assert plan.summary == "Designed a dbt star schema on DuckDB."
-    assert report["fallback"] == "grounded sentences only"
+    assert "Designed a dbt star schema on DuckDB." in plan.summary
+    assert any(i["phrase"] == "Kubernetes guru." for i in issues)
 
 
 # ----------------------------------------------------------------------------- 2. years

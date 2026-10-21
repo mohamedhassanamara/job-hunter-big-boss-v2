@@ -11,7 +11,7 @@ from typing import Any
 
 from app.models import ExperienceItem
 
-DEFAULT_GUIDE = "\n".join([
+_LEGACY_GUIDE_V1 = "\n".join([
     "Summary: two full sentences with a subject (never a fragment like \"Brings…\", never a "
     "figure as the subject like \"3 years of experience spans…\"), no \"I\", about 45 words. "
     "Sentence 1: who I am, positioned for this job's track, with my years attached only to the "
@@ -34,12 +34,41 @@ DEFAULT_GUIDE = "\n".join([
     "in the pool).",
 ])
 
+DEFAULT_GUIDE = "\n".join([
+    "Summary: two full sentences with a subject (never a fragment like \"Brings…\", never a "
+    "figure as the subject like \"3 years of experience spans…\"), no \"I\", about 45 words. "
+    "Sentence 1: who I am, with my years attached only to the tracks where my experience is "
+    "professional. For a Data/AI job a move is welcome: say the professional years, then that "
+    "the focus is now data (e.g. \"Software engineer with 3 years of experience in mobile and "
+    "backend development, now focused on data engineering.\"). Sentence 2: what I bring to THIS "
+    "role, naming at least one concrete thing I built from the cited items (e.g. \"a "
+    "privacy-first resume parser on a local Mistral LLM\", \"a dbt/Airflow lakehouse for "
+    "football data\"); work in a track that is projects only is said to be projects (e.g. "
+    "\"Projects include an end-to-end dbt/Airflow lakehouse on DuckDB, plus local AI "
+    "systems, built as personal and graduation projects.\"). The examples show the level of "
+    "detail only: use your own facts and wording. Give sentence 2 a subject without \"I\" "
+    "(e.g. \"Recent work includes…\", \"Projects include…\"), never a bare verb like "
+    "\"Built…\" or \"Delivered…\". Vary the "
+    "opening between CVs. No numbers that also appear in bullets, no certifications, no "
+    "internships, no tool lists. In Data/AI summaries, state track years only when they are 2 "
+    "or more; otherwise the total years, or no years at all.",
+    "Bullets: impact first (what I built and why it mattered), strong and varied verbs, one idea "
+    "per bullet. Prefer bullets with concrete outcomes; skip generic ones (\"collaborated in Agile "
+    "sprints\") unless nothing else fits.",
+    "Don't repeat the same fact in the summary, the skills and the bullets.",
+    "Human tone: natural phrasing, no keyword stuffing; not every bullet needs a metric.",
+    "Use the style exemplar for tone, bullet length and summary length (its content is already "
+    "in the pool).",
+])
+
 # Phrases that make a CV read as generated (editable in Settings → CV, like the email list).
 DEFAULT_CV_BANNED = [
     "hands-on experience", "well suited", "strong foundation", "real-world applications",
     "production-ready", "brings experience", "passionate", "proven track record", "leveraging",
-    "moving into", "moving from", "transitioning into", "career change",
 ]
+# Transition framing is welcome in Data/AI summaries: never banned, even if a saved list says so.
+_TRANSITION_PHRASES = {"aspiring", "moving into", "moving from", "transitioning into",
+                       "career change"}
 
 # Qualifiers a summary may only use when the pool says them (warning otherwise).
 DEFAULT_QUALIFIERS = [
@@ -98,12 +127,14 @@ def structure(cv_settings: dict[str, Any]) -> dict[str, Any]:
 
 
 def guide(cv_settings: dict[str, Any]) -> str:
-    return (cv_settings.get("writing_guide") or "").strip() or DEFAULT_GUIDE
+    saved = (cv_settings.get("writing_guide") or "").strip()
+    return DEFAULT_GUIDE if not saved or saved == _LEGACY_GUIDE_V1.strip() else saved
 
 
 def banned(cv_settings: dict[str, Any]) -> list[str]:
     rules = cv_settings.get("banned_phrases")
-    return DEFAULT_CV_BANNED if rules is None else list(rules)
+    return [p for p in (DEFAULT_CV_BANNED if rules is None else rules)
+            if p.strip().lower() not in _TRANSITION_PHRASES]
 
 
 def qualifiers(cv_settings: dict[str, Any]) -> list[str]:
@@ -330,9 +361,6 @@ _FRAGMENT_START = {
     "architected", "implemented", "launched", "trained", "deployed", "automated", "migrated",
     "optimized", "optimised", "worked", "contributed", "managed", "owned", "drove", "spearheaded",
 }
-# A career change isn't what you build: kept out of the first words of a Data/AI summary.
-_TRANSITION = re.compile(r"\b(transition\w*|moving (?:into|from|toward\w*|to)|pivot\w*|"
-                         r"shifting|switching|career change)\b", re.I)
 _LEADING_CLAUSE = re.compile(r"^(?:at|in|on|for|during|with|across|since|as)\b[^,]{0,60},\s*",
                              re.I)
 _STOP = {"a", "an", "the", "and", "or", "of", "for", "to", "in", "on", "with", "by", "at", "from",
@@ -353,7 +381,6 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
                      max_words: int | None = None, banned_phrases: list[str] | None = None,
                      cited_texts: list[str] | None = None,
                      other_openings: list[str] | None = None,
-                     lead_with_build: bool = False,
                      years_statement: str | None = None) -> list[str]:
     """Why a summary breaks the guide (empty = fine). Checked in code; the summary is
     regenerated once with these reasons."""
@@ -411,10 +438,6 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
                 out.append(f"says “{short[1]}” and then “{years_statement}”: write "
                            f"“{short[0]}” instead of repeating it")
                 break
-    first_words = " ".join(text.split()[:8])
-    if lead_with_build and _TRANSITION.search(first_words):
-        out.append("opens with a career change: lead with what you build (e.g. “Software "
-                   "engineer building data pipelines and local LLM systems”)")
     if cited_texts is not None:
         source = _content_words(" ".join(cited_texts))
         pairs = {" ".join(source[i:i + 2]) for i in range(len(source) - 1)}

@@ -261,15 +261,15 @@ def test_tools_inside_a_description_are_not_a_tool_list() -> None:
     assert cv_rules.tool_list("Skilled in Python, SQL, dbt and Airflow.", tools)
 
 
-def test_data_ai_summaries_lead_with_what_you_build_not_a_career_change() -> None:
-    change = "Software engineer transitioning into Data Engineering. He built a lakehouse."
-    got = cv_rules.summary_problems(change, rules=RULES, bullet_texts=[], certifications=[],
-                                    internships=[], tools=set(), lead_with_build=True)
-    assert any("career change" in p for p in got)
-    ok = "Software engineer building data pipelines and local LLM systems. He built a lakehouse."
+def test_data_ai_summaries_may_frame_a_move() -> None:
+    text = ("Software engineer with 3 years of experience in mobile and backend development, "
+            "now focused on data engineering. Projects include a lakehouse.")
+    got = cv_rules.summary_problems(text, rules=RULES, bullet_texts=[], certifications=[],
+                                    internships=[], tools=set())
+    assert not any("career change" in p for p in got)
+    moving = "Software engineer moving into data engineering. It works."
     assert not any("career change" in p for p in cv_rules.summary_problems(
-        ok, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set(),
-        lead_with_build=True))
+        moving, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set()))
 
 
 def test_summary_openings_must_vary_between_cvs() -> None:
@@ -307,7 +307,7 @@ def test_a_summary_breaking_the_guide_is_regenerated_once(monkeypatch) -> None: 
     assert out.summary == "Software Engineer fact 0." and not issues
 
 
-def test_a_subjectless_summary_left_after_the_retry_is_an_error(monkeypatch) -> None:  # noqa: ANN001
+def test_a_subjectless_summary_left_after_the_retry_is_a_warning(monkeypatch) -> None:  # noqa: ANN001
     bad = "3 years of software engineering experience spans Reality Sports fact 0."
     plan = make_plan(summary_sentences=[SummarySentence(text=bad, citations=[1])],
                      summary_short_sentences=[SummarySentence(text=bad, citations=[1])])
@@ -315,8 +315,9 @@ def test_a_subjectless_summary_left_after_the_retry_is_an_error(monkeypatch) -> 
                         lambda sentences, pool, allowed, *a: (list(sentences), []))
     _out, issues, _report = cv_service.ground_summary(plan, make_pool(), CVRequest(job={}, pool={}),
                                                       SummaryScript(bad), RULES)
-    errors = [v for v in issues if v["severity"] == "error"]
-    assert errors and errors[0]["type"] == "summary_rule" and "no subject" in errors[0]["message"]
+    assert not [v for v in issues if v["severity"] == "error"]  # summary checks never block
+    rule = next(v for v in issues if v["type"] == "summary_rule")
+    assert rule["severity"] == "warning" and "no subject" in rule["message"] and rule["rule"]
 
 
 # --------------------------------------------------------------------- model request
@@ -399,10 +400,13 @@ def test_data_ai_summaries_never_state_track_years_under_two() -> None:
     assert bad_years("Engineer with 3+ years of experience", allowed) == []
 
 
-def test_career_change_phrases_are_banned_in_cv_summaries() -> None:
-    for phrase in ("moving into", "moving from", "transitioning into", "career change"):
-        assert phrase in cv_rules.DEFAULT_CV_BANNED
-    assert any("banned phrase" in p for p in v5("Engineer moving into data. It works."))
+def test_transition_phrases_are_not_banned_even_if_a_saved_list_has_them() -> None:
+    for phrase in ("aspiring", "moving into", "moving from", "transitioning into",
+                   "career change"):
+        assert phrase not in cv_rules.DEFAULT_CV_BANNED
+    saved = {"banned_phrases": ["passionate", "Moving into", "aspiring", "leveraging"]}
+    assert cv_rules.banned(saved) == ["passionate", "leveraging"]
+    assert not any("banned phrase" in p for p in v5("Engineer moving into data. It works."))
 
 
 def test_a_layout_from_an_older_version_is_clamped_to_the_allowances(monkeypatch,

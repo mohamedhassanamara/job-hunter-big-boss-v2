@@ -7,6 +7,7 @@ import type {
   CVStudio,
   CVTemplateInfo,
   CVVersion,
+  CVViolation,
   DiscoveryStatus,
   Draft,
   DraftProgress,
@@ -97,12 +98,34 @@ export function useCVStudio(appId: number) {
   })
 }
 
-/** A new summary for a draft; bullets and layout stay as they are. */
+/** A new summary for a draft (the CV model from Settings → Models); with feedback it edits the
+ * current one toward it. Bullets and layout stay as they are. */
 export function useRegenerateSummary() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (cvId: number) => api.post<CVVersion>(`/cv/${cvId}/summary`),
+    mutationFn: ({ cvId, feedback }: { cvId: number; feedback?: string }) =>
+      api.post<CVVersion>(`/cv/${cvId}/summary`, { feedback: feedback?.trim() || null }),
     onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** Go back to an earlier summary of the draft. */
+export function useRestoreSummary() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ cvId, index }: { cvId: number; index: number }) => api.post<CVVersion>(`/cv/${cvId}/summary/restore`, { index }),
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** The checks on a summary text, live while typing (information only, no model call). */
+export function useSummaryCheck(cvId: number, text: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['cv-summary-check', cvId, text],
+    queryFn: () => api.post<{ warnings: CVViolation[] }>(`/cv/${cvId}/summary/check`, { text }),
+    enabled: enabled && text.trim().length > 0,
+    staleTime: 60_000,
+    placeholderData: (previous) => previous,
   })
 }
 

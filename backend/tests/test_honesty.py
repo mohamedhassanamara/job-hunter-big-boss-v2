@@ -43,6 +43,9 @@ def test_years_or_titles_attached_to_a_projects_track_fail(text: str) -> None:
 
 @pytest.mark.parametrize("text", [
     APPROVED,
+    "Software engineer with 3 years of experience in mobile and backend development, now "
+    "focused on data engineering. Built an end-to-end data lakehouse with dbt, Airflow and "
+    "DuckDB, plus local AI systems, in personal and graduation projects.",
     "I'm a software engineer with 3 years in mobile and backend.",
     "In personal projects I built a dbt and Airflow lakehouse.",
     "J'ai 3 ans d'expérience en ingénierie logicielle.",  # "J'ai" isn't AI
