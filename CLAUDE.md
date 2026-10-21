@@ -345,8 +345,11 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it). `company.agency_override`
   (employer | agency) always wins over the signals; `agency.detected` is the rule alone.
 - CV approval blocks on errors (as letters and emails). Mark problems the checker fixes itself as warnings.
-- CV summary hard rules (`cv_rules.HardProblem`: no subject, incl. a figure as the subject, and honesty) are
-  errors; other guide problems stay warnings.
+- Summary checks (`cv_rules.summary_problems`, grounding, honesty, `cv_service.summary_warnings`) are warnings only, with
+  `phrase` + `rule`, live via `POST /cv/{id}/summary/check`; they never block approval and never swap in a fallback. Approval
+  records them (`approved_summary_warnings`). "New summary" takes optional feedback (prompt `cv_generate` v11 `revise`) on the
+  Settings → Models CV model; history in `plan.summary_history`. Transition framing ("now focused on…", "moving into") is
+  allowed for Data/AI; those phrases are never banned (`cv_rules.banned` strips them even from saved lists).
 - Contact check (`services/contact_check.py`): research also searches news for each contact's name and scans
   pages for departure/new-holder sentences (regex, no model). Active `contact_alert` rows block approval;
   `next_contact` follows the ranking. The sandbox seeds one sample departure (`seed._seed_contact_alert`).

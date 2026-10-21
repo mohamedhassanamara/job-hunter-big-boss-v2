@@ -117,7 +117,7 @@ def test_cv_flow(client: TestClient) -> None:
     with Session(engine) as s:
         row = s.get(CVVersion, new["id"])
         kept = list(row.violations or [])
-        row.violations = [*kept, {"type": "number", "severity": "error", "where": "summary",
+        row.violations = [*kept, {"type": "number", "severity": "error", "where": "role:1:0",
                                   "message": "“73%” isn't anywhere in your experience"}]
         s.commit()
     blocked = client.post(f"/api/cv/{new['id']}/approve")

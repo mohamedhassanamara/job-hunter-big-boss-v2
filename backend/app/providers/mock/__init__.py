@@ -170,7 +170,8 @@ class MockCVGenerator:
                 out.append(SummarySentence(text=text, citations=[role["id"]]))
         return out
 
-    def generate_summary(self, request: CVRequest, feedback: str) -> SummaryDraft:
+    def generate_summary(self, request: CVRequest, feedback: str, current: str = "",
+                         user_feedback: str = "") -> SummaryDraft:
         sentences = self._sentences(request.pool)
         return SummaryDraft(summary_sentences=sentences, summary_short_sentences=sentences[:1])
 

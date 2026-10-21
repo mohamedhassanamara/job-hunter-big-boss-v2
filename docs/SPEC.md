@@ -144,7 +144,9 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   - skills: at most 4 groups of ~8, most relevant first, known pairs merged ("LLMs (Mistral, Ollama)",
     "LocalStack (S3)", "Linux/Bash"), nothing repeated across groups, tools spelled as usual;
   - summary: at most 2 sentences, ~45 words, no numbers from the bullets, no certifications, no internships, no
-    tool lists; checked in code and regenerated once, then flagged if still off.
+    tool lists; checked in code and regenerated once, then shown as warnings if still off (see "Summary
+    workflow" below). Data/AI jobs may frame a move ("now focused on data engineering"): years stay with mobile
+    and backend, data work is described as projects.
 - **Generate / Regenerate:** one Claude call per job (never in bulk). It returns a plan (pool ids, ranked bullets that are your text or a light adaptation of it, skill order selected from your skill groups verbatim, summary). Code then checks it (every number, tool and product of the original kept, nothing added, length ±15%, then the Claude verifier on each adapted bullet; any failure puts your original back; every role kept) and fits it to exactly one full page (≤ 4 compile passes, no further model call). About a minute.
 - **Left, "From your experience pool":**
   - readiness warnings (e.g. no full name blocks generation; no education or summary snippet warns)
@@ -474,6 +476,18 @@ linkedin.com).
   until you approve the copy.
 - **CV approval blocks on errors**, like letters and emails ("Fix N problems first: …", the button is disabled with
   the reason). Problems the checker already fixed (a skill removed, a source fact restored) are warnings.
+  Summary checks are never errors (see below).
+- **Summary workflow** (CV Studio, `cv_service.regenerate_summary`, `summary_warnings`, `check_summary`,
+  `restore_summary`): "New summary" opens "What should change?" (optional note + chips: shorter, more focused
+  on the job's core skill, less jargon). It runs on the CV model from Settings → Models (never Claude unless
+  chosen there): current summary + your note + job + pool facts + writing guide (`cv_generate` prompt `revise`
+  section); without a note it writes a plain new one. The one automatic retry uses the check failures (and your
+  note) as feedback; what still fails is shown as warnings, never replaced by a fallback. Warnings carry the
+  triggering phrase and the rule, are re-run live while you type (`POST /cv/{id}/summary/check`, no model call)
+  and never block approval, for generated and typed summaries alike. Approving stores the list
+  (`approved_summary_warnings`) and the badge reads "Approved with summary warnings". The summary you saw
+  (generated or typed) goes to a per-version history with the note that produced it; "Use this" restores one
+  (`POST /cv/{id}/summary/restore`). Bullet, skill, number and tool errors still block.
 
 ### Honesty about years (every generated text)
 Each track in Settings → Search profile says whether your experience in it is **Professional** or **Projects

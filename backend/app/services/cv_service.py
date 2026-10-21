@@ -11,6 +11,7 @@ from sqlmodel import Session, col, select
 
 from app.config import DATA_DIR
 from app.models import Application, AppSetting, Company, CVVersion, FitScore, Job
+from app.models.base import utcnow
 from app.models.enums import CVStatus, EventKind
 from app.providers.base import (
     CVGenerationFailed,
@@ -28,7 +29,6 @@ from app.services.cv_check import (
     ground_sentences,
     summary_support,
     verbatim_skills,
-    violation,
 )
 from app.services.cv_claims import exact_statement
 from app.services.cv_pool import (
@@ -186,7 +186,6 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
         banned_phrases=banned if banned is not None else cv_rules.DEFAULT_CV_BANNED,
         cited_texts=None if short or not cited_texts else cited_texts,
         other_openings=None if short else other_openings,
-        lead_with_build=not short and _data_ai(track.lower()),
         years_statement=statement)
 
 
@@ -302,15 +301,30 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
         return v
 
 
+def summary_warning(kind: str, message: str, phrase: str | None = None) -> dict[str, Any]:
+    """A summary check result. Summary checks are information: they never block approval. `phrase`
+    is what triggered it (the first quoted text of the message unless given), `rule` the message."""
+    if phrase is None:
+        quoted = re.search(r"“([^”]+)”", message)
+        phrase = quoted.group(1) if quoted else None
+    return {"type": kind, "severity": "warning", "where": "summary", "message": message,
+            "rule": message, "phrase": phrase}
+
+
+def _style_warnings(problems: list[str], prefix: str = "") -> list[dict[str, Any]]:
+    return [summary_warning("summary_rule" if isinstance(p, cv_rules.HardProblem)
+                            else "summary_style", f"{prefix}{p}") for p in problems]
+
+
 def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGenerator,
                    rules: dict[str, Any] | None = None, *, banned: list[str] | None = None,
-                   openings: list[str] | None = None,
+                   openings: list[str] | None = None, user_feedback: str = "",
                    ) -> tuple[CVPlan, list[dict[str, Any]], dict[str, Any]]:
     """Every summary sentence must cite pool items and say only what they say, and the summary
     must follow the writing guide (length, no repeated numbers, certifications, internships or
-    tool lists). Any problem → the summary is regenerated once (told why). Grounding still
-    failing → the user's summary snippet verbatim (or only the grounded sentences); guide
-    problems still there → kept, with a warning to review."""
+    tool lists). Any problem → the summary is regenerated once (told why, and given the user's
+    feedback when there is one). Whatever still fails is kept and returned as warnings: the
+    text is never replaced by a fallback and the checks never block approval."""
     rules = rules or dict(cv_rules.DEFAULT_STRUCTURE)
     allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
     statement = exact_statement((request.facts or {}).get("years"))
@@ -318,86 +332,161 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
 
     hr = honesty.rules_from((request.facts or {}).get("honesty_tracks") or [])
     report: dict[str, Any] = {"attempts": 1, "rejected": [], "fallback": None, "style": []}
+    track = str((request.job or {}).get("matched_track") or "")
 
     def join(items: list[SummarySentence]) -> str:
         return " ".join(s.text.strip() for s in items)
 
-    good, bad = ground_sentences(plan.summary_sentences, pool, allowed, statement)
-    short_good, short_bad = ground_sentences(plan.summary_short_sentences, pool, allowed,
-                                             statement)
-    track = str((request.job or {}).get("matched_track") or "")
-    style = summary_style(plan, pool, rules, plan.summary_sentences, False, banned, openings,
-                          track, statement, hr)
-    short_style = summary_style(plan, pool, rules, plan.summary_short_sentences, True, banned,
-                                statement=statement, honesty_rules=hr)
-    if bad or short_bad or style or short_style:
+    def evaluate(sentences: list[SummarySentence], short: list[SummarySentence]):  # noqa: ANN202
+        good, bad = ground_sentences(sentences, pool, allowed, statement)
+        short_good, short_bad = ground_sentences(short, pool, allowed, statement)
+        style = summary_style(plan, pool, rules, sentences, False, banned, openings, track,
+                              statement, hr)
+        short_style = summary_style(plan, pool, rules, short, True, banned,
+                                    statement=statement, honesty_rules=hr)
+        return {"sentences": sentences, "short": short, "bad": bad, "short_bad": short_bad,
+                "style": style, "short_style": short_style}
+
+    def count(r: dict[str, Any]) -> tuple[int, int]:
+        return (len(r["bad"]) + len(r["short_bad"]), len(r["style"]) + len(r["short_style"]))
+
+    best = evaluate(plan.summary_sentences, plan.summary_short_sentences)
+    if any(count(best)):
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
-                                   for s, r in bad + short_bad])
-        report["style"].append({"summary": style, "short": short_style})
-        notes = feedback(bad + short_bad)
-        if style or short_style:
+                                   for s, r in best["bad"] + best["short_bad"]])
+        report["style"].append({"summary": best["style"], "short": best["short_style"]})
+        notes = feedback(best["bad"] + best["short_bad"])
+        if best["style"] or best["short_style"]:
             notes += ("\n" if notes else "") + "\n".join(
-                [f"- Summary: {p}" for p in style] + [f"- Short summary: {p}" for p in short_style])
-        retry = generator.generate_summary(request, notes)
+                [f"- Summary: {p}" for p in best["style"]]
+                + [f"- Short summary: {p}" for p in best["short_style"]])
+        extra = {"current": join(best["sentences"]), "user_feedback": user_feedback} \
+            if user_feedback else {}
+        retry = generator.generate_summary(request, notes, **extra)
         report["attempts"] = 2
-        good2, bad2 = ground_sentences(retry.summary_sentences, pool, allowed, statement)
-        short2, short_bad2 = ground_sentences(retry.summary_short_sentences, pool, allowed,
-                                              statement)
-        style2 = summary_style(plan, pool, rules, retry.summary_sentences, False, banned,
-                               openings, track, statement, hr)
-        short_style2 = summary_style(plan, pool, rules, retry.summary_short_sentences, True,
-                                     banned, statement=statement, honesty_rules=hr)
-        report["style"].append({"summary": style2, "short": short_style2})
-        if bad2:
+        second = evaluate(retry.summary_sentences, retry.summary_short_sentences)
+        report["style"].append({"summary": second["style"], "short": second["short_style"]})
+        if second["bad"]:
             report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
-                                       for s, r in bad2])
-        if not bad2 and good2 and (bad or len(style2) <= len(style)):
-            good, bad, style = good2, [], style2
-        elif bad:
-            good = good2 if len(good2) >= len(good) else good
-        if not short_bad2 and short2 and (short_bad or len(short_style2) <= len(short_style)):
-            short_good, short_bad, short_style = short2, [], short_style2
+                                       for s, r in second["bad"]])
+        if second["sentences"] and count(second) <= count(best):
+            best = second
+    sentences, short = best["sentences"], best["short"] or best["sentences"][:1]
     issues: list[dict[str, Any]] = []
-    snippets = pool.of("summary")
-    if bad:
-        cited = [pool.get(i, "summary") for s in plan.summary_sentences for i in s.citations]
-        snippet = next((i for i in cited if i), snippets[0] if snippets else None)
-        if snippet is not None and (snippet.summary or "").strip():
-            good = [SummarySentence(text=snippet.summary.strip(), citations=[snippet.id])]
-            short_good = good
-            report["fallback"] = f"snippet {snippet.id}"
-            issues.append(violation("summary_fallback", "The generated summary failed the "
-                                    "grounding check twice: using your summary snippet verbatim",
-                                    "summary"))
-        else:
-            report["fallback"] = "grounded sentences only"
-            issues.append(violation("summary_fallback", "Summary sentences failed the grounding "
-                                    "check twice and you have no summary snippet: kept only the "
-                                    f"{len(good)} grounded sentence(s)", "summary"))
-    else:
-        # Errors: no subject, a dishonest years claim (also in the short form: it can be shown).
-        hard = [p for p in style if isinstance(p, cv_rules.HardProblem)]
-        hard += [f"Short summary: {p}" for p in short_style
-                 if isinstance(p, cv_rules.HardProblem) and p not in hard]
-        soft = [p for p in style if not isinstance(p, cv_rules.HardProblem)]
-        if hard:
-            issues.append(violation("summary_rule", "The summary still breaks a hard rule after "
-                                    f"one retry: {'; '.join(hard)}", "summary", "error"))
-        if soft:
-            issues.append(violation("summary_style", "The summary still breaks the writing guide "
-                                    f"after one retry: {'; '.join(soft)}", "summary"))
-    if bad or short_bad:
-        short_good = short_good if short_good and not short_bad else good[:1]
+    if not sentences:  # the model returned nothing at all: your own snippet, said so
+        snippets = pool.of("summary")
+        if snippets and (snippets[0].summary or "").strip():
+            sentences = short = [SummarySentence(text=snippets[0].summary.strip(),
+                                                 citations=[snippets[0].id])]
+            report["fallback"] = f"snippet {snippets[0].id}"
+            issues.append(summary_warning("summary_fallback", "The model returned no summary: "
+                                          "showing your summary snippet as written"))
+    for sentence, reasons in best["bad"] + best["short_bad"]:
+        issues += [summary_warning("summary_grounding", reason, sentence.text)
+                   for reason in reasons]
+    issues += _style_warnings(best["style"])
+    issues += _style_warnings([p for p in best["short_style"] if p not in best["style"]],
+                              "Short summary: ")
     return plan.model_copy(update={
-        "summary_sentences": good, "summary_short_sentences": short_good,
-        "summary": join(good), "summary_short": join(short_good),
-        "summary_source_ids": sorted({c for s in good for c in s.citations}),
+        "summary_sentences": sentences, "summary_short_sentences": short,
+        "summary": join(sentences), "summary_short": join(short),
+        "summary_source_ids": sorted({c for s in sentences for c in s.citations}),
     }), issues, report
 
 
-def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CVVersion:
+# ------------------------------------------------------------------- summary checks and history
+
+
+def _history(plan_data: dict[str, Any]) -> list[dict[str, Any]]:
+    """Earlier summaries of this version (older rows stored plain strings)."""
+    return [h if isinstance(h, dict) else {"text": str(h), "feedback": None, "kind": "generated",
+                                           "at": None}
+            for h in (plan_data or {}).get("summary_history", [])]
+
+
+def _remember(plan_data: dict[str, Any], text: str, feedback: str | None, kind: str) -> list:
+    history = _history(plan_data)
+    if text.strip() and text.strip() not in {h["text"].strip() for h in history}:
+        history.append({"text": text.strip(), "feedback": feedback or None, "kind": kind,
+                        "at": utcnow().isoformat()})
+    return history
+
+
+def summary_warnings(s: Session, app: Application, pool: Pool, plan: CVPlan,
+                     text: str) -> list[dict[str, Any]]:
+    """Every check on a summary text (generated or typed), as warnings with the phrase and the
+    rule. No model call; nothing here blocks approval."""
+    request = build_request(s, app, pool)
+    settings = cv_settings(s)
+    rules = {**cv_rules.structure(settings), "_qualifiers": cv_rules.qualifiers(settings)}
+    track = str((request.job or {}).get("matched_track") or "")
+    allowed = {int(f["years"]) for f in (request.facts or {}).get("years", [])}
+    statement = exact_statement((request.facts or {}).get("years"))
+    from app.services import honesty
+
+    hr = honesty.rules_from((request.facts or {}).get("honesty_tracks") or [])
+    if not text.strip():
+        return []
+    out = _style_warnings(summary_style(
+        plan, pool, rules, [SummarySentence(text=text, citations=[])], False,
+        cv_rules.banned(settings), other_openings(s, app.id), track, statement, hr))
+    seen = {w["message"] for w in out}
+    for v in edit_violations(plan, pool, {"text": {"summary": text}}, allowed, statement):
+        message = v["message"].removeprefix("Edited text: ")
+        if message not in seen:
+            out.append(summary_warning("summary_edit", message))
+    return out
+
+
+def _effective_summary(v: CVVersion, plan: CVPlan) -> str:
+    return ((v.overrides or {}).get("text") or {}).get("summary") or plan.summary
+
+
+def check_summary(engine: Engine, cv_id: int, text: str) -> list[dict[str, Any]]:
+    """The live check while typing (information only)."""
+    with Session(engine) as s:
+        v = s.get(CVVersion, cv_id)
+        if v is None:
+            raise CVError("CV version not found")
+        if not (v.plan or {}).get("plan"):
+            raise CVError("This version has no generator plan; regenerate the CV")
+        app = s.get(Application, v.application_id)
+        return summary_warnings(s, app, load_pool(s), CVPlan.model_validate(v.plan["plan"]), text)
+
+
+def restore_summary(engine: Engine, cv_id: int, index: int) -> CVVersion:
+    """Go back to an earlier summary of a draft (the current one goes into the history)."""
+    with Session(engine) as s:
+        v = s.get(CVVersion, cv_id)
+        if v is None:
+            raise CVError("CV version not found")
+        if v.status != CVStatus.draft:
+            raise CVError("Only a draft's summary can be changed")
+        history = _history(v.plan or {})
+        if not 0 <= index < len(history):
+            raise CVError("That summary isn't in the history")
+        chosen = history[index]
+        doc = CVDocument.model_validate(v.content or {})
+        typed = ((v.overrides or {}).get("text") or {}).get("summary")
+        v.plan = {**v.plan, "summary_history": _remember(
+            v.plan, doc.summary, (v.plan or {}).get("summary_feedback"),
+            "edited" if typed else "generated"),
+            "summary_feedback": chosen.get("feedback")}
+        s.add(v)
+        s.commit()
+        overrides = dict(v.overrides or {})
+    return rerender(engine, cv_id, overrides={
+        **overrides, "text": {**(overrides.get("text") or {}), "summary": chosen["text"]}})
+
+
+def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator,
+                       feedback: str | None = None) -> CVVersion:
     """A new summary for a draft, keeping its bullets and layout (the fit state is reused). One
-    Claude call, then the usual checks and one retry. Approved versions never change."""
+    generator call (the CV model from Settings → Models), then the usual checks and one retry.
+    With `feedback` the model edits the current summary toward it. The summary you saw (generated
+    or typed) goes into the history; your typed text never survives as an override over the new
+    one. Approved versions never change."""
+    feedback = (feedback or "").strip()
     with Session(engine) as s:
         v = s.get(CVVersion, cv_id)
         if v is None:
@@ -416,17 +505,23 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
                           "_qualifiers": cv_rules.qualifiers(settings)},
                          cv_rules.banned(settings))
         openings = other_openings(s, app.id)
-        previous = plan.summary
+        shown = CVDocument.model_validate(v.content or {}).summary or plan.summary
+        typed = bool(((v.overrides or {}).get("text") or {}).get("summary"))
+        prior_feedback = (v.plan or {}).get("summary_feedback")
     try:
-        draft = generator.generate_summary(request, "- Write a NEW summary following the "
-                                                    "WRITING GUIDE (it has changed).")
+        if feedback:
+            draft = generator.generate_summary(request, "", current=shown, user_feedback=feedback)
+        else:
+            draft = generator.generate_summary(request, "- Write a NEW summary following the "
+                                                        "WRITING GUIDE.")
         plan = plan.model_copy(update={
             "summary_sentences": draft.summary_sentences,
             "summary_short_sentences": draft.summary_short_sentences,
             "summary": " ".join(x.text for x in draft.summary_sentences),
             "summary_short": " ".join(x.text for x in draft.summary_short_sentences)})
-        plan, summary_issues, report = ground_summary(plan, pool, request, generator, rules,
-                                                      banned=banned, openings=openings)
+        plan, summary_issues, report = ground_summary(
+            plan, pool, request, generator, rules, banned=banned, openings=openings,
+            user_feedback=feedback)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
     plan = canonicalize(plan, pool)
@@ -434,12 +529,16 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
         v = s.get(CVVersion, cv_id)
         app = s.get(Application, v.application_id)
         state = FitState.from_dict((v.plan or {}).get("fit"))
-        history = [*(v.plan or {}).get("summary_history", []), previous]
-        v.plan = {**v.plan, "summary_grounding": report, "summary_history": history}
+        history = _remember(v.plan, shown, prior_feedback, "edited" if typed else "generated")
+        v.plan = {**v.plan, "summary_grounding": report, "summary_history": history,
+                  "summary_feedback": feedback or None}
+        overrides = dict(v.overrides or {})
+        texts = {k: x for k, x in (overrides.get("text") or {}).items() if k != "summary"}
+        overrides = {**overrides, "text": texts}
         # Everything about the old summary goes with it (its type or its place).
         v.violations = [x for x in v.violations or [] if not x.get("type", "").startswith(
             "summary") and x.get("where") != "summary"] + summary_issues
-        _save_render(s, v, plan, pool, v.template, dict(v.overrides or {}), state)
+        _save_render(s, v, plan, pool, v.template, overrides, state)
         pipeline.log_event(s, app, EventKind.cv_generated,
                            f"CV v{v.version}: summary regenerated ({generator.model})")
         s.add(v)
@@ -448,7 +547,8 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
         return v
 
 
-def revise_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CVVersion:
+def revise_summary(engine: Engine, cv_id: int, generator: CVGenerator,
+                   feedback: str | None = None) -> CVVersion:
     """A corrected copy of an approved (or sent) CV: a new draft with the same bullets, layout and
     template, and only the summary written again. The original never changes; approving the copy
     supersedes it as usual (a locked version stays as it was sent)."""
@@ -470,14 +570,16 @@ def revise_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CVVers
                       template=old.template, overrides=dict(old.overrides or {}),
                       violations=list(old.violations or []), content=old.content, tex=old.tex,
                       page_count=old.page_count, fill=old.fill, fit_passes=old.fit_passes,
-                      plan={**old.plan, "revised_from": {"id": old.id, "version": old.version}})
+                      plan={**{k: x for k, x in old.plan.items()
+                               if k != "approved_summary_warnings"},
+                            "revised_from": {"id": old.id, "version": old.version}})
         s.add(v)
         app = s.get(Application, old.application_id)
         pipeline.log_event(s, app, EventKind.cv_generated,
                            f"CV v{v.version}: a copy of v{old.version} to correct its summary")
         s.commit()
         new_id, old_content, old_fit = v.id, dict(old.content or {}), old.plan.get("fit")
-    v = regenerate_summary(engine, new_id, generator)
+    v = regenerate_summary(engine, new_id, generator, feedback)
     return _keep_document(engine, v.id, old_content, old_fit)
 
 
@@ -535,7 +637,19 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
         issues = [i for i in (v.violations or []) if i.get("type") not in ("edit", "overflow")]
         facts = years_facts(pool, _tracks(s))
         allowed = {int(f["years"]) for f in facts}
-        issues += edit_violations(plan, pool, new_overrides, allowed, exact_statement(facts))
+        issues += edit_violations(plan, pool, new_overrides, allowed, exact_statement(facts),
+                                  skip={"summary"})
+        typed = (new_overrides.get("text") or {}).get("summary") or ""
+        old_typed = ((v.overrides or {}).get("text") or {}).get("summary") or ""
+        if typed != old_typed:
+            # The summary text changed: its old results are stale, the new text is checked live
+            # (information only). The generated one you replace goes into the history once.
+            if typed and not old_typed:
+                v.plan = {**v.plan, "summary_history": _remember(
+                    v.plan, plan.summary, (v.plan or {}).get("summary_feedback"), "generated")}
+            app = s.get(Application, v.application_id)
+            issues = [i for i in issues if i.get("where") != "summary"]
+            issues += summary_warnings(s, app, pool, plan, typed or plan.summary)
         _save_render(s, v, plan, pool, template_name, new_overrides,
                      FitState.from_dict(v.plan.get("fit")))
         if v.page_count and v.page_count > 1:
@@ -569,8 +683,10 @@ def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) ->
 
 def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
                     allowed_years: set[int] | None = None,
-                    statement: str | None = None) -> list[dict[str, Any]]:
-    """User-edited text goes through the same number/tool/claim checks as generated text."""
+                    statement: str | None = None,
+                    skip: set[str] | None = None) -> list[dict[str, Any]]:
+    """User-edited text goes through the same number/tool/claim checks as generated text. An
+    edited summary only ever gets warnings (they never block approval)."""
     from app.services.cv_check import new_tools, numbers
     from app.services.cv_claims import bad_years, capability_gaps, pool_vocabulary, scope_inflation
 
@@ -578,9 +694,12 @@ def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
     vocab, text_all = pool_vocabulary(pool), pool.all_text()
     all_numbers = {n.lower() for n in numbers(text_all)}
     for key, text in (overrides.get("text") or {}).items():
+        if key in (skip or set()):
+            continue
+
         def add(message: str, severity: str = "error", key: str = key) -> None:
-            out.append({"type": "edit", "severity": severity, "where": key,
-                        "message": f"Edited text: {message}"})
+            out.append({"type": "edit", "severity": "warning" if key == "summary" else severity,
+                        "where": key, "message": f"Edited text: {message}"})
         for n in numbers(text):
             if n.lower() not in all_numbers and not re.search(rf"{re.escape(n)}\s*\+?\s*years?",
                                                               text):
@@ -700,6 +819,8 @@ def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
                  "kind": pool.get(c).kind if pool.get(c) else "?"} for c in s.citations]}
                 for s in plan.summary_sentences],
             "grounding": (v.plan or {}).get("summary_grounding"),
+            "feedback": (v.plan or {}).get("summary_feedback"),
+            "history": [{"index": i, **h} for i, h in enumerate(_history(v.plan or {}))],
         },
         "roles": entries("role", plan.roles, shown_roles),
         "projects": entries("project", plan.projects, shown_projects) + unused_projects,

@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.models import Application, Company, CVVersion, Job
 from app.models.enums import CVStatus, EventKind, Route, Stage
+from app.providers.base import CVPlan
 from app.providers.gemini_generate import generation_failure
 from app.providers.registry import cv_generator
 from app.schemas.cv import (
@@ -18,6 +19,9 @@ from app.schemas.cv import (
     CVStudio,
     CVVersionOut,
     ReadinessItem,
+    SummaryCheckIn,
+    SummaryIn,
+    SummaryRestoreIn,
     TemplateIn,
     TemplateOut,
 )
@@ -43,6 +47,8 @@ def _out(v: CVVersion) -> CVVersionOut:
         generator_model=v.generator_model, violations=v.violations or [],
         duration_ms=v.duration_ms, error=v.error,
         has_pdf=bool(v.pdf_path and Path(v.pdf_path).exists()),
+        approved_summary_warnings=((v.plan or {}).get("approved_summary_warnings") or []
+                                   if v.status == CVStatus.approved else []),
         created_at=v.created_at, updated_at=v.updated_at,
     )
 
@@ -139,28 +145,51 @@ def cv_pdf(cv_id: int, session: SessionDep, engine: EngineDep, download: bool = 
 
 @router.post("/cv/{cv_id}/summary", response_model=CVVersionOut)
 def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
-                       workspace: WorkspaceDep) -> CVVersionOut:
-    """New summary for a draft; bullets and layout stay as they are."""
+                       workspace: WorkspaceDep, body: SummaryIn | None = None) -> CVVersionOut:
+    """New summary for a draft, written by the CV model from Settings → Models; bullets and layout
+    stay as they are. With `feedback` the model edits the current summary toward it."""
     get_or_404(session, CVVersion, cv_id, "CV version")
     generator = _generator(session, engine, workspace)
     try:
-        v = cv_service.regenerate_summary(engine, cv_id, generator)
+        v = cv_service.regenerate_summary(engine, cv_id, generator, body.feedback if body else None)
     except cv_service.CVError as exc:
-        raise HTTPException(422, str(exc)) from exc
+        raise HTTPException(503 if generation_failure(exc) else 422, str(exc)) from exc
     return _out(v)
 
 
 @router.post("/cv/{cv_id}/revise-summary", response_model=CVVersionOut)
 def revise_summary(cv_id: int, session: SessionDep, engine: EngineDep,
-                   workspace: WorkspaceDep) -> CVVersionOut:
+                   workspace: WorkspaceDep, body: SummaryIn | None = None) -> CVVersionOut:
     """A corrected draft of an approved CV: same bullets and layout, a new summary."""
     get_or_404(session, CVVersion, cv_id, "CV version")
     generator = _generator(session, engine, workspace)
     try:
-        v = cv_service.revise_summary(engine, cv_id, generator)
+        v = cv_service.revise_summary(engine, cv_id, generator, body.feedback if body else None)
+    except cv_service.CVError as exc:
+        raise HTTPException(503 if generation_failure(exc) else 422, str(exc)) from exc
+    return _out(v)
+
+
+@router.post("/cv/{cv_id}/summary/check")
+def check_summary(cv_id: int, body: SummaryCheckIn, session: SessionDep,
+                  engine: EngineDep) -> dict[str, list[dict[str, Any]]]:
+    """The checks on a summary text while it is typed: information only, no model call."""
+    get_or_404(session, CVVersion, cv_id, "CV version")
+    try:
+        return {"warnings": cv_service.check_summary(engine, cv_id, body.text)}
     except cv_service.CVError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return _out(v)
+
+
+@router.post("/cv/{cv_id}/summary/restore", response_model=CVVersionOut)
+def restore_summary(cv_id: int, body: SummaryRestoreIn, session: SessionDep,
+                    engine: EngineDep) -> CVVersionOut:
+    """Go back to an earlier summary of this draft."""
+    get_or_404(session, CVVersion, cv_id, "CV version")
+    try:
+        return _out(cv_service.restore_summary(engine, cv_id, body.index))
+    except cv_service.CVError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/cv/{cv_id}/approve", response_model=CVApproveResult)
@@ -170,7 +199,9 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
     app = get_or_404(session, Application, v.application_id)
     if v.page_count is not None and v.page_count != 1:
         raise HTTPException(409, "The CV must fit on exactly one page before approval")
-    found = [x for x in v.violations or [] if x.get("severity") == "error"]
+    # Summary checks are information: only bullet, skill, number and tool errors block.
+    found = [x for x in v.violations or []
+             if x.get("severity") == "error" and x.get("where") != "summary"]
     if found:  # the same rule as letters and emails
         raise HTTPException(409, f"Fix {len(found)} problem{'s' if len(found) > 1 else ''} first: "
                             + found[0]["message"])
@@ -181,8 +212,16 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
             other.status = CVStatus.superseded
             session.add(other)
     v.status = CVStatus.approved
+    if (v.plan or {}).get("plan"):  # keep what the summary was warned about at approval
+        warnings = cv_service.summary_warnings(
+            session, app, load_pool(session), CVPlan.model_validate(v.plan["plan"]),
+            (v.content or {}).get("summary") or "")
+        v.plan = {**v.plan, "approved_summary_warnings": warnings}
     session.add(v)
-    pipeline.log_event(session, app, EventKind.cv_approved, f"CV v{v.version} approved")
+    pipeline.log_event(session, app, EventKind.cv_approved,
+                       f"CV v{v.version} approved" + (" with summary warnings"
+                                                      if (v.plan or {}).get(
+                                                          "approved_summary_warnings") else ""))
     if app.route == Route.undecided:
         app.route = Route.cold_email if app.contact_id else Route.web_apply
     if app.stage in (Stage.new, Stage.shortlisted):

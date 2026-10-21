@@ -18,6 +18,7 @@ import { useJob } from '@/lib/queries/jobs'
 import { useApproveCV, useCVStudio, useGenerateCV, usePatchCV, useRegenerateSummary } from '@/lib/queries/workflow'
 import type { CVPatchInput, CVStudio, CVVersion } from '@/lib/types'
 import { CVContentPanel } from './CVContentPanel'
+import { SummaryFeedbackButton } from './SummaryFeedback'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { CVFitStrip } from './CVFitStrip'
 
@@ -177,7 +178,8 @@ export default function CVStudioPage() {
   const error = job.error ?? studio.error
   const loading = job.isPending || (Number.isFinite(appId) && studio.isPending)
   const onePage = version?.page_count === 1 && !version.error
-  const errors = (version?.violations ?? []).filter((v) => v.severity === 'error')
+  // Summary checks inform, they never block: only bullet, skill, number and tool errors do.
+  const errors = (version?.violations ?? []).filter((v) => v.severity === 'error' && v.where !== 'summary')
 
   return (
     <div className="flex h-full flex-col">
@@ -220,21 +222,19 @@ export default function CVStudioPage() {
               />
             )}
             {version.status === 'draft' && (
-              <Tooltip content="A new summary; bullets and layout stay as they are">
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    regenSummary.mutate(version.id, {
-                      onSuccess: () => toast.success('New summary written'),
+              <SummaryFeedbackButton
+                busy={regenSummary.isPending}
+                disabled={generate.isPending}
+                onSubmit={(feedback) =>
+                  regenSummary.mutate(
+                    { cvId: version.id, feedback },
+                    {
+                      onSuccess: () => toast.success(feedback ? 'Summary rewritten with your feedback' : 'New summary written', { description: 'The previous one is in the summary history.' }),
                       onError: (e) => toast.error(e.message),
-                    })
-                  }
-                  disabled={regenSummary.isPending || generate.isPending}
-                >
-                  <RefreshCw className={regenSummary.isPending ? 'animate-spin' : undefined} />
-                  {regenSummary.isPending ? 'Writing…' : 'New summary'}
-                </Button>
-              </Tooltip>
+                    },
+                  )
+                }
+              />
             )}
             <Button onClick={() => runGenerate()} disabled={generate.isPending || blockers.length > 0}>
               <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
@@ -250,10 +250,20 @@ export default function CVStudioPage() {
             <CritiqueButton kind="cv" id={version.id} />
             <span data-tour="cv-approve">
               {version.status === 'approved' ? (
-                <ToneBadge tone="green" dot={false} className="h-8 px-3 text-sm">
-                  <CircleCheck className="size-4" />
-                  Approved
-                </ToneBadge>
+                <Tooltip
+                  content={
+                    version.approved_summary_warnings.length > 0
+                      ? `Approved with ${version.approved_summary_warnings.length} summary warning${version.approved_summary_warnings.length > 1 ? 's' : ''}: ${version.approved_summary_warnings.map((w) => w.phrase ?? w.message).join('; ')}`
+                      : null
+                  }
+                >
+                  <span>
+                    <ToneBadge tone={version.approved_summary_warnings.length > 0 ? 'amber' : 'green'} dot={false} className="h-8 px-3 text-sm">
+                      <CircleCheck className="size-4" />
+                      {version.approved_summary_warnings.length > 0 ? 'Approved with summary warnings' : 'Approved'}
+                    </ToneBadge>
+                  </span>
+                </Tooltip>
               ) : (
                 <Tooltip
                   content={

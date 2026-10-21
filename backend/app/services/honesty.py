@@ -46,7 +46,8 @@ _YEARS = re.compile(r"(?:over|more than|plus de|près de|nearly|almost|about)?\s
 # What makes data work honest to name next to years: it's said to be projects or a move.
 _QUALIFIER = re.compile(r"\b(?:projects?|projets?|personal|personnel\w*|graduation|fin d.études|"
                         r"pfe|internship|intern|stage|stagiaire|certificat\w*|certif\w*|course\w*|"
-                        r"moving into|move into|transition\w*|switching|reconversion|vers la|vers "
+                        r"moving into|move into|now (?:focused|focusing) (?:on|towards?)|"
+                        r"transition\w*|switching|reconversion|vers la|vers "
                         r"l.|towards|learning|self-taught|side)\b", re.I)
 _PROFESSIONAL_CLAIM = re.compile(r"\b(?:experienced|seasoned|senior|expert|professional|"
                                  r"confirmé\w*|expérimenté\w*)\b", re.I)

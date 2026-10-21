@@ -19,8 +19,22 @@ class CVVersionOut(BaseModel):
     duration_ms: int | None
     error: str | None
     has_pdf: bool
+    # Summary warnings that were showing when this version was approved (empty = approved clean).
+    approved_summary_warnings: list[dict[str, Any]] = []
     created_at: datetime
     updated_at: datetime
+
+
+class SummaryIn(BaseModel):
+    feedback: str | None = None  # "What should change?" (optional)
+
+
+class SummaryCheckIn(BaseModel):
+    text: str
+
+
+class SummaryRestoreIn(BaseModel):
+    index: int
 
 
 class ReadinessItem(BaseModel):
