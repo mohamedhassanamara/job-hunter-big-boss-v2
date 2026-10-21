@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { StageBadge, ToneBadge } from '@/components/app/badges'
+import { RegenerateDialog } from '@/components/app/RegenerateDialog'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
@@ -56,7 +57,8 @@ export default function LetterStudioPage() {
   const question = ask.question ?? letter?.question ?? ''
   const limit = ask.limit ?? (letter?.char_limit != null ? String(letter.char_limit) : '')
 
-  const runGenerate = () => {
+  const [regenOpen, setRegenOpen] = useState(false)
+  const runGenerate = (feedback = '') => {
     if (!Number.isFinite(appId)) return
     if (form && !question.trim()) {
       toast.error("Paste the form's question first")
@@ -64,7 +66,7 @@ export default function LetterStudioPage() {
     }
     const t = toast.loading(`Writing your ${form ? 'form text' : 'cover letter'} with Claude…`, { description: 'Usually under a minute. Every sentence is then checked against your CV and the listing.' })
     generate.mutate(
-      { appId, format, question: form ? question.trim() : undefined, char_limit: form && limit ? Number(limit) : undefined },
+      { appId, format, question: form ? question.trim() : undefined, char_limit: form && limit ? Number(limit) : undefined, feedback },
       {
         onSuccess: (l) => {
           setSelected(l.id)
@@ -168,11 +170,11 @@ export default function LetterStudioPage() {
                 aria-label="Version"
                 value={String(letter.id)}
                 onValueChange={(v) => setSelected(Number(v))}
-                options={letters.map((l) => ({ value: String(l.id), label: `v${l.version} · ${STATUS_LABEL[l.status]}${l.locked_at ? ' · sent' : ''} · ${relativeTime(l.created_at)}` }))}
-                className="w-56"
+                options={letters.map((l) => ({ value: String(l.id), label: `v${l.version} · ${STATUS_LABEL[l.status]}${l.locked_at ? ' · sent' : ''} · ${relativeTime(l.created_at)}${l.feedback ? ` · “${l.feedback.slice(0, 40)}”` : ''}` }))}
+                className="w-72"
               />
             </span>
-            <Button onClick={runGenerate} disabled={generate.isPending || blocked}>
+            <Button onClick={() => setRegenOpen(true)} disabled={generate.isPending || blocked}>
               <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
               {generate.isPending ? 'Writing…' : 'Regenerate'}
             </Button>
@@ -248,7 +250,7 @@ export default function LetterStudioPage() {
                   <Link to={`/jobs/${jobId}/cv`}>Open CV Studio</Link>
                 </Button>
               ) : (
-                <Button variant="default" onClick={runGenerate} disabled={generate.isPending || blocked}>
+                <Button variant="default" onClick={() => runGenerate()} disabled={generate.isPending || blocked}>
                   <Sparkles />
                   {form ? 'Write form text' : 'Write cover letter'}
                 </Button>
@@ -300,6 +302,17 @@ export default function LetterStudioPage() {
           </div>
         </div>
       )}
+      <RegenerateDialog
+        open={regenOpen}
+        onClose={() => setRegenOpen(false)}
+        title={form ? 'Regenerate the form text' : 'Regenerate the cover letter'}
+        hint="Claude edits the latest version toward your feedback instead of starting over. Every sentence is checked again, and every version is kept in the version list so you can go back."
+        pending={generate.isPending}
+        onSubmit={(feedback) => {
+          setRegenOpen(false)
+          runGenerate(feedback)
+        }}
+      />
     </div>
   )
 }

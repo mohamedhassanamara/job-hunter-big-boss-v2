@@ -261,6 +261,35 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   the same dialog as the Fit card). Both save the full text and rescore the job. Drafting still works without
   it; the draft then carries the warning "constraints like residency or a language requirement can't be
   detected".
+- **Which language it is written in (`services/language.py`).** The listing's language is detected among English,
+  French, German, Spanish and Arabic (the old French-vs-English vote read German as French through "du"/"des").
+  Rule: write in the listing's language only if you speak it at a working level (Settings → Candidate languages:
+  Professional working, Full professional or Native) **and** the app can write it (English, French); otherwise
+  English. An explicit choice wins: the draft's language dropdown (kept for its regenerations until you pick
+  Automatic), the job's language setting, Settings → Email language. The draft header shows the language and why
+  ("English: the listing is in German, which isn't a working language in your profile"), with the dropdown
+  (Automatic / English / French) that regenerates. Letters and notes use the same detector.
+- **Regenerate with feedback.** "Regenerate" opens "What should change?" (optional). The model gets the previous
+  draft, your feedback and the normal sources and rules (prompt section `revise`) and edits toward it; the facts
+  checks run on the result. Every version stays (the old draft is rejected, never deleted) with its feedback, its
+  parent and its language: the draft's "Versions" list restores any of them (`GET /applications/{id}/draft/history`,
+  Restore). The same box is on LinkedIn notes, follow-ups and InMails (versions in the message's `history`,
+  `POST /linkedin/people/{id}/restore`) and on cover letters / form texts (each version keeps its `feedback`,
+  the version picker shows it).
+- **Approve without verification** (`POST /outreach/drafts/{id}/approve-unverified`, next to Approve; this draft
+  only). A dialog lists every outstanding error and warning (and the skipped verifier, and contact alerts), then
+  approves. The draft is marked "approved without verification" with the date and the ignored issues, in the
+  draft, the send queue and the job's Outreach step. The contact must still be verified (Get contact). The send gate
+  still compares the exact subject + body + CV file (hash), the contact (id and address) and the CV version;
+  any difference sends it back to review and clears the mark. It never joins the regression set.
+- **Copy for another AI** (Job page → Outreach, `external-prompt`): one self-contained prompt for Gemini, ChatGPT…
+  with the full listing, company, contact name and role, only the relevant experience (the approved CV's items,
+  else the best matches for the listing), the structure and rules of the chosen mode (application follow-up /
+  speculative toggle), the language rule, and an approved example for tone only. No phone, no email address, no
+  other contacts. A note says it contains your experience and the listing: only paste it into tools you trust.
+  "Paste a draft from another AI" runs the code checks and the Claude verifier on the text and shows each claim
+  with its verdict (`external-draft/check`, nothing stored); Save as draft keeps it (checked and verified, marked
+  "from another AI"), Discard drops it.
 - **The application follow-up (mode `applied`, `services/applied_check.py`)** is an honest, direct email, not a
   pitch. Parts, assembled by code: greeting (code) · **opening** (you applied, or are applying, for the role at
   the company, and wanted to reach out directly; nothing else) · **experience** (at most two proofs, one plain

@@ -72,7 +72,7 @@ def test_letter_drafter_uses_the_isolated_subscription_call() -> None:
     d = ClaudeLetterDrafter(runner=fake_run({"is_error": False, "structured_output": LETTER},
                                             calls=calls))
     out = d.draft_letter(LetterRequest(job={}, candidate={}, pool={}), feedback="- too short")
-    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v7"
+    assert out.ask == "Could we meet?" and d.prompt_version == "cover_letter/v8"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     system = cmd[cmd.index("--system-prompt") + 1]
@@ -440,6 +440,23 @@ def test_language_override_and_new_versions_replace_the_draft(web_job: dict) -> 
         assert s.get(CoverLetter, first.id).status == CVStatus.superseded
     assert second.content["salutation"] == "Dear Hiring Manager,"
     assert "Application for the Data Engineer position" in second.tex
+
+
+def test_regenerating_with_feedback_edits_the_latest_version_and_keeps_every_version(
+        web_job: dict) -> None:
+    first_drafter = Script(good_plan(web_job, fr=False))
+    first = cl.generate(engine, web_job["app"], first_drafter, "en")
+    assert "revision" not in first_drafter.requests[0].rules and first.feedback == ""
+    second_drafter = Script(good_plan(web_job, fr=False))
+    second = cl.generate(engine, web_job["app"], second_drafter, "en",
+                         feedback="shorter, lead with the pipelines")
+    rev = second_drafter.requests[0].rules["revision"]
+    assert rev["feedback"] == "shorter, lead with the pipelines"
+    assert rev["previous_text"].strip() and "Dear Hiring Manager" in rev["previous_text"]
+    assert second.feedback == "shorter, lead with the pipelines" and second.version == 2
+    with Session(engine) as s:
+        assert s.get(CoverLetter, first.id).status == CVStatus.superseded  # kept: go back to v1
+        assert [v.version for v in cl.versions(s, web_job["app"])] == [2, 1]
 
 
 def test_generate_needs_an_approved_cv(web_job: dict) -> None:

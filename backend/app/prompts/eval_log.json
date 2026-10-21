@@ -41,6 +41,13 @@
       "cases": 1,
       "errors": 0,
       "note": "Adopted: the follow-up asks for at most two proofs, one sentence each, the strongest for the core requirements, aiming at 90-120 words (a warning outside 90-170); a language requirement is answered with the profile's languages. Run on the applied case #9 (0 errors; two 'reads like a CV bullet' warnings). Stored SaltRock draft #18: 108 words, constraint paragraph for the listing's German + English requirement, claim verifier passed."
+    },
+    "13": {
+      "report": "data/eval/emails/20261021-155646_outreach_v13.md",
+      "date": "2026-10-21",
+      "cases": 1,
+      "errors": 0,
+      "note": "Adopted: new sections `revise` (regenerate with feedback: edit the previous draft toward the user's feedback, same sources and rules) and `external`, `external_applied`, `external_speculative` (the prompt copied for another AI). The follow-up system section is unchanged from v12; the run is the applied case #9 (0 errors, one 'reads like a CV bullet' warning)."
     }
   }
 }

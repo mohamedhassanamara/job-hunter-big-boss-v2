@@ -322,10 +322,26 @@ def require_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, 
     return record
 
 
-def send_gate(draft: OutreachDraft, subject: str, body: str,
-              attachment_path: str | None) -> str | None:
+def send_gate(draft: OutreachDraft, subject: str, body: str, attachment_path: str | None,
+              recipient: str | None = None) -> str | None:
     """Right before a queued email goes out: the exact text and attachment must be the ones
-    approved and verified. Returns why not, or None when it may go."""
+    approved and verified. Returns why not, or None when it may go.
+
+    An email you approved without verification (`unverified_approval`) skips only the claim
+    verification: the text, the attachment, the contact (and their address) and the CV version
+    must still be exactly what you approved."""
+    if draft.unverified_approval:
+        a = draft.unverified_approval
+        if a.get("hash") != text_hash(f"Subject: {subject}\n\n{body}"):
+            return "Its text changed since you approved it without verification"
+        if a.get("attachment_sha256") != file_hash(attachment_path):
+            return "The attached CV changed since you approved the email"
+        if a.get("contact_id") != draft.contact_id or (
+                recipient and a.get("recipient") and recipient != a["recipient"]):
+            return "The contact or their address changed since you approved the email"
+        if a.get("cv_version_id") != draft.cv_version_id:
+            return "The CV version changed since you approved the email"
+        return None
     record = draft.verification
     if not record or record.get("status") != "passed":
         return "It has no passed claim verification"

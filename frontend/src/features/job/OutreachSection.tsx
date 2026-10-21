@@ -1,9 +1,11 @@
-import { ArrowRight, CircleCheck, Clock, Download, FileText, LoaderCircle, Send, Sparkles, TriangleAlert } from 'lucide-react'
+import { ArrowRight, CircleCheck, Clock, ClipboardCopy, Download, FileText, LoaderCircle, Send, Sparkles, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { GetContactPanel } from '@/components/app/contact/GetContactPanel'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
+import { ExternalAIDialog } from '@/components/app/outreach/ExternalAIDialog'
+import { UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
 import { PasteDescriptionDialog } from '@/components/app/PasteDescriptionDialog'
 import { Section } from '@/components/app/PageHeader'
 import { TourButton } from '@/components/app/tour/TourButton'
@@ -148,6 +150,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
   const action = useDraftAction()
   const [sentMyself, setSentMyself] = useState(false)
   const [pickedMode, setPickedMode] = useState<EmailMode | null>(null)
+  const [externalOpen, setExternalOpen] = useState(false)
   const ready = !isPending && !!data
   // Arriving from the Pipeline or Today with #outreach: bring the section into view.
   useEffect(() => {
@@ -187,6 +190,10 @@ export function OutreachSection({ job }: { job: JobDetail }) {
       action={
         <span className="flex items-center gap-2 text-xs text-fg-subtle">
           {job.contact ? `To ${job.contact.full_name}` : 'No contact yet'}
+          <Button size="xs" variant="ghost" onClick={() => setExternalOpen(true)} data-tour="outreach-external">
+            <ClipboardCopy />
+            Copy for another AI
+          </Button>
           {(data.step === 'get_contact' || data.step === 'verify_contact') && <TourButton tour="get-contact" label="How it works" />}
         </span>
       }
@@ -224,7 +231,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
               {run.running ? (
                 <DraftProgressLine state={run.state} />
               ) : (
-                <Button size="sm" disabled={!data.has_email} onClick={() => run.start(pickedMode ?? data.email_mode, { onError: (e) => toast.error(e.message) })}>
+                <Button size="sm" disabled={!data.has_email} onClick={() => run.start({ mode: pickedMode ?? data.email_mode }, { onError: (e) => toast.error(e.message) })}>
                   <Sparkles />
                   Draft email with AI
                 </Button>
@@ -266,7 +273,8 @@ export function OutreachSection({ job }: { job: JobDetail }) {
           </div>
         )}
         {(data.step === 'queue' || data.step === 'queued') && (
-          <div className="flex justify-end px-4 py-2">
+          <div className="flex items-center justify-between gap-2 px-4 py-2">
+            {data.draft?.unverified_approval ? <UnverifiedBadge at={data.draft.unverified_approval.at} ignored={data.draft.unverified_approval.ignored.length} /> : <span />}
             <Button size="xs" variant="ghost" onClick={() => setSentMyself(true)}>
               <Send />
               I sent it myself
@@ -275,6 +283,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
         )}
       </div>
       <SentMyselfDialog key={`sent-${sentMyself}`} appId={app.id} open={sentMyself} onOpenChange={setSentMyself} />
+      <ExternalAIDialog appId={app.id} open={externalOpen} onClose={() => setExternalOpen(false)} defaultMode={data.email_mode} />
     </Section>
   )
 }

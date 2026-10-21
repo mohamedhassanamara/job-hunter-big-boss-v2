@@ -187,7 +187,8 @@ def test_a_short_listing_warns_that_requirements_cant_be_seen_and_a_full_one_doe
 @pytest.mark.parametrize("text", [
     "* German and English, both written and spoken",
     "Fluent German required", "Deutschkenntnisse erforderlich", "Wohnsitz in Deutschland",
-    "You live in Germany (German residency required)", "English and French, written and spoken"])
+    "You live in Germany (German residency required)", "English and French, written and spoken",
+    "## Applicant location requirements\n\nDE"])
 def test_the_listing_requirements_the_detector_recognises(text: str) -> None:
     assert ac.listing_states_constraint(text)
     assert not ac.listing_states_constraint("Flutter, Riverpod, Remote, Cologne, 30 days off")

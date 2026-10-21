@@ -68,7 +68,12 @@ function usePersonMutation<V>(appId: number, fn: (v: V) => Promise<LinkedInPerso
 }
 
 export function useDraftLinkedIn(appId: number) {
-  return usePersonMutation(appId, ({ id, kind }: { id: number; kind: 'note' | 'followup' | 'inmail' }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/${kind}`))
+  return usePersonMutation(appId, ({ id, kind, feedback }: { id: number; kind: 'note' | 'followup' | 'inmail'; feedback?: string }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/${kind}`, { feedback: feedback ?? '' }))
+}
+
+/** Go back to an earlier version of the note, follow-up or InMail. */
+export function useRestoreLinkedIn(appId: number) {
+  return usePersonMutation(appId, ({ id, kind, index }: { id: number; kind: 'note' | 'followup' | 'inmail'; index: number }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/restore`, { kind, index }))
 }
 
 export function useEditLinkedIn(appId: number) {

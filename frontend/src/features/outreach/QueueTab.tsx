@@ -1,3 +1,4 @@
+import { UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
 import { CircleCheck, Clock, Inbox, Pause, Play, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -134,6 +135,11 @@ export function QueueTab() {
                       <Link to={`/jobs/${item.job_id}`} className="hover:underline">
                         {item.subject}
                       </Link>
+                      {item.unverified && (
+                        <span className="mt-0.5 block">
+                          <UnverifiedBadge />
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 text-xs text-fg-muted tabular-nums">
                       {pending ? (

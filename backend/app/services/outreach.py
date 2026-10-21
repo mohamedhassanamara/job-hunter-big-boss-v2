@@ -26,7 +26,7 @@ from app.models import (
     SendLog,
 )
 from app.models.base import utcnow
-from app.models.enums import CVStatus, DraftStatus, EventKind, Route
+from app.models.enums import CVStatus, DraftStatus, EventKind, Route, Stage
 from app.providers.base import (
     CVPlan,
     DraftFailed,
@@ -114,13 +114,22 @@ def cv_pool_subset(pool: Pool, cv: CVVersion) -> dict[str, Any]:
             if k != "summary_snippets"}
 
 
-def email_language(s: Session, job: Job) -> str:
-    lang = outreach_settings(s).get("language") or "en"
-    if lang == "auto":
-        from app.services.text import detect_language
+def language_choice(s: Session, job: Job, app: Application | None = None,
+                    override: str | None = None) -> Any:
+    """The language to write in and why (services/language.py): your explicit choice (the draft's
+    dropdown, the job's language setting, Settings → Email), else the listing's language when you
+    speak it at a working level and the app can write it, else English."""
+    from app.services import language
 
-        return detect_language(f"{job.title}\n{job.description or ''}")
-    return lang
+    return language.choose(
+        f"{job.title}\n{job.description or ''}", _setting(s, "profile"),
+        setting=outreach_settings(s).get("language") or "auto",
+        job_setting=(app.letter_language if app else None) or "auto", override=override)
+
+
+def email_language(s: Session, job: Job, app: Application | None = None,
+                   override: str | None = None) -> str:
+    return str(language_choice(s, job, app, override).language)
 
 
 def email_mode(job: Job, requested: str | None = None) -> str:
@@ -140,7 +149,7 @@ def application_mention(s: Session, app: Application) -> str | None:
     from app.services.cover_letter import MONTHS
 
     job = s.get(Job, app.job_id)
-    lang = email_language(s, job)
+    lang = email_language(s, job, app)
     cfg = outreach_settings(s).get("application_mention") or DEFAULT_OUTREACH["application_mention"]
     template = cfg.get(lang) or cfg.get("en") or ""
     day = app.web_applied_at
@@ -231,7 +240,7 @@ def build_request(s: Session, app: Application, job: Job, company: Company, cont
         pool=cv_pool_subset(pool, cv),
         rules={"max_words": int(cfg.get("max_words") or 150),
                "banned_phrases": list(cfg.get("banned_phrases") or []),
-               "language": email_language(s, job),
+               "language": email_language(s, job, app),
                "mention_work_authorization": allowed_auth,
                "jargon": list(_letter_jargon(s))},
     )
@@ -277,24 +286,49 @@ def full_body(s: Session, draft: OutreachDraft) -> str:
     return "\n\n".join(parts)
 
 
+def revision_of(s: Session, app_id: int, base_draft_id: int | None) -> OutreachDraft | None:
+    """The draft a regeneration edits: the one you name, else the draft under review."""
+    if base_draft_id:
+        base = s.get(OutreachDraft, base_draft_id)
+        return base if base and base.application_id == app_id else None
+    return s.exec(select(OutreachDraft).where(
+        OutreachDraft.application_id == app_id, OutreachDraft.status == DraftStatus.draft)
+        .order_by(col(OutreachDraft.id).desc())).first()
+
+
+def _sticky_language(base: OutreachDraft | None, language: str | None) -> str | None:
+    """A language you picked for a draft stays for its regenerations until you pick another."""
+    if language or base is None:
+        return language
+    choice = (base.plan or {}).get("language_choice") or {}
+    return choice.get("language") if choice.get("source") == "override" else None
+
+
 def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
              fetcher: Any = None, progress: Any = None, hook_checker: Any = None,
-             mode: str | None = None) -> OutreachDraft:
+             mode: str | None = None, language: str | None = None, feedback: str = "",
+             base_draft_id: int | None = None) -> OutreachDraft:
     """Draft the email for one job (never in bulk: one generation at a time). A job with a
     posting gets the application follow-up (prompt v11 `applied`, no research started); a
     speculative email (`mode`, or a company with no posting) researches the company first
     (prompt v4+: Claude, the mock). The older reply-style path remains for the send-queue
     tests."""
-    if hasattr(drafter, "draft_applied"):
-        with Session(engine) as s:
-            app = s.get(Application, app_id)
-            job = s.get(Job, app.job_id) if app else None
-            chosen = email_mode(job, mode) if job else "speculative"
-        if chosen == "applied":
-            return generate_applied(engine, app_id, drafter, progress=progress)
+    with Session(engine) as s:
+        app = s.get(Application, app_id)
+        job = s.get(Job, app.job_id) if app else None
+        base = revision_of(s, app_id, base_draft_id) if (feedback or base_draft_id) else None
+        base_id = base.id if base else None
+        if mode is None and base is not None:  # regenerating keeps the draft's own mode
+            mode = (base.plan or {}).get("mode")
+        language = None if language == "auto" else _sticky_language(
+            revision_of(s, app_id, None), language)  # "auto" clears a language you picked
+        chosen = email_mode(job, mode) if job else "speculative"
+    options = {"language": language, "feedback": feedback.strip(), "base_draft_id": base_id}
+    if hasattr(drafter, "draft_applied") and chosen == "applied":
+        return generate_applied(engine, app_id, drafter, progress=progress, **options)
     if hasattr(drafter, "draft_intro"):
         return generate_intro(engine, app_id, drafter, researcher=researcher, fetcher=fetcher,
-                              progress=progress, hook_checker=hook_checker)
+                              progress=progress, hook_checker=hook_checker, **options)
     if not _one_at_a_time.acquire(blocking=False):
         raise OutreachError("Another email is being drafted; one at a time")
     try:
@@ -369,8 +403,9 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
 
 
 def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
-                   fetcher: Any = None, progress: Any = None,
-                   hook_checker: Any = None) -> OutreachDraft:
+                   fetcher: Any = None, progress: Any = None, hook_checker: Any = None,
+                   language: str | None = None, feedback: str = "",
+                   base_draft_id: int | None = None) -> OutreachDraft:
     """The email draft step: research the company (fresh signals are reused: no fetch, no model
     call), then write the introduction from the selected signals and your pool. Each attempt's
     hook is checked against the signals it cites (hook_check: one model call)."""
@@ -396,7 +431,8 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             if cv is None:
                 raise OutreachError("Approve the CV first: the email is written from it and "
                                     "attaches it")
-            language = email_language(s, job)
+            choice = language_choice(s, job, app, language)
+            language = choice.language
             company_id = company.id
         research_note, run_id = None, None
         if researcher is not None:
@@ -414,6 +450,8 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             company = s.get(Company, job.company_id)
             pool = load_pool(s)
             request = intro_request(s, app, job, company, contact, cv, pool, language)
+            base = s.get(OutreachDraft, base_draft_id) if base_draft_id else None
+            add_revision(request, base, feedback)
             first = request.candidate["first_name"] or "I"
             english, french = request.candidate["years_statement"], \
                 request.candidate["years_statement_fr"]
@@ -453,8 +491,10 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
                 body=ic.body(plan, intro), model=drafter.model, cv_version_id=cv.id,
-                plan={"format": "intro", "plan": plan.model_dump(), "attempts": attempts,
-                      "intro_line": intro, "language": language,
+                parent_id=base.id if base else None, feedback=feedback,
+                plan={"format": "intro", "mode": "speculative", "plan": plan.model_dump(),
+                      "attempts": attempts, "intro_line": intro, "language": language,
+                      "language_choice": choice.as_dict(),
                       "signal_ids": plan.hook.signal_ids, "signals": signals,
                       "research_run_id": run_id, "research_note": research_note,
                       "hook_check": review, "name_source": request.contact.get("name_source"),
@@ -478,6 +518,72 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             return draft
     finally:
         _one_at_a_time.release()
+
+
+def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[Any] | None = None,
+                       ) -> OutreachDraft:
+    """Approve THIS draft without the claim verifier and without the blocking checks. Records
+    when, and every issue that was ignored (errors and warnings, and a skipped or failed
+    verification); the send gate still holds the exact text, attachment, contact and CV version
+    you approved. The contact must still be verified (that is the Get contact step)."""
+    from app.services import verifier
+
+    if draft.status != DraftStatus.draft:
+        raise OutreachError("Only drafts under review can be approved")
+    app = s.get(Application, draft.application_id)
+    try:
+        get_contact.require_ready(s, app)
+    except get_contact.GetContactError as exc:
+        raise OutreachError(str(exc)) from exc
+    contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
+    if contact is None or not contact.email:
+        raise OutreachError("The contact has no email address")
+    cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
+    if cv is None or cv.status != CVStatus.approved:
+        raise OutreachError("The CV this email was written from is no longer approved")
+    state = verifier.state(draft.verification, verifier.email_text(s, draft))
+    ignored = [{"type": v.get("type"), "severity": v.get("severity"), "message": v.get("message")}
+               for v in draft.violations or []]
+    if state != "passed":
+        ignored.append({"type": "verification", "severity": "warning",
+                        "message": "The claim verifier was skipped"
+                        + ("" if state == "none" else f" (its last result: {state})")})
+    for alert in contact_alerts or []:
+        ignored.append({"type": "contact_alert", "severity": "warning",
+                        "message": f"{contact.full_name} may have left ({alert.reason})"})
+    draft.unverified_approval = {
+        "at": utcnow().isoformat(), "ignored": ignored,
+        "hash": verifier.text_hash(verifier.email_text(s, draft)),
+        "attachment_sha256": verifier.email_attachment(s, draft),
+        "contact_id": contact.id, "recipient": contact.email, "cv_version_id": cv.id,
+        "verification_state": state}
+    draft.status = DraftStatus.approved
+    s.add(draft)
+    pipeline.log_event(s, app, EventKind.draft_approved,
+                       f"Email approved WITHOUT verification ({len(ignored)} issue"
+                       f"{'s' if len(ignored) != 1 else ''} ignored)")
+    if app.stage == Stage.cv_ready:
+        pipeline.transition(s, app, Stage.ready)
+    return draft
+
+
+def draft_history(s: Session, app_id: int) -> list[dict[str, Any]]:
+    """Every version of this application's email, newest first, with the feedback that made it."""
+    rows = s.exec(select(OutreachDraft).where(OutreachDraft.application_id == app_id)
+                  .order_by(col(OutreachDraft.id).desc())).all()
+    total = len(rows)
+    out = []
+    for n, d in enumerate(rows):
+        plan = d.plan or {}
+        out.append({
+            "id": d.id, "version": total - n, "status": str(d.status), "created_at": d.created_at,
+            "subject": d.subject, "words": len(d.body.split()), "feedback": d.feedback or "",
+            "parent_id": d.parent_id, "mode": plan.get("mode"), "language": plan.get("language"),
+            "source": plan.get("source") or "generated", "prompt_version": d.prompt_version,
+            "unverified": bool(d.unverified_approval),
+            "current": d.status in (DraftStatus.draft, DraftStatus.approved, DraftStatus.queued,
+                                    DraftStatus.sent)})
+    return out
 
 
 def recheck(s: Session, draft: OutreachDraft) -> list[dict[str, str]]:
@@ -728,8 +834,17 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
                         pool=request.pool, rules=rules)
 
 
-def generate_applied(engine: Engine, app_id: int, drafter: Any, *,
-                     progress: Any = None) -> OutreachDraft:
+def add_revision(request: EmailRequest, base: OutreachDraft | None, feedback: str) -> None:
+    """A regeneration with feedback: the model gets the previous draft and what you want changed
+    (the normal sources and rules stay), and edits toward it. The facts checks still apply."""
+    if base is not None and (feedback or "").strip():
+        request.rules["revision"] = {"previous_subject": base.subject,
+                                     "previous_body": base.body, "feedback": feedback.strip()}
+
+
+def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any = None,
+                     language: str | None = None, feedback: str = "",
+                     base_draft_id: int | None = None) -> OutreachDraft:
     """The job-linked email draft: one call (plus one retry with the problems as feedback). No
     research is started: signals the company already has are optional extras."""
     progress = progress or (lambda *_: None)
@@ -752,10 +867,13 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *,
             if cv is None:
                 raise OutreachError("Approve the CV first: the email is written from it and "
                                     "attaches it")
-            language = email_language(s, job)
+            choice = language_choice(s, job, app, language)
+            language = choice.language
             pool = load_pool(s)
             progress("drafting", 0, 1)
             request = applied_request(s, app, job, company, contact, cv, pool, language)
+            base = s.get(OutreachDraft, base_draft_id) if base_draft_id else None
+            add_revision(request, base, feedback)
             ctx = applied_context(s, app, job, company, contact, pool, language=language)
 
             def checked(plan: Any) -> list[dict[str, str]]:
@@ -784,8 +902,10 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *,
                 application_id=app_id, contact_id=app.contact_id,
                 subject=ac.subject_line(plan.role, ctx.candidate_name, language),
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
+                parent_id=base.id if base else None, feedback=feedback,
                 plan={"format": "applied", "mode": "applied", "plan": plan.model_dump(),
                       "attempts": attempts, "language": language,
+                      "language_choice": choice.as_dict(),
                       "signal_ids": plan.signal.signal_ids,
                       "signals": request.rules.get("signals") or [],
                       "application": application_facts(app),

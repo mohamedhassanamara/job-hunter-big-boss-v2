@@ -25,6 +25,7 @@ class LetterOut(BaseModel):
     format: str = "pdf"  # pdf | form
     question: str | None = None  # form: the form's question
     char_limit: int | None = None
+    feedback: str = ""  # what you asked to change to get this version
     length: int = 0  # characters of the text (the form's limit counts these)
     salutation: str
     paragraphs: list[LetterParagraphOut]
@@ -71,6 +72,7 @@ class LetterGenerateIn(BaseModel):
     format: str = "pdf"  # pdf | form
     question: str | None = None  # form: the question to answer
     char_limit: int | None = None
+    feedback: str = ""  # "What should change?" (optional): edit the latest version toward it
 
 
 class LetterPatch(BaseModel):

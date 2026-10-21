@@ -46,7 +46,6 @@ from app.services.cv_render import (
     load_template,
     render_letter_tex,
 )
-from app.services.text import detect_language
 
 LETTER_DIR = DATA_DIR / "letters"
 LANGUAGES = ("fr", "en")
@@ -107,7 +106,10 @@ def resolve_language(s: Session, app: Application, job: Job) -> str:
     setting = letter_settings(s).get("language")
     if setting in LANGUAGES:
         return setting
-    return detect_language(f"{job.title}\n{job.description or ''}")
+    from app.services import language
+    from app.services.outreach import _setting  # profile languages
+
+    return language.choose(f"{job.title}\n{job.description or ''}", _setting(s, "profile")).language
 
 
 def approved_cv(s: Session, app: Application) -> CVVersion | None:
@@ -396,9 +398,11 @@ def _engine_key(engine: Engine) -> str:
 
 def generate(engine: Engine, app_id: int, drafter: LetterDrafter,
              language: str | None = None, *, fmt: str = "pdf", question: str | None = None,
-             char_limit: int | None = None) -> CoverLetter:
+             char_limit: int | None = None, feedback: str = "") -> CoverLetter:
     """Write the cover letter for one job (never in bulk: one at a time). `fmt="form"` writes
-    the text for a form's text box answering `question`, within `char_limit`."""
+    the text for a form's text box answering `question`, within `char_limit`. With `feedback`
+    ("What should change?") the model edits the latest version toward it: the facts checks
+    still apply, and every version is kept with its feedback."""
     if fmt not in FORMATS:
         raise LetterError("format must be pdf or form")
     question = (question or "").strip() or None
@@ -424,6 +428,10 @@ def generate(engine: Engine, app_id: int, drafter: LetterDrafter,
             language = language if language in LANGUAGES else resolve_language(s, app, job)
             pool = load_pool(s)
             request = build_request(s, app, cv, pool, language, fmt, question, char_limit)
+            previous = (versions(s, app_id, fmt) or [None])[0]
+            if feedback.strip() and previous is not None:
+                request.rules["revision"] = {"previous_text": plain_text(s, previous),
+                                             "feedback": feedback.strip()}
             ctx = context(s, app, language, pool, fmt, char_limit)
             salutation = default_salutation(s, app, language) if fmt == "pdf" else ""
         started = time.monotonic()
@@ -453,7 +461,7 @@ def generate(engine: Engine, app_id: int, drafter: LetterDrafter,
             letter = CoverLetter(
                 application_id=app_id, version=(existing[0].version + 1) if existing else 1,
                 language=language, format=fmt, question=question, char_limit=char_limit,
-                content=content_from_plan(plan, salutation),
+                feedback=feedback.strip(), content=content_from_plan(plan, salutation),
                 template=cv.template or "default", cv_version_id=cv.id,
                 generator_model=drafter.model, prompt_version=drafter.prompt_version,
                 plan={"plan": plan.model_dump(), "attempts": attempts},

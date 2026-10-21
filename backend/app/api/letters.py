@@ -58,7 +58,7 @@ def letter_out(s: Session, letter: CoverLetter, pool=None) -> LetterOut:  # noqa
     return LetterOut(
         id=letter.id, application_id=letter.application_id, version=letter.version,
         status=letter.status, language=letter.language, format=letter.format or "pdf",
-        question=letter.question, char_limit=letter.char_limit,
+        question=letter.question, char_limit=letter.char_limit, feedback=letter.feedback or "",
         length=len(cl.plain_text(s, letter)) if (letter.format or "pdf") == "form"
         else len(letter.text or ""),
         salutation=str(content.get("salutation") or ""), paragraphs=paragraphs,
@@ -105,7 +105,8 @@ def generate_letter(app_id: int, body: LetterGenerateIn, session: SessionDep,
     drafter = letter_drafter(mock=True if workspace == "demo" else None, model=_model(session))
     try:
         letter = cl.generate(engine, app_id, drafter, body.language, fmt=body.format,
-                             question=body.question, char_limit=body.char_limit)
+                             question=body.question, char_limit=body.char_limit,
+                             feedback=body.feedback)
     except cl.LetterError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.expire_all()

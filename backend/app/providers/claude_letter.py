@@ -33,9 +33,19 @@ def _message(feedback: str, sections: list[tuple[str, object]]) -> str:
                               for name, value in sections)
 
 
+def _revision(request: LetterRequest) -> str:
+    rev = (request.rules or {}).get("revision")
+    if not rev:
+        return ""
+    return ("\n\nPREVIOUS TEXT (edit this)\n" + str(rev.get("previous_text", ""))
+            + "\n\nWHAT THE USER WANTS CHANGED\n" + str(rev.get("feedback", "")))
+
+
 def letter_message(request: LetterRequest, feedback: str = "") -> str:
-    return _message(feedback, [("RULES", request.rules), ("FACTS", request.candidate),
-                               ("JOB", request.job), ("EXPERIENCE POOL", request.pool)])
+    rules = {k: v for k, v in request.rules.items() if k != "revision"}
+    return _message(feedback, [("RULES", rules), ("FACTS", request.candidate),
+                               ("JOB", request.job), ("EXPERIENCE POOL", request.pool)]) \
+        + _revision(request)
 
 
 def answers_message(request: AnswersRequest, feedback: str = "") -> str:
@@ -56,12 +66,16 @@ class ClaudeLetterDrafter(ClaudeCVGenerator):
             raise DraftFailed(str(exc).replace("plan", "answer")) from exc
 
     def draft_letter(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
-        system = self.sections["system"] + (f"\n\n{self.sections['retry']}" if feedback else "")
+        system = self.sections["system"] + (
+            f"\n\n{self.sections['revise']}" if request.rules.get("revision") else "") + (
+            f"\n\n{self.sections['retry']}" if feedback else "")
         return self._run(system, letter_message(request, feedback), CoverLetterPlan)
 
     def draft_form(self, request: LetterRequest, feedback: str = "") -> CoverLetterPlan:
         """The text for a form's text box (answers RULES.question; no letter furniture)."""
-        system = self.sections["form"] + (f"\n\n{self.sections['form_retry']}" if feedback else "")
+        system = self.sections["form"] + (
+            f"\n\n{self.sections['revise']}" if request.rules.get("revision") else "") + (
+            f"\n\n{self.sections['form_retry']}" if feedback else "")
         return self._run(system, letter_message(request, feedback), CoverLetterPlan)
 
     def answer(self, request: AnswersRequest, feedback: str = "") -> AnswersPlan:
