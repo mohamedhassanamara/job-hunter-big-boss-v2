@@ -541,7 +541,8 @@ SETTINGS: dict[str, dict] = {
     # Automatic drafting (never approves anything): the CV when you shortlist a job, the email
     # when a verified contact AND an approved CV both exist. The email one starts off.
     "generation": {"auto_cv": True, "auto_email": False},
-    "smtp": {"address": "", "from_name": "", "interval_minutes": 15, "max_per_queue": 20},
+    "smtp": {"address": "", "from_name": "", "gap_min_minutes": 4, "gap_max_minutes": 7,
+             "max_per_queue": 20},
     "schedule": {"enabled": True, "time": "07:00"},
     "lookup": {"daily_cap": 10},
     # Cold emails: signature (empty fields use Settings → Candidate), opt-out, lint rules.

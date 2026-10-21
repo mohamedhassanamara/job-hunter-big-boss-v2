@@ -53,7 +53,7 @@ export function QueueTab() {
             {running ? 'Running' : queue.status === 'paused' ? 'Paused' : 'Idle'}
           </ToneBadge>
           <p className="text-xs text-fg-subtle">
-            {queue.interval_minutes} min between sends · max {queue.max_items} per queue
+            {queue.gap_min_minutes}-{queue.gap_max_minutes} min between sends (random) · max {queue.max_items} per queue
           </p>
         </div>
         <div className="h-10 w-px bg-border" />
@@ -71,6 +71,12 @@ export function QueueTab() {
             <dd className="text-xl font-semibold tabular-nums">
               {running && queue.counts.pending > 0 ? countdown(queue.next_send_at, now) : '—'}
             </dd>
+            {running && queue.counts.pending > 0 && queue.next_send_at && <dd className="text-xs text-fg-subtle tabular-nums">at {clockTime(queue.next_send_at)}</dd>}
+          </div>
+          <div>
+            <dt className="text-xs text-fg-subtle">Estimated finish</dt>
+            <dd className="text-xl font-semibold tabular-nums">{running && queue.estimated_finish_at ? clockTime(queue.estimated_finish_at) : '—'}</dd>
+            {running && queue.estimated_finish_at && <dd className="text-xs text-fg-subtle">at the average gap</dd>}
           </div>
         </dl>
         <div className="ml-auto">

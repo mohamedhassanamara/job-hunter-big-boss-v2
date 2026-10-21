@@ -1,5 +1,8 @@
-"""The send queue: one approved email at a time, `interval_minutes` apart, at most `max_items`
-per queue, pause/resume, persisted in the database so it survives restarts.
+"""The send queue: one approved email at a time, a random gap apart (uniform between the
+Settings → Email minimum and maximum, default 4-7 minutes, drawn fresh after every send), at most
+`max_items` per queue, pause/resume, persisted in the database so it survives restarts: the
+planned next send is `send_queue.next_send_at`, so a restart keeps the schedule and never sends
+early or twice.
 
 Safety rules:
 - Only approved drafts in the queue are sent, and only while the queue is running.
@@ -13,6 +16,7 @@ Safety rules:
 """
 
 import logging
+import random
 import threading
 from collections.abc import Callable
 from datetime import datetime, timedelta
@@ -52,6 +56,30 @@ class QueueError(ValueError):
     pass
 
 
+DEFAULT_GAP_MINUTES = (4.0, 7.0)
+
+
+def gap_bounds(s: Session) -> tuple[float, float]:
+    """(minimum, maximum) minutes between two sends, from Settings → Email."""
+    cfg = outreach._setting(s, "smtp")
+    try:
+        lo = float(cfg.get("gap_min_minutes") or DEFAULT_GAP_MINUTES[0])
+        hi = float(cfg.get("gap_max_minutes") or DEFAULT_GAP_MINUTES[1])
+    except (TypeError, ValueError):
+        return DEFAULT_GAP_MINUTES
+    return (lo, hi) if 1 <= lo <= hi else DEFAULT_GAP_MINUTES
+
+
+def draw_gap(lo: float, hi: float, rng: random.Random | None = None) -> timedelta:
+    """One random gap, uniform between the bounds (whole seconds)."""
+    return timedelta(seconds=round((rng or random).uniform(lo * 60, hi * 60)))
+
+
+def average_gap(s: Session) -> timedelta:
+    lo, hi = gap_bounds(s)
+    return timedelta(minutes=(lo + hi) / 2)
+
+
 def queue(s: Session) -> SendQueue:
     row = s.exec(select(SendQueue)).first()
     if row is None:
@@ -87,7 +115,7 @@ def enqueue(s: Session, draft: OutreachDraft) -> bool:
 
 def position_and_eta(s: Session, draft_id: int) -> tuple[int | None, datetime | None]:
     """Where a draft is in the queue (1 = next) and when it should go out (only while the queue
-    runs: next_send_at, then one interval per email ahead of it)."""
+    runs: next_send_at, then the average gap per email ahead of it: an estimate)."""
     q = queue(s)
     pending = s.exec(select(SendQueueItem).where(
         SendQueueItem.queue_id == q.id, SendQueueItem.status == QueueItemStatus.pending)
@@ -98,7 +126,7 @@ def position_and_eta(s: Session, draft_id: int) -> tuple[int | None, datetime | 
     n = ids.index(draft_id)
     eta = None
     if q.status == QueueStatus.running:
-        eta = (q.next_send_at or utcnow()) + timedelta(minutes=q.interval_minutes * n)
+        eta = (q.next_send_at or utcnow()) + average_gap(s) * n
     return n + 1, eta
 
 
@@ -262,7 +290,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
             if fatal:
                 q.status, q.next_send_at = QueueStatus.paused, None
             else:
-                q.next_send_at = now + timedelta(minutes=q.interval_minutes)
+                q.next_send_at = now + draw_gap(*gap_bounds(s))
             s.add(q)
             s.commit()
             log.warning("send failed for draft %s: %s", draft_id, exc)
@@ -271,7 +299,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
         s.add(entry)
         _mark_sent(s, item, draft, now, message_id)
         q = queue(s)
-        q.next_send_at = now + timedelta(minutes=q.interval_minutes)
+        q.next_send_at = now + draw_gap(*gap_bounds(s))  # a fresh gap after every send
         s.add(q)
         s.commit()
         return "sent"

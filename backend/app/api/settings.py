@@ -75,6 +75,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services import generation
 
     values["generation"] = generation.settings(session)
+    values["smtp"] = {"gap_min_minutes": 4, "gap_max_minutes": 7, "max_per_queue": 20,
+                      **{k: v for k, v in (values.get("smtp") or {}).items()
+                         if k != "interval_minutes"}}
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -102,6 +105,23 @@ def _check_cv(value: dict) -> None:
         if unknown := fields - {"full_name", "company", "job_title", "version"}:
             raise HTTPException(422, f"Unknown filename fields: {', '.join(sorted(unknown))}")
     _check_cv_structure(value)
+
+
+def _check_smtp(value: dict) -> dict:
+    """The random gap between sends: whole or decimal minutes, minimum at least 1, minimum not
+    above the maximum. The old fixed `interval_minutes` is dropped."""
+    lo, hi = value.get("gap_min_minutes", 4), value.get("gap_max_minutes", 7)
+    if isinstance(lo, bool) or isinstance(hi, bool) or not all(
+            isinstance(x, int | float) for x in (lo, hi)):
+        raise HTTPException(422, "The gap between sends must be numbers of minutes")
+    if lo < 1:
+        raise HTTPException(422, "The minimum gap must be at least 1 minute")
+    if lo > hi:
+        raise HTTPException(422, "The minimum gap can't be above the maximum")
+    if hi > 240:
+        raise HTTPException(422, "The maximum gap is 240 minutes")
+    return {**{k: v for k, v in value.items() if k != "interval_minutes"},
+            "gap_min_minutes": lo, "gap_max_minutes": hi}
 
 
 def _check_cv_structure(value: dict) -> None:
@@ -214,6 +234,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 gid = str((g or {}).get("id") or "").strip() if isinstance(g, dict) else None
                 if gid is None or (gid and not gid.isdigit()) or len(code) != 2:
                     raise HTTPException(422, f"{code}: a geoId is digits only (or empty)")
+    if key == "smtp":
+        body.value = _check_smtp(body.value)
     if key == "models":
         try:
             model_choice.check(body.value)

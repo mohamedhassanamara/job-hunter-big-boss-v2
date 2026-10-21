@@ -16,7 +16,7 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 | 5 | **Tailored CV** | Generated per job (Claude headless, structured JSON) from the experience pool into a style-only LaTeX template (docs/CV_TEMPLATES.md), fitted in code to exactly one full page | CV Studio |
 | 6 | **Both routes** | Every job can have a **web application** (CV, optional cover letter as PDF and/or form text, grounded answers to the form's questions, the listing link; I apply myself) **and** a **cold email** to someone there (contact → draft → review → send queue → sent). Each track shows its own status everywhere; with no contact yet, the app says who to look for and gives search hints | Job detail, Pipeline, Today, Cover letter studio |
 | 7 | **Human review** | I review and edit every CV, email, cover letter and answer | CV Studio, Job page, Outreach → Review, Cover letter studio |
-| 8 | **Send / track** | Queued Gmail SMTP: 15 min between sends, max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV (+ approved cover letter) in one click, then Mark applied (date, method, CV and letter versions locked) | Outreach → Queue, Applications |
+| 8 | **Send / track** | Queued Gmail SMTP: a random 4-7 min gap between sends (Settings → Email), max 20 per queue, pause/resume. Web-apply jobs: open the listing + approved CV (+ approved cover letter) in one click, then Mark applied (date, method, CV and letter versions locked) | Outreach → Queue, Applications |
 | 9 | **Follow up** | Follow-up reminders (7/14 days, configurable), replies and interview rounds logged, closed with an outcome; stats and CSV export. No model calls | Today, Applications |
 
 Pipeline stages: **New → Shortlisted → CV ready → Ready → Applied / Emailed → Interview → Closed**. The stage is
@@ -378,8 +378,8 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   drafts (a separate step), Send test to me, Regenerate, Reject. Keys: j/k, a, r. The same editor is on the Job page.
 - **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage
   change. **The queue can't start before one successful test send.**
-- **Queue tab:** Running / Paused / Idle, next send countdown, 15 min between sends, max 20 per queue. The worker
-  sends one email per interval through Gmail SMTP (`SMTP_APP_PASSWORD` in `.env`), attaching the approved CV and
+- **Queue tab:** Running / Paused / Idle, next send countdown and time, estimated finish (at the average gap), the gap range, max 20 per queue. The worker
+  sends one email at a time through Gmail SMTP, a random gap apart (uniform between Settings → Email's minimum and maximum, default 4 and 7 minutes, drawn fresh after every send and stored as `next_send_at` so a restart keeps the schedule) (`SMTP_APP_PASSWORD` in `.env`), attaching the approved CV and
   locking that version. Failures are shown with Retry; a login/config failure pauses the queue. An email caught
   mid-send by a restart becomes "Check Gmail" (never resent blindly): Retry or "I found it in Sent". Every attempt
   is in `send_log`. A sent email moves the job to **Sent** (`done`, method email) and feeds follow-ups, replies
@@ -561,7 +561,7 @@ Sections in a left sub-nav:
 - **Tracking:** follow-up days (e.g. 7, 14) and the ghosting suggestion delay (30 days). Applies immediately (reminders are computed).
 - **Candidate** also has "Total years of experience (override)": used instead of the role-date total in CV facts and checks; never makes scores stale.
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
-- **Email (SMTP):** Gmail address, from name, and send interval / cap (read-only defaults). The app password is set in `.env` and shown as "configured / not configured".
+- **Email (SMTP):** Gmail address, from name, and the gap between sends (a minimum and maximum in minutes, minimum ≥ 1 and ≤ maximum) and the cap (read-only). The app password is set in `.env` and shown as "configured / not configured".
 - **Data:** DB path, plus "Reset demo data" and "Start with an empty workspace" (dev only, with a confirmation dialog).
 - Each section saves independently, with a toast.
 

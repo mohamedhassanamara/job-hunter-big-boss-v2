@@ -667,9 +667,13 @@ export interface QueueItem {
 
 export interface Queue {
   status: QueueStatus
-  interval_minutes: number
+  /** A random gap between sends, uniform between these (Settings → Email). */
+  gap_min_minutes: number
+  gap_max_minutes: number
   max_items: number
   next_send_at: string | null
+  /** The last pending email, at the average gap: an estimate. */
+  estimated_finish_at: string | null
   counts: { pending: number; sent: number; failed: number; unknown: number }
   items: QueueItem[]
   test_sent: boolean // a test email reached you: required before starting
@@ -987,7 +991,9 @@ export interface Today {
     next_send_at: string | null
     pending: number
     sent: number
-    interval_minutes: number
+    gap_min_minutes: number
+    gap_max_minutes: number
+    estimated_finish_at: string | null
   }
   last_runs: SourceRun[]
   min_fit_score: number

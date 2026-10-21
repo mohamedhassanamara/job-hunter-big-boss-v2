@@ -134,7 +134,7 @@ function QueueCard({ queue }: { queue: Today['queue'] }) {
         toast.success(q.status === 'running' ? 'Send queue resumed' : 'Send queue paused', {
           description:
             q.status === 'running'
-              ? `Next email in ${q.interval_minutes} min (mock: nothing is sent in phase 0)`
+              ? `Next email in ${q.gap_min_minutes}-${q.gap_max_minutes} min, then a new random gap after each`
               : undefined,
         }),
       onError: (e) => toast.error(e.message),
@@ -168,7 +168,7 @@ function QueueCard({ queue }: { queue: Today['queue'] }) {
         <p className="text-xs text-fg-subtle">
           {queue.pending === 0
             ? 'Approved emails land here.'
-            : `${queue.interval_minutes} min between sends · ${pluralize(queue.sent, 'email')} sent so far`}
+            : `${queue.gap_min_minutes}-${queue.gap_max_minutes} min between sends${queue.status === 'running' && queue.estimated_finish_at ? ` · done about ${clockTime(queue.estimated_finish_at)}` : ''} · ${pluralize(queue.sent, 'email')} sent so far`}
         </p>
       </div>
     </Card>

@@ -181,9 +181,11 @@ class QueueCounts(BaseModel):
 
 class QueueOut(BaseModel):
     status: str
-    interval_minutes: int
+    gap_min_minutes: float  # a random gap between sends, uniform between these
+    gap_max_minutes: float
     max_items: int
     next_send_at: datetime | None
+    estimated_finish_at: datetime | None = None  # the last pending email, at the average gap
     counts: QueueCounts
     items: list[QueueItemOut]
     test_sent: bool = False  # a test email reached your inbox (required before starting)

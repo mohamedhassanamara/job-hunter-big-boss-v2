@@ -28,7 +28,7 @@ from app.schemas.today import (
     UpcomingInterview,
 )
 from app.schemas.tracking import ReminderOut
-from app.services import get_contact, linkedin_track, tracking
+from app.services import get_contact, linkedin_track, send_queue, tracking
 from app.services.views import job_items, pipeline_cards
 
 router = APIRouter(tags=["today"])
@@ -169,16 +169,26 @@ def today(session: SessionDep) -> TodayOut:
         reminders=[ReminderOut(**r.__dict__) for r in tracking.reminders(session)],
         upcoming_interviews=upcoming,
         stats_summary=StatsSummary(**tracking.stats_summary(session)),
-        queue=QueueSummary(
-            status=queue.status if queue else "idle",
-            next_send_at=queue.next_send_at if queue else None,
-            pending=sum(1 for i in q_items if i.status == QueueItemStatus.pending),
-            sent=sum(1 for i in q_items if i.status == QueueItemStatus.sent),
-            interval_minutes=queue.interval_minutes if queue else 15,
-        ),
+        queue=_queue_summary(session, queue, q_items),
         last_runs=last_runs(session),
         min_fit_score=min_fit,
     )
+
+
+def _queue_summary(session, queue, q_items) -> QueueSummary:  # noqa: ANN001
+    """The send queue card: status, the next send, the gap range and the estimated finish."""
+    pending = sum(1 for i in q_items if i.status == QueueItemStatus.pending)
+    lo, hi = send_queue.gap_bounds(session)
+    running = bool(queue) and queue.status == "running"
+    finish = None
+    if running and pending and queue.next_send_at:
+        finish = queue.next_send_at + send_queue.average_gap(session) * (pending - 1)
+    return QueueSummary(
+        status=queue.status if queue else "idle",
+        next_send_at=queue.next_send_at if queue else None,
+        pending=pending,
+        sent=sum(1 for i in q_items if i.status == QueueItemStatus.sent),
+        gap_min_minutes=lo, gap_max_minutes=hi, estimated_finish_at=finish)
 
 
 @router.get("/nav-counts", response_model=NavCounts)

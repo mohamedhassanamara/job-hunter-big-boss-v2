@@ -356,8 +356,8 @@ def test_one_send_per_interval_then_tracking_and_cv_lock(job_ready: dict,
         s.commit()
     assert send_queue.tick(engine, lambda s: mailer, NOW) == "sent"
     assert mailer.sent[0].to == job_ready["email"] and not mailer.sent[0].subject.startswith("[")
-    assert send_queue.tick(engine, lambda s: mailer, NOW + timedelta(minutes=14)) in (
-        "waiting", "empty")
+    assert send_queue.tick(engine, lambda s: mailer, NOW + timedelta(minutes=3)) in (
+        "waiting", "empty")  # before the shortest possible gap (4 minutes)
     with Session(engine) as s:
         app = s.get(Application, job_ready["app"])
         assert (app.stage, app.applied_method) == (Stage.done, "email")
@@ -366,7 +366,8 @@ def test_one_send_per_interval_then_tracking_and_cv_lock(job_ready: dict,
         assert s.get(OutreachDraft, draft_id).status == DraftStatus.sent
         assert s.exec(select(SendLog).where(SendLog.draft_id == draft_id,
                                             SendLog.kind == "real")).one().status == "sent"
-        assert send_queue.queue(s).next_send_at == NOW + timedelta(minutes=15)
+        gap = send_queue.queue(s).next_send_at - NOW  # a random gap, 4-7 minutes by default
+        assert timedelta(minutes=4) <= gap <= timedelta(minutes=7)
 
 
 def test_the_queue_holds_at_most_max_items(job_ready: dict, fresh_queue: None) -> None:
@@ -467,3 +468,13 @@ def test_the_subject_says_who_and_which_company() -> None:
     assert ic.subject_line("Zaion", "en") == "Software engineer interested in joining Zaion"
     assert ic.subject_line("  Zaion  SAS ", "fr") == "Ingénieur logiciel intéressé par Zaion SAS"
     assert ic.subject_line("", "en") == "Software engineer"
+
+
+def test_gaps_fall_in_the_configured_range_and_are_not_all_identical() -> None:
+    import random
+
+    gaps = [send_queue.draw_gap(4, 7, random.Random(i)) for i in range(200)]
+    assert all(timedelta(minutes=4) <= g <= timedelta(minutes=7) for g in gaps)
+    assert len({g.total_seconds() for g in gaps}) > 20
+    narrow = [send_queue.draw_gap(2, 2.5) for _ in range(50)]
+    assert all(timedelta(minutes=2) <= g <= timedelta(minutes=2.5) for g in narrow)
