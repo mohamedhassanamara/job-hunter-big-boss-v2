@@ -31,7 +31,8 @@ MAX_TOOLS = 5  # per sentence (a warning): the intro rules' 3 made plain stacks 
 # a language (English, German and French): the only reason to mention your situation.
 _LISTING_CONSTRAINT = re.compile(
     r"\b(?:residen\w+|right to work|work (?:permit|authori[sz]ation)|visa|sponsor\w*|"
-    r"eligible to work|applicant location|location requirements?|citizen\w*|must (?:be|live|reside)\b[^.]{0,30}\b(?:in|within|near)|"
+    r"eligible to work|applicant location|location requirements?|citizen\w*|"
+    r"must (?:be|live|reside)\b[^.]{0,30}\b(?:in|within|near)|"
     r"based in|on-?site|in[- ]office|relocat\w*|(?:fluent|native|proficient|business[- ]level|"
     r"working knowledge)\b[^.]{0,25}\b(?:english|german|french|dutch|arabic|spanish)|"
     r"(?:english|german|french|dutch|arabic|spanish)\W+(?:language|speaker|speaking|fluency)|"
