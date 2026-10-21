@@ -1,0 +1,1443 @@
+[
+ {
+  "job": {
+   "app": 1622,
+   "company": "Healy World GmbH",
+   "title": "Flutter developer for mobile apps (m/f/d)",
+   "track": "Mobile",
+   "country": "DE",
+   "listing_chars": 5305,
+   "notes": []
+  },
+  "runs": [
+   {
+    "label": "gemini-3.5-flash-lite (minimal)",
+    "model": "gemini-3.5-flash-lite",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 111,
+    "attempts": 2,
+    "copy_longest_run": 10,
+    "copy_source": "a CV bullet",
+    "copy_quote": "At Reality Sports I set up automated build and deployment pipelines with GitHub Actions.",
+    "errors": [],
+    "warnings": [
+     "[cv_copy] “At Reality Sports I set up automated build and deployment pipelines with GitHub Actions.” copies 10 words in a row from a CV bullet: summarize in your own words",
+     "[tools] Names 4 tools (Flutter, GitHub, GmbH, REST): 3 at most reads better",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "passed",
+    "verifier_blocking": 0,
+    "verdicts": {
+     "supported": 10,
+     "not_a_claim": 5
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "Mohamed Hassen Amara is applying for the Flutter Software Developer role",
+      "source_id": "facts",
+      "reason": "FACTS say the candidate is applying. The listing calls the role \"Flutter Software Developer (m/f/d)\"."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting to Adam",
+      "source_id": "recipient",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Flutter Software Developer role at Healy World GmbH",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The role is at Healy World GmbH",
+      "source_id": "recipient",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate builds cross-platform applications using Flutter",
+      "source_id": "pool:1",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate integrates backend services through REST APIs",
+      "source_id": "pool:1",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate set up automated build and deployment pipelines with GitHub Actions",
+      "source_id": "pool:1",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is based in Tunis, Tunisia",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate would need visa sponsorship to work in the job's country",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is willing to relocate for the job",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "If that rules me out, I understand.",
+      "source_id": "",
+      "reason": "This is a courtesy."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request to look at the attached CV and to have a short call",
+      "source_id": "",
+      "reason": "This is a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The writer's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "This is the sign-off with the writer's name."
+     }
+    ],
+    "text": "Subject: Flutter Software Developer application – Mohamed Hassen Amara\n\nHi Adam,\n\nI'm applying for the Flutter Software Developer role at Healy World GmbH and wanted to reach out directly.\n\nWith 3 years of software engineering experience, I build cross-platform applications using Flutter and integrate backend services through REST APIs. At Reality Sports I set up automated build and deployment pipelines with GitHub Actions.\n\nI am based in Tunis, Tunisia, and would need visa sponsorship to work in the job's country, though I am willing to relocate for the job. If that rules me out, I understand.\n\nPlease take a look at my attached CV, and let me know if you would be open to a short call.\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 4.2,
+    "draft_seconds": 4.2,
+    "verifier_seconds": 17.9,
+    "model_stats": {
+     "calls": 2,
+     "http_attempts": 2,
+     "retries_429": 0,
+     "retries_503": 0,
+     "invalid_retries": 0,
+     "seconds": 4.1,
+     "tokens_in": 10767,
+     "tokens_out": 517,
+     "tokens_thinking": 0
+    }
+   },
+   {
+    "label": "claude-sonnet-5",
+    "model": "claude-sonnet-5",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 96,
+    "attempts": 2,
+    "copy_longest_run": 7,
+    "copy_source": "the style reference",
+    "copy_quote": "There I build the screens for a sports platform live on the App Store and Google Play and connect them to a Spring Boot backend through REST APIs, and I also set up our GitHub Actions pipelines so builds and releases stay consistent.",
+    "errors": [
+     "[grounding] “There I build the screens for a sports platform live on the App Store and Google Play and connect them to a Spring Boot backend through REST APIs, and I also set up our GitHub Actions pipelines so builds and releases stay consistent.”: cites unknown ids 6"
+    ],
+    "warnings": [
+     "[company] The company name “Healy World GmbH” isn't mentioned",
+     "[tools] Names 4 tools (Flutter, GitHub, REST, Spring): 3 at most reads better"
+    ],
+    "would_block_before_verifier": true,
+    "verifier_status": "failed",
+    "verifier_blocking": 2,
+    "verdicts": {
+     "supported": 9,
+     "not_a_claim": 5,
+     "exaggerated": 1,
+     "merged": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Flutter Developer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job 'Flutter developer for mobile apps (m/f/d)', shortened here to its role name."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The writer's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS gives this name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Flutter Developer role at Healy World",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names Healy World GmbH and the Flutter developer job."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The writer wanted to reach out directly",
+      "source_id": "",
+      "reason": "This is the writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience building Flutter apps",
+      "source_id": "cv",
+      "reason": "The CV ties the 3 years to Flutter, and FACTS says the Mobile track is professional."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's most recent Flutter work is at Reality Sports",
+      "source_id": "pool:1",
+      "reason": "This is the current, most recent job, and it involves Flutter screens."
+     },
+     {
+      "verdict": "exaggerated",
+      "claim": "At Reality Sports the candidate builds the screens for a sports platform",
+      "source_id": "pool:1",
+      "reason": "The source says he built 10+ Flutter screens, not that he builds all of the platform's screens ('the screens')."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The sports platform is live on the App Store and Google Play",
+      "source_id": "pool:1",
+      "reason": "The source says the platform was shipped to both stores."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate connects the screens to the backend through REST APIs",
+      "source_id": "pool:1",
+      "reason": "The source states the REST integration."
+     },
+     {
+      "verdict": "merged",
+      "claim": "The backend the screens connect to is a Spring Boot backend",
+      "source_id": "pool:1",
+      "reason": "Spring Boot appears in a separate bullet about BFF endpoints; the screens and REST bullet never names Spring Boot as the backend the screens use."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate set up the GitHub Actions pipelines at Reality Sports",
+      "source_id": "pool:1",
+      "reason": "The source states it."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The pipelines keep builds and releases consistent",
+      "source_id": "pool:1",
+      "reason": "The source states the pipelines improved release reliability and build consistency."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a call or a CV review",
+      "source_id": "",
+      "reason": "This is a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The writer's name",
+      "source_id": "",
+      "reason": "This is a sign-off with the writer's name."
+     }
+    ],
+    "text": "Subject: Flutter Developer application – Mohamed Hassen Amara\n\nHi Adam,\n\nI'm applying for the Flutter Developer role at Healy World and wanted to reach out directly.\n\nI have 3 years of software engineering experience building Flutter apps, most recently at Reality Sports. There I build the screens for a sports platform live on the App Store and Google Play and connect them to a Spring Boot backend through REST APIs, and I also set up our GitHub Actions pipelines so builds and releases stay consistent.\n\nWould you be open to a short call, or could you take a look at my CV attached.\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 31.4,
+    "draft_seconds": 31.4,
+    "verifier_seconds": 27.9,
+    "model_stats": null
+   }
+  ]
+ },
+ {
+  "job": {
+   "app": 4951,
+   "company": "SaltRock",
+   "title": "Mobile Engineer (m/w/d) – Flutter, Enterprise-App",
+   "track": "Mobile",
+   "country": "DE",
+   "listing_chars": 6770,
+   "notes": []
+  },
+  "runs": [
+   {
+    "label": "gemini-3.5-flash-lite (minimal)",
+    "model": "gemini-3.5-flash-lite",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 121,
+    "attempts": 2,
+    "copy_longest_run": 8,
+    "copy_source": "a CV bullet",
+    "copy_quote": "At Reality Sports I built screens in Flutter and integrated RESTful backend services, shipping our platform to the App Store and Google Play.",
+    "errors": [
+     "[grounding] “Before that I developed the Flutter frontend for the dating application Lovester across 25+ screens and migrated the codebase to Riverpod and GoRouter.”: “GoRouter” isn't in the cited items"
+    ],
+    "warnings": [
+     "[cv_copy] “I have 3 years of software engineering experience. At Reality Sports I built screens in Flutter and integrated RESTful backend services, shipping our platform to the App Store and Google Play.” copies 8 words in a row from a CV bullet: summarize in your own words",
+     "[tools] Names 5 tools (Flutter, GoRouter, RESTful, SaltRock, riverpod): 3 at most reads better",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": true,
+    "verifier_status": "failed",
+    "verifier_blocking": 1,
+    "verdicts": {
+     "supported": 11,
+     "not_a_claim": 5,
+     "merged": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Mobile Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job as Mobile Engineer (m/w/d) – Flutter, Enterprise-App."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS gives this name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "I applied for the Mobile Engineer role at SaltRock",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate applied, and RECIPIENT gives the company SaltRock and the Mobile Engineer title."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "I wanted to reach out directly",
+      "source_id": "",
+      "reason": "This states the writer's own intention."
+     },
+     {
+      "verdict": "supported",
+      "claim": "I have 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": "It matches the years wording in FACTS exactly."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports I built screens in Flutter",
+      "source_id": "pool:1",
+      "reason": "The Reality Sports bullet says he built Flutter screens."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports I integrated RESTful backend services",
+      "source_id": "pool:1",
+      "reason": "The same Reality Sports bullet states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports I shipped our platform to the App Store and Google Play",
+      "source_id": "pool:1",
+      "reason": "The Reality Sports bullet states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "Before Reality Sports I developed the Flutter frontend for the dating app Lovester across 25+ screens",
+      "source_id": "pool:3",
+      "reason": "The Lovester role (2022-10 to 2025-02) came before Reality Sports (from 2025-09)."
+     },
+     {
+      "verdict": "merged",
+      "claim": "At Lovester I migrated the codebase to Riverpod and GoRouter",
+      "source_id": "pool:3",
+      "reason": "At Lovester the migration was from Provider to Riverpod only; the move to Riverpod and GoRouter was the Reality Sports refactor (pool:1)."
+     },
+     {
+      "verdict": "supported",
+      "claim": "I am based in Tunis, Tunisia",
+      "source_id": "facts",
+      "reason": "FACTS gives this location."
+     },
+     {
+      "verdict": "supported",
+      "claim": "I would need visa sponsorship to work in the role's country",
+      "source_id": "facts",
+      "reason": "FACTS states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "I am willing to relocate for the job",
+      "source_id": "facts",
+      "reason": "FACTS states this."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "If that rules me out, I understand",
+      "source_id": "",
+      "reason": "This is a courtesy."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a brief call",
+      "source_id": "",
+      "reason": "This is a question and a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off with name",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     }
+    ],
+    "text": "Subject: Mobile Engineer application – Mohamed Hassen Amara\n\nHi David,\n\nI applied for the Mobile Engineer role at SaltRock and wanted to reach out directly.\n\nI have 3 years of software engineering experience. At Reality Sports I built screens in Flutter and integrated RESTful backend services, shipping our platform to the App Store and Google Play. Before that I developed the Flutter frontend for the dating application Lovester across 25+ screens and migrated the codebase to Riverpod and GoRouter.\n\nI am based in Tunis, Tunisia, and would need visa sponsorship to work in the role's country, though I am willing to relocate for the job. If that rules me out, I understand.\n\nWould you be open to a brief call to discuss my background and the attached CV?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 4.9,
+    "draft_seconds": 4.9,
+    "verifier_seconds": 22.4,
+    "model_stats": {
+     "calls": 2,
+     "http_attempts": 2,
+     "retries_429": 0,
+     "retries_503": 0,
+     "invalid_retries": 0,
+     "seconds": 4.7,
+     "tokens_in": 11647,
+     "tokens_out": 532,
+     "tokens_thinking": 0
+    }
+   },
+   {
+    "label": "claude-sonnet-5",
+    "model": "claude-sonnet-5",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 129,
+    "attempts": 2,
+    "copy_longest_run": 8,
+    "copy_source": "the style reference",
+    "copy_quote": "Before that, I built the Flutter frontend for a dating app with more than 25 screens and led its move from Provider to Riverpod.",
+    "errors": [],
+    "warnings": [
+     "[cv_copy] “Before that, I built the Flutter frontend for a dating app with more than 25 screens and led its move from Provider to Riverpod.” copies 8 words in a row from the style reference: summarize in your own words",
+     "[tools] Names 4 tools (Flutter, SaltRock, provider, riverpod): 3 at most reads better",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "passed",
+    "verifier_blocking": 0,
+    "verdicts": {
+     "supported": 12,
+     "not_a_claim": 6
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Mobile Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job as Mobile Engineer (m/w/d) – Flutter, Enterprise-App."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS gives this name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Mobile Engineer role at SaltRock",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names SaltRock and the Mobile Engineer job."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": "This is the writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": "This is the exact years wording in FACTS, and the Mobile track is professional."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate builds Flutter apps that ship to the App Store and Google Play",
+      "source_id": "cv",
+      "reason": "The CV summary states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate built the backend endpoints the app talks to",
+      "source_id": "pool:1",
+      "reason": "The Reality Sports item says the candidate built BFF endpoints for the mobile app."
+     },
+     {
+      "verdict": "supported",
+      "claim": "Before Reality Sports, the candidate built the Flutter frontend for a dating app with more than 25 screens",
+      "source_id": "pool:3",
+      "reason": "The Lovester job (2022–2025) came before Reality Sports (2025-09), and '25+' matches 'more than 25'."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate led the dating app's move from Provider to Riverpod",
+      "source_id": "pool:3",
+      "reason": "The Lovester item states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is based in Tunis",
+      "source_id": "facts",
+      "reason": "FACTS gives Tunis as the candidate's location."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate would relocate for the role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is willing to relocate."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate works in English, French, Arabic and Spanish",
+      "source_id": "facts",
+      "reason": "FACTS lists these four working languages."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate does not work in German",
+      "source_id": "facts",
+      "reason": "FACTS claims no other language, so German is not one of them."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "If that rules me out, I understand",
+      "source_id": "",
+      "reason": "This is a courtesy."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a call or a CV review",
+      "source_id": "",
+      "reason": "This is a question and a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Signature with the writer's name",
+      "source_id": "",
+      "reason": "This is the sign-off with the writer's name."
+     }
+    ],
+    "text": "Subject: Mobile Engineer application – Mohamed Hassen Amara\n\nHi David,\n\nI'm applying for the Mobile Engineer role at SaltRock and wanted to reach out directly.\n\nI have 3 years of software engineering experience building Flutter apps that ship to the App Store and Google Play, and at Reality Sports I also built the backend endpoints the app talks to. Before that, I built the Flutter frontend for a dating app with more than 25 screens and led its move from Provider to Riverpod.\n\nI'm based in Tunis and would relocate for the role, but I should mention I work in English, French, Arabic and Spanish, not German, so if that rules me out, I understand.\n\nWould you be open to a short call sometime, or could you take a look at my CV attached here?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 40.0,
+    "draft_seconds": 40.0,
+    "verifier_seconds": 29.2,
+    "model_stats": null
+   }
+  ]
+ },
+ {
+  "job": {
+   "app": 3938,
+   "company": "ElevenLabs",
+   "title": "Full-Stack Engineer (Backend Leaning) - Creative Agents",
+   "track": "Backend",
+   "country": null,
+   "listing_chars": 5572,
+   "notes": [
+    "scratch only: no approved CV in the real data; a gemini-3.5-flash-lite CV was generated (7 s) and marked approved in the copy",
+    "scratch only: no contact for this company; a placeholder (Alex Morgan) is used"
+   ]
+  },
+  "runs": [
+   {
+    "label": "gemini-3.5-flash-lite (minimal)",
+    "model": "gemini-3.5-flash-lite",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 104,
+    "attempts": 1,
+    "copy_longest_run": 4,
+    "copy_source": "the style reference",
+    "copy_quote": "With 3 years of software engineering experience, I built asynchronous backend services and RESTful APIs using Spring Boot and FastAPI.",
+    "errors": [],
+    "warnings": [
+     "[vague] “I also developed full-stack applications with independent end-to-end ownership, delivering features across the stack and shipping them to production.” is vague: say what it is and with which tools",
+     "[tools] Names 4 tools (ElevenLabs, FastAPI, RESTful, Spring): 3 at most reads better",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "failed",
+    "verifier_blocking": 5,
+    "verdicts": {
+     "supported": 9,
+     "not_a_claim": 6,
+     "unsupported": 3,
+     "exaggerated": 2,
+     "garbled": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Full-Stack Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS state the application; RECIPIENT names the job as Full-Stack Engineer (Backend Leaning) - Creative Agents, and the shortened title is allowed."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS give this name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Hi Alex,",
+      "source_id": "",
+      "reason": "A greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Full-Stack Engineer role at ElevenLabs",
+      "source_id": "facts",
+      "reason": "FACTS state the application; RECIPIENT gives the company as ElevenLabs and the job as Full-Stack Engineer."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": "The writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": "This is the exact wording in FACTS."
+     },
+     {
+      "verdict": "unsupported",
+      "claim": "The candidate built asynchronous backend services",
+      "source_id": "",
+      "reason": "No source says any of the candidate's backend work was asynchronous."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate built APIs using Spring Boot",
+      "source_id": "pool:1",
+      "reason": "The source states the candidate built BFF endpoints in Spring Boot."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate built APIs using FastAPI",
+      "source_id": "pool:2",
+      "reason": "The source states the candidate built a FastAPI backend that exposes endpoints."
+     },
+     {
+      "verdict": "exaggerated",
+      "claim": "The candidate developed full-stack applications (plural)",
+      "source_id": "pool:1",
+      "reason": "The source names only one full-stack platform."
+     },
+     {
+      "verdict": "unsupported",
+      "claim": "The candidate had independent end-to-end ownership of that work",
+      "source_id": "",
+      "reason": "No source says the candidate had independent end-to-end ownership; the wording comes from the listing."
+     },
+     {
+      "verdict": "unsupported",
+      "claim": "The candidate delivered features across the stack",
+      "source_id": "",
+      "reason": "No source says the candidate delivered features across the whole stack; pool:1 says they built Flutter screens and integrated REST services."
+     },
+     {
+      "verdict": "exaggerated",
+      "claim": "The candidate shipped them to production",
+      "source_id": "pool:1",
+      "reason": "The source says one platform was shipped to the app stores, not several applications."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is based in Tunis, Tunisia",
+      "source_id": "facts",
+      "reason": "FACTS state where the candidate is based."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate would need visa sponsorship to work in the job's country",
+      "source_id": "facts",
+      "reason": "FACTS state the need for visa sponsorship."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is willing to relocate",
+      "source_id": "facts",
+      "reason": "FACTS state the candidate is willing to relocate."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "If that rules me out, I understand",
+      "source_id": "",
+      "reason": "A courtesy."
+     },
+     {
+      "verdict": "garbled",
+      "claim": "I am based in Tunis, Tunisia, and would need visa sponsorship to work in the job's country, though I am willing to relocate if that rules me out, I understand.",
+      "source_id": "",
+      "reason": "The courtesy 'if that rules me out, I understand' is fused onto the relocation clause, so it reads as 'willing to relocate if that rules me out'."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Would you be open to a brief call to discuss my background?",
+      "source_id": "",
+      "reason": "A question or request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Best regards,",
+      "source_id": "",
+      "reason": "A sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Mohamed Hassen Amara",
+      "source_id": "",
+      "reason": "The writer's name in the sign-off."
+     }
+    ],
+    "text": "Subject: Full-Stack Engineer application – Mohamed Hassen Amara\n\nHi Alex,\n\nI'm applying for the Full-Stack Engineer role at ElevenLabs and wanted to reach out directly.\n\nWith 3 years of software engineering experience, I built asynchronous backend services and RESTful APIs using Spring Boot and FastAPI. I also developed full-stack applications with independent end-to-end ownership, delivering features across the stack and shipping them to production.\n\nI am based in Tunis, Tunisia, and would need visa sponsorship to work in the job's country, though I am willing to relocate if that rules me out, I understand.\n\nWould you be open to a brief call to discuss my background?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 1.9,
+    "draft_seconds": 1.9,
+    "verifier_seconds": 27.5,
+    "model_stats": {
+     "calls": 1,
+     "http_attempts": 1,
+     "retries_429": 0,
+     "retries_503": 0,
+     "invalid_retries": 0,
+     "seconds": 1.9,
+     "tokens_in": 5678,
+     "tokens_out": 258,
+     "tokens_thinking": 0
+    }
+   },
+   {
+    "label": "claude-sonnet-5",
+    "model": "claude-sonnet-5",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 114,
+    "attempts": 1,
+    "copy_longest_run": 4,
+    "copy_source": "the style reference",
+    "copy_quote": "I have 3 years of software engineering experience focused on backend and full-stack work: at Reality Sports I designed Spring Boot backend-for-frontend endpoints and built the REST services that power our production mobile app.",
+    "errors": [],
+    "warnings": [
+     "[tools] Names 6 tools (ElevenLabs, FastAPI, REST, Spring, docker, llm): 3 at most reads better"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "failed",
+    "verifier_blocking": 3,
+    "verdicts": {
+     "supported": 8,
+     "not_a_claim": 5,
+     "exaggerated": 2,
+     "merged": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Full-Stack Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job, shortened here to its plain role name."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS states the name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Full-Stack Engineer (Backend Leaning) - Creative Agents role at ElevenLabs",
+      "source_id": "facts",
+      "reason": "FACTS confirms the application, and RECIPIENT gives this job title and company."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": "This is the writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": "This matches the years wording in FACTS exactly."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The 3 years of experience are focused on backend work",
+      "source_id": "cv",
+      "reason": "The approved CV summary ties the 3 years to backend services and APIs."
+     },
+     {
+      "verdict": "exaggerated",
+      "claim": "The 3 years of experience are focused on full-stack work",
+      "source_id": "pool:1",
+      "reason": "Only one Reality Sports platform is called full-stack; the sources never tie the 3 years to full-stack work, and much of that time was Flutter mobile work."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate designed Spring Boot backend-for-frontend endpoints",
+      "source_id": "pool:1",
+      "reason": "'Designed' is a faithful paraphrase of 'architected'."
+     },
+     {
+      "verdict": "exaggerated",
+      "claim": "At Reality Sports the candidate built the REST services that power the production mobile app",
+      "source_id": "pool:1",
+      "reason": "The source says the candidate integrated the RESTful services into the app, not that they built them."
+     },
+     {
+      "verdict": "supported",
+      "claim": "For the graduation project the candidate built a FastAPI backend",
+      "source_id": "pool:2",
+      "reason": "The graduation project item states this."
+     },
+     {
+      "verdict": "merged",
+      "claim": "The FastAPI backend orchestrated a local LLM together with STT and TTS models into an automated interview pipeline",
+      "source_id": "pool:2",
+      "reason": "The interview system combines only Whisper and gTTS; the local Mistral LLM is used for resume parsing and scoring, so putting the LLM into the interview pipeline fuses separate bullets."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate packaged the whole system with Docker",
+      "source_id": "pool:2",
+      "reason": "The source states the whole system was containerized with Docker."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a call or a CV review",
+      "source_id": "",
+      "reason": "This is a question and a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Writer's name",
+      "source_id": "",
+      "reason": "This is the sign-off with the writer's name."
+     }
+    ],
+    "text": "Subject: Full-Stack Engineer application – Mohamed Hassen Amara\n\nHi Alex,\n\nI'm applying for the Full-Stack Engineer (Backend Leaning) - Creative Agents role at ElevenLabs and wanted to reach out directly.\n\nI have 3 years of software engineering experience focused on backend and full-stack work: at Reality Sports I designed Spring Boot backend-for-frontend endpoints and built the REST services that power our production mobile app. For my graduation project, I built a FastAPI backend that orchestrated a local LLM together with speech-to-text and text-to-speech models into an automated interview pipeline, and packaged the whole system with Docker.\n\nWould you be open to a short call, or could you take a look at my attached CV?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 26.0,
+    "draft_seconds": 26.0,
+    "verifier_seconds": 29.4,
+    "model_stats": null
+   }
+  ]
+ },
+ {
+  "job": {
+   "app": 2428,
+   "company": "Qonto",
+   "title": "Analytics Engineer",
+   "track": "Data/AI",
+   "country": "FR",
+   "listing_chars": 5997,
+   "notes": [
+    "scratch only: no approved CV in the real data; a gemini-3.5-flash-lite CV was generated (11 s) and marked approved in the copy",
+    "scratch only: no contact for this company; a placeholder (Alex Morgan) is used"
+   ]
+  },
+  "runs": [
+   {
+    "label": "gemini-3.5-flash-lite (minimal)",
+    "model": "gemini-3.5-flash-lite",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 101,
+    "attempts": 1,
+    "copy_longest_run": 4,
+    "copy_source": "a CV bullet",
+    "copy_quote": "At Reality Sports I architected custom backend endpoints in Spring Boot and built data-driven mobile screens.",
+    "errors": [],
+    "warnings": [
+     "[constraint] Quote the listing's own words for the requirement you mention (it doesn't state it as written)",
+     "[tools] Names 4 tools (DuckDB, Python, Spring, dbt): 3 at most reads better",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "failed",
+    "verifier_blocking": 1,
+    "verdicts": {
+     "supported": 10,
+     "not_a_claim": 6,
+     "merged": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Analytics Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job title Analytics Engineer."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS gives this exact name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Hi Alex,",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate applied for the Analytics Engineer role at Qonto",
+      "source_id": "facts",
+      "reason": "FACTS confirms the application, and RECIPIENT gives Qonto and Analytics Engineer."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": "This states the writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate architected custom backend endpoints in Spring Boot",
+      "source_id": "pool:1",
+      "reason": "This is a faithful paraphrase of the Reality Sports bullet."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate built data-driven mobile screens",
+      "source_id": "pool:1",
+      "reason": "This is a vaguer wording of the stated fact."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": "This is the exact years wording from FACTS."
+     },
+     {
+      "verdict": "merged",
+      "claim": "Through personal projects, the candidate built Python pipelines with dbt and DuckDB",
+      "source_id": "pool:5",
+      "reason": "The source keeps the Python ingestion pipelines (into LocalStack S3) separate from the dbt star schema on DuckDB, and it describes one personal project, not several."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is based in Tunis, Tunisia",
+      "source_id": "facts",
+      "reason": "FACTS states this location."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate would need visa sponsorship to work in the job's country",
+      "source_id": "facts",
+      "reason": "FACTS states this need for sponsorship."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The job is in France",
+      "source_id": "listing",
+      "reason": "The listing is presented as a job in France; this is only implied by the job board's footer."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is willing to relocate for the job",
+      "source_id": "facts",
+      "reason": "FACTS states this willingness to relocate."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "If that rules me out, I understand.",
+      "source_id": "",
+      "reason": "This is a courtesy."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a short call",
+      "source_id": "",
+      "reason": "This is a question or request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Best regards,",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Mohamed Hassen Amara",
+      "source_id": "",
+      "reason": "This is the writer's name in the sign-off."
+     }
+    ],
+    "text": "Subject: Analytics Engineer application – Mohamed Hassen Amara\n\nHi Alex,\n\nI applied for the Analytics Engineer role at Qonto and wanted to reach out directly.\n\nAt Reality Sports I architected custom backend endpoints in Spring Boot and built data-driven mobile screens. I have 3 years of software engineering experience and built Python pipelines with dbt and DuckDB through personal projects.\n\nI am based in Tunis, Tunisia, and would need visa sponsorship to work in France, though I am willing to relocate for the job. If that rules me out, I understand.\n\nWould you be open to a short call to discuss how my background aligns with your team?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 1.6,
+    "draft_seconds": 1.6,
+    "verifier_seconds": 26.3,
+    "model_stats": {
+     "calls": 1,
+     "http_attempts": 1,
+     "retries_429": 0,
+     "retries_503": 0,
+     "invalid_retries": 0,
+     "seconds": 1.5,
+     "tokens_in": 5831,
+     "tokens_out": 246,
+     "tokens_thinking": 0
+    }
+   },
+   {
+    "label": "claude-sonnet-5",
+    "model": "claude-sonnet-5",
+    "prompt_version": "outreach/v14",
+    "language": "en",
+    "language_rule": "en",
+    "language_matches": true,
+    "words": 99,
+    "attempts": 2,
+    "copy_longest_run": 4,
+    "copy_source": "a CV bullet",
+    "copy_quote": "On my own time I also built a data lakehouse project where I used dbt to model football data into an analytics-ready schema on DuckDB, with Python pipelines handling ingestion.",
+    "errors": [
+     "[grounding] “I have 3 years of professional software engineering experience in backend and mobile, most recently at Reality Sports where I build backend services that power our Flutter app.”: years claim “3 years” isn't allowed (write exactly “3 years of software engineering experience”)",
+     "[years] Years claim “3 years” isn't allowed"
+    ],
+    "warnings": [
+     "[tools] Names 4 tools (DuckDB, Flutter, Python, dbt): 3 at most reads better"
+    ],
+    "would_block_before_verifier": true,
+    "verifier_status": "failed",
+    "verifier_blocking": 1,
+    "verdicts": {
+     "supported": 10,
+     "not_a_claim": 5,
+     "unsupported": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Analytics Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS confirms the application and RECIPIENT gives the job title Analytics Engineer."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the Analytics Engineer role at Qonto",
+      "source_id": "facts",
+      "reason": "RECIPIENT gives Company: Qonto, Job title: Analytics Engineer."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The Analytics Engineer role sits on the Business Analytics team",
+      "source_id": "listing",
+      "reason": ""
+     },
+     {
+      "verdict": "unsupported",
+      "claim": "The Business Analytics team is Alex's team",
+      "source_id": "recipient",
+      "reason": "Alex is listed only as an Engineering Manager; the listing says the role's manager is Jules Jeanroy, and no source ties Alex to the Business Analytics team."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate has 3 years of professional software engineering experience in backend and mobile",
+      "source_id": "facts",
+      "reason": "FACTS also lists the Mobile and Backend tracks as professional."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's most recent job is at Reality Sports",
+      "source_id": "cv",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports the candidate builds backend services that power the company's Flutter app",
+      "source_id": "pool:1",
+      "reason": "A faithful paraphrase of the BFF endpoints built for the mobile (Flutter) app."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate built a data lakehouse as a personal project",
+      "source_id": "pool:5",
+      "reason": "pool:5 is labelled as a personal project."
+     },
+     {
+      "verdict": "supported",
+      "claim": "In that project the candidate used dbt to model football data into an analytics-ready schema on DuckDB",
+      "source_id": "pool:5",
+      "reason": "In this project the data is Premier League data, and a star schema is an analytics schema."
+     },
+     {
+      "verdict": "supported",
+      "claim": "Python pipelines handled ingestion in the project",
+      "source_id": "pool:5",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a call or a look at the CV",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Signature with the writer's name",
+      "source_id": "",
+      "reason": ""
+     }
+    ],
+    "text": "Subject: Analytics Engineer application – Mohamed Hassen Amara\n\nHi Alex,\n\nI'm applying for the Analytics Engineer role on your Business Analytics team at Qonto and wanted to reach out directly.\n\nI have 3 years of professional software engineering experience in backend and mobile, most recently at Reality Sports where I build backend services that power our Flutter app. On my own time I also built a data lakehouse project where I used dbt to model football data into an analytics-ready schema on DuckDB, with Python pipelines handling ingestion.\n\nWould you be open to a short call, or could you take a look at my CV?\n\nBest regards,\nMohamed Hassen Amara",
+    "seconds": 71.0,
+    "draft_seconds": 70.9,
+    "verifier_seconds": 27.6,
+    "model_stats": null
+   }
+  ]
+ },
+ {
+  "job": {
+   "app": 2429,
+   "company": "ILLUIN Technology",
+   "title": "AI System Engineer (F/H)",
+   "track": "Data/AI",
+   "country": "FR",
+   "listing_chars": 3135,
+   "notes": [
+    "scratch only: no approved CV in the real data; a gemini-3.5-flash-lite CV was generated (18 s) and marked approved in the copy"
+   ]
+  },
+  "runs": [
+   {
+    "label": "gemini-3.5-flash-lite (minimal)",
+    "model": "gemini-3.5-flash-lite",
+    "prompt_version": "outreach/v14",
+    "language": "fr",
+    "language_rule": "fr",
+    "language_matches": true,
+    "words": 82,
+    "attempts": 2,
+    "copy_longest_run": 7,
+    "copy_source": "a CV bullet",
+    "copy_quote": "During my time at Nexaminds, I designed and shipped a modular FastAPI backend and containerized the system using Docker.",
+    "errors": [],
+    "warnings": [
+     "[fragment] “During my time at Nexaminds, I designed and shipped a modular FastAPI backend and containerized the system using Docker.” isn't a sentence about you: write it with “I”",
+     "[constraint] Quote the listing's own words for the requirement you mention (it doesn't state it as written)",
+     "[length] 79 words (about 90-170 reads best)",
+     "[constraint] The listing states no residency, work-permit, on-site or relocation requirement: leave your location, visa and relocation out"
+    ],
+    "would_block_before_verifier": false,
+    "verifier_status": "passed",
+    "verifier_blocking": 0,
+    "verdicts": {
+     "supported": 8,
+     "not_a_claim": 4
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the AI System Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the job as AI System Engineer (F/H)."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": "FACTS gives this name."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting to Robert",
+      "source_id": "",
+      "reason": "This is a greeting."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the AI System Engineer position at ILLUIN Technology",
+      "source_id": "facts",
+      "reason": "FACTS says the candidate is applying, and RECIPIENT names the company as ILLUIN Technology and the job as AI System Engineer (F/H)."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to reach out directly",
+      "source_id": "",
+      "reason": "This states the writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Nexaminds, the candidate designed and shipped a modular FastAPI backend",
+      "source_id": "pool:2",
+      "reason": "The Nexaminds internship item states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Nexaminds, the candidate containerized the system using Docker",
+      "source_id": "pool:2",
+      "reason": "The same Nexaminds item states that the system, including FastAPI, was containerized with Docker."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is based in Tunis",
+      "source_id": "facts",
+      "reason": "FACTS states this."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate would need visa sponsorship to work in France",
+      "source_id": "facts",
+      "reason": "FACTS says sponsorship is needed in the job's country, and the listing is for a job in France."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is willing to relocate for the job",
+      "source_id": "facts",
+      "reason": "FACTS states this."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "A request to review the attached CV and arrange a call",
+      "source_id": "",
+      "reason": "This is a request."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off with the writer's name",
+      "source_id": "",
+      "reason": "This is a sign-off."
+     }
+    ],
+    "text": "Subject: Candidature AI System Engineer – Mohamed Hassen Amara\n\nBonjour Robert,\n\nI'm applying for the AI System Engineer position at ILLUIN Technology and wanted to reach out directly.\n\nDuring my time at Nexaminds, I designed and shipped a modular FastAPI backend and containerized the system using Docker.\n\nI am based in Tunis and would need visa sponsorship to work in France, though I am willing to relocate for the job.\n\nPlease take a look at my attached CV, and let me know if you have time for a short call.\n\nBien cordialement,\nMohamed Hassen Amara",
+    "seconds": 3.5,
+    "draft_seconds": 3.5,
+    "verifier_seconds": 16.9,
+    "model_stats": {
+     "calls": 2,
+     "http_attempts": 2,
+     "retries_429": 0,
+     "retries_503": 0,
+     "invalid_retries": 0,
+     "seconds": 3.4,
+     "tokens_in": 10803,
+     "tokens_out": 484,
+     "tokens_thinking": 0
+    }
+   },
+   {
+    "label": "claude-sonnet-5",
+    "model": "claude-sonnet-5",
+    "prompt_version": "outreach/v14",
+    "language": "fr",
+    "language_rule": "fr",
+    "language_matches": true,
+    "words": 112,
+    "attempts": 1,
+    "copy_longest_run": 2,
+    "copy_source": "a CV bullet",
+    "copy_quote": "Je postule actuellement au poste d'AI System Engineer chez ILLUIN Technology et je voulais vous contacter directement.",
+    "errors": [],
+    "warnings": [],
+    "would_block_before_verifier": false,
+    "verifier_status": "failed",
+    "verifier_blocking": 1,
+    "verdicts": {
+     "supported": 9,
+     "not_a_claim": 5,
+     "merged": 1
+    },
+    "claims": [
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the AI System Engineer role",
+      "source_id": "facts",
+      "reason": "FACTS and RECIPIENT (Job title: AI System Engineer (F/H)) both state the application."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate's name is Mohamed Hassen Amara",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Greeting",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is applying for the AI System Engineer role at ILLUIN Technology",
+      "source_id": "facts",
+      "reason": "RECIPIENT names ILLUIN Technology and the AI System Engineer (F/H) job."
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "The candidate wanted to contact the recipient directly",
+      "source_id": "",
+      "reason": "The writer's own wish."
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate is a software engineer with 3 years of software engineering experience",
+      "source_id": "facts",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports, the candidate designs backend APIs with Spring Boot",
+      "source_id": "pool:1",
+      "reason": ""
+     },
+     {
+      "verdict": "merged",
+      "claim": "These Spring Boot APIs serve a sports platform in production",
+      "source_id": "pool:1",
+      "reason": "The sources keep apart the Spring Boot BFF endpoints (for mobile API integration) and the shipped sports platform; they never say the Spring Boot endpoints are that platform's backend."
+     },
+     {
+      "verdict": "supported",
+      "claim": "At Reality Sports, the candidate set up automated CI/CD pipelines that improved release reliability",
+      "source_id": "pool:1",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The candidate built a personal data lakehouse project ingesting several seasons of Premier League data",
+      "source_id": "pool:5",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The ingestion uses Python pipelines",
+      "source_id": "pool:5",
+      "reason": ""
+     },
+     {
+      "verdict": "supported",
+      "claim": "The pipelines are containerized with Docker and orchestrated automatically",
+      "source_id": "pool:5",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Request for a short call or a look at the attached CV",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Sign-off",
+      "source_id": "",
+      "reason": ""
+     },
+     {
+      "verdict": "not_a_claim",
+      "claim": "Signature with the writer's name",
+      "source_id": "",
+      "reason": ""
+     }
+    ],
+    "text": "Subject: Candidature AI System Engineer – Mohamed Hassen Amara\n\nBonjour Robert,\n\nJe postule actuellement au poste d'AI System Engineer chez ILLUIN Technology et je voulais vous contacter directement.\n\nJe suis ingénieur logiciel avec 3 ans d'expérience en ingénierie logicielle. Chez Reality Sports, je conçois des APIs backend avec Spring Boot pour une plateforme sportive en production, et j'ai mis en place des pipelines CI/CD automatisés pour fiabiliser les livraisons. En parallèle, j'ai construit un projet personnel de data lakehouse qui ingère plusieurs saisons de données Premier League via des pipelines Python conteneurisés avec Docker et orchestrés automatiquement.\n\nSeriez-vous disponible pour un bref échange, ou pourriez-vous jeter un œil à mon CV en pièce jointe ?\n\nBien cordialement,\nMohamed Hassen Amara",
+    "seconds": 65.7,
+    "draft_seconds": 65.7,
+    "verifier_seconds": 23.4,
+    "model_stats": null
+   }
+  ]
+ }
+]
