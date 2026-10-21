@@ -82,7 +82,10 @@ class ProviderHealth:
 
 class _GeminiClient:
     """One Gemini model behind a KeyPool. `native` = the API enforces the JSON schema (Gemini
-    models); Gemma rejects that, so its schema goes into the prompt instead."""
+    models); Gemma rejects that, so its schema goes into the prompt instead.
+    `priority`: bulk scoring is "background" (yields to work the user triggered)."""
+
+    priority = "background"
 
     def __init__(self, model: str, pool: KeyPool, *, native: bool = True, timeout: float = 120.0,
                  transport: httpx.BaseTransport | None = None,
@@ -122,7 +125,7 @@ class _GeminiClient:
         est = (len(system) + sum(len(p["text"]) for c in contents for p in c["parts"])) // 3 + 1500
         last = ""
         for attempt in range(HTTP_ATTEMPTS + 2):  # +2: moving on to another key is not a retry
-            lease = self.pool.acquire(est)  # may raise QuotaWait
+            lease = self.pool.acquire(est, priority=self.priority)  # may raise QuotaWait
             try:
                 with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
                     res = client.post(f"{BASE_URL}/{self.model}:generateContent",
@@ -205,6 +208,7 @@ class GeminiConfirmer(_GeminiClient):
     """"Ask" fallback: the scoring answer plus a verdict from a Gemini-API model (Gemma)."""
 
     via = "gemini api"
+    priority = "user"  # a click on "Ask", not bulk work
 
     def __init__(self, model: str, pool: KeyPool, **kw: Any):
         super().__init__(model, pool, **kw)

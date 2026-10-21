@@ -407,6 +407,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'settings-cv-emphasis', title: 'CV per track', body: 'Choose which skill groups and tags lead the CV for each track (Data/AI, Mobile…), and how downloads are named.', route: '/settings?section=cv', placement: 'left' },
       { target: 'settings-templates', title: 'CV templates', body: 'Templates are style only. Add your own (.tex.j2 + config); it must compile to one page with sample data before you can pick it.', route: '/settings?section=templates', placement: 'left' },
       { target: 'settings-contacts-ranking', title: 'Who to write to', body: 'Order the role groups: the first group with someone at the company gets the email. Saving re-ranks every contact and re-matches open jobs.', route: '/settings?section=contacts', placement: 'left' },
+      { target: 'automation', title: 'Automatic drafting', body: 'Shortlisting a job queues a CV draft in the background; when a verified contact and an approved CV both exist, an email draft can be queued too. Drafts only: nothing is approved or sent for you, and a badge on the job says when one is ready. Gemini writes them on the shared free keys; if it fails you get Retry and Generate with Claude.', route: '/settings?section=models', placement: 'left' },
       { target: 'settings-card', title: 'Daily schedule', body: 'Discovery runs automatically at this time every day. The Run discovery button works anytime.', route: '/settings?section=schedule', placement: 'left' },
     ],
   },

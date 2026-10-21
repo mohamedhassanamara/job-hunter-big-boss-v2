@@ -86,6 +86,7 @@ class Context:
     other_companies: list[str] = field(default_factory=list)  # in drafts to other companies
     candidate_name: str = ""  # your full name (the applied email's subject)
     honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
+    references: list[str] = field(default_factory=list)  # style references (never copied)
 
 
 def intro_line(first_name: str, focus: str, language: str, statement: str | None,

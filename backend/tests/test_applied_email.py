@@ -316,3 +316,135 @@ def test_approving_an_applied_email_records_an_applied_example(job_ready: dict, 
         row = s.exec(select(EmailExample).where(EmailExample.draft_id == d.id)).one()
         assert row.kind == "approved" and row.inputs["mode"] == "applied"
         assert s.get(Application, job_ready["app"]) is not None
+
+
+# -------------------------------------------------- v14: summarize, don't import the bullets
+
+
+def test_eight_words_in_a_row_from_a_bullet_is_a_copy_and_a_paraphrase_is_not(
+        job_ready: dict) -> None:  # noqa: F811
+    words = job_ready["fact"].split()
+    assert len(words) >= 9
+    copied = f"At {job_ready['org']} I " + " ".join(words[:9]) + "."
+    found = ac.check_plan(plan(job_ready, experience=[
+        EmailSentence(text=copied, citations=[job_ready["role"]])]), ctx_for(job_ready))
+    copy = next(v for v in found if v["type"] == "cv_copy")
+    assert copy["severity"] == "warning" and "summarize in your own words" in copy["message"]
+    assert ac.copies(found)
+    paraphrase = f"At {job_ready['org']} I work on {job_ready['tag']} day to day."
+    again = ac.check_plan(plan(job_ready, experience=[
+        EmailSentence(text=paraphrase, citations=[job_ready["role"]])]), ctx_for(job_ready))
+    assert not ac.copies(again)
+
+
+def test_a_style_reference_is_part_of_the_copy_check(job_ready: dict) -> None:  # noqa: F811
+    reference = "I build mobile screens and connect them to the REST backend every single week"
+    sentence = "I build mobile screens and connect them to the REST backend for the team."
+    found = ac.check_plan(
+        plan(job_ready, experience=[EmailSentence(text=sentence, citations=[job_ready["role"]])]),
+        ctx_for(job_ready, references=[reference]))
+    assert any(v["type"] == "cv_copy" and "style reference" in v["message"] for v in found)
+
+
+def test_experience_is_written_with_i_not_as_a_fragment(job_ready: dict) -> None:  # noqa: F811
+    fragment = f"Shipped data pipelines with {job_ready['tag']} to production."
+    found = ac.check_plan(plan(job_ready, experience=[
+        EmailSentence(text=fragment, citations=[job_ready["role"]])]), ctx_for(job_ready))
+    assert "fragment" in warnings(found)
+    assert "fragment" not in warnings(ac.check_plan(plan(job_ready), ctx_for(job_ready)))
+    fr = ac.check_plan(plan(job_ready, experience=[EmailSentence(
+        text=f"Chez {job_ready['org']}, je construis des pipelines avec {job_ready['tag']}.",
+        citations=[job_ready["role"]])]), ctx_for(job_ready, language="fr"))
+    assert "fragment" not in warnings(fr)
+
+
+def test_numbers_and_tools_are_counted_over_the_whole_email(job_ready: dict) -> None:  # noqa: F811
+    busy = plan(job_ready, ask="I cut costs by 40%, load times by 30% and errors by 15%: "
+                               "would you look at my CV?")
+    found = ac.check_plan(busy, ctx_for(job_ready))
+    assert "numbers" in warnings(found)
+    assert "numbers" not in warnings(ac.check_plan(plan(job_ready), ctx_for(job_ready)))
+
+
+def test_backticks_and_addresses_never_reach_the_email() -> None:
+    text = 'I built the app for "Lovester" (`lovester.net`) and a site (https://x.example/y).'
+    assert ac.clean(text) == 'I built the app for "Lovester" and a site.'
+
+
+def test_a_language_requirement_does_not_allow_mentioning_your_visa(
+        job_ready: dict) -> None:  # noqa: F811
+    only_language = ctx_for(job_ready, job_text="Data Engineer\nBusiness fluent in English "
+                            "required. We are based in Berlin.")
+    say = plan(job_ready, constraint="I'm based in Tunis and would need visa sponsorship.")
+    assert "constraint" in warnings(ac.check_plan(say, only_language))
+    located = ctx_for(job_ready, job_text=f"Data Engineer\n{RESIDENCY}")
+    assert "constraint" not in warnings(ac.check_plan(
+        plan(job_ready, constraint="I'm based in Tunis and would need visa sponsorship.",
+             constraint_quote="German residency required"), located))
+
+
+def test_a_copying_draft_is_regenerated_once_and_the_better_one_kept(
+        job_ready: dict) -> None:  # noqa: F811
+    copied = f"At {job_ready['org']} I " + " ".join(job_ready["fact"].split()[:9]) + "."
+    fresh = f"At {job_ready['org']} I work on {job_ready['tag']} every day."
+    seen: list[str] = []
+
+    class Drafter(MockEmailDrafter):
+        def draft_applied(self, request, feedback: str = ""):  # noqa: ANN001, ANN202
+            seen.append(feedback)
+            text = fresh if feedback else copied
+            return plan(job_ready, experience=[
+                EmailSentence(text=text, citations=[job_ready["role"]])])
+
+    d = outreach.generate_applied(engine, job_ready["app"], Drafter())
+    assert d.plan["attempts"] == 2 and "own words" in seen[1]
+    assert not any(v["type"] == "cv_copy" for v in d.violations)
+    # still copying after the retry: kept, as a warning only
+    class Stubborn(Drafter):
+        def draft_applied(self, request, feedback: str = ""):  # noqa: ANN001, ANN202
+            return plan(job_ready, experience=[
+                EmailSentence(text=copied, citations=[job_ready["role"]])])
+
+    d2 = outreach.generate_applied(engine, job_ready["app"], Stubborn())
+    assert d2.plan["attempts"] == 2
+    assert [v["severity"] for v in d2.violations if v["type"] == "cv_copy"] == ["warning"]
+
+
+def test_the_style_reference_has_its_own_kind(
+        job_ready: dict) -> None:  # noqa: F811
+    from app.providers.base import EmailRequest
+    from app.providers.claude_email import applied_message
+
+    with Session(engine) as s:
+        s.add(EmailExample(kind="style_reference", language="en", subject="", body="REF-APPLIED",
+                           inputs={"mode": "applied"}))
+        s.add(EmailExample(kind="reference_good", language="en", subject="x", body="REF-INTRO",
+                           inputs={"mode": "applied"}))  # an approved example is not a reference
+        s.commit()
+        refs = outreach.applied_references(s)
+    assert refs == ["REF-APPLIED"]
+    request = EmailRequest(job={}, contact={}, candidate={}, pool={},
+                           rules={"style_reference": refs, "language": "en"})
+    message = applied_message(request)
+    assert "STYLE REFERENCE" in message and "REF-APPLIED" in message
+    assert '"style_reference"' not in message  # a block of its own, not inside RULES
+
+
+def test_the_companys_own_name_is_not_a_tool(job_ready: dict) -> None:  # noqa: F811
+    assert ac._is_company_word("GmbH", "Healy World GmbH")
+    assert ac._is_company_word("SaltRock", "SaltRock")
+    assert ac._is_company_word("ElevenLabs", "ElevenLabs")
+    assert not ac._is_company_word("Flutter", "Healy World GmbH")
+    ctx = ctx_for(job_ready, company="Healy World GmbH")
+    found = ac.text_rules("S", "Hi Ana,\n\nI work with Flutter and REST at Healy World GmbH.", ctx)
+    assert not any(v["type"] == "tools" for v in found)
+
+
+def test_a_years_only_sentence_needs_no_citation(job_ready: dict) -> None:  # noqa: F811
+    ctx = ctx_for(job_ready, years_statement="3 years of software engineering experience")
+    p = plan(job_ready, experience=[
+        EmailSentence(text="I have 3 years of software engineering experience.", citations=[]),
+        EmailSentence(text=f"At {job_ready['org']} I work on {job_ready['tag']} every day.",
+                      citations=[job_ready["role"]])])
+    found = ac.check_plan(p, ctx)
+    assert not any(v["type"] == "grounding" and "no citations" in v["message"] for v in found)

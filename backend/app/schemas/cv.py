@@ -58,6 +58,7 @@ class CVStudio(BaseModel):
 
 class CVGenerateIn(BaseModel):
     template: str | None = None
+    use: str | None = None  # "claude": this call only (after a Gemini failure)
 
 
 class CVPatch(BaseModel):

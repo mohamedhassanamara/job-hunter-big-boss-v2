@@ -48,6 +48,13 @@
       "cases": 1,
       "errors": 0,
       "note": "Adopted: new sections `revise` (regenerate with feedback: edit the previous draft toward the user's feedback, same sources and rules) and `external`, `external_applied`, `external_speculative` (the prompt copied for another AI). The follow-up system section is unchanged from v12; the run is the applied case #9 (0 errors, one 'reads like a CV bullet' warning)."
+    },
+    "14": {
+      "report": "data/eval/emails/20261021-200830_outreach_v14.md, data/eval/emails/20261021-200834_outreach_v14.md, data/eval/emails/20261021-200838_outreach_v14.md, data/eval/emails/20261021-200851_outreach_v14.md",
+      "date": "2026-10-21",
+      "cases": 4,
+      "errors": 0,
+      "note": "Gemini 3.5 flash-lite (minimal) writes the four applied cases (#9, #11, #12, #13) with the summary-style prompt, including the one automatic retry production makes: 0 errors. A first version without the citation wording (\"by the item's own id, never a fact number\") gave 'cites unknown ids' errors on all four on the first attempt; the clause was added before this run. The must_warn set (the three Healy emails that copied bullets) all raise the copy warning (8, 32 and 32 words in a row)."
     }
   }
 }

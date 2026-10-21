@@ -11,6 +11,7 @@ import type {
   Draft,
   DraftProgress,
   DraftGenerateInput,
+  GenerationStatus,
   DraftHistoryItem,
   EmailMode,
   ExternalCheck,
@@ -108,8 +109,8 @@ export function useRegenerateSummary() {
 export function useGenerateCV() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ appId, template }: { appId: number; template?: string }) =>
-      api.post<CVVersion>(`/applications/${appId}/cv/generate`, { template: template ?? null }),
+    mutationFn: ({ appId, template, use }: { appId: number; template?: string; use?: 'claude' }) =>
+      api.post<CVVersion>(`/applications/${appId}/cv/generate`, { template: template ?? null, use: use ?? null }),
     onSettled: () => invalidateWork(qc),
   })
 }
@@ -341,10 +342,12 @@ export function useRescorePreview(scope: 'all' | 'stale' | 'outdated', enabled: 
   })
 }
 
-export function useScoringQuota() {
+/** Gemini quota per key and pooled. `model`: the pool of that model (scoring, CV and email
+ * generation normally share one); default is the scoring model's. */
+export function useScoringQuota(model?: string) {
   return useQuery({
-    queryKey: ['scoring-quota'],
-    queryFn: () => api.get<ScoringQuota>('/scoring/quota'),
+    queryKey: ['scoring-quota', model ?? null],
+    queryFn: () => api.get<ScoringQuota>(`/scoring/quota${model ? `?model=${encodeURIComponent(model)}` : ''}`),
     refetchInterval: 30_000,
     retry: false,
   })
@@ -469,4 +472,23 @@ export function useExternalSave(appId: number) {
       invalidateWork(qc)
     },
   })
+}
+
+/** Background drafting (CV on shortlist, email when ready): polled lightly, and the cards refresh
+ * exactly when a task finishes or fails. Silent: no toasts. */
+export function useGenerationStatus() {
+  const qc = useQueryClient()
+  const status = useQuery({
+    queryKey: ['generation-status'],
+    queryFn: () => api.get<GenerationStatus>('/generation/status'),
+    refetchInterval: (q) => ((q.state.data?.active ?? 0) > 0 ? 4000 : 30_000),
+    retry: false,
+  })
+  const last = useRef<string | undefined>(undefined)
+  const signature = status.data?.signature
+  useEffect(() => {
+    if (last.current !== undefined && signature !== undefined && signature !== last.current) invalidateWork(qc)
+    last.current = signature
+  }, [signature, qc])
+  return status
 }

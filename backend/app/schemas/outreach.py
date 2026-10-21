@@ -98,6 +98,7 @@ class GenerateIn(BaseModel):
     language: str | None = None  # en | fr: your override (kept for regenerations); auto clears it
     mode: str | None = None  # applied | speculative
     base_draft_id: int | None = None  # the draft to edit (default: the one under review)
+    use: str | None = None  # "claude": this call only (after a Gemini failure)
 
 
 class ApproveUnverifiedIn(BaseModel):
@@ -142,6 +143,7 @@ class DraftProgress(BaseModel):
     total: int = 0
     draft_id: int | None = None
     error: str | None = None
+    generation_failed: bool = False  # the model didn't answer: offer Retry / Generate with Claude
 
 
 class MentionIn(BaseModel):

@@ -8,14 +8,25 @@ import { ToneBadge } from './badges'
 
 /** Remaining Gemini quota per API key (free tier: separate daily quota per key, reset at midnight
  * Pacific). Counts only requests this app made; Google's own page is the source of truth. */
-export function GeminiQuotaList({ className }: { className?: string }) {
-  const quota = useScoringQuota()
+export function GeminiQuotaList({ className, model }: { className?: string; model?: string }) {
+  const quota = useScoringQuota(model)
   const enable = useEnableGeminiKey()
   const q = quota.data
   if (!q || q.provider !== 'gemini' || !q.keys) return null
   const resets = q.resets_at
   return (
     <div className={cn('space-y-2', className)} data-tour="gemini-quota">
+      {q.pooled && (
+        <p className="flex flex-wrap items-center gap-x-2 text-sm">
+          <span className="font-medium">Pooled quota</span>
+          <span className="text-fg-muted tabular-nums">
+            {q.pooled.remaining} of {q.pooled.limit} requests left today across {pluralize(q.pooled.keys, 'key')}
+          </span>
+          <span className="text-xs text-fg-subtle">
+            {q.model} · scoring, CV and email generation share it; {q.pooled.user_reserve} per key are kept for what you trigger
+          </span>
+        </p>
+      )}
       <ul className="space-y-2">
         {q.keys.map((k) => {
           const pct = Math.min(100, Math.round((k.used / k.limit) * 100))

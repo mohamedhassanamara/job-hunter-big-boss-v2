@@ -65,7 +65,7 @@ frontend (Vite/React/TS) ──/api──▶ FastAPI routers ──▶ services 
   Today aggregation (`today.py`).
 - **Providers** (`backend/app/providers/base.py`) are Protocols: `JobSource`, `FitScorer`, `CVGenerator`,
   `CVRenderer`, `EmailDrafter`, `Mailer`. `registry.py` returns implementations. Phase 0 uses `mock/` only.
-  FitScorer=Ollama, CVGenerator=Claude Code headless (`providers/claude_cv.py`); rendering is `services/cv_render.py`
+  FitScorer=Gemini/Ollama, CVGenerator=Gemini (`providers/gemini_generate.py`; Claude Code headless `providers/claude_cv.py` selectable); rendering is `services/cv_render.py`
   (Jinja + latexmk + PyMuPDF). Planned: Mailer=Gmail SMTP.
 - **Migrations:** every model change needs a new Alembic revision (`alembic revision --autogenerate -m "..."`,
   then review it). SQLite needs `render_as_batch=True` (already configured).
@@ -219,6 +219,39 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Replies, interview rounds and reminder actions are their own tables; reminders are computed from `app_setting.tracking`.
   Ghosting is only suggested; closing needs the user's click. Stats/CSV come from `tracking.tracked()` rows.
 - Frontend: `components/app/tracking/*` (dialogs, AppliedFacts, TrackingActions), `features/applications/*`.
+
+## CV and email generation on Gemini, background drafting (services/generation.py, providers/gemini_generate.py)
+
+- Settings → Models: `models.cv` / `models.email` = `{provider, model, thinking_level}`; default `gemini-3.5-flash-lite`,
+  `minimal` (= no thinking; `dynamic` = `thinkingBudget -1`; `thinkingBudget: 0` is rejected by 3.5). `services/model_choice.py`
+  reads it; `registry.cv_generator/email_drafter(model, thinking_level, engine)` return the Gemini subclasses
+  (`GeminiCVGenerator(ClaudeCVGenerator)`, same prompts/schemas/checks, only `_call` replaced). Claude stays the claim verifier,
+  Critique, Ask Claude, and a one-shot `use="claude"` on the generate endpoints ("Generate with Claude").
+- A Gemini failure (after 5 backoffs 5-60 s with key rotation) is `GenerationFailed`: HTTP 503 on the CV endpoint,
+  `DraftProgress.generation_failed` on the email one; the page shows Retry / Generate with Claude. **Never switch model silently.**
+- `gemini_generate.check_private` refuses any request containing the profile's email, phone digits or link URLs. A link inside
+  pool text (the Lovester bullet's domain) is not profile data: the email output strips backticks and URLs (`applied_check.clean`).
+- One pool for scoring, CV and email (`gemini_keys.pool_for(engine, model)`): `acquire(priority="user"|"background", avoid=)`.
+  Scoring is background: it yields while a user call waits and never uses the last `USER_RESERVE` (50) requests of a key's day.
+  `snapshot()["pooled"]` is shown in Settings → Models and on Today (`GET /scoring/quota?model=`).
+- Background drafting: `generation_task` rows (migration 0031) inserted in-session by hooks, run by one worker thread
+  (`generation.start_worker`, real workspace only, `GENERATION_WORKER_ENABLED`; tests/sandbox never start it, the sandbox never
+  enqueues). `pipeline.transition` → `on_shortlisted` (queue a CV draft unless a CV exists / setting off / came from cv_ready) and
+  `on_unshortlisted` (cancel queued; a running one finishes and its draft stays). The email is queued by
+  `maybe_enqueue_email` after CV approval, a contact becoming verified, or a shortlist: needs `generation.auto_email`, a job in
+  shortlisted/cv_ready with a posting, an approved CV, a ready contact, no live draft. Settings `generation = {auto_cv: true,
+  auto_email: false}`. Drafts only: nothing is approved, no toasts; `Tracks.cv` / `Tracks.generation` feed the badges
+  ("CV ready to review", "Email ready to review"), `GET /generation/status` drives the refresh.
+- Email prompt v14 (applied mode): experience = a short first-person summary of 1-2 things, not the bullets. Copy check
+  `applied_check.copy_run` (8+ consecutive words with a pool bullet or a `style_reference` example) → one automatic regeneration
+  ("summarize in your own words"), still copying = warning. Numbers ≤ 2 and tools ≤ 3 per email, fragments (no "I") warn, a
+  location/visa/relocation sentence warns unless the listing states a LOCATION requirement (`listing_states_location`: a language
+  requirement doesn't count). The style reference lives in `email_example` (kind `style_reference`, `inputs.mode = applied`) and is
+  sent as a STYLE REFERENCE block; kind `must_warn` rows (emails that copied) are checked by `make eval-emails`
+  (`eval.emails.check_must_warn`). Verifier prompt v6 accepts faithful paraphrase and adds the non-blocking `garbled` verdict.
+- CV: `cv_check.summary_support` (summary names a tool/concept no included bullet or skill shows, or a qualifier your pool never
+  says: Settings → CV `qualifiers`) is a warning and feeds the summary retry; `cv.skill_display` (per-track category names) and
+  `cv.skill_keep` (pool skills pinned first per track, e.g. Mobile: Kotlin, Swift) apply in `cv_build.build_document`.
 
 ## Cover letters, questions, email route (Phase 6)
 

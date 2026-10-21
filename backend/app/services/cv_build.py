@@ -64,10 +64,14 @@ class Layout:
     bounds: dict[str, tuple[int, int]]
     rules: dict[str, Any]
     merges: list[str]
+    display: dict[str, str] = field(default_factory=dict)  # skill category → shown name (track)
+    keep: dict[str, list[str]] = field(default_factory=dict)  # skill group → pinned skills (track)
 
 
 def layout(plan: CVPlan, pool: Pool | None, rules: dict[str, Any] | None = None,
-           merges: list[str] | None = None, today: Any = None) -> Layout:
+           merges: list[str] | None = None, today: Any = None,
+           display: dict[str, str] | None = None,
+           keep: dict[str, list[str]] | None = None) -> Layout:
     rules = rules or dict(cv_rules.DEFAULT_STRUCTURE)
     bounds: dict[str, tuple[int, int]] = {}
     for kind, entries in (("role", plan.roles), ("project", plan.projects),
@@ -76,7 +80,8 @@ def layout(plan: CVPlan, pool: Pool | None, rules: dict[str, Any] | None = None,
             item = pool.get(e.item_id) if pool else None
             bounds[_key(kind, e)] = cv_rules.allowance(
                 "job" if kind == "role" else kind, item, e.relevance, rules, len(e.bullets), today)
-    return Layout(bounds, rules, cv_rules.DEFAULT_SKILL_MERGES if merges is None else merges)
+    return Layout(bounds, rules, cv_rules.DEFAULT_SKILL_MERGES if merges is None else merges,
+                  display or {}, keep or {})
 
 
 def _project_ok(p: PlanEntry, lay: Layout) -> bool:
@@ -247,13 +252,14 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
             education.append(CVEducation(item_id=item.id, school=item.org or "",
                                          degree=item.title, location=item.location or "",
                                          start=start, end=end))
+    lay = lay or layout(plan, pool)
     groups = []
     for g in plan.skills:
         item = pool.get(g.item_id, "skill")
-        if item and g.items:
-            groups.append((item.title, list(g.items)))  # verbatim from the pool
-    lay = lay or layout(plan, pool)
-    skills = [CVSkillGroup(category=c, items=items)
+        if item and g.items:  # verbatim from the pool; the track's pinned skills go first
+            groups.append((item.title, cv_rules.pin(item.title, list(g.items), item.tags,
+                                                    lay.keep)))
+    skills = [CVSkillGroup(category=lay.display.get(c, c), items=items)
               for c, items in cv_rules.shape_skills(groups, lay.rules, [])]  # no merging
     return CVDocument(summary=summary, skills=skills, roles=roles, projects=projects,
                       certifications=certifications, education=education,

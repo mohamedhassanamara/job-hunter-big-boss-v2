@@ -26,6 +26,7 @@ from app.services.cv_check import (
     check_plan,
     feedback,
     ground_sentences,
+    summary_support,
     verbatim_skills,
     violation,
 )
@@ -51,6 +52,10 @@ DEFAULT_SETTINGS = {
     "banned_phrases": cv_rules.DEFAULT_CV_BANNED,
     "structure": cv_rules.DEFAULT_STRUCTURE,
     "skill_merges": cv_rules.DEFAULT_SKILL_MERGES,
+    # Summary qualifiers your pool must say, per-track category names and pinned skills.
+    "qualifiers": cv_rules.DEFAULT_QUALIFIERS,
+    "skill_display": cv_rules.DEFAULT_SKILL_DISPLAY,
+    "skill_keep": cv_rules.DEFAULT_SKILL_KEEP,
 }
 
 
@@ -140,9 +145,17 @@ def layout_hints(pool: Pool, rules: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def fit_layout(s: Session, plan: CVPlan, pool: Pool) -> Layout:
+def track_of(s: Session, app_id: int) -> str:
+    app = s.get(Application, app_id)
+    job = s.get(Job, app.job_id) if app else None
+    return (job.matched_track or "") if job else ""
+
+
+def fit_layout(s: Session, plan: CVPlan, pool: Pool, track: str = "") -> Layout:
     settings = cv_settings(s)
-    return layout(plan, pool, cv_rules.structure(settings), cv_rules.merges(settings))
+    return layout(plan, pool, cv_rules.structure(settings), cv_rules.merges(settings),
+                  display=cv_rules.skill_display(settings, track),
+                  keep=cv_rules.skill_keep(settings, track))
 
 
 def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
@@ -164,7 +177,9 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
     # Anything on the CV counts as "something you built" (grounding is checked separately).
     on_cv = [pool.get(e.item_id) for e in [*plan.roles, *plan.projects]]
     cited_texts = [p for i in on_cv if i is not None for p in [i.title, *i.bullets]]
-    return dishonest + cv_rules.summary_problems(
+    unsupported = [] if short else summary_support(
+        text, plan, pool, rules.get("_qualifiers", cv_rules.DEFAULT_QUALIFIERS))
+    return dishonest + unsupported + cv_rules.summary_problems(
         text, rules=rules, bullet_texts=bullets, certifications=pool.of("certification"),
         internships=internships, tools=tools, max_sentences=1 if short else None,
         max_words=max(15, int(rules["summary_max_words"]) // 2) if short else None,
@@ -205,8 +220,9 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
                  overrides: dict[str, Any], state: FitState | None) -> None:
     template = load_template(template_name)
     out_dir = CV_DIR / str(v.application_id) / f"v{v.version}"
+    lay = fit_layout(s, plan, pool, track_of(s, v.application_id))
     result = fit_to_page(plan, pool, cv_profile(pool), template, out_dir, state=state,
-                         overrides=overrides, lay=fit_layout(s, plan, pool))
+                         overrides=overrides, lay=lay)
     v.content = result.document.model_dump()
     v.tex = result.tex
     v.template = template_name
@@ -235,7 +251,8 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator,
             raise CVError(" ".join(blockers))
         template_name = _template(template, s)
         request = build_request(s, app, pool)
-        rules = cv_rules.structure(cv_settings(s))
+        rules = {**cv_rules.structure(cv_settings(s)),
+                 "_qualifiers": cv_rules.qualifiers(cv_settings(s))}  # runtime only
         banned = cv_rules.banned(cv_settings(s))
         openings = other_openings(s, app_id)
     try:
@@ -395,7 +412,9 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator) -> CV
         plan = CVPlan.model_validate(v.plan["plan"])
         request = build_request(s, app, pool)
         settings = cv_settings(s)
-        rules, banned = cv_rules.structure(settings), cv_rules.banned(settings)
+        rules, banned = ({**cv_rules.structure(settings),
+                          "_qualifiers": cv_rules.qualifiers(settings)},
+                         cv_rules.banned(settings))
         openings = other_openings(s, app.id)
         previous = plan.summary
     try:

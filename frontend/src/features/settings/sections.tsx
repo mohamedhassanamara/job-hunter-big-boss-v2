@@ -199,15 +199,59 @@ interface ModelsValue {
     cloud_concurrency?: { min: number; start: number; max: number }
     local_concurrency?: number
   }
-  cv: { provider: string; model: string }
-  email: { provider: string; model: string }
+  cv: GeneratorValue
+  email: GeneratorValue
 }
 
-const CLAUDE_MODELS = [
+/** CV / email generator: Gemini (shared free keys) or Claude; thinking applies to Gemini only. */
+interface GeneratorValue {
+  provider: string
+  model: string
+  thinking_level?: string
+}
+
+const GENERATOR_MODELS = [
+  { value: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite (free keys)' },
+  { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite (free keys)' },
   { value: 'claude-opus-5-5', label: 'Claude Opus 5.5' },
   { value: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
-  { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
 ]
+const THINKING_LEVELS = [
+  { value: 'minimal', label: 'No thinking (minimal)' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'dynamic', label: 'Dynamic (the model decides)' },
+]
+
+function generatorOf(m: GeneratorValue | undefined): GeneratorValue {
+  const model = m?.model && !m.model.startsWith('claude-haiku') ? m.model : 'gemini-3.5-flash-lite'
+  return { provider: model.startsWith('gemini-') ? 'gemini' : 'anthropic', model, thinking_level: m?.thinking_level ?? 'minimal' }
+}
+
+function GeneratorField({ label, hint, value, onChange }: { label: string; hint: string; value: GeneratorValue | undefined; onChange: (v: GeneratorValue) => void }) {
+  const g = generatorOf(value)
+  const gemini = g.model.startsWith('gemini-')
+  return (
+    <Field label={label} hint={hint}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          value={g.model}
+          onValueChange={(model) => onChange({ ...g, model, provider: model.startsWith('gemini-') ? 'gemini' : 'anthropic' })}
+          options={GENERATOR_MODELS}
+          className="w-64"
+          aria-label={`${label} model`}
+        />
+        {gemini && <Select value={g.thinking_level ?? 'minimal'} onValueChange={(thinking_level) => onChange({ ...g, thinking_level })} options={THINKING_LEVELS} className="w-52" aria-label={`${label} thinking`} />}
+      </div>
+    </Field>
+  )
+}
+
+interface GenerationValue {
+  auto_cv: boolean
+  auto_email: boolean
+}
 
 export function ModelsSection({ settings }: { settings: SettingsView }) {
   const initial = settings.values.models as unknown as ModelsValue
@@ -220,7 +264,9 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     const max = Math.max(c.min, c.max)
     draft.setValue({ ...m, scoring: { ...m.scoring, cloud_concurrency: { min, max, start: Math.min(max, Math.max(min, c.start)) } } })
   }
+  const quotaModel = [m.scoring.model, m.cv?.model, m.email?.model].find((x) => x?.startsWith('gemini-'))
   return (
+    <>
     <Card
       title="Models"
       description="Which model backs each step. Providers are swappable behind interfaces."
@@ -236,8 +282,8 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
       }
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
-        <ToneBadge tone="amber">Partly mocked</ToneBadge>
-        Fit scoring runs on Gemini (free API keys, one daily quota each) or Ollama (cloud first, local fallback). CV generation and email drafting are still mocked.
+        <ToneBadge tone="green">Live</ToneBadge>
+        Scoring, CV and email generation share the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude, and can write a CV or email when you pick it.
       </div>
       <Field label="Fit scoring" hint="A Gemini model (gemini-3.5-flash-lite, keys in .env as GEMINI_API_KEYS) or an Ollama model. Ollama cloud models end in -cloud and run on ollama.com.">
         <Input
@@ -284,25 +330,60 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         />
       </Field>
       <div className="space-y-2">
-        {m.scoring.model.startsWith('gemini-') ? <GeminiQuotaList /> : <OllamaStatus label="Scoring" />}
+        {quotaModel ? <GeminiQuotaList model={quotaModel} /> : <OllamaStatus label="Scoring" />}
         {m.scoring.fallback && <OllamaStatus model={m.scoring.fallback} label="Fallback" />}
+        {quotaModel && (
+          <details className="rounded-md border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+            <summary className="cursor-default font-medium text-fg">Are my keys separate projects? (check in AI Studio)</summary>
+            <ol className="mt-2 list-decimal space-y-1 pl-4">
+              <li>Open aistudio.google.com/apikey: each key row shows the Google Cloud project it belongs to.</li>
+              <li>Keys under different project names have separate daily quotas; keys under the same project share one.</li>
+              <li>Open aistudio.google.com/rate-limit and pick a project: its requests per minute and per day for {quotaModel} are listed. Make one test call with key N and only that project&apos;s count moves.</li>
+              <li>The pooled number above counts what this app sent. Other tools using the same keys are only visible on Google&apos;s page.</li>
+            </ol>
+          </details>
+        )}
       </div>
-      <Field label="CV generation" hint="Anthropic API">
-        <Select
-          value={m.cv.model}
-          onValueChange={(model) => draft.setValue({ ...m, cv: { ...m.cv, model } })}
-          options={CLAUDE_MODELS}
-          className="w-64"
-        />
-      </Field>
-      <Field label="Email drafting" hint="Anthropic API">
-        <Select
-          value={m.email.model}
-          onValueChange={(model) => draft.setValue({ ...m, email: { ...m.email, model } })}
-          options={CLAUDE_MODELS}
-          className="w-64"
-        />
-      </Field>
+      <GeneratorField
+        label="CV generation"
+        hint="Writes the CV plan; checks, the one-page fit and the claim verifier stay as they are. Failures never switch model: you get Retry and Generate with Claude."
+        value={m.cv}
+        onChange={(cv) => draft.setValue({ ...m, cv })}
+      />
+      <GeneratorField
+        label="Email generation"
+        hint="Writes the application follow-up (and the intro). Claude verifies every claim when you click Approve."
+        value={m.email}
+        onChange={(email) => draft.setValue({ ...m, email })}
+      />
+    </Card>
+    <AutomationCard settings={settings} />
+    </>
+  )
+}
+
+/** Background drafting (services/generation.py): drafts only, never approves, no toasts. */
+function AutomationCard({ settings }: { settings: SettingsView }) {
+  const initial = (settings.values.generation as unknown as GenerationValue | undefined) ?? { auto_cv: true, auto_email: false }
+  const draft = useDraft(initial)
+  const save = useSaveSetting()
+  const g = draft.value
+  return (
+    <Card
+      title="Automatic drafting"
+      description="Drafts only: nothing is approved or sent for you, and nothing pops up. A badge on the job says when a draft is ready."
+      footer={
+        <SaveBar dirty={draft.dirty} saving={save.isPending} onReset={draft.reset} onSave={() => save.mutate({ key: 'generation', value: g as unknown as Record<string, unknown> }, { onSuccess: () => toast.success('Automatic drafting saved') })} />
+      }
+    >
+      <div data-tour="automation" className="space-y-4">
+        <Field label="Draft the CV when I shortlist a job" hint="Queued in the background as a draft. Skipped when the job already has a CV or your experience is incomplete (a warning shows on the job). Un-shortlisting cancels it if it hasn't started.">
+          <Switch checked={g.auto_cv} onCheckedChange={(v) => draft.setValue({ ...g, auto_cv: v })} aria-label="Auto-generate the CV" />
+        </Field>
+        <Field label="Draft the email when the contact and the CV are both ready" hint="Needs a verified contact AND an approved CV on a job you shortlisted, and only for jobs with a posting (the application follow-up). Off until you have compared the Gemini and Claude emails.">
+          <Switch checked={g.auto_email} onCheckedChange={(v) => draft.setValue({ ...g, auto_email: v })} aria-label="Auto-generate the email" />
+        </Field>
+      </div>
     </Card>
   )
 }

@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     # The send queue worker (real workspace only; tests turn it off).
     send_worker_enabled: bool = True
+    # The background drafting worker (CV on shortlist, email when ready; tests turn it off).
+    generation_worker_enabled: bool = True
 
 
 @lru_cache

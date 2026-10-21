@@ -501,7 +501,7 @@ class CritiquePlan(BaseModel):
 
 
 VerifyVerdict = Literal["supported", "unsupported", "exaggerated", "merged", "causal",
-                        "not_a_claim"]
+                        "not_a_claim", "garbled"]  # garbled: a warning only (never blocking)
 
 
 class VerifyClaim(BaseModel):

@@ -17,7 +17,7 @@ from app.schemas.settings import (
     SourceRunOut,
 )
 from app.seed.seed import reset_sandbox, seed
-from app.services import contacts, scheduler
+from app.services import contacts, model_choice, scheduler
 from app.services.discovery import is_running
 from app.services.geo import country_catalog
 from app.services.roles import all_titles, suggest_variants, with_suggested_variants
@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
-    "motivation", "providers",
+    "motivation", "providers", "generation",
 }
 
 
@@ -72,6 +72,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services import motivation
 
     values["motivation"] = motivation.settings(session)
+    from app.services import generation
+
+    values["generation"] = generation.settings(session)
     return SettingsOut(
         values=values,
         smtp_password_configured=bool(get_settings().smtp_app_password),
@@ -124,6 +127,19 @@ def _check_cv_structure(value: dict) -> None:
                     raise HTTPException(422, "fill_min must be between 0.5 and 1")
             elif not isinstance(v, int) or not 0 <= v <= 400:
                 raise HTTPException(422, f"{key} must be a whole number")
+    q = value.get("qualifiers")
+    if q is not None and (not isinstance(q, list) or not all(isinstance(x, str) for x in q)):
+        raise HTTPException(422, "qualifiers must be a list of words")
+    for name in ("skill_display", "skill_keep"):
+        table = value.get(name)
+        if table is None:
+            continue
+        inner = str if name == "skill_display" else list
+        if not isinstance(table, dict) or not all(
+                isinstance(v, dict) and all(isinstance(x, inner) for x in v.values())
+                for v in table.values()):
+            raise HTTPException(422, f"{name} must map a track to {{category: "
+                                f"{'name' if inner is str else 'list of skills'}}}")
     banned = value.get("banned_phrases")
     if banned is not None and (not isinstance(banned, list)
                                or not all(isinstance(b, str) for b in banned)):
@@ -198,6 +214,17 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 gid = str((g or {}).get("id") or "").strip() if isinstance(g, dict) else None
                 if gid is None or (gid and not gid.isdigit()) or len(code) != 2:
                     raise HTTPException(422, f"{code}: a geoId is digits only (or empty)")
+    if key == "models":
+        try:
+            model_choice.check(body.value)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    if key == "generation":
+        for name in ("auto_cv", "auto_email"):
+            if not isinstance(body.value.get(name, False), bool):
+                raise HTTPException(422, f"{name} must be true or false")
+        body.value = {"auto_cv": bool(body.value.get("auto_cv", True)),
+                      "auto_email": bool(body.value.get("auto_email", False))}
     if key == "motivation":
         _check_motivation(session, body.value)
     if key == "research":

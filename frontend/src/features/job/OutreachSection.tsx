@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { GetContactPanel } from '@/components/app/contact/GetContactPanel'
+import { GenerationFailed } from '@/components/app/GenerationFailed'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { ExternalAIDialog } from '@/components/app/outreach/ExternalAIDialog'
 import { UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
@@ -152,6 +153,9 @@ export function OutreachSection({ job }: { job: JobDetail }) {
   const [pickedMode, setPickedMode] = useState<EmailMode | null>(null)
   const [externalOpen, setExternalOpen] = useState(false)
   const ready = !isPending && !!data
+  // The model didn't answer (this run, or a background draft): Retry / Generate with Claude.
+  const emailTask = app.tracks.generation?.email
+  const failedMessage = run.state?.status === 'failed' && run.state.generation_failed ? (run.state.error ?? 'The model did not answer.') : emailTask?.status === 'failed' ? (emailTask.error ?? 'The model did not answer.') : null
   // Arriving from the Pipeline or Today with #outreach: bring the section into view.
   useEffect(() => {
     if (ready && window.location.hash === '#outreach') {
@@ -220,12 +224,20 @@ export function OutreachSection({ job }: { job: JobDetail }) {
             </Button>
           </div>
         )}
+        {data.step === 'draft' && failedMessage && !run.running && (
+          <GenerationFailed
+            what="email"
+            message={failedMessage}
+            onRetry={() => run.start({ mode: pickedMode ?? data.email_mode }, { onError: (e) => toast.error(e.message) })}
+            onClaude={() => run.start({ mode: pickedMode ?? data.email_mode, use: 'claude' }, { onError: (e) => toast.error(e.message) })}
+          />
+        )}
         {data.step === 'draft' && (
           <div className="space-y-3 p-4 text-sm">
             <div className="flex items-center gap-3">
               <Sparkles className="size-4 text-fg-subtle" />
               <span className="flex-1 text-fg-muted">
-                {job.contact ? `${job.contact.full_name} (verified)` : 'Contact'} and CV v{data.cv_version} ready. Claude writes the email from your approved CV; you review everything before it goes anywhere.
+                {job.contact ? `${job.contact.full_name} (verified)` : 'Contact'} and CV v{data.cv_version} ready. The model set in Settings → Models writes the email from your approved CV; you review everything before it goes anywhere.
                 {!data.has_email && ' The contact has no email address yet.'}
               </span>
               {run.running ? (

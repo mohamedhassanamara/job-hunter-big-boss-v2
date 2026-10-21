@@ -41,6 +41,21 @@ DEFAULT_CV_BANNED = [
     "moving into", "moving from", "transitioning into", "career change",
 ]
 
+# Qualifiers a summary may only use when the pool says them (warning otherwise).
+DEFAULT_QUALIFIERS = [
+    "scalable", "cross-platform", "robust", "high-performance", "enterprise-grade", "seamless",
+    "cutting-edge", "innovative", "world-class", "best-in-class", "state-of-the-art",
+    "mission-critical", "highly available", "fault-tolerant",
+]
+# Per track: how a pool skill category is shown on that track's CVs, and the skills of a group
+# kept first (pool items only) when the group is capped.
+DEFAULT_SKILL_DISPLAY: dict[str, dict[str, str]] = {
+    "Mobile": {"Backend & Data Engineering": "Backend"},
+}
+DEFAULT_SKILL_KEEP: dict[str, dict[str, list[str]]] = {
+    "Mobile": {"Core Languages": ["Kotlin", "Swift"]},
+}
+
 DEFAULT_STRUCTURE: dict[str, Any] = {
     "current": [3, 4],        # the role you're in now
     "long_role": [2, 3],      # roles longer than long_role_months
@@ -89,6 +104,34 @@ def guide(cv_settings: dict[str, Any]) -> str:
 def banned(cv_settings: dict[str, Any]) -> list[str]:
     rules = cv_settings.get("banned_phrases")
     return DEFAULT_CV_BANNED if rules is None else list(rules)
+
+
+def qualifiers(cv_settings: dict[str, Any]) -> list[str]:
+    rules = cv_settings.get("qualifiers")
+    return DEFAULT_QUALIFIERS if rules is None else [str(q) for q in rules]
+
+
+def skill_display(cv_settings: dict[str, Any], track: str) -> dict[str, str]:
+    table = cv_settings.get("skill_display")
+    table = DEFAULT_SKILL_DISPLAY if table is None else table
+    return dict(next((v for k, v in table.items() if _norm(k) == _norm(track)), {}))
+
+
+def skill_keep(cv_settings: dict[str, Any], track: str) -> dict[str, list[str]]:
+    table = cv_settings.get("skill_keep")
+    table = DEFAULT_SKILL_KEEP if table is None else table
+    return {k: list(v) for k, v in next(
+        (v for k, v in table.items() if _norm(k) == _norm(track)), {}).items()}
+
+
+def pin(category: str, items: list[str], pool_tags: list[str],
+        keep: dict[str, list[str]]) -> list[str]:
+    """The group's items with the track's pinned skills first (only skills the pool group
+    has, spelled as the pool spells them), so the cap never drops them."""
+    wanted = next((v for k, v in keep.items() if _norm(k) == _norm(category)), [])
+    spelled = {_norm(t): t for t in pool_tags}
+    first = [spelled[_norm(w)] for w in wanted if _norm(w) in spelled]
+    return first + [x for x in items if _norm(x) not in {_norm(f) for f in first}]
 
 
 def merges(cv_settings: dict[str, Any]) -> list[str]:

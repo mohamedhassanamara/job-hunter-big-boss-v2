@@ -136,7 +136,7 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
             stmt = stmt.where(EmailExample.id == case)
         examples = [e for e in s.exec(stmt).all()
                     if (e.inputs or {}).get("channel") != "linkedin"  # emails only
-                    and e.kind != "must_fail"]  # the verifier's set
+                    and e.kind not in ("must_fail", "must_warn")]  # their own sets
         examples = examples[:limit] if limit else examples
         for ex in examples:
             request, language = _request(s, ex)
@@ -189,6 +189,33 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
     return path, results
 
 
+def check_must_warn(engine: Engine) -> list[dict[str, Any]]:
+    """The stored `must_warn` emails (a model copied the pool's bullets) must still raise the
+    copy warning: the longest run of words each shares with one pool bullet or style reference
+    is measured with today's pool and today's threshold. No model call."""
+    import re
+
+    from app.services import applied_check as ac
+    from app.services import outreach
+    from app.services.cv_pool import load_pool
+
+    out = []
+    with Session(engine) as s:
+        pool, refs = load_pool(s), outreach.applied_references(s)
+        facts = [f for item in pool.items.values() for f in pool.facts(item)]
+        for ex in s.exec(select(EmailExample).where(EmailExample.kind == "must_warn")
+                         .order_by(col(EmailExample.id))).all():
+            body = ex.body.replace("`", "")
+            best, where, quote = 0, "", ""
+            for sentence in re.split(r"(?<=[.!?])\s+|\n+", body):
+                run, source = ac.copy_run(sentence, facts, refs)
+                if run > best:
+                    best, where, quote = run, source, sentence.strip()
+            out.append({"id": ex.id, "company": ex.company, "note": ex.note, "run": best,
+                        "source": where, "quote": quote, "warns": best >= ac.COPY_RUN})
+    return out
+
+
 def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: EmailRequest,
                  language: str, app: Application | None, drafter: Any) -> dict[str, Any]:
     """One case in the job-linked mode: written again with the application follow-up prompt
@@ -202,16 +229,27 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
     plan = drafter.draft_applied(request)
     plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
     name = str(request.candidate.get("full_name") or "")
-    text = ac.body(plan)
-    subject = ac.subject_line(plan.role, name, language)
     found: list[dict] = []
     contact = case_contact(s, ex, app)
+    attempts = 1
     if app is not None and contact is not None:
         job = s.get(Job, app.job_id)
         ctx = outreach.applied_context(s, app, job, s.get(Company, job.company_id), contact,
                                        load_pool(s), language=language)
         found = ac.check_plan(plan, ctx)
-    row.update(new={"subject": subject, "body": text},
+        if oc.errors(found) or ac.copies(found):  # the same one retry production makes
+            notes = oc.feedback(found) + ("\n- Summarize in your own words" if ac.copies(found)
+                                          else "")
+            retry = drafter.draft_applied(request, notes)
+            retry.greeting = plan.greeting
+            retry_found = ac.check_plan(retry, ctx)
+            attempts = 2
+            if (len(oc.errors(retry_found)), ac.copies(retry_found)) <= (
+                    len(oc.errors(found)), ac.copies(found)):
+                plan, found = retry, retry_found
+    text = ac.body(plan)
+    subject = ac.subject_line(plan.role, name, language)
+    row.update(new={"subject": subject, "body": text}, attempts=attempts,
                errors=[v["message"] for v in found if v["severity"] == "error"],
                warnings=[v["message"] for v in found if v["severity"] != "error"],
                similarity_to_old=round(oc.similarity(text, ex.body), 2))
@@ -246,15 +284,21 @@ def main() -> None:
     parser.add_argument("--import", dest="do_import", action="store_true")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--case", type=int)
-    parser.add_argument("--mock", action="store_true", help="the mock drafter (no Claude)")
+    parser.add_argument("--mock", action="store_true", help="the mock drafter (no model)")
+    parser.add_argument("--claude", action="store_true",
+                        help="write with Claude instead of the Settings → Models email generator")
     args = parser.parse_args()
     if args.do_import:
         print(f"Imported {import_examples(engine)} example(s) from {EXAMPLES_FILE}")
         return
     from app.api.outreach import _research_models
     from app.providers.registry import hook_checker
+    from app.services import model_choice
 
-    drafter = email_drafter(mock=args.mock or None)
+    with Session(engine) as s:
+        pick = model_choice.choice(s, "email", "claude" if args.claude else None)
+    drafter = email_drafter(mock=args.mock or None, model=pick["model"], engine=engine,
+                            thinking_level=pick["thinking_level"])
     with Session(engine) as s:
         model, fallback = _research_models(s)  # Settings → Models (research)
     checker = hook_checker(mock=args.mock or None, model=model, fallback=fallback)
@@ -264,6 +308,9 @@ def main() -> None:
     print(f"{len(done)} case(s) written with {drafter.prompt_version}: {path}")
     for r in done:
         print(f"  #{r['id']} {r['kind']} {r['company']}: {len(r['errors'])} error(s)")
+    for r in check_must_warn(engine):
+        print(f"  must-warn #{r['id']} {r['company']}: longest copy {r['run']} words "
+              f"({'warns' if r['warns'] else 'DOES NOT WARN'})")
 
 
 if __name__ == "__main__":

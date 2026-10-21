@@ -651,6 +651,17 @@ def reference_examples(s: Session) -> list[tuple[str, str]]:
         if (e.inputs or {}).get("channel") != "linkedin"]  # LinkedIn notes: their own set
 
 
+def applied_references(s: Session) -> list[str]:
+    """Style references for the application follow-up (kind `style_reference`, mode applied):
+    the level of detail to aim for, never wording to reuse (the copy check flags a draft that
+    does). A kind of their own, so the intro examples and the verifier eval never see them."""
+    from app.models import EmailExample
+
+    return [e.body.strip() for e in s.exec(select(EmailExample).where(
+        EmailExample.kind == "style_reference").order_by(col(EmailExample.id))).all()
+        if (e.inputs or {}).get("mode") == "applied" and e.body.strip()]
+
+
 def email_first_name(s: Session, company_id: int, contact: Contact) -> tuple[str,
                                                                           dict | None]:
     """The contact's first name for the greeting: as the company's researched pages spell it
@@ -794,7 +805,8 @@ def applied_context(s: Session, app: Application, job: Job, company: Company, co
                         exclude_draft=exclude_draft)
     ctx.min_words, ctx.max_words = ac.MIN_WORDS, ac.MAX_WORDS
     ctx.candidate_name = (pool.profile.get("full_name") or "").strip()
-    ctx.examples = []  # the approved examples set the shape; their wording is not policed here
+    ctx.examples = []  # the intro examples don't apply here
+    ctx.references = applied_references(s)  # the follow-up's style references (copy check)
     return ctx
 
 
@@ -827,9 +839,10 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
              "banned_phrases": request.rules.get("banned_phrases"),
              "jargon": request.rules.get("jargon"), "signals": signals,
              "style": "an honest, direct application follow-up: say you applied (or are "
-                      "applying) and wanted to reach out; 2-4 sentences of the experience that "
-                      "matches the listing; any requirement you don't meet said once, plainly; "
-                      "a simple ask. Plain and warm."}
+                      "applying) and wanted to reach out; a short first-person summary of the "
+                      "one or two things that matter most for this job; any requirement you "
+                      "don't meet said once, plainly; a simple ask. Plain and warm.",
+             "style_reference": applied_references(s)}
     return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
                         pool=request.pool, rules=rules)
 
@@ -885,11 +898,20 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 plan = drafter.draft_applied(request)
                 found = checked(plan)
                 attempts = 1
-                if oc.errors(found):  # one retry with the problems as feedback
-                    retry = drafter.draft_applied(request, oc.feedback(found))
+                if oc.errors(found) or ac.copies(found):
+                    # One retry with the problems as feedback; a copied CV bullet gets "summarize
+                    # in your own words". Kept unless it is worse; still copying = a warning.
+                    notes = oc.feedback(found)
+                    if ac.copies(found):
+                        notes += ("\n" if notes else "") + (
+                            "- Your experience sentences copy the pool bullets word for word: "
+                            "summarize in your own words, as a short first-person summary of "
+                            "the one or two things that matter most for this job")
+                    retry = drafter.draft_applied(request, notes)
                     retry_found = checked(retry)
                     attempts = 2
-                    if len(oc.errors(retry_found)) <= len(oc.errors(found)):
+                    if (len(oc.errors(retry_found)), ac.copies(retry_found)) <= (
+                            len(oc.errors(found)), ac.copies(found)):
                         plan, found = retry, retry_found
             except DraftFailed as exc:
                 raise OutreachError(str(exc)) from exc

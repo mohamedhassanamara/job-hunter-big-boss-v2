@@ -34,6 +34,11 @@ class Tracks:
     contact_name: str | None = None
     draft_id: int | None = None
     sent_at: datetime | None = None
+    # The CV draft and background drafting (services/generation.py):
+    # none | queued | generating | failed | skipped | draft (ready to review) | approved
+    cv: str = "none"
+    # Latest task that still says something, per kind: {status, error, warning, retryable}
+    generation: dict[str, dict | None] | None = None
 
     @property
     def applied(self) -> bool:
@@ -74,6 +79,11 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
         return {}
     approved = set(s.exec(select(CVVersion.application_id).where(
         col(CVVersion.application_id).in_(ids), CVVersion.status == CVStatus.approved)).all())
+    reviewing = set(s.exec(select(CVVersion.application_id).where(
+        col(CVVersion.application_id).in_(ids), CVVersion.status == CVStatus.draft)).all())
+    from app.services import generation
+
+    tasks = generation.states(s, ids)
     drafts: dict[int, list[OutreachDraft]] = {}
     for d in s.exec(select(OutreachDraft).where(col(OutreachDraft.application_id).in_(ids))).all():
         drafts.setdefault(d.application_id, []).append(d)
@@ -94,6 +104,10 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
     for a in apps:
         draft = latest_draft(drafts.get(a.id, []))
         contact = people.get(a.contact_id) if a.contact_id else None
+        mine = tasks.get(a.id) or {"cv": None, "email": None}
+        cv_task = mine["cv"]
+        cv = ("approved" if a.id in approved else "draft" if a.id in reviewing
+              else cv_task["status"] if cv_task else "none")
         out[a.id] = Tracks(
             application=application_status(a, a.id in approved),
             outreach=outreach_status(a, draft, state_of(contact, None, days)),
@@ -102,7 +116,10 @@ def for_apps(s: Session, apps: list[Application]) -> dict[int, Tracks]:
             web_method=a.web_method, contact_name=contact.full_name if contact else None,
             draft_id=draft.id if draft else None,
             sent_at=draft.sent_at if draft and DraftStatus(draft.status) == DraftStatus.sent
-            else None)
+            else None,
+            cv=cv,
+            generation={"cv": None if cv in ("approved", "draft") else cv_task,
+                        "email": None if draft else mine["email"]})
     return out
 
 

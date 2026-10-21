@@ -8,6 +8,7 @@ export const VERDICT: Record<ClaimVerdict, { label: string; tone: Tone; blocking
   exaggerated: { label: 'Exaggerated', tone: 'red', blocking: true },
   merged: { label: 'Merged facts', tone: 'red', blocking: true },
   causal: { label: 'Adds a cause', tone: 'red', blocking: true },
+  garbled: { label: 'Garbled sentence', tone: 'amber', blocking: false },
 }
 
 /** "pool:5" → "Experience #5", "signal:12" → "Company signal #12", … */
