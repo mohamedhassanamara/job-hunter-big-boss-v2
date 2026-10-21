@@ -24,9 +24,15 @@ from app.services.cv_claims import Vocabulary, bad_years
 MIN_WORDS, MAX_WORDS = 90, 170  # a warning outside; the prompt aims at 90-120
 SNIPPET_CHARS = 1500  # a shorter stored listing is a snippet: requirements may be missing
 MIN_SENTENCES, MAX_SENTENCES = 1, 2  # at most two proofs, one sentence each
-MAX_PROOF_WORDS = 45
+MAX_PROOF_WORDS = 55  # a summary sentence may merge two facts
 MAX_OPENING_WORDS = 35
-MAX_TOOLS = 5  # per sentence (a warning): the intro rules' 3 made plain stacks read as errors
+MAX_TOOLS = 3  # in the whole email (a warning)
+MAX_NUMBERS = 2  # in the whole email, years wording aside (a warning)
+COPY_RUN = 8  # consecutive words shared with a pool bullet or a style reference = a copy
+_FIRST_PERSON = {"en": re.compile(r"\b(?:I|I'm|I've|I'd|I'll|my|me)\b", re.I),
+                 "fr": re.compile(r"\b(?:je|j['’]|mon|ma|mes|moi)", re.I)}
+_URL = re.compile(r"\s*\(\s*(?:https?://)?[\w.-]+\.[a-z]{2,12}(?:/[^)\s]*)?\s*\)|"
+                  r"\s*https?://[^\s)]+", re.I)
 # What a listing says when it states a requirement tied to where you live, your right to work or
 # a language (English, German and French): the only reason to mention your situation.
 _LISTING_CONSTRAINT = re.compile(
@@ -42,6 +48,15 @@ _LISTING_CONSTRAINT = re.compile(
     r"wohnsitz|arbeitserlaubnis|arbeitsgenehmigung|aufenthalt\w*|deutschkenntnisse|"
     r"sprachkenntnisse|vor ort vor|r[ée]sidence|permis de travail|titre de s[ée]jour|"
     r"autorisation de travail|fran[cç]ais courant|bilingue)\b", re.I)
+# What a listing says when it states a requirement tied to WHERE you live or may work: the only
+# reason to mention your location, visa or relocation. A language requirement is not one.
+_LISTING_LOCATION = re.compile(
+    r"\b(?:residen\w+|right to work|work (?:permit|authori[sz]ation)|visa|sponsor\w*|"
+    r"eligible to work|applicant location|location requirements?|citizen\w*|"
+    r"must (?:be|live|reside)\b[^.]{0,30}\b(?:in|within|near)|"
+    r"based in|on-?site|in[- ]office|relocat\w*|"
+    r"wohnsitz|arbeitserlaubnis|arbeitsgenehmigung|aufenthalt\w*|vor ort vor|"
+    r"r[ée]sidence|permis de travail|titre de s[ée]jour|autorisation de travail)\b", re.I)
 _SIGNAL_RUN = 7
 # A signal says what it says: never what it "shows about" the company (the verifier blocks that
 # kind of embroidery; this warns earlier).
@@ -52,6 +67,17 @@ _INFERENCE = re.compile(
 
 def listing_states_constraint(job_text: str) -> bool:
     return bool(_LISTING_CONSTRAINT.search(job_text or ""))
+
+
+def listing_states_location(job_text: str) -> bool:
+    return bool(_LISTING_LOCATION.search(job_text or ""))
+
+
+def clean(text: str) -> str:
+    """No markdown backticks and no URLs or domains in an email (a project's own address
+    belongs on the CV, not in the sentence)."""
+    text = _URL.sub("", (text or "").replace("`", ""))
+    return re.sub(r"[ \t]+([,.;])", r"\1", text)
 
 
 def plain_role(role: str) -> str:
@@ -76,7 +102,7 @@ def body(plan: AppliedEmailPlan) -> str:
     experience = " ".join(s.text.strip() for s in plan.experience)
     parts = [plan.greeting.strip(), opening, experience, plan.constraint.strip(),
              plan.ask.strip()]
-    return "\n\n".join(p for p in parts if p)
+    return clean("\n\n".join(p for p in parts if p))
 
 
 def _facts_without_statement(text: str, ctx: ic.Context) -> str:
@@ -92,6 +118,16 @@ def _source_text(ctx: ic.Context) -> oc.Context:
 
 def _paragraph_hits(text: str, pattern: re.Pattern[str]) -> int:
     return sum(1 for p in text.split("\n\n") if pattern.search(p))
+
+
+_LEGAL = {"gmbh", "ag", "inc", "ltd", "llc", "sas", "sarl", "sa", "bv", "plc", "co", "corp", "ug"}
+
+
+def _is_company_word(word: str, company: str) -> bool:
+    """A "tool" that is really a word of the company's name ("GmbH", "SaltRock", "ElevenLabs")."""
+    w = oc.fold(word).replace(" ", "")
+    parts = {oc.fold(c) for c in re.split(r"[\s,.]+", company or "") if c}
+    return w in _LEGAL or w in parts or w == oc.fold(company or "").replace(" ", "")
 
 
 def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]:
@@ -135,12 +171,15 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     if n < ctx.min_words or n > ctx.max_words:
         out.append(violation("length", f"{n} words (about {ctx.min_words}-{ctx.max_words} reads "
                              "best)", "body"))
-    for sentence in re.split(r"(?<=[.!?])\s+", text):
-        tools = ic._tools(sentence, ctx.pool)
-        if len(tools) > MAX_TOOLS:
-            out.append(violation("tools", f"“{sentence}” names {len(tools)} tools "
-                                 f"({', '.join(tools)}): {MAX_TOOLS} at most reads better",
-                                 "body"))
+    tools = [x for x in ic._tools(_facts_without_statement(text, ctx), ctx.pool)
+             if not _is_company_word(x, ctx.company)]
+    if len(tools) > MAX_TOOLS:
+        out.append(violation("tools", f"Names {len(tools)} tools ({', '.join(tools)}): "
+                             f"{MAX_TOOLS} at most reads better", "body"))
+    figures = [n for n in numbers(_facts_without_statement(text, ctx).split("\n", 1)[-1])]
+    if len(figures) > MAX_NUMBERS:
+        out.append(violation("numbers", f"{len(figures)} numbers ({', '.join(figures)}): keep "
+                             f"at most {MAX_NUMBERS}, only if they make the point", "body"))
     for phrase in ctx.banned:
         key = oc.fold(phrase.replace("’", "'"))
         if key and re.search(rf"\b{re.escape(key)}\b", oc.fold(everything.replace("’", "'"))):
@@ -153,9 +192,10 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     mentions = _paragraph_hits(text, ic._PLACE)
     places = [p for p in ctx.places if p and re.search(
         rf"\b{re.escape(oc.fold(p))}\b", folded)]
-    if (mentions or places) and not listing_states_constraint(ctx.job_text):
-        out.append(violation("constraint", "The listing states no residency, work-permit or "
-                             "language requirement: leave your location and visa out", "body"))
+    if (mentions or places) and not listing_states_location(ctx.job_text):
+        out.append(violation("constraint", "The listing states no residency, work-permit, "
+                             "on-site or relocation requirement: leave your location, visa and "
+                             "relocation out", "body"))
     elif mentions > 1:
         out.append(violation("constraint", "Say where you are and what you'd need once, in one "
                              "place", "body"))
@@ -165,6 +205,21 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
             out.append(violation("duplicate", f"{round(score * 100)}% the same as your draft to "
                                  f"{to} (#{draft_id})", "body"))
     return out
+
+
+def copy_run(text: str, facts: list[str], references: list[str]) -> tuple[int, str]:
+    """The longest run of words shared with one pool bullet or style reference, and which."""
+    best, where = 0, ""
+    for label, group in (("a CV bullet", facts), ("the style reference", references)):
+        for source in group:
+            run = ic._longest_run(text, source)
+            if run > best:
+                best, where = run, label
+    return best, where
+
+
+def copies(found: list[dict[str, str]]) -> bool:
+    return any(v["type"] == "cv_copy" for v in found)
 
 
 def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
@@ -184,6 +239,8 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     for i, sentence in enumerate(plan.experience, 1):
         where = f"experience {i}"
         text = _facts_without_statement(sentence.text, ctx)
+        if text != sentence.text and len(re.findall(r"\w+", text)) <= 3:
+            continue  # only "I have <the years statement>": the years rule checks it
         out += [violation("grounding", f"“{sentence.text}”: {p}", where, "error")
                 for p in sentence_problems(
                     SummarySentence(text=text, citations=sentence.citations), ctx.pool,
@@ -191,8 +248,13 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
         if len(oc.words(sentence.text)) > MAX_PROOF_WORDS:
             out.append(violation("proof_length", f"{len(oc.words(sentence.text))} words: one "
                                  f"sentence of about {MAX_PROOF_WORDS} words reads best", where))
-        if any(_overlap(sentence.text, f) >= RESTATE_THRESHOLD for f in facts):
-            out.append(violation("cv_copy", f"“{sentence.text}” reads like a CV bullet", where))
+        run, source = copy_run(sentence.text, facts, ctx.references)
+        if run >= COPY_RUN:
+            out.append(violation("cv_copy", f"“{sentence.text}” copies {run} words in a row "
+                                 f"from {source}: summarize in your own words", where))
+        if not _FIRST_PERSON.get(ctx.language, _FIRST_PERSON["en"]).search(sentence.text):
+            out.append(violation("fragment", f"“{sentence.text}” isn't a sentence about you: "
+                                 "write it with “I”", where))
         terms = _item_terms(ctx.pool, sentence.citations)
         if terms and not any(re.search(rf"\b{re.escape(t)}\b", oc.fold(sentence.text))
                              for t in terms):

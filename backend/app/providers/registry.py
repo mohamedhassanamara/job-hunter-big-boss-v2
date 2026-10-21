@@ -64,21 +64,39 @@ def fit_scorer(*, mock: bool | None = None, model: str = "qwen2.5:7b",
 
 
 @lru_cache
-def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> CVGenerator:
-    """Real workspace: Claude Code headless. Tests and the tour sandbox: the deterministic mock."""
-    use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    if use_mock:
-        return MockCVGenerator()
+def _claude_cv(model: str) -> CVGenerator:
     from app.providers.claude_cv import ClaudeCVGenerator
 
     return ClaudeCVGenerator(model)
 
 
-def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> EmailDrafter:
-    """Real workspace: Claude Code headless (subscription only). Tests and the sandbox: mock."""
+def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5",
+                 thinking_level: str | None = None, engine: Any = None) -> CVGenerator:
+    """Real workspace: Gemini for `gemini-*` models (the shared free keys), else Claude Code
+    headless. Tests and the tour sandbox: the deterministic mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    if use_mock:
+        return MockCVGenerator()
+    if model.startswith("gemini-"):
+        from app.db import engine as default_engine
+        from app.providers.gemini_generate import GeminiCVGenerator, runner_for
+
+        return GeminiCVGenerator(runner_for(engine or default_engine, model, thinking_level))
+    return _claude_cv(model)
+
+
+def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5",
+                  thinking_level: str | None = None, engine: Any = None) -> EmailDrafter:
+    """Real workspace: Gemini for `gemini-*` models, else Claude Code headless (subscription
+    only). Tests and the sandbox: mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     if use_mock:
         return MockEmailDrafter()
+    if model.startswith("gemini-"):
+        from app.db import engine as default_engine
+        from app.providers.gemini_generate import GeminiEmailDrafter, runner_for
+
+        return GeminiEmailDrafter(runner_for(engine or default_engine, model, thinking_level))
     from app.providers.claude_email import ClaudeEmailDrafter
 
     return ClaudeEmailDrafter(model)

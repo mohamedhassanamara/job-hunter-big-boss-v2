@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 PACIFIC = ZoneInfo("America/Los_Angeles")
 PROVIDER = "gemini"  # provider_key_state: a refused key is refused for every model
 RPM, TPM, RPD = 15, 250_000, 500
+USER_RESERVE = 50  # requests/day per key that background work (scoring) never uses
 WINDOW = 61.0  # seconds: a little over a minute, so a rolling window never exceeds the limit
 
 
@@ -73,12 +74,15 @@ class KeyPool:
     """Per-model pool over the configured keys. One instance per (engine, model)."""
 
     def __init__(self, engine: Engine, model: str, *, rpm: int = RPM, tpm: int = TPM,
-                 rpd: int = RPD, keys: list[tuple[str, str]] | None = None,
+                 rpd: int = RPD, user_reserve: int = USER_RESERVE,
+                 keys: list[tuple[str, str]] | None = None,
                  clock: Callable[[], float] = time.time,
                  sleep: Callable[[float], None] = time.sleep,
                  now: Callable[[], datetime] = utcnow):
         self.engine, self.model = engine, model
         self.rpm, self.tpm, self.rpd = rpm, tpm, rpd
+        self.user_reserve = min(user_reserve, max(0, rpd - 1))
+        self._user_waiting = 0  # user-priority callers inside acquire(): background yields
         self._keys = keys
         self._clock, self._sleep, self._now = clock, sleep, now
         self._lock = threading.Lock()
@@ -108,13 +112,36 @@ class KeyPool:
 
     # acquire / report -------------------------------------------------------------------------
 
-    def acquire(self, est_tokens: int = 6000) -> Lease:
+    def acquire(self, est_tokens: int = 6000, *, priority: str = "user",
+                avoid: tuple[str, ...] = ()) -> Lease:
         """Reserve one request on the first usable key; waits for its minute window. Raises
-        QuotaWait when no key can take a request until the daily reset (or ever, if all refused)."""
+        QuotaWait when no key can take a request until the daily reset (or ever, if all refused).
+
+        `priority`: "user" is work you triggered (a CV, an email, a click); "background" is bulk
+        scoring. Background yields while any user call waits, and never uses the last
+        `user_reserve` requests of a key's day. `avoid`: key labels that just failed (503/429);
+        skipped while another usable key exists."""
+        background = priority == "background"
+        if not background:
+            with self._lock:
+                self._user_waiting += 1
+        try:
+            return self._acquire(est_tokens, background, avoid)
+        finally:
+            if not background:
+                with self._lock:
+                    self._user_waiting -= 1
+
+    def _acquire(self, est_tokens: int, background: bool, avoid: tuple[str, ...]) -> Lease:
         while True:
+            if background and self._user_waiting > 0:
+                self._sleep(0.5)  # user work goes first
+                continue
             wait = 0.0
+            limit = self.rpd - (self.user_reserve if background else 0)
             with self._lock, Session(self.engine) as s:
                 usable = None
+                fallback = None  # a usable key we were asked to avoid
                 exhausted = disabled = 0
                 for label, key in self.keys:
                     st = self._state(s, label)
@@ -122,11 +149,15 @@ class KeyPool:
                         disabled += 1
                         continue
                     usage = self._usage(s, label)
-                    if usage.calls >= self.rpd:
+                    if usage.calls >= limit:
                         exhausted += 1
+                        continue
+                    if label in avoid:
+                        fallback = fallback or (label, key, usage)
                         continue
                     usable = (label, key, usage)
                     break
+                usable = usable or fallback
                 if usable is None:
                     s.commit()
                     if exhausted:
@@ -212,9 +243,13 @@ class KeyPool:
                             "reason": st.disabled_reason if disabled and st else None,
                             "last_minute": recent})
             s.commit()
-        remaining = sum(k["remaining"] for k in out if k["state"] != "disabled")
+        live = [k for k in out if k["state"] != "disabled"]
+        remaining = sum(k["remaining"] for k in live)
+        pooled = {"used": sum(k["used"] for k in live), "limit": self.rpd * len(live),
+                  "remaining": remaining, "keys": len(live), "user_reserve": self.user_reserve}
         return {"model": self.model, "keys": out, "limits": {"rpm": self.rpm, "tpm": self.tpm,
                                                               "rpd": self.rpd},
+                "pooled": pooled,
                 "remaining_today": remaining, "day": pacific_day(now),
                 "resets_at": next_reset(now).isoformat()}
 

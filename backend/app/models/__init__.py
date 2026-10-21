@@ -17,6 +17,7 @@ from app.models.company import (
 )
 from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceHistory, ExperienceItem
+from app.models.generation import GenerationTask
 from app.models.interview import InterviewPrep
 from app.models.job import FitConfirmation, FitScore, Job
 from app.models.linkedin import CVFit, LinkedInLead, LinkedInLinkOpen, LinkedInOutreach
@@ -94,6 +95,7 @@ __all__ = [
     "ReminderAction",
     "ResearchRun",
     "SearchProfile",
+    "GenerationTask",
     "ScoringRun",
     "ScoringTask",
     "SendLog",

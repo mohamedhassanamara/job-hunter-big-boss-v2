@@ -88,7 +88,21 @@ def transition(
     )
     session.add(app)
     session.add(event)
+    _drafting_hooks(session, app, src, to)
     return event
+
+
+def _drafting_hooks(session: Session, app: Application, src: Stage, to: Stage) -> None:
+    """Background drafting (services/generation.py): queue the CV when a job is shortlisted,
+    cancel what is still queued when it goes back to New or is closed. Rows only: they commit
+    with the caller, and a worker picks them up."""
+    from app.services import generation
+
+    if to == Stage.shortlisted:
+        generation.on_shortlisted(session, app, src)
+        generation.maybe_enqueue_email(session, app, "shortlist")
+    elif src == Stage.shortlisted and to in (Stage.new, Stage.closed):
+        generation.on_unshortlisted(session, app)
 
 
 def revert(session: Session, app: Application, to: Stage, message: str) -> ApplicationEvent:

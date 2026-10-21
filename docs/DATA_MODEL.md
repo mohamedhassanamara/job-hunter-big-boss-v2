@@ -167,6 +167,17 @@ One row per change of an item's text, written only by `services/experience_write
 | note | str? | e.g. "not in the master document" |
 Undo restores `before` (and is itself a row).
 
+### generation_task (background CV / email drafts, migration 0031)
+| Column | Type | Notes |
+|---|---|---|
+| application_id, kind | int, `cv\|email` | One live task (queued/running) per job and kind |
+| status | str | `queued\|running\|done\|failed\|skipped\|cancelled`. Done and cancelled say nothing on the card (the draft is the state) |
+| trigger, use | str | `shortlist\|cv_approved\|contact_ready\|retry`; `use = claude` is the one-shot "Generate with Claude" |
+| model, details | str, JSON | What wrote it; calls, 429/503 retries, seconds, tokens |
+| attempts, not_before, error, warning, retryable | | Task-level retry (one more after 3 min), quota-reset wait, the failure text, the skip reason ("pool incomplete") |
+| result_id | int | The CV version or the draft it produced |
+Inserted in-session by `services/generation` hooks (`pipeline.transition`, CV approval, a contact becoming verified), run by one worker thread (real workspace only), recovered at startup (running → queued). Settings: `app_setting.generation = {auto_cv, auto_email}`; `models.cv` / `models.email` = `{provider, model, thinking_level}`.
+
 ### scoring_run / scoring_task (persistent queue)
 | Table | Columns | Notes |
 |---|---|---|

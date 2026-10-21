@@ -4,13 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { StageBadge, ToneBadge } from '@/components/app/badges'
+import { GenerationFailed } from '@/components/app/GenerationFailed'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
-import { apiUrl } from '@/lib/api'
+import { ApiError, apiUrl } from '@/lib/api'
 import { keys } from '@/lib/queries/keys'
 import { relativeTime } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
@@ -117,17 +118,29 @@ export default function CVStudioPage() {
   const templates = (studio.data?.templates ?? []).filter((t) => t.valid)
   const blockers = (studio.data?.readiness ?? []).filter((r) => r.severity === 'blocker')
 
-  const runGenerate = useCallback(() => {
+  // A failed attempt (503 = the model didn't answer after its retries, or a failed background task).
+  const [failure, setFailure] = useState<string | null>(null)
+  const task = job.data?.application.tracks.generation?.cv ?? null
+  const taskFailed = !version && task?.status === 'failed' ? (task.error ?? 'The model did not answer.') : null
+  const background = !version && (task?.status === 'queued' || task?.status === 'generating')
+  const failureMessage = failure ?? taskFailed
+
+  const runGenerate = useCallback((use?: 'claude') => {
     if (!Number.isFinite(appId)) return
-    const t = toast.loading('Tailoring your CV with Claude…', { description: 'Usually under a minute. The page is then fitted in code.' })
+    setFailure(null)
+    const t = toast.loading(use === 'claude' ? 'Tailoring your CV with Claude…' : 'Tailoring your CV…', { description: 'Usually under a minute. The page is then fitted in code.' })
     generate.mutate(
-      { appId },
+      { appId, use },
       {
         onSuccess: (v) => {
           setSelected(v.id)
           toast.success(`CV v${v.version} ready for review`, { id: t, description: `${v.page_count} page · ${Math.round((v.fill ?? 0) * 100)}% full · ${Math.round((v.duration_ms ?? 0) / 1000)}s` })
         },
-        onError: (e) => toast.error(e.message, { id: t }),
+        onError: (e) => {
+          toast.dismiss(t)
+          if (e instanceof ApiError && e.status === 503) setFailure(e.message)
+          else toast.error(e.message)
+        },
       },
     )
   }, [appId, generate])
@@ -223,7 +236,7 @@ export default function CVStudioPage() {
                 </Button>
               </Tooltip>
             )}
-            <Button onClick={runGenerate} disabled={generate.isPending || blockers.length > 0}>
+            <Button onClick={() => runGenerate()} disabled={generate.isPending || blockers.length > 0}>
               <RefreshCw className={generate.isPending ? 'animate-spin' : undefined} />
               {generate.isPending ? 'Generating…' : 'Regenerate'}
             </Button>
@@ -264,6 +277,9 @@ export default function CVStudioPage() {
         )}
       </div>
 
+      {failureMessage && !generate.isPending && (
+        <GenerationFailed what="CV" message={failureMessage} busy={generate.isPending} onRetry={() => runGenerate()} onClaude={() => runGenerate('claude')} />
+      )}
       {version?.status === 'approved' && <CVFitStrip cvId={version.id} />}
       {loading ? (
         <div className="grid flex-1 grid-cols-2 gap-6 p-6">
@@ -279,11 +295,15 @@ export default function CVStudioPage() {
       ) : !version ? (
         <EmptyState
           icon={FileText}
-          title={generate.isPending ? 'Tailoring your CV…' : 'No CV for this job yet'}
+          title={generate.isPending || background ? 'Tailoring your CV…' : 'No CV for this job yet'}
           description={
             blockers.length
               ? blockers.map((b) => b.message).join(' ')
-              : 'One page, tailored to this listing from your experience pool. Nothing is invented: every fact is checked against what you entered.'
+              : background
+                ? 'A draft is being written in the background. It appears here when it is ready; nothing is approved automatically.'
+                : task?.status === 'skipped' && task.warning
+                  ? task.warning
+                  : 'One page, tailored to this listing from your experience pool. Nothing is invented: every fact is checked against what you entered.'
           }
           action={
             <div className="flex gap-2">
@@ -292,7 +312,7 @@ export default function CVStudioPage() {
                   <Link to="/settings?section=candidate">Open Candidate settings</Link>
                 </Button>
               ) : (
-                <Button variant="default" onClick={runGenerate} disabled={generate.isPending || blockers.length > 0}>
+                <Button variant="default" onClick={() => runGenerate()} disabled={generate.isPending || background || blockers.length > 0}>
                   <Sparkles />
                   Generate CV
                 </Button>

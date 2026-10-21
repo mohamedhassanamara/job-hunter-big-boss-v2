@@ -533,9 +533,14 @@ SETTINGS: dict[str, dict] = {
         "scoring": {"provider": "ollama", "model": "gemma4:31b-cloud", "fallback": "gemma4:12b",
                     "cloud_concurrency": {"min": 1, "start": 4, "max": 4},
                     "local_concurrency": 2},
-        "cv": {"provider": "anthropic", "model": "claude-sonnet-5"},
-        "email": {"provider": "anthropic", "model": "claude-haiku-4-5"},
+        # Generators: Gemini on the shared free keys; Claude stays selectable per task.
+        "cv": {"provider": "gemini", "model": "gemini-3.5-flash-lite", "thinking_level": "minimal"},
+        "email": {"provider": "gemini", "model": "gemini-3.5-flash-lite",
+                  "thinking_level": "minimal"},
     },
+    # Automatic drafting (never approves anything): the CV when you shortlist a job, the email
+    # when a verified contact AND an approved CV both exist. The email one starts off.
+    "generation": {"auto_cv": True, "auto_email": False},
     "smtp": {"address": "", "from_name": "", "interval_minutes": 15, "max_per_queue": 20},
     "schedule": {"enabled": True, "time": "07:00"},
     "lookup": {"daily_cap": 10},

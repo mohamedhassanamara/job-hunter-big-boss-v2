@@ -64,3 +64,23 @@ def test_the_current_email_prompt_was_run_against_the_regression_set() -> None:
     assert latest in log, (f"outreach v{latest} has no eval: run `make eval-emails` and record "
                            "the report in app/prompts/eval_log.json")
     assert log[latest]["errors"] == 0 or log[latest].get("note")
+
+
+def test_must_warn_emails_still_raise_the_copy_warning(job_ready: dict, tmp_path: Path) -> None:  # noqa: F811
+    """The emails a model wrote by copying the pool's bullets stay in the set: today's pool and
+    threshold must still flag them, and a real paraphrase must not be flagged."""
+    copied = " ".join(job_ready["fact"].split()[:10])
+    with Session(engine) as s:
+        s.add(EmailExample(kind="must_warn", language="en", subject="S", company="Copyco",
+                           body=f"Hi Ana,\n\nAt {job_ready['org']} I {copied}.\n\nBest,\nAlex",
+                           inputs={"mode": "applied"}))
+        s.add(EmailExample(kind="must_warn", language="en", subject="S", company="Fresh",
+                           body="Hi Ana,\n\nI work on mobile apps every single day.\n\nBest",
+                           inputs={"mode": "applied"}))
+        s.commit()
+    by_company = {r["company"]: r for r in ev.check_must_warn(engine)}
+    assert by_company["Copyco"]["warns"] and by_company["Copyco"]["run"] >= 8
+    assert not by_company["Fresh"]["warns"]
+    # the regeneration eval never rewrites them
+    path, results = ev.run_eval(engine, MockEmailDrafter(), out_dir=tmp_path)
+    assert all(r["kind"] != "must_warn" for r in results)

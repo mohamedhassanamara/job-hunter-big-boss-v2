@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { TagInput } from '@/components/app/TagInput'
 import { Input, Textarea } from '@/components/ui/input'
 import { useSaveSetting } from '@/lib/queries/library'
+import { formatRules, parseRules, type TrackTable } from './skillRules'
 import type { SettingsView } from '@/lib/types'
 import { Card, Field, SaveBar } from './sections'
 
@@ -52,6 +53,9 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
     structure: cv.structure as Structure,
     skill_merges: ((cv.skill_merges as string[] | undefined) ?? []).join('\n'),
     banned_phrases: (cv.banned_phrases as string[] | undefined) ?? [],
+    qualifiers: (cv.qualifiers as string[] | undefined) ?? [],
+    skill_display: formatRules(cv.skill_display as TrackTable<string> | undefined),
+    skill_keep: formatRules(cv.skill_keep as TrackTable<string[]> | undefined),
   }
   const [v, setV] = useState(initial)
   const save = useSaveSetting()
@@ -87,6 +91,9 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
                   banned_phrases: v.banned_phrases,
                   structure: v.structure,
                   skill_merges: v.skill_merges.split('\n').map((l) => l.trim()).filter(Boolean),
+                  qualifiers: v.qualifiers,
+                  skill_display: parseRules<string>(v.skill_display, false),
+                  skill_keep: parseRules<string[]>(v.skill_keep, true),
                 },
               },
               { onSuccess: () => toast.success('CV writing rules saved', { description: 'They apply to the next CV you generate.' }), onError: (e) => toast.error(e.message) },
@@ -136,6 +143,15 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
           />
           % or more
         </span>
+      </Field>
+      <Field label="Summary qualifiers" hint="Words like “scalable” are only allowed in a summary when your experience says them; otherwise a warning">
+        <TagInput tags={v.qualifiers} onChange={(qualifiers) => setV({ ...v, qualifiers })} placeholder="add a word (Enter)" />
+      </Field>
+      <Field label="Skill category names per track" hint="One per line: “Mobile | Backend & Data Engineering = Backend” shows that category as Backend on Mobile CVs">
+        <Textarea value={v.skill_display} onChange={(e) => setV({ ...v, skill_display: e.target.value })} className="min-h-16 font-mono text-xs" aria-label="Skill category names per track" />
+      </Field>
+      <Field label="Skills kept first per track" hint="One per line: “Mobile | Core Languages = Kotlin, Swift”: pool skills pinned to the front of that group so the cap never drops them">
+        <Textarea value={v.skill_keep} onChange={(e) => setV({ ...v, skill_keep: e.target.value })} className="min-h-16 font-mono text-xs" aria-label="Skills kept first per track" />
       </Field>
       <Field label="Skill merges" hint="One per line: “LLMs: Mistral, Ollama” · “LocalStack + S3” · “Linux / Bash”">
         <Textarea value={v.skill_merges} onChange={(e) => setV({ ...v, skill_merges: e.target.value })} className="min-h-24 font-mono text-xs" aria-label="Skill merges" />

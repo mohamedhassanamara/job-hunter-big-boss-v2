@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { CommandPalette } from './CommandPalette'
 import { DiscoveryWatcher } from './DiscoveryWatcher'
+import { GenerationWatcher } from './GenerationWatcher'
 import { ALL_NAV } from './nav'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { Sidebar } from './Sidebar'
@@ -71,6 +72,7 @@ export function AppShell() {
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
       <DiscoveryWatcher />
+      <GenerationWatcher />
     </div>
     </TourProvider>
   )

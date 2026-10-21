@@ -1,4 +1,4 @@
-import { CircleAlert, CircleDashed, EyeOff, Flag, Globe, Mail, MapPin, Network, Search as SearchIcon, UserRoundCheck, UserRoundX } from 'lucide-react'
+import { CircleAlert, CircleDashed, EyeOff, FileText, Flag, Globe, LoaderCircle, Mail, MapPin, Network, Search as SearchIcon, UserRoundCheck, UserRoundX } from 'lucide-react'
 import { Tooltip } from '@/components/ui/tooltip'
 import { REMOTE_LABELS, SOURCE_LABELS, SOURCE_SHORT, TIER_LABELS } from '@/lib/format'
 import type {
@@ -280,7 +280,7 @@ const OUTREACH_TRACK: Record<OutreachTrack, { label: string; tone: Tone }> = {
   no_contact: { label: 'Get contact', tone: 'gray' },
   verify: { label: 'Verify contact', tone: 'amber' },
   contact: { label: 'Ready to draft', tone: 'slate' },
-  drafted: { label: 'Draft to review', tone: 'amber' },
+  drafted: { label: 'Email ready to review', tone: 'amber' },
   approved: { label: 'Approved', tone: 'blue' },
   queued: { label: 'Queued', tone: 'violet' },
   sent: { label: 'Sent', tone: 'green' },
@@ -306,10 +306,73 @@ export function TrackBadge({ kind, tracks, className }: { kind: 'application' | 
   )
 }
 
+/** Background drafting, silent: "CV ready to review" (a draft waits), a quiet "Drafting…" while a
+ * task is queued or running, and "failed" (the job page offers Retry / Generate with Claude). */
+export function DraftingBadges({ tracks, className }: { tracks: Tracks; className?: string }) {
+  const cvTask = tracks.generation?.cv
+  const emailTask = tracks.generation?.email
+  const cv = tracks.cv
+  return (
+    <>
+      {cv === 'draft' && (
+        <Tooltip content="A CV draft is waiting for your review. Nothing is approved automatically.">
+          <span>
+            <ToneBadge tone="amber" dot={false} className={className}>
+              <FileText className="size-3.5" />
+              CV ready to review
+            </ToneBadge>
+          </span>
+        </Tooltip>
+      )}
+      {(cv === 'queued' || cv === 'generating') && (
+        <Tooltip content="Writing the CV draft in the background">
+          <span>
+            <ToneBadge tone="gray" dot={false} className={className}>
+              <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+              Drafting CV
+            </ToneBadge>
+          </span>
+        </Tooltip>
+      )}
+      {cv === 'failed' && (
+        <Tooltip content={cvTask?.error ?? 'The CV draft could not be written'}>
+          <span>
+            <ToneBadge tone="red" dot={false} className={className}>
+              <CircleAlert className="size-3.5" />
+              CV failed
+            </ToneBadge>
+          </span>
+        </Tooltip>
+      )}
+      {(emailTask?.status === 'queued' || emailTask?.status === 'generating') && (
+        <Tooltip content="Writing the email draft in the background">
+          <span>
+            <ToneBadge tone="gray" dot={false} className={className}>
+              <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+              Drafting email
+            </ToneBadge>
+          </span>
+        </Tooltip>
+      )}
+      {emailTask?.status === 'failed' && (
+        <Tooltip content={emailTask.error ?? 'The email draft could not be written'}>
+          <span>
+            <ToneBadge tone="red" dot={false} className={className}>
+              <CircleAlert className="size-3.5" />
+              Email failed
+            </ToneBadge>
+          </span>
+        </Tooltip>
+      )}
+    </>
+  )
+}
+
 /** Both routes side by side (web application + cold email). */
 export function TrackBadges({ tracks, className }: { tracks: Tracks; className?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-1', className)}>
+      <DraftingBadges tracks={tracks} />
       <TrackBadge kind="application" tracks={tracks} />
       <TrackBadge kind="outreach" tracks={tracks} />
       {tracks.linkedin && tracks.linkedin !== 'none' && <TrackBadge kind="linkedin" tracks={tracks} />}

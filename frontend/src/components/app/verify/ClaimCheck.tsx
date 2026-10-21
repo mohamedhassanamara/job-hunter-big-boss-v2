@@ -50,7 +50,8 @@ export function ClaimCheck({
 }) {
   const claims = verification?.claims ?? []
   const blocking = claims.filter((c) => VERDICT[c.verdict]?.blocking ?? true)
-  const rest = claims.filter((c) => !(VERDICT[c.verdict]?.blocking ?? true))
+  const garbled = claims.filter((c) => c.verdict === 'garbled')
+  const rest = claims.filter((c) => !(VERDICT[c.verdict]?.blocking ?? true) && c.verdict !== 'garbled')
   const Icon = verifying ? LoaderCircle : state === 'passed' ? CircleCheck : state === 'failed' ? CircleX : state === 'none' ? ShieldCheck : TriangleAlert
   const tone =
     state === 'passed' ? 'border-tone-green-border bg-success-bg text-success-fg' : state === 'failed' ? 'border-tone-red-border bg-danger-bg text-danger-fg' : state === 'none' ? 'border-border bg-surface text-fg-muted' : 'border-tone-amber-border bg-warning-bg text-warning-fg'
@@ -74,6 +75,14 @@ export function ClaimCheck({
       {claims.length > 0 && !verifying && (
         <div className={cn('px-3', compact ? 'py-1' : 'py-1.5')}>
           {blocking.length > 0 && <ul className="divide-y divide-border">{blocking.map((c, i) => <Claim key={`b${i}`} c={c} />)}</ul>}
+          {garbled.length > 0 && (
+            <div className="py-1.5">
+              <p className="text-xs font-medium text-warning-fg">
+                {garbled.length === 1 ? 'A sentence reads badly (a warning, it does not block approval)' : `${garbled.length} sentences read badly (warnings, they do not block approval)`}
+              </p>
+              <ul className="divide-y divide-border">{garbled.map((c, i) => <Claim key={`g${i}`} c={c} />)}</ul>
+            </div>
+          )}
           {rest.length > 0 && (
             <details className="py-1.5" open={blocking.length === 0 && !compact}>
               <summary className="cursor-default text-xs font-medium text-fg-subtle">

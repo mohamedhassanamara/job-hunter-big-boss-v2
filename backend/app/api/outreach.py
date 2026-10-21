@@ -30,6 +30,7 @@ from app.models.enums import (
     Stage,
 )
 from app.providers.base import SendFailed
+from app.providers.gemini_generate import generation_failure
 from app.providers.registry import email_drafter, hook_checker, mailer
 from app.providers.registry import researcher as research_provider
 from app.schemas.outreach import (
@@ -54,7 +55,15 @@ from app.schemas.outreach import (
 )
 from app.services import applied_check as ac
 from app.services import contacts as contacts_svc
-from app.services import external_ai, get_contact, outreach, pipeline, send_queue, verifier
+from app.services import (
+    external_ai,
+    get_contact,
+    model_choice,
+    outreach,
+    pipeline,
+    send_queue,
+    verifier,
+)
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -415,11 +424,11 @@ def restore_draft(draft_id: int, session: SessionDep) -> DraftOut:
     return _drafts_out(session, [d])[0]
 
 
-def _email_model(session: Session) -> str:
-    models = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    model = (((models.value if models else {}).get("email") or {}).get("model")
-             or "claude-sonnet-5")
-    return "claude-sonnet-5" if model.startswith("claude-haiku") else model
+def email_generator(session: Session, engine, demo: bool, use: str | None = None):  # noqa: ANN001, ANN202
+    """The email drafter from Settings → Models (`use="claude"`: this call only)."""
+    pick = model_choice.choice(session, "email", use)
+    return email_drafter(mock=True if demo else None, model=pick["model"],
+                         thinking_level=pick["thinking_level"], engine=engine)
 
 
 def _research_models(session: Session) -> tuple[str, str | None]:
@@ -461,9 +470,11 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep, workspac
         if (_draft_runs.get(key) or {}).get("status") == "running":
             raise HTTPException(409, "This email is already being drafted")
         _draft_runs[key] = {"status": "running", "phase": "starting", "done": 0, "total": 0,
-                            "draft_id": None, "error": None}
+                            "draft_id": None, "error": None, "generation_failed": False}
     demo = workspace == "demo"
-    drafter = email_drafter(mock=True if demo else None, model=_email_model(session))
+    if body.use not in model_choice.USES:
+        raise HTTPException(422, "use must be empty or 'claude'")
+    drafter = email_generator(session, engine, demo, body.use)
     model, fallback = _research_models(session)
     researcher = research_provider(mock=True if demo else None, model=model, fallback=fallback)
     checker = hook_checker(mock=True if demo else None, model=model, fallback=fallback)
@@ -483,7 +494,8 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep, workspac
                 _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
         except Exception as exc:  # noqa: BLE001 (shown to the user)
             with _draft_runs_lock:
-                _draft_runs[key].update(status="failed", error=str(exc)[:400])
+                _draft_runs[key].update(status="failed", error=str(exc)[:400],
+                                        generation_failed=generation_failure(exc) is not None)
 
     threading.Thread(target=work, name=f"draft-{app_id}", daemon=True).start()
     return DraftProgress(**draft_progress_state(workspace, app_id))

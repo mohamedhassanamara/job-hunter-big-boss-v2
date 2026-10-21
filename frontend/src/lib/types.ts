@@ -15,6 +15,27 @@ export interface Tracks {
   contact_name: string | null
   draft_id: number | null
   sent_at: string | null
+  /** The CV draft and background drafting (services/generation.py). */
+  cv: CVTrack
+  generation: { cv: GenerationState | null; email: GenerationState | null } | null
+}
+/** none | queued | generating | failed | skipped | draft (ready to review) | approved */
+export type CVTrack = 'none' | 'queued' | 'generating' | 'failed' | 'skipped' | 'draft' | 'approved'
+/** A background drafting task that still says something. */
+export interface GenerationState {
+  status: 'queued' | 'generating' | 'failed' | 'skipped'
+  error: string | null
+  warning: string | null
+  retryable: boolean
+}
+export interface GenerationStatus {
+  active: number
+  queued: number
+  running: number
+  failed: number
+  /** Changes when a task finishes or fails: cards refresh exactly then. */
+  signature: string
+  auto: { auto_cv: boolean; auto_email: boolean }
 }
 export type ContactTier = 'imported' | 'found' | 'to_get' | 'none'
 /** The company's Get contact state: nobody found with the extension, or never looked up. */
@@ -537,6 +558,8 @@ export type DraftGenerateInput = {
   language?: 'auto' | 'en' | 'fr' // auto clears a language you picked for this draft
   feedback?: string
   base_draft_id?: number
+  /** 'claude': this call only (after a Gemini failure). */
+  use?: 'claude'
 }
 
 export interface ExternalPrompt {
@@ -1221,10 +1244,20 @@ export interface GeminiKeyQuota {
   last_minute: number
 }
 
+export interface PooledQuota {
+  used: number
+  limit: number
+  remaining: number
+  keys: number
+  /** Requests per key and day kept for work you trigger (scoring never uses them). */
+  user_reserve: number
+}
+
 export interface ScoringQuota {
   provider: 'gemini' | 'other'
   model: string
   keys?: GeminiKeyQuota[]
+  pooled?: PooledQuota
   limits?: { rpm: number; tpm: number; rpd: number }
   remaining_today?: number
   day?: string
@@ -1563,6 +1596,8 @@ export interface DraftProgress {
   total: number
   draft_id: number | null
   error: string | null
+  /** The model didn't answer (after the retries): offer Retry and "Generate with Claude". */
+  generation_failed?: boolean
 }
 
 export interface CompanySignal {
@@ -1946,7 +1981,7 @@ export interface MotivationSettings {
 
 // ------------------------------------------------------------------ claim verifier (Claude)
 
-export type ClaimVerdict = 'supported' | 'unsupported' | 'exaggerated' | 'merged' | 'causal' | 'not_a_claim'
+export type ClaimVerdict = 'supported' | 'unsupported' | 'exaggerated' | 'merged' | 'causal' | 'not_a_claim' | 'garbled'
 
 export interface VerifiedClaim {
   sentence: string

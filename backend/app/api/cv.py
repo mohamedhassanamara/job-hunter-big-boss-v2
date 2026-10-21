@@ -7,8 +7,9 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
-from app.models import Application, AppSetting, Company, CVVersion, Job
+from app.models import Application, Company, CVVersion, Job
 from app.models.enums import CVStatus, EventKind, Route, Stage
+from app.providers.gemini_generate import generation_failure
 from app.providers.registry import cv_generator
 from app.schemas.cv import (
     CVApproveResult,
@@ -20,7 +21,15 @@ from app.schemas.cv import (
     TemplateIn,
     TemplateOut,
 )
-from app.services import cv_fit, cv_service, cv_templates, pipeline, verifier
+from app.services import (
+    cv_fit,
+    cv_service,
+    cv_templates,
+    generation,
+    model_choice,
+    pipeline,
+    verifier,
+)
 from app.services.cv_pool import load_pool, readiness
 
 router = APIRouter(tags=["cv"])
@@ -79,18 +88,24 @@ def generate_cv(
     """One job at a time: one generator call (Claude; mock in the sandbox/tests), then checks and
     the one-page fit loop in code."""
     get_or_404(session, Application, app_id, "Application")
-    generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
+    if body.use not in model_choice.USES:
+        raise HTTPException(422, "use must be empty or 'claude'")
+    generator = _generator(session, engine, workspace, body.use)
     try:
         version = cv_service.generate(engine, app_id, generator, body.template,
                                       verifier=verifier.for_workspace(session, workspace))
     except cv_service.CVError as exc:
-        raise HTTPException(422, str(exc)) from exc
+        # 503: the model didn't answer (after the retries): the page offers Retry and
+        # "Generate with Claude"; it never switches model by itself.
+        raise HTTPException(503 if generation_failure(exc) else 422, str(exc)) from exc
     return _out(version)
 
 
-def _cv_model(session: Session) -> str:
-    row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    return ((row.value if row else {}).get("cv") or {}).get("model") or "claude-sonnet-5"
+def _generator(session: Session, engine, workspace: str, use: str | None = None):  # noqa: ANN001, ANN202
+    """The CV generator from Settings → Models (`use="claude"`: this call only)."""
+    pick = model_choice.choice(session, "cv", use)
+    return cv_generator(mock=True if workspace == "demo" else None, model=pick["model"],
+                        thinking_level=pick["thinking_level"], engine=engine)
 
 
 @router.patch("/cv/{cv_id}", response_model=CVVersionOut)
@@ -127,7 +142,7 @@ def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
                        workspace: WorkspaceDep) -> CVVersionOut:
     """New summary for a draft; bullets and layout stay as they are."""
     get_or_404(session, CVVersion, cv_id, "CV version")
-    generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
+    generator = _generator(session, engine, workspace)
     try:
         v = cv_service.regenerate_summary(engine, cv_id, generator)
     except cv_service.CVError as exc:
@@ -140,7 +155,7 @@ def revise_summary(cv_id: int, session: SessionDep, engine: EngineDep,
                    workspace: WorkspaceDep) -> CVVersionOut:
     """A corrected draft of an approved CV: same bullets and layout, a new summary."""
     get_or_404(session, CVVersion, cv_id, "CV version")
-    generator = cv_generator(mock=True if workspace == "demo" else None, model=_cv_model(session))
+    generator = _generator(session, engine, workspace)
     try:
         v = cv_service.revise_summary(engine, cv_id, generator)
     except cv_service.CVError as exc:
@@ -175,6 +190,8 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
             pipeline.transition(session, app, Stage.shortlisted)
         pipeline.transition(session, app, Stage.cv_ready)
     session.add(app)
+    session.flush()
+    generation.maybe_enqueue_email(session, app, "cv_approved")  # whichever comes last
     session.commit()
     session.refresh(v)
     # Fit before/after: the job scored against this CV, in the background (one model call).

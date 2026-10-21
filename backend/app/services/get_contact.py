@@ -137,6 +137,7 @@ def verify(s: Session, app: Application, action: str) -> Application:
         pipeline.log_event(s, app, EventKind.contact_resolved,
                            f"Contact verified: {contact.full_name} is still there",
                            contact_id=contact.id, verified=True)
+        _contact_ready(s, app)
         return app
     if action not in ("left", "wrong_person"):
         raise GetContactError(f"Unknown action {action!r}")
@@ -187,6 +188,7 @@ def found(s: Session, app: Application, *, full_name: str, title: str | None,
         s.add(company)
     contacts_svc.set_contact(s, app, contact)
     s.flush()
+    _contact_ready(s, app)
     contacts_svc.resolve_company(s, job.company_id)  # the company's other jobs get them too
     return contact
 
@@ -211,7 +213,18 @@ def edit(s: Session, contact: Contact, **fields: Any) -> Contact:
     contact.normalized_name = contacts_svc.normalize_person(contact.full_name)
     contact.role_rank = contacts_svc.rank(contact.title, contacts_svc.role_ranking(s))[0]
     s.add(contact)
+    s.flush()
+    for app in s.exec(select(Application).where(Application.contact_id == contact.id)).all():
+        _contact_ready(s, app)
     return contact
+
+
+def _contact_ready(s: Session, app: Application) -> None:
+    """A verified contact may complete "contact + approved CV": queue the email draft (when
+    Settings → Models → automatic email is on). Rows only; the worker writes the draft."""
+    from app.services import generation
+
+    generation.maybe_enqueue_email(s, app, "contact_ready")
 
 
 # ------------------------------------------------------------------------------------ queue

@@ -47,16 +47,26 @@ def with_revise(system: str, request: EmailRequest, revise: str) -> str:
     return system + (f"\n\n{revise}" if (request.rules or {}).get("revision") else "")
 
 
+def reference_block(request: EmailRequest) -> str:
+    """Approved examples of the right level of detail: never to be copied."""
+    refs = (request.rules or {}).get("style_reference") or []
+    if not refs:
+        return ""
+    return ("\n\nSTYLE REFERENCE (the level of detail only: never reuse its wording or its "
+            "facts unless they are yours for this job)\n" + "\n---\n".join(refs))
+
+
 def applied_message(request: EmailRequest, feedback: str = "") -> str:
     """The job-linked email's input: the JOB is not private here (the email names it)."""
     signals = (request.rules or {}).get("signals") or []
     return (
         (f"REJECTED DRAFT PROBLEMS\n{feedback}\n\n" if feedback else "")
         + "RULES\n" + json.dumps({k: v for k, v in request.rules.items()
-                                   if k not in ("signals", "revision")}, ensure_ascii=False)
+                                   if k not in ("signals", "revision", "style_reference")},
+                                  ensure_ascii=False)
         + "\n\nFACTS\n" + json.dumps(request.candidate, ensure_ascii=False)
         + "\n\nCONTACT\n" + json.dumps(request.contact, ensure_ascii=False)
-        + revision_block(request)
+        + revision_block(request) + reference_block(request)
         + "\n\nSIGNALS (optional)\n" + json.dumps(signals, ensure_ascii=False, indent=1)
         + "\n\nJOB\n" + json.dumps(request.job, ensure_ascii=False, indent=1)
         + "\n\nEXPERIENCE POOL\n" + json.dumps(request.pool, ensure_ascii=False, indent=1)

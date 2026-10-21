@@ -171,20 +171,26 @@ def workspace_is_real(workspace: str) -> bool:
 
 
 @router.get("/scoring/quota")
-def scoring_quota(session: SessionDep, workspace: WorkspaceDep) -> dict[str, Any]:
-    """Remaining Gemini quota per key (Settings → Models, Today). Other models have no quota."""
+def scoring_quota(session: SessionDep, workspace: WorkspaceDep,
+                  model: str | None = None) -> dict[str, Any]:
+    """Remaining Gemini quota per key and pooled (Settings → Models, Today). `model`: another
+    Gemini model's pool (scoring, CV and email generation normally share one). Other models have
+    no quota."""
     ctx = scoring.load_context(session)
-    if not ctx.model.startswith("gemini-"):
-        return {"provider": "other", "model": ctx.model}
+    model = model or ctx.model
+    if not model.startswith("gemini-"):
+        return {"provider": "other", "model": model}
     if not workspace_is_real(workspace):  # the tour sandbox: a believable sample, nothing is called
         keys = [{"label": "key 1", "fingerprint": "a1b2c3", "used": 500, "limit": 500,
                  "remaining": 0, "state": "exhausted", "reason": None, "last_minute": 0},
                 {"label": "key 2", "fingerprint": "d4e5f6", "used": 212, "limit": 500,
                  "remaining": 288, "state": "ok", "reason": None, "last_minute": 3}]
-        return {"provider": "gemini", "model": ctx.model, "keys": keys, "sample": True,
+        return {"provider": "gemini", "model": model, "keys": keys, "sample": True,
                 "limits": {"rpm": 15, "tpm": 250_000, "rpd": 500}, "remaining_today": 288,
+                "pooled": {"used": 712, "limit": 1000, "remaining": 288, "keys": 2,
+                           "user_reserve": 50},
                 "day": "sample", "resets_at": None}
-    return {"provider": "gemini", **pool_for(engine_for(workspace), ctx.model).snapshot()}
+    return {"provider": "gemini", **pool_for(engine_for(workspace), model).snapshot()}
 
 
 @router.post("/scoring/keys/{label}/enable")

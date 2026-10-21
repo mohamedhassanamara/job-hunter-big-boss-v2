@@ -200,6 +200,50 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
     return problems
 
 
+def summary_support(summary: str, plan: CVPlan, pool: Pool, qualifiers: list[str]) -> list[str]:
+    """Warnings: the summary names something the CV page doesn't show. A tool, project or concept
+    of your pool that no included bullet, role or skill carries, and a qualifier ("scalable",
+    "cross-platform"…) your pool never uses. The page is what a reader checks the summary
+    against."""
+    from app.services import bullet_tailor
+
+    shown = [pool.get(e.item_id) for e in [*plan.roles, *plan.projects, *plan.volunteering]]
+    page = "\n".join(
+        [p for i in shown if i is not None for p in (i.title, i.org or "")]
+        + [b.text for e in [*plan.roles, *plan.projects, *plan.volunteering] for b in e.bullets]
+        + [x for g in plan.skills for x in g.items]
+        + [c.title for c in (pool.get(i, "certification") for i in plan.certification_ids) if c])
+    page = glossary.expand(page, pool.profile)
+    problems: list[str] = []
+    if page.strip():  # nothing on the page yet (a bare plan): nothing to compare with
+        seen = bullet_tailor.pool_terms_in(page, pool)
+        named = sorted(bullet_tailor.pool_terms_in(summary, pool) - seen, key=str.lower)
+        if named:
+            problems.append(f"names {', '.join(f'“{t}”' for t in named[:3])}, which no bullet or "
+                            "skill on this CV shows")
+        # Concepts: words that only ONE item uses and that item isn't on this CV (e.g. the
+        # subject of a graduation project). Words several items share are generic.
+        shown_ids = {i.id for i in shown if i is not None}
+        per_item = {i.id: bullet_tailor.content_stems("\n".join([i.title, *i.bullets]))
+                    for i in pool.items.values() if i.kind in ("job", "project", "volunteering")}
+        distinct = {s for iid, stems in per_item.items() if iid not in shown_ids for s in stems
+                    if sum(1 for other in per_item.values() if s in other) == 1}
+        only_there = distinct - bullet_tailor.content_stems(page)
+        words = [w for w in re.findall(r"[A-Za-z][A-Za-z0-9+#-]{4,}", summary)
+                 if bullet_tailor.stem(w) in only_there]
+        if words:
+            problems.append(f"mentions {', '.join(f'“{w}”' for w in dict.fromkeys(words))}, "
+                            "which only comes from work that isn't on this CV")
+    pool_text = pool.all_text().lower()
+    loose = [q for q in qualifiers if q and re.search(rf"\b{re.escape(q.lower())}\b",
+                                                      summary.lower())
+             and q.lower() not in pool_text]
+    if loose:
+        problems.append(f"uses {', '.join(f'“{q}”' for q in loose)}, which your experience never "
+                        "says")
+    return problems
+
+
 def ground_sentences(
     sentences: list[SummarySentence], pool: Pool, allowed_years: set[int],
     statement: str | None = None,

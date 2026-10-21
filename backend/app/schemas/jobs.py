@@ -42,6 +42,15 @@ class FitDetail(FitBrief):
     created_at: datetime
 
 
+class GenerationStateOut(BaseModel):
+    """A background drafting task that still says something (queued, running, failed, skipped)."""
+
+    status: str  # queued | generating | failed | skipped
+    error: str | None = None
+    warning: str | None = None
+    retryable: bool = True
+
+
 class TracksOut(BaseModel):
     """The routes of a job (services/tracks.py): application, email and LinkedIn."""
 
@@ -54,6 +63,8 @@ class TracksOut(BaseModel):
     contact_name: str | None = None
     draft_id: int | None = None
     sent_at: datetime | None = None
+    cv: str = "none"  # none | queued | generating | failed | skipped | draft | approved
+    generation: dict[str, GenerationStateOut | None] | None = None
 
 
 class ApplicationBrief(BaseModel):

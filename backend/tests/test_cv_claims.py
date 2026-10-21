@@ -267,3 +267,82 @@ def test_short_years_wording_only_next_to_software_engineer() -> None:
         ["4 years"]  # 3 is the only number
     assert bad_years("Software engineer. He has 3 years of experience.", {3}, statement) == \
         ["3 years"]  # the short form needs the field in the same sentence
+
+
+# ---------------------------------------------- the summary must match the page (model test)
+
+
+def page_plan(*entries: PlanEntry, skills: list[PlanSkillGroup] | None = None) -> CVPlan:
+    return CVPlan(summary="", summary_short="", roles=list(entries), skills=skills or [])
+
+
+def bullet(text: str, i: int = 0) -> PlanBullet:
+    return PlanBullet(source_index=i, text=text, priority=i + 1)
+
+
+def test_the_summary_may_not_name_work_that_is_not_on_the_page() -> None:
+    from app.services.cv_check import summary_support
+
+    plan = page_plan(PlanEntry(item_id=1, relevance=9, bullets=[bullet(ROLE.bullets[0])]))
+    on_page = "Software engineer architecting BFF endpoints in Spring Boot."
+    assert summary_support(on_page, plan, POOL, []) == []
+    # a tool of your pool that no bullet or skill on this CV carries
+    named = summary_support("Engineer who built NLP work with spaCy.", plan, POOL, [])
+    assert any("spacy" in p.lower() and "no bullet or skill" in p for p in named)
+    # a concept only the item left off the CV uses
+    concept = summary_support("Engineer who also built a pipeline for YOLOv8 detection.", plan,
+                              POOL, [])
+    assert any("only comes from work that isn't on this CV" in p for p in concept)
+    # skills on the page count as support
+    with_skill = page_plan(PlanEntry(item_id=1, relevance=9, bullets=[bullet(ROLE.bullets[0])]),
+                           skills=[PlanSkillGroup(item_id=3, items=["spacy"])])
+    assert summary_support("Engineer who built NLP work with spaCy.", with_skill, POOL, []) == []
+    assert summary_support("anything", page_plan(), POOL, []) == []  # a bare plan: no page yet
+
+
+def test_qualifiers_your_pool_never_says_are_flagged() -> None:
+    from app.services.cv_check import summary_support
+
+    plan = page_plan(PlanEntry(item_id=1, relevance=9, bullets=[bullet(ROLE.bullets[0])]))
+    found = summary_support("Engineer shipping scalable, cross-platform apps.", plan, POOL,
+                            ["scalable", "cross-platform", "robust"])
+    assert any("“scalable”" in p and "“cross-platform”" in p for p in found)
+    said = make_pool(item(1, "job", "Engineer", bullets=["Built a scalable API"]))
+    assert summary_support("A scalable API.", page_plan(PlanEntry(
+        item_id=1, relevance=9, bullets=[bullet("Built a scalable API")])), said,
+        ["scalable"]) == []  # your own word is fine
+
+
+def test_a_track_pins_skills_first_and_renames_a_category() -> None:
+    from app.services import cv_rules
+
+    tags = ["Dart", "Python", "Kotlin", "Swift", "SQL", "Bash"]
+    keep = {"Core Languages": ["Kotlin", "Swift"]}
+    pinned = cv_rules.pin("Core Languages", ["Dart", "Python", "SQL", "Bash"], tags, keep)
+    assert pinned[:2] == ["Kotlin", "Swift"] and "Dart" in pinned and len(pinned) == 6
+    assert cv_rules.pin("Other", ["a"], tags, keep) == ["a"]
+    assert cv_rules.pin("Core Languages", ["Dart"], ["Dart"], keep) == ["Dart"]  # pool items only
+    assert cv_rules.skill_display({}, "mobile") == {"Backend & Data Engineering": "Backend"}
+    assert cv_rules.skill_display({}, "Backend") == {}
+    assert cv_rules.skill_keep({}, "Mobile") == {"Core Languages": ["Kotlin", "Swift"]}
+
+
+def test_the_pinned_skills_survive_the_cap_and_the_category_is_renamed() -> None:
+    from app.services.cv_build import FitState, build_document, layout
+    from app.services.cv_rules import DEFAULT_STRUCTURE
+
+    langs = item(6, "skill", "Core Languages",
+                 tags=["Dart", "Python", "Java", "SQL", "Bash", "C/C++", "Kotlin", "Swift"])
+    backend = item(7, "skill", "Backend & Data Engineering", tags=["Spring Boot"])
+    pool = make_pool(ROLE, langs, backend)
+    plan = page_plan(PlanEntry(item_id=1, relevance=9, bullets=[bullet(ROLE.bullets[0])]),
+                     skills=[PlanSkillGroup(item_id=6, items=["Dart", "Python", "Java", "SQL",
+                                                              "Bash", "C/C++", "Swift"]),
+                             PlanSkillGroup(item_id=7, items=["Spring Boot"])])
+    rules = {**DEFAULT_STRUCTURE, "skill_items_max": 3}
+    lay = layout(plan, pool, rules, [], display={"Backend & Data Engineering": "Backend"},
+                 keep={"Core Languages": ["Kotlin", "Swift"]})
+    doc = build_document(plan, pool, FitState(), lay=lay)
+    langs_line = next(g for g in doc.skills if g.category == "Core Languages")
+    assert langs_line.items[:2] == ["Kotlin", "Swift"] and len(langs_line.items) == 3
+    assert [g.category for g in doc.skills] == ["Core Languages", "Backend"]
