@@ -206,6 +206,31 @@ def test_overrides_force_in_out_and_edit(pool) -> None:  # noqa: ANN001
     assert {c.item_id for c in doc.certifications} == {c.id for c in pool.of("certification")}
 
 
+def test_a_toggle_changes_only_that_bullet(pool) -> None:  # noqa: ANN001
+    """Showing a bullet adds it (nothing else disappears); hiding one just removes it."""
+    plan = plan_for(pool)
+    role = next(r for r in plan.roles if len(r.bullets) >= 3)
+    key = f"role:{role.item_id}"
+    state = FitState(counts={**initial_state(plan).counts, key: 1})
+
+    def shown(overrides: dict) -> list[str]:
+        doc = build_document(plan, pool, state, overrides)
+        return next(r for r in doc.roles if r.item_id == role.item_id).bullets
+
+    base = shown({})
+    assert len(base) == 1
+    extra = next(b for b in role.bullets if b.text not in base)
+    added = shown({"force_in": [f"{key}:{extra.source_index}"]})
+    assert set(base) <= set(added) and extra.text in added and len(added) == 2
+    other = next(b for b in role.bullets if b.text not in added)
+    both = shown({"force_in": [f"{key}:{extra.source_index}", f"{key}:{other.source_index}"]})
+    assert set(added) <= set(both) and len(both) == 3  # a second one: the first stays
+    hidden = shown({"force_in": [f"{key}:{extra.source_index}"],
+                    "force_out": [f"{key}:{b.source_index}" for b in role.bullets
+                                  if b.text in base]})
+    assert hidden == [extra.text]  # hiding removes, nothing else takes its place
+
+
 # --------------------------------------------------------------------------- versioning
 
 
