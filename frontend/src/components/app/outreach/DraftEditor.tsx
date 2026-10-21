@@ -385,8 +385,8 @@ export function DraftEditor({
         )}
       </div>
 
-      <div className="flex h-14 shrink-0 items-center gap-2 border-t border-border px-6">
-        <span className="text-xs text-fg-subtle">
+      <div className="flex min-h-14 shrink-0 items-end gap-2 border-t border-border px-6 py-2.5">
+        <span className="pb-2 text-xs text-fg-subtle">
           {editable
             ? saveState === 'saving'
               ? 'Saving…'
@@ -397,7 +397,7 @@ export function DraftEditor({
               ? 'Rejected drafts are kept for reference'
               : 'This email has left review'}
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
           {editable && (
             <>
               <Button variant="ghost" onClick={onReject}>
@@ -423,6 +423,7 @@ export function DraftEditor({
                 <Send />
                 {testSend.isPending ? 'Sending…' : 'Send test to me'}
               </Button>
+              <div className="basis-full" aria-hidden />
               <Tooltip content="Skips the claim verifier and the blocking checks for this draft only; you confirm what is ignored">
                 <span>
                   <Button variant="outline" onClick={() => setUnverifiedOpen(true)} disabled={approving || verify.isPending || approveUnverified.isPending}>
