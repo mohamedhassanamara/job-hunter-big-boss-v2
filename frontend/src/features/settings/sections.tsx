@@ -389,19 +389,21 @@ function AutomationCard({ settings }: { settings: SettingsView }) {
 }
 
 export function EmailSection({ settings }: { settings: SettingsView }) {
-  const initial = settings.values.smtp as { address: string; from_name: string; interval_minutes: number; max_per_queue: number }
+  const initial = settings.values.smtp as { address: string; from_name: string; gap_min_minutes: number; gap_max_minutes: number; max_per_queue: number }
   const draft = useDraft(initial)
   const save = useSaveSetting()
+  const { gap_min_minutes: lo, gap_max_minutes: hi } = draft.value
+  const gapError = !(lo >= 1) ? 'The minimum must be at least 1 minute' : lo > hi ? 'The minimum can’t be above the maximum' : null
   return (
     <Card
       title="Email (Gmail SMTP)"
       description="Used by the send queue. Secrets never live in the database."
       footer={
         <SaveBar
-          dirty={draft.dirty}
+          dirty={draft.dirty && !gapError}
           saving={save.isPending}
           onReset={draft.reset}
-          onSave={() => save.mutate({ key: 'smtp', value: draft.value }, { onSuccess: () => toast.success('Email settings saved') })}
+          onSave={() => save.mutate({ key: 'smtp', value: draft.value }, { onSuccess: () => toast.success('Email settings saved'), onError: (e) => toast.error(e.message) })}
         />
       }
     >
@@ -432,10 +434,17 @@ export function EmailSection({ settings }: { settings: SettingsView }) {
           </span>
         </div>
       </Field>
-      <Field label="Sending rules">
-        <p className="pt-1.5 text-sm text-fg-muted">
-          {draft.value.interval_minutes} min between sends · max {draft.value.max_per_queue} per queue
-        </p>
+      <Field label="Gap between sends" hint="A random gap after every email, drawn fresh between the minimum and maximum (uniform). The planned next send is stored, so a restart keeps the schedule and never sends early or twice.">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-sm">
+            <Input type="number" min={1} step={0.5} value={lo} onChange={(e) => draft.setValue({ ...draft.value, gap_min_minutes: Number(e.target.value) })} className="h-8 w-20" aria-label="Minimum gap in minutes" />
+            to
+            <Input type="number" min={1} step={0.5} value={hi} onChange={(e) => draft.setValue({ ...draft.value, gap_max_minutes: Number(e.target.value) })} className="h-8 w-20" aria-label="Maximum gap in minutes" />
+            minutes
+          </div>
+          {gapError && <p className="text-xs text-danger-fg" role="alert">{gapError}</p>}
+          <p className="text-xs text-fg-muted">Max {draft.value.max_per_queue} per queue.</p>
+        </div>
       </Field>
     </Card>
   )

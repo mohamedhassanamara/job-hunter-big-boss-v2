@@ -1,5 +1,5 @@
 import threading
-from datetime import date, timedelta
+from datetime import date
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
@@ -673,11 +673,14 @@ def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
             ),
         )
     }
-    # Pending items get projected send times: next_send_at, then +interval each.
+    # Pending items get estimated send times: next_send_at, then the average gap each (the real
+    # gaps are drawn one by one, so these are estimates).
     pending = [i for i in items if i.status == QueueItemStatus.pending]
     base = queue.next_send_at if queue.status == QueueStatus.running else None
+    gap_min, gap_max = send_queue.gap_bounds(session)
+    average = send_queue.average_gap(session)
     projected = {
-        i.id: (base + timedelta(minutes=queue.interval_minutes * n)) if base else None
+        i.id: (base + average * n) if base else None
         for n, i in enumerate(pending)
     }
     out = []
@@ -711,9 +714,11 @@ def _queue_out(session: Session, queue: SendQueue) -> QueueOut:
     out = [o for o in out if o.status == "pending"] + history
     return QueueOut(
         status=queue.status,
-        interval_minutes=queue.interval_minutes,
+        gap_min_minutes=gap_min,
+        gap_max_minutes=gap_max,
         max_items=queue.max_items,
         next_send_at=queue.next_send_at if queue.status == QueueStatus.running else None,
+        estimated_finish_at=projected[pending[-1].id] if pending and base else None,
         counts=QueueCounts(
             pending=len(pending),
             sent=sum(1 for i in items if i.status == QueueItemStatus.sent),

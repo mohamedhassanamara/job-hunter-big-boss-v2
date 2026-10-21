@@ -464,9 +464,9 @@ A single row in v2 (the global queue).
 | Column | Type | Notes |
 |---|---|---|
 | status | enum `idle \| running \| paused` | |
-| interval_minutes | int = 15 | |
+| interval_minutes | int = 15 | Legacy, no longer used: the gap is random (`app_setting.smtp` `gap_min_minutes` / `gap_max_minutes`, default 4 and 7) |
 | max_items | int = 20 | Max items per queue batch |
-| next_send_at | datetime? | |
+| next_send_at | datetime? | The planned next send. Drawn fresh (uniform between the gap bounds) after every send or failed attempt and stored here, so a restart keeps the schedule and never sends early or twice |
 
 ### send_queue_item
 | Column | Type | Notes |

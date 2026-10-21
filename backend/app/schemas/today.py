@@ -32,7 +32,9 @@ class QueueSummary(BaseModel):
     next_send_at: datetime | None
     pending: int
     sent: int
-    interval_minutes: int
+    gap_min_minutes: float = 4
+    gap_max_minutes: float = 7
+    estimated_finish_at: datetime | None = None
 
 
 class UpcomingInterview(BaseModel):
