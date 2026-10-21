@@ -142,7 +142,7 @@ def ordered(entry: PlanEntry) -> list[PlanBullet]:
 def _visible(entry: PlanEntry, key: str, count: int, overrides: dict[str, Any],
              keep_one: bool, pool: Pool | None = None) -> list[tuple[str, str]]:
     """(override key, text) of the bullets shown for an entry, most relevant first: bullets the
-    user forced in, then the best-ranked others up to `count`; never a forced-out one."""
+    best-ranked `count`, plus the ones you forced in, minus the ones you forced out."""
     forced_in = set(overrides.get("force_in") or [])
     forced_out = set(overrides.get("force_out") or [])
     texts = overrides.get("text") or {}
@@ -159,11 +159,14 @@ def _visible(entry: PlanEntry, key: str, count: int, overrides: dict[str, Any],
         return b.text
 
     ranked = [(f"{key}:{b.source_index}", shown_text(b)) for b in ordered(entry)]
-    forced = [b for b in ranked if b[0] in forced_in]
-    rest = [b for b in ranked if b[0] not in forced_in and b[0] not in forced_out]
-    shown = forced + rest[: max(0, count - len(forced))]
-    if keep_one and not shown and ranked:
-        shown = [ranked[0]]
+    # The automatic choice is the best-ranked `count`; your toggles change only that bullet: a
+    # bullet you show is added on top (it never pushes another one out), a bullet you hide just
+    # goes (nothing takes its place).
+    auto = {k for k, _ in ranked[:count]}
+    keep = (auto | forced_in) - forced_out
+    shown = [b for b in ranked if b[0] in keep]
+    if keep_one and not shown:  # a role never shows nothing: the best one you didn't hide
+        shown = [b for b in ranked if b[0] not in forced_out][:1] or ranked[:1]
     return [(k, texts.get(k, t)) for k, t in shown]
 
 
