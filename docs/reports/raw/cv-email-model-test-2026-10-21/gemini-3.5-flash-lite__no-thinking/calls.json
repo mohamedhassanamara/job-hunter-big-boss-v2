@@ -1,0 +1,90 @@
+[
+ {
+  "phase": "cv",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 1",
+    "seconds": 27.5
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 7474,
+  "tokens_out": 2035,
+  "tokens_thinking": 0,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 27.5
+ },
+ {
+  "phase": "cv",
+  "label": "summary-retry",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 2",
+    "seconds": 17.3
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 7776,
+  "tokens_out": 181,
+  "tokens_thinking": 0,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 17.3
+ },
+ {
+  "phase": "email",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 3",
+    "seconds": 3.0
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 5095,
+  "tokens_out": 264,
+  "tokens_thinking": 0,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 3.0
+ },
+ {
+  "phase": "email",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 4",
+    "seconds": 2.6
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 5167,
+  "tokens_out": 288,
+  "tokens_thinking": 0,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 2.6
+ }
+]

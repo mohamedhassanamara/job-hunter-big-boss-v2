@@ -1,0 +1,131 @@
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{latexsym}
+\usepackage[letterpaper, margin=0.55in, top=0.5in, bottom=0.5in]{geometry}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% --- STYLING ---
+\definecolor{primaryColor}{RGB}{0, 70, 140}
+
+\titleformat{\section}{
+  \scshape\raggedright\large\color{primaryColor}
+}{}{0em}{}[\color{primaryColor}\titlerule]
+\titlespacing*{\section}{0pt}{6pt}{4pt}
+
+\newcommand{\resumeItem}[1]{
+  \item\small{#1}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \item
+    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=5pt, topsep=2pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=1.5pt, topsep=2pt, parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}}
+
+\begin{document}
+
+%----------HEADER----------
+\begin{center}
+    \textbf{\Huge \scshape \textcolor{primaryColor}{Mohamed Hassen Amara}} \\ \vspace{4pt}
+    \small
+\faIcon{map-marker-alt} Tunis, Tunisia \hspace{1pt}$|$\hspace{1pt} \faIcon{phone} +216 56 727 924 \hspace{1pt}$|$\hspace{1pt} \faIcon{envelope} \href{mailto:mohamedhassenamara@gmail.com}{\underline{mohamedhassenamara@gmail.com}} \\ \vspace{2pt}
+\faIcon{linkedin} \href{https://linkedin.com/in/mohamed-hassen-amara}{\underline{linkedin.com/in/mohamed-hassen-amara}} \hspace{1pt}$|$\hspace{1pt} \faIcon{github} \href{https://github.com/mohamedhassanamara}{\underline{github.com/mohamedhassanamara}}
+\end{center}
+
+%-----------SUMMARY-----------
+\section{Summary}
+\small{Software engineer with 3 years of experience in mobile and backend development, specializing in cross-platform applications and scalable API integrations. Recent work includes building production Flutter applications, refactoring legacy codebases to Riverpod, and developing a privacy-first resume parsing engine.}
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0pt, label={}, itemsep=1.5pt, topsep=1pt]
+    \small{\item{
+     \textbf{Mobile \& Frontend}{: Flutter, Clean Architecture, Riverpod, Provider, GetX, GoRouter, RESTful APIs, Unit/Widget/Integration Testing} \\
+     \textbf{Core Languages}{: Dart, Python, Java, SQL, Bash} \\
+     \textbf{DevOps, Cloud \& Release}{: Docker, Git, GitHub Actions (CI/CD), Firebase (Auth, Crashlytics, Remote Config), Google Play Console, TestFlight} \\
+     \textbf{Backend \& Data Engineering}{: Spring Boot, FastAPI, PostgreSQL, MQTT}
+    }}
+ \end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Professional Experience}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Software Engineer}{Sep 2025 -- Present}
+      {Reality Sports}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Shipped a full-stack sports management platform to the App Store and Google Play Store, building 10+ data-driven Flutter screens and integrating 15+ RESTful backend services for real-time data synchronization.}
+        \resumeItem{Spearheaded the legacy codebase refactor to Riverpod and GoRouter under Clean Architecture, eliminating critical bugs across core user flows and reducing overall app binary size by 15\%.}
+        \resumeItem{Architected custom Backend-for-Frontend (BFF) endpoints in Spring Boot to streamline mobile API integration, reducing integration time by 40\% and unblocking parallel development cycles.}
+        \resumeItem{Established a strict testing culture by writing comprehensive unit and widget tests with Mockito, achieving $\sim$80\% code coverage.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {AI Engineer Intern (Graduation Project)}{Feb 2025 -- Aug 2025}
+      {Nexaminds}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Designed and shipped a modular FastAPI backend exposing endpoints for resume parsing, job description matching, and automated interview orchestration.}
+        \resumeItem{Containerized the complete multi-model AI system (Mistral 7B, Whisper STT, gTTS, FastAPI) using Docker, creating reproducible container images for local execution and production deployment.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Mobile Developer (Part-time)}{Oct 2022 -- Feb 2025}
+      {Nexaminds (Lovester)}{Tunis, Tunisia / UAE (Remote)}
+      \resumeItemListStart
+        \resumeItem{Engineered the complete Flutter frontend for the ``Lovester'' dating application (lovester.net), achieving fluid 60fps user interfaces and complex custom animations across 25+ unique screens.}
+        \resumeItem{Led the architectural state management migration from Provider to Riverpod, improving code maintainability and accelerating onboarding for new feature development.}
+        \resumeItem{Established the foundational testing environment using Flutter's test framework, Mockito, Build Runner, and FakeAsync to execute unit, widget, and integration tests, catching regressions during development.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Mobile Engineer Intern}{Jul 2024 -- Nov 2024}
+      {Orange Digital Center}{Tunis, Tunisia}
+      \resumeItemListStart
+        \resumeItem{Built the end-to-end Flutter frontend for ``Voltisense,'' an IoT-connected household energy monitoring application that won 2nd Place out of 20+ engineering teams in the Orange Summer Challenge.}
+        \resumeItem{Engineered hardware pairing workflows and MQTT-based communication pipelines between IoT monitoring devices and the mobile app, streaming real-time energy consumption metrics to interactive graphs with sub-second latency.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {National Institute of Applied Sciences and Technologies (INSAT)}{Sep 2020 -- June 2025}
+      {National Engineering Degree in Software Engineering}{Tunis, Tunisia}
+  \resumeSubHeadingListEnd
+
+\end{document}

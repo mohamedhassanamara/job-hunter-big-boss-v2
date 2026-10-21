@@ -1,0 +1,31 @@
+{
+ "candidates": [
+  {
+   "content": {
+    "parts": [
+     {
+      "text": "{\n  \"summary_sentences\": [\n    {\n      \"text\": \"Software engineer with 3 years of experience in mobile and backend development, specializing in cross-platform applications and scalable API integrations.\",\n      \"citations\": [\n        23\n      ]\n    },\n    {\n      \"text\": \"Recent work includes building production Flutter applications, refactoring legacy codebases to Riverpod, and developing a privacy-first resume parsing engine.\",\n      \"citations\": [\n        21,\n        22\n      ]\n    }\n  ],\n  \"summary_short_sentences\": [\n    {\n      \"text\": \"Software engineer with 3 years of experience building production Flutter applications and scalable backend integrations.\",\n      \"citations\": [\n        21,\n        23\n      ]\n    }\n  ]\n}",
+      "thoughtSignature": "EmAKXgFpFH0Th3iRTunbXZZ3zipWP7Q29LL+n/E0gquEUfO0jv7MaeoY4gtbiFWwjSLqdJZ6yTe+K1mySn+94PhnH9xYB3Q67C5IlESPOUElOGE5L4PvFnt4b4A6EUHdp0o="
+     }
+    ],
+    "role": "model"
+   },
+   "finishReason": "STOP",
+   "index": 0
+  }
+ ],
+ "usageMetadata": {
+  "promptTokenCount": 7776,
+  "candidatesTokenCount": 181,
+  "totalTokenCount": 7957,
+  "promptTokensDetails": [
+   {
+    "modality": "TEXT",
+    "tokenCount": 7776
+   }
+  ],
+  "serviceTier": "standard"
+ },
+ "modelVersion": "gemini-3.5-flash-lite",
+ "responseId": "hfLYaqilCarT28oPo6TnmAo"
+}

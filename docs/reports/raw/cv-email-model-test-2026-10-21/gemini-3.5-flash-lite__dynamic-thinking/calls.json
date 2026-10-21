@@ -1,0 +1,68 @@
+[
+ {
+  "phase": "cv",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 1",
+    "seconds": 21.9
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingBudget": -1
+  },
+  "tokens_in": 7474,
+  "tokens_out": 2580,
+  "tokens_thinking": 5148,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 21.9
+ },
+ {
+  "phase": "cv",
+  "label": "summary-retry",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 2",
+    "seconds": 7.0
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingBudget": -1
+  },
+  "tokens_in": 7725,
+  "tokens_out": 178,
+  "tokens_thinking": 1985,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 7.0
+ },
+ {
+  "phase": "email",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 200,
+    "key": "key 3",
+    "seconds": 13.8
+   }
+  ],
+  "model": "gemini-3.5-flash-lite",
+  "thinking": {
+   "thinkingBudget": -1
+  },
+  "tokens_in": 5095,
+  "tokens_out": 257,
+  "tokens_thinking": 5007,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 13.8
+ }
+]

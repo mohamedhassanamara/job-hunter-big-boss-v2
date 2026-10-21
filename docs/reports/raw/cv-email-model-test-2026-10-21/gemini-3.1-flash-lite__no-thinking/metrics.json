@@ -1,0 +1,53 @@
+{
+ "config": {
+  "name": "gemini-3.1-flash-lite__no-thinking",
+  "model": "gemini-3.1-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  }
+ },
+ "cv_error": "CVError: gemini-3.1-flash-lite did not answer (503: '{\\n  \"error\": {\\n    \"code\": 503,\\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later')",
+ "cv_model": {
+  "calls": 2,
+  "valid_json_first_try": [
+   true,
+   null
+  ],
+  "valid_schema_first_try": [
+   true,
+   null
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 18,
+  "retries_429": 0,
+  "retries_503": 17,
+  "retries_other": 0,
+  "model_seconds": 339.1,
+  "tokens_in": 7474,
+  "tokens_out": 1496,
+  "tokens_thinking": 0,
+  "keys_used": [
+   "key 4"
+  ]
+ },
+ "email_error": "OutreachError: gemini-3.1-flash-lite did not answer (503: '{\\n  \"error\": {\\n    \"code\": 503,\\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later')",
+ "email_model": {
+  "calls": 1,
+  "valid_json_first_try": [
+   null
+  ],
+  "valid_schema_first_try": [
+   null
+  ],
+  "invalid_retries": 0,
+  "http_attempts": 9,
+  "retries_429": 0,
+  "retries_503": 9,
+  "retries_other": 0,
+  "model_seconds": 0,
+  "tokens_in": 0,
+  "tokens_out": 0,
+  "tokens_thinking": 0,
+  "keys_used": []
+ }
+}

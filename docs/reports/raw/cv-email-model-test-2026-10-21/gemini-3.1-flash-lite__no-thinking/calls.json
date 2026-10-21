@@ -1,0 +1,186 @@
+[
+ {
+  "phase": "cv",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 1.1
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 1.4
+   },
+   {
+    "status": 503,
+    "key": "key 3",
+    "seconds": 1.2
+   },
+   {
+    "status": 503,
+    "key": "key 4",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 5",
+    "seconds": 2.3
+   },
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 0.9
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 1.0
+   },
+   {
+    "status": 503,
+    "key": "key 3",
+    "seconds": 2.5
+   },
+   {
+    "status": 200,
+    "key": "key 4",
+    "seconds": 13.1
+   }
+  ],
+  "model": "gemini-3.1-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 7474,
+  "tokens_out": 1496,
+  "tokens_thinking": 0,
+  "valid_json_first_try": true,
+  "valid_schema_first_try": true,
+  "invalid_retry": false,
+  "seconds": 339.1
+ },
+ {
+  "phase": "cv",
+  "label": "summary-retry",
+  "attempts": [
+   {
+    "status": 503,
+    "key": "key 5",
+    "seconds": 3.5
+   },
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 3.0
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 1.3
+   },
+   {
+    "status": 503,
+    "key": "key 3",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 4",
+    "seconds": 0.7
+   },
+   {
+    "status": 503,
+    "key": "key 5",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 4.6
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 0.9
+   },
+   {
+    "status": 503,
+    "key": "key 3",
+    "seconds": 1.5
+   }
+  ],
+  "model": "gemini-3.1-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 0,
+  "tokens_out": 0,
+  "tokens_thinking": 0,
+  "valid_json_first_try": null,
+  "valid_schema_first_try": null,
+  "invalid_retry": false
+ },
+ {
+  "phase": "email",
+  "label": "main",
+  "attempts": [
+   {
+    "status": 503,
+    "key": "key 4",
+    "seconds": 0.9
+   },
+   {
+    "status": 503,
+    "key": "key 5",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 0.9
+   },
+   {
+    "status": 503,
+    "key": "key 3",
+    "seconds": 1.5
+   },
+   {
+    "status": 503,
+    "key": "key 4",
+    "seconds": 0.8
+   },
+   {
+    "status": 503,
+    "key": "key 5",
+    "seconds": 2.3
+   },
+   {
+    "status": 503,
+    "key": "key 1",
+    "seconds": 0.9
+   },
+   {
+    "status": 503,
+    "key": "key 2",
+    "seconds": 1.5
+   }
+  ],
+  "model": "gemini-3.1-flash-lite",
+  "thinking": {
+   "thinkingLevel": "minimal"
+  },
+  "tokens_in": 0,
+  "tokens_out": 0,
+  "tokens_thinking": 0,
+  "valid_json_first_try": null,
+  "valid_schema_first_try": null,
+  "invalid_retry": false
+ }
+]
