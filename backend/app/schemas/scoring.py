@@ -61,7 +61,8 @@ class RescoreIn(BaseModel):
 
 class RescorePreview(BaseModel):
     scope: str
-    count: int
+    count: int  # open jobs only
+    skipped: int = 0  # not open (closed, duplicate, filtered, expired): left alone
     model: str
     eta_seconds: int | None
     # Gemini only: days of quota this takes (today's remaining quota counts) and per-day capacity.
