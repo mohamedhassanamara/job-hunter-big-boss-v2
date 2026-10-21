@@ -256,7 +256,7 @@ export const TOURS: Record<TourId, Tour> = {
     },
     steps: [
       { target: 'job-tracks', title: 'Both routes', body: 'Every job can have a web application and a cold email to someone there. Each track shows its own status and next step; the stage reaches Applied / Emailed with the first one.', placement: 'bottom' },
-      { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'First, Get contact: who to look for (by company size) with LinkedIn links, or verify the contact you already have. Then draft the email from your approved CV, review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
+      { target: 'job-outreach', title: 'Outreach, one step at a time', body: 'First, Get contact: who to look for (by company size) with LinkedIn links, or verify the contact you already have. Then draft the email from your approved CV (an application follow-up when the job has a posting, a speculative email otherwise; a short listing snippet offers Fetch or Paste first), review it here (checks, sources, test send), approve, then add it to the send queue, which shows its place and send time. Sent it yourself? Record it: the CV is locked either way.', placement: 'right' },
     ],
   },
   copilot: {

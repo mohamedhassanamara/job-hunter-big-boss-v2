@@ -77,7 +77,8 @@ def test_an_active_alert_blocks_approval_until_dismissed(job_ready: dict, client
         s.add(other)
         s.commit()
         other_id = other.id
-    d = outreach.generate(engine, app_id, MockEmailDrafter(), researcher=research.MockResearcher(),
+    d = outreach.generate(engine, app_id, MockEmailDrafter(), mode="speculative",
+                          researcher=research.MockResearcher(),
                           fetcher=Fetcher("A mutual insurer automated 37% of its requests.",
                                           person="{name} has left the company after four "
                                                  "years."),

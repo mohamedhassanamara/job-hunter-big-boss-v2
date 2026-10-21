@@ -71,21 +71,23 @@ def test_the_inmail_limit_is_a_setting_and_the_body_is_checked_against_it(seeded
         s.rollback()
 
 
-@pytest.mark.parametrize(("subject", "code"), [
-    ("", "subject_empty"),
-    ("A" * 90, "subject_length"),
-    ("Interested in your data role!", "subject_tone"),
-    ("See https://example.test/me for the role", "subject_link"),
-    ("I would love to connect about data", "banned"),
-    ("Thanks for viewing my profile", "viewed"),
-    ("Backend engineer, visa needed", "location"),
+@pytest.mark.parametrize(("subject", "code", "blocks"), [
+    ("", "subject_empty", True),
+    ("A" * 90, "subject_length", True),
+    ("See https://example.test/me for the role", "subject_link", True),
+    ("Thanks for viewing my profile", "viewed", True),
+    ("Interested in your data role!", "subject_tone", False),  # style: a warning
+    ("I would love to connect about data", "banned", False),
+    ("Backend engineer, visa needed", "location", False),  # the listing asks nothing about it
 ])
-def test_subject_rules(seeded: None, subject: str, code: str) -> None:
+def test_subject_rules(seeded: None, subject: str, code: str, blocks: bool) -> None:
     with Session(engine) as s:
         app, _ = job_with_people(s)
         row = person(s, app)
         _req, ctx = ctx_for(s, row, "inmail")
-        assert code in errors(lc.check_subject(subject, ctx)), subject
+        found = lc.check_subject(subject, ctx)
+        assert code in [v["type"] for v in found], subject
+        assert (code in errors(found)) is blocks, subject
         s.rollback()
 
 
@@ -108,7 +110,8 @@ def test_inmail_edits_recheck_subject_and_body_and_verification_covers_both(seed
     with Session(engine) as s:
         row = s.get(LinkedInOutreach, rid)
         lt.edit(s, row, "inmail", subject="Great news!!")
-        assert "subject_tone" in errors(row.inmail["violations"]) and row.inmail["edited"]
+        assert "subject_tone" in [v["type"] for v in row.inmail["violations"]]
+        assert "subject_tone" not in errors(row.inmail["violations"]) and row.inmail["edited"]
         before = lc.inmail_text(row.inmail)
         lt.edit(s, row, "inmail", text="Hi Maya, could we talk?")
         assert lc.inmail_text(row.inmail) != before and row.inmail["subject"] == "Great news!!"

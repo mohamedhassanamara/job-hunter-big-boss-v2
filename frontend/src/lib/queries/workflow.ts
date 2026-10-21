@@ -10,6 +10,7 @@ import type {
   DiscoveryStatus,
   Draft,
   DraftProgress,
+  EmailMode,
   FullListingResult,
   NavCounts,
   OutreachStep,
@@ -219,7 +220,7 @@ export function useDraftRun(appId: number | undefined, onDone?: (result: { draft
     last.current = status
   }, [status, qc, onDone, progress.data?.draft_id, progress.data?.error])
   const start = useMutation({
-    mutationFn: () => api.post<DraftProgress>(`/applications/${appId}/draft/generate`),
+    mutationFn: (mode?: EmailMode) => api.post<DraftProgress>(`/applications/${appId}/draft/generate${mode ? `?mode=${mode}` : ''}`),
     onSuccess: (state) => qc.setQueryData(key, state),
   })
   return { start: start.mutate, starting: start.isPending, state: progress.data, running: status === 'running' || start.isPending, startError: start.error }

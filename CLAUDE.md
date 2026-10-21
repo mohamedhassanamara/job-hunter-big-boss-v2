@@ -242,9 +242,20 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Cold email as an introduction + company research (Phase 8)
 
-- The email is a personal introduction (prompt `outreach.md` v5+): hook from verified signals, intro line built by
-  code (`intro_check.intro_line`), their problem + 1-2 proofs, a direct opening question. Checks in
-  `services/intro_check.py`. The listing is never mentioned, nor location/visa.
+- Two modes (`outreach.email_mode`, prompt `outreach.md` v11; the sections `system` = speculative, `applied`): a job
+  with a posting gets the **application follow-up** (`services/applied_check.py`, `generate_applied`, plan
+  `AppliedEmailPlan`): opening (applied / applying, nothing else), at most two cited one-sentence proofs (aim 90-120
+  words), an optional
+  signal (default empty), a constraint only when the listing states a requirement you don't meet (said once, from
+  `outreach.logistics`; quoted from the listing), a natural ask; code builds the greeting and the subject ("<Role>
+  application – <name>"); no research starts. **Only facts block** (pool grounding, years, honesty, names, company
+  facts from the listing/signals); length (90-170), tools, banned phrases, jargon, restating, a long opening,
+  unprompted location/visa, a listing under `applied_check.SNIPPET_CHARS` (1,500) are warnings (the Job page offers
+  Fetch/Paste first; fetching never touches LinkedIn). The Claude verifier gets the listing, "Based in / Work authorization /
+  Relocation" facts and the application status for these emails. Don't re-add the old blocking rules here.
+- The **speculative email** (no posting, or `?mode=speculative`) keeps the introduction: hook from verified signals,
+  intro line built by code (`intro_check.intro_line`), their problem + 1-2 proofs, a direct opening question.
+  Checks in `services/intro_check.py`. The listing is never mentioned, nor location/visa.
 - Research (`services/research.py`) may start ONLY from `outreach.generate_intro` (the draft step) or
   `api/research.py` (Research now). `tests/test_research_guard.py` fails otherwise. Fresh signals are reused.
   Quotes are verified in code; model output goes through `ollama.structured` (scoring's error classes).
@@ -279,6 +290,10 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - LinkedIn groups are the note's angle (`linkedin.detect_group`, overridable); `hiring_team` is a separate flag.
   Per-group rules are in `linkedin_check._group_rules`; the transition line is code (`linkedin_track.framing`).
   LinkedIn reference notes (`email_example.inputs.channel == "linkedin"`) never enter the email eval or prompts.
+- LinkedIn messages are tied to a job (prompt `linkedin.md` v4): the role and the listing may be named, an InMail or
+  follow-up states a requirement you don't meet once and plainly (FACTS.logistics), and only facts block
+  (grounding, years/honesty, links, a profile-visit hint, length limits); the ask, banned phrases, jargon,
+  reference wording and an unprompted location/visa are warnings (`linkedin_check._location`).
 - LinkedIn Premium (prompt `linkedin.md` v3, migration 0029): InMail is `linkedin_outreach.inmail` (subject + body, `linkedin_check.check` + `check_subject`, claim-verified as `inmail_text` = subject + body). Credits are derived from `inmail_sent_at` / `inmail_refunded_at` (`linkedin_track.credits`; refund only for a reply within 90 days). Viewer leads store the reason in `reason` and NEVER pass it to a model (`_request` sends only `warm_opener`); `linkedin_check._VIEWED` rejects any mention of a profile visit. No-job leads live in `linkedin_lead` and link themselves in `leads()`.
 - `services/agency.py`: agency jobs get recruiters only (no alumni or team-lead searches), and recruiters first in
   the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it). `company.agency_override`
@@ -313,6 +328,9 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Gates: email and letter approval (`require_email` / `require_letter`, reused when the exact text is unchanged),
   Copy and "I sent it" for LinkedIn and form answers. The send queue's last step (`send_gate`) compares the exact
   subject + body + CV file with the verified hashes; any difference sends the email back to review.
+- Facts it knows (prompt v5): your profile's "Based in", "Work authorization", "Relocation" lines and the
+  "Application" status are in FACTS; the listing is a source for job-linked emails. The regression set includes
+  `mode: applied` must-pass and `must_fail` emails (`data/eval/email_examples.json`, `--import`).
 - Tests and the sandbox use `MockVerifier`. `make eval-verifier` runs the must-pass / must-fail set (email_example
   kinds reference_good / approved / must_fail). Any edit to `prompts/verify.md` needs a version bump.
 

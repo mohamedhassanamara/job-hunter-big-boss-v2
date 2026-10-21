@@ -45,7 +45,7 @@ class DraftOut(BaseModel):
     # "I have also applied through your careers page on …": available once Mark applied is in.
     application_mention: str | None = None
     mention_included: bool = False
-    format: str = "reply"  # intro (prompt v4+: a personal introduction) | reply (older drafts)
+    format: str = "reply"  # applied (v11 follow-up) | intro (speculative) | reply (older drafts)
     # The company signals the hook cites: {id, kind, fact, quote}; the source URL comes with it.
     signals: list[dict[str, Any]] = []
     needs_signal: bool = False
@@ -137,6 +137,12 @@ class OutreachStep(BaseModel):
     has_contact: bool
     has_email: bool
     cv_version: int | None  # the approved CV (None = approve one first)
+    # The draft step: which email to write by default (applied when the job has a posting) and
+    # whether the stored listing is a short snippet (requirements like residency can't be seen).
+    email_mode: str = "applied"  # applied | speculative
+    listing_chars: int = 0
+    listing_short: bool = False
+    can_fetch_listing: bool = True  # never for LinkedIn jobs
     draft: DraftOut | None
     queue_position: int | None
     queue_eta: datetime | None

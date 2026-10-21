@@ -26,6 +26,7 @@ from app.models.enums import (
     EventKind,
     QueueItemStatus,
     QueueStatus,
+    Source,
     Stage,
 )
 from app.providers.base import SendFailed
@@ -44,6 +45,7 @@ from app.schemas.outreach import (
     SendLogOut,
     SentManually,
 )
+from app.services import applied_check as ac
 from app.services import contacts as contacts_svc
 from app.services import get_contact, outreach, pipeline, send_queue, verifier
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
@@ -55,6 +57,10 @@ def _plan_sentences(d: OutreachDraft) -> list[dict[str, Any]]:
     """The generated sentences with their citations (for "where each sentence comes from"):
     an introduction's hook (from signals) and its proofs (from your pool)."""
     plan = (d.plan or {}).get("plan") or {}
+    if (d.plan or {}).get("format") == "applied":
+        opening = [{"text": plan["opening"], "citations": [], "about_job": True}] \
+            if plan.get("opening") else []
+        return opening + [{**x, "about_job": False} for x in plan.get("experience") or []]
     if (d.plan or {}).get("format") != "intro":
         return plan.get("sentences", [])
     hook = plan.get("hook") or {}
@@ -167,8 +173,8 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 generated_via=(d.plan or {}).get("via") or (
                     "claude -p" if d.model.startswith("claude") else "mock"),
                 auth=(d.plan or {}).get("auth"),
-                application_mention=(mention := None if (d.plan or {}).get("format") == "intro"
-                                     else outreach.application_mention(session, app)),
+                application_mention=(mention := None if (d.plan or {}).get("format") in (
+                    "intro", "applied") else outreach.application_mention(session, app)),
                 mention_included=bool(mention and mention in d.body),
                 format=(d.plan or {}).get("format") or "reply",
                 signals=_cited_signals(session, d),
@@ -340,6 +346,8 @@ def mention_application(draft_id: int, body: MentionIn, session: SessionDep) -> 
     if d.status not in (DraftStatus.draft, DraftStatus.approved):
         raise HTTPException(409, "Only an email that isn't queued or sent can change")
     app = get_or_404(session, Application, d.application_id)
+    if (d.plan or {}).get("format") == "applied":
+        raise HTTPException(409, "This email already says you applied: no extra line needed")
     mention = outreach.application_mention(session, app)
     if mention is None:
         raise HTTPException(409, "Mark the web application as applied first")
@@ -412,10 +420,13 @@ def draft_progress_state(workspace: str, app_id: int) -> dict[str, Any] | None:
 @router.post("/applications/{app_id}/draft/generate", status_code=202,
              response_model=DraftProgress)
 def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
-                   workspace: WorkspaceDep) -> DraftProgress:
+                   workspace: WorkspaceDep, mode: str | None = None) -> DraftProgress:
     """The email draft step: research the company (fresh signals are reused), then Claude (your
-    subscription) writes the introduction; the mock in the sandbox and tests. Poll
-    /draft/progress for the phases."""
+    subscription) writes the introduction; the mock in the sandbox and tests. A job with a
+    posting gets the application follow-up instead (no research); `?mode=speculative` asks for
+    the introduction anyway, `?mode=applied` for the follow-up. Poll /draft/progress."""
+    if mode not in (None, *outreach.EMAIL_MODES):
+        raise HTTPException(422, f"mode must be one of {', '.join(outreach.EMAIL_MODES)}")
     get_or_404(session, Application, app_id, "Application")
     key = (workspace, app_id)
     with _draft_runs_lock:
@@ -437,7 +448,7 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep,
         try:
             draft = outreach.generate(engine, app_id, drafter, researcher=researcher,
                                       fetcher=_demo_fetcher() if demo else None,
-                                      progress=progress, hook_checker=checker)
+                                      progress=progress, hook_checker=checker, mode=mode)
             with _draft_runs_lock:
                 _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
         except Exception as exc:  # noqa: BLE001 (shown to the user)
@@ -494,6 +505,10 @@ def outreach_step(app_id: int, session: SessionDep) -> OutreachStep:
         contact_search=session.get(Company, job.company_id).contact_search,
         has_contact=contact is not None,
         has_email=bool(contact and contact.email), cv_version=cv.version if cv else None,
+        email_mode=outreach.email_mode(job), listing_chars=len(job.description or ""),
+        listing_short=len(job.description or "") < ac.SNIPPET_CHARS,
+        can_fetch_listing=job.source != Source.linkedin
+        and "linkedin.com/" not in (job.url or "").lower(),
         draft=_drafts_out(session, [draft])[0] if draft else None, queue_position=position,
         queue_eta=eta, queue_status=send_queue.queue(session).status,
         sent_at=draft.sent_at if draft and draft.status == DraftStatus.sent else None,

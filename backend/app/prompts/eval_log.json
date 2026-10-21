@@ -27,6 +27,20 @@
       "cases": 4,
       "errors": 3,
       "note": "Adopted: honesty about years. All 4 intro lines keep the 3 years with backend and mobile only (v9 attached them to generative AI and data). Snapshots get today's honesty facts; the LinkedIn reference note is excluded. The 3 errors are first-attempt checks (a 40-word proof, 151 words, one vague proof); the draft step retries once with the problems."
+    },
+    "11": {
+      "report": "data/eval/emails/20261021-150205_outreach_v11.md",
+      "date": "2026-10-21",
+      "cases": 1,
+      "errors": 0,
+      "note": "Adopted: job-linked mode ('applied', the honest application follow-up) added next to the speculative introduction (unchanged system section). Run on the one applied case (#9, the approved SaltRock example); the Zaion introduction cases were not rewritten because the speculative prompt text is untouched. Earlier v11 runs showed the failure this version guards against: the model slipped listing-derived claims into the opening and signal ('SecureID's hardware-backed identity work is close to what I've been building'), so the opening is now limited to saying you applied and the signal defaults to empty. The claim verifier (verify v5) passed the stored SaltRock draft and failed the Gemini must-fail draft."
+    },
+    "12": {
+      "report": "data/eval/emails/20261021-152046_outreach_v12.md",
+      "date": "2026-10-21",
+      "cases": 1,
+      "errors": 0,
+      "note": "Adopted: the follow-up asks for at most two proofs, one sentence each, the strongest for the core requirements, aiming at 90-120 words (a warning outside 90-170); a language requirement is answered with the profile's languages. Run on the applied case #9 (0 errors; two 'reads like a CV bullet' warnings). Stored SaltRock draft #18: 108 words, constraint paragraph for the listing's German + English requirement, claim verifier passed."
     }
   }
 }
