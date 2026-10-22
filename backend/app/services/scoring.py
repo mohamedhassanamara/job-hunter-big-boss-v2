@@ -588,8 +588,10 @@ class ScoringQueue:
             s.commit()
         return len(dropped)
 
-    def resume(self) -> int:
-        """At startup: tasks interrupted by a restart go back to the queue, then it runs on."""
+    def resume(self, start: bool = True) -> int:
+        """At startup: tasks interrupted by a restart go back to the queue. With `start` the queue
+        then runs on; the app passes False (Gemini single-key mode): nothing is sent until you
+        start it (POST /scoring/start, or by scoring something)."""
         self.drop_not_open()
         with self._lock, Session(self.engine) as s:
             for task in s.exec(select(ScoringTask).where(
@@ -599,9 +601,9 @@ class ScoringQueue:
             s.commit()
             queued = len(s.exec(select(ScoringTask.id).where(
                 ScoringTask.status == ScoringTaskStatus.queued)).all())
-        if queued:
+        if queued and start:
             self.start()
-        else:
+        elif not queued:
             self._finish_if_idle()
         return queued
 
