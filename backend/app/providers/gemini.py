@@ -41,8 +41,8 @@ from app.providers.ollama import (
 from app.services.gemini_keys import KeyPool
 
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-HTTP_ATTEMPTS = 4  # per model call: 5xx / timeouts are retried with 5 s, 10 s, 20 s backoff
-BACKOFF = (5.0, 10.0, 20.0)
+HTTP_ATTEMPTS = 3  # per model call, then give up: 5xx / timeouts retry after 5 s, 10 s
+BACKOFF = (5.0, 10.0)
 _REFUSED = ("api key not valid", "api_key_invalid", "permission_denied", "suspended", "leaked",
             "has been denied", "api key expired")
 
@@ -52,7 +52,8 @@ def classify_error(status: int, body: str) -> str | None:
 
     - 429 with a per-day quota → `daily` (park the key until the reset, use the next key)
     - any other 429 (per minute, tokens per minute) → `rate`
-    - 400/401/403 about the key itself → `refused` (disable the key, never retry it)
+    - any 403 (permission denied, suspended, restricted account…) and 400/401 about the key
+      itself → `refused` (disable the key, pause Gemini, never retry it)
     - 5xx and 408 → `transient`; everything else ≥ 400 → `fatal`
     """
     if status < 400:
@@ -60,7 +61,7 @@ def classify_error(status: int, body: str) -> str | None:
     text = body.lower()
     if status == 429:
         return "daily" if ("perday" in text or "per day" in text or "daily" in text) else "rate"
-    if status in (400, 401, 403) and any(w in text for w in _REFUSED):
+    if status == 403 or (status in (400, 401) and any(w in text for w in _REFUSED)):
         return "refused"
     if status >= 500 or status == 408:
         return "transient"
@@ -124,13 +125,17 @@ class _GeminiClient:
                 "generationConfig": config}
         est = (len(system) + sum(len(p["text"]) for c in contents for p in c["parts"])) // 3 + 1500
         last = ""
-        for attempt in range(HTTP_ATTEMPTS + 2):  # +2: moving on to another key is not a retry
-            lease = self.pool.acquire(est, priority=self.priority)  # may raise QuotaWait
-            try:
-                with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
-                    res = client.post(f"{BASE_URL}/{self.model}:generateContent",
-                                      params={"key": lease.key}, json=body)
-            except httpx.HTTPError as exc:
+        for attempt in range(HTTP_ATTEMPTS):
+            with self.pool.one_at_a_time():
+                lease = self.pool.acquire(est, priority=self.priority)  # may raise QuotaWait
+                try:
+                    with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
+                        res = client.post(f"{BASE_URL}/{self.model}:generateContent",
+                                          params={"key": lease.key}, json=body)
+                except httpx.HTTPError as exc:
+                    res = exc
+            if isinstance(res, httpx.HTTPError):
+                exc = res
                 last = f"{exc.__class__.__name__}"
                 if not self._backoff(attempt):
                     break
@@ -147,11 +152,12 @@ class _GeminiClient:
                 return "".join(p.get("text", "") for p in parts if not p.get("thought"))
             last = f"{res.status_code}: {_error_text(res)}"
             if kind == "daily":
-                self.pool.mark_exhausted(lease)  # the next acquire() uses the next key
+                self.pool.mark_exhausted(lease)  # the next acquire() raises QuotaWait
                 continue
-            if kind == "refused":
-                self.pool.disable(lease, f"HTTP {res.status_code}: {_error_text(res)}")
-                continue
+            if kind == "refused":  # one refusal is enough: key disabled, Gemini paused
+                reason = f"HTTP {res.status_code}: {_error_text(res)}"
+                self.pool.disable(lease, reason)
+                raise ScoringFailed(f"Gemini refused the key ({reason}). Gemini is paused.")
             if kind == "rate":
                 raise ConcurrencyLimited(f"Gemini {last}")
             if kind == "transient":

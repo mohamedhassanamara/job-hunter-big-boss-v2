@@ -1261,6 +1261,8 @@ export interface RescorePreview {
 export interface GeminiKeyQuota {
   label: string
   fingerprint: string
+  /** Last 4 characters of the key: how you recognise it. The full key is never sent. */
+  last4: string
   used: number
   limit: number
   remaining: number
@@ -1285,6 +1287,12 @@ export interface ScoringQuota {
   pooled?: PooledQuota
   limits?: { rpm: number; tpm: number; rpd: number }
   remaining_today?: number
+  /** True while Gemini is stopped (Google refused the key, or you paused it): Claude writes CVs and emails. */
+  paused?: boolean
+  paused_reason?: string | null
+  max_keys?: number
+  /** Requests per day kept for what you trigger. */
+  reserve?: number
   day?: string
   /** UTC ISO: the next midnight Pacific. Null in the tour sandbox. */
   resets_at?: string | null

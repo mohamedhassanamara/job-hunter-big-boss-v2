@@ -1,11 +1,14 @@
 """Gemini API keys for bulk scoring: a limiter per key and a daily quota per key and model.
 
-- Free-tier limits per key (separate Google projects have separate quotas): 15 requests/minute,
-  250K input tokens/minute, 500 requests/day. The day resets at midnight Pacific time.
-- Keys are used IN ORDER: key 1 until its daily quota is used, then key 2. Within a key, calls wait
-  for the minute window (they never spill to the next key just because of the per-minute limit).
-- When every usable key is out of quota, `acquire` raises `QuotaWait(resume_at=next midnight
-  Pacific)`: the queue pauses and carries on by itself. It never switches model on its own.
+- SINGLE-KEY MODE (accounts under review): only the first `gemini.max_keys` keys of .env are used
+  (default 1), one request at a time, at most 6 a minute and `gemini.daily_cap` (200) a day over
+  every Gemini model, 50 of them kept for work you trigger. The day resets at midnight Pacific.
+  No rotation, no bursts. Nothing here ever calls Google by itself: only real requests do.
+- Google refusing the key (403 / permission) disables it, PAUSES all Gemini traffic
+  (`gemini.paused`) and CV / email generation move to Claude (`model_choice.choice`) until you
+  resume.
+- When the day's cap is used, `acquire` raises `QuotaWait(resume_at=next midnight Pacific)`: the
+  queue pauses and carries on by itself. It never switches model on its own.
 - A key Google refuses (invalid, suspended, leaked) is disabled with a warning and never retried
   until you enable it again. A key Google says is out of daily quota is parked until the reset.
 - Usage is stored per (key label, model, Pacific date) in `provider_usage`, so a restart never
@@ -18,7 +21,8 @@ import logging
 import threading
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -36,8 +40,13 @@ log = logging.getLogger(__name__)
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
 PROVIDER = "gemini"  # provider_key_state: a refused key is refused for every model
-RPM, TPM, RPD = 15, 250_000, 500
-USER_RESERVE = 50  # requests/day per key that background work (scoring) never uses
+# Conservative single-key limits (the accounts are under review): at most 6 requests a minute,
+# one at a time, 200 a day across every Gemini model, 50 of them kept for work you trigger.
+RPM, TPM, RPD = 6, 250_000, 200
+USER_RESERVE = 50  # requests/day that background work (scoring) never uses
+MAX_KEYS = 1
+DEFAULTS = {"max_keys": MAX_KEYS, "daily_cap": RPD, "paused": False, "paused_reason": None,
+            "paused_at": None}
 WINDOW = 61.0  # seconds: a little over a minute, so a rolling window never exceeds the limit
 
 
@@ -52,15 +61,75 @@ def next_reset(now: datetime | None = None) -> datetime:
     return midnight.astimezone(UTC)
 
 
-def configured_keys() -> list[tuple[str, str]]:
-    """[(label, key)] in .env order: GEMINI_API_KEYS, else GEMINI_API_KEY (also comma-separated)."""
+def configured_keys(max_keys: int | None = None) -> list[tuple[str, str]]:
+    """[(label, key)] in .env order: GEMINI_API_KEYS, else GEMINI_API_KEY (also comma-separated),
+    cut to the first `max_keys` (setting "Max Gemini keys in use", default 1)."""
     cfg = get_settings()
     raw = cfg.gemini_api_keys or cfg.gemini_api_key
-    return [(f"key {i}", k.strip()) for i, k in enumerate(raw.split(","), 1) if k.strip()]
+    keys = [(f"key {i}", k.strip()) for i, k in enumerate(raw.split(","), 1) if k.strip()]
+    return keys[: max(1, max_keys if max_keys is not None else MAX_KEYS)]
+
+
+def load_config(engine: Engine) -> dict[str, Any]:
+    """The `gemini` app setting over its defaults (max_keys, daily_cap, paused…)."""
+    with Session(engine) as s:
+        return config(s)
+
+
+def stored(s: Session) -> dict[str, Any]:
+    from app.models import AppSetting
+
+    row = s.exec(select(AppSetting).where(AppSetting.key == "gemini")).first()
+    return dict((row.value if row else {}) or {})
+
+
+def config(s: Session) -> dict[str, Any]:
+    return {**DEFAULTS, **stored(s)}
+
+
+def save_config(s: Session, **changes: Any) -> dict[str, Any]:
+    from app.models import AppSetting
+
+    row = s.exec(select(AppSetting).where(AppSetting.key == "gemini")).first()
+    value = {**DEFAULTS, **((row.value if row else {}) or {}), **changes}
+    if row is None:
+        row = AppSetting(key="gemini", value=value)
+    else:
+        row.value = value
+    s.add(row)
+    s.commit()
+    return value
+
+
+def is_paused(s: Session) -> bool:
+    """True while Gemini is stopped (by you, or because Google refused the key): every Gemini
+    request is refused and CV / email generation use Claude."""
+    return bool(config(s)["paused"])
+
+
+def pause(engine: Engine, reason: str) -> None:
+    with Session(engine) as s:
+        save_config(s, paused=True, paused_reason=reason[:200], paused_at=utcnow().isoformat())
+    log.warning("gemini paused: %s", reason[:120])
+
+
+def resume(engine: Engine) -> None:
+    with Session(engine) as s:
+        save_config(s, paused=False, paused_reason=None, paused_at=None)
+
+
+def last4(key: str) -> str:
+    return key[-4:]
 
 
 def fingerprint(key: str) -> str:
     return hashlib.sha256(key.encode()).hexdigest()[:6]
+
+
+# One request at a time (`KeyPool.one_at_a_time`) and one minute window per key, shared by every
+# model's pool: the limits belong to the account, not to the model.
+_in_flight = threading.Semaphore(1)
+_windows: dict[str, deque[list]] = {}
 
 
 @dataclass
@@ -80,19 +149,38 @@ class KeyPool:
                  sleep: Callable[[float], None] = time.sleep,
                  now: Callable[[], datetime] = utcnow):
         self.engine, self.model = engine, model
-        self.rpm, self.tpm, self.rpd = rpm, tpm, rpd
-        self.user_reserve = min(user_reserve, max(0, rpd - 1))
+        self.rpm, self.tpm, self._rpd = rpm, tpm, rpd
+        self._user_reserve = user_reserve
         self._user_waiting = 0  # user-priority callers inside acquire(): background yields
         self._keys = keys
         self._clock, self._sleep, self._now = clock, sleep, now
         self._lock = threading.Lock()
-        self._windows: dict[str, deque[list]] = {}
+        self._windows = _windows
+
+    @property
+    def rpd(self) -> int:
+        """The daily cap (setting `gemini.daily_cap`), counted over every Gemini model."""
+        with Session(self.engine) as s:
+            return int(stored(s).get("daily_cap") or self._rpd)
+
+    @property
+    def user_reserve(self) -> int:
+        return min(self._user_reserve, max(0, self.rpd - 1))
 
     @property
     def keys(self) -> list[tuple[str, str]]:
-        return self._keys if self._keys is not None else configured_keys()
+        if self._keys is not None:
+            return self._keys
+        return configured_keys(int(load_config(self.engine)["max_keys"]))
 
     # database ---------------------------------------------------------------------------------
+
+    def _used_today(self, s: Session, label: str) -> int:
+        """Requests today on this key over ALL Gemini models (the cap is per account)."""
+        day = pacific_day(self._now())
+        rows = s.exec(select(ProviderUsage).where(
+            ProviderUsage.key_label == label, ProviderUsage.period == day)).all()
+        return sum(r.calls for r in rows if r.provider.startswith(("gemini-", "gemma-")))
 
     def _usage(self, s: Session, label: str) -> ProviderUsage:
         day = pacific_day(self._now())
@@ -112,36 +200,43 @@ class KeyPool:
 
     # acquire / report -------------------------------------------------------------------------
 
-    def acquire(self, est_tokens: int = 6000, *, priority: str = "user",
-                avoid: tuple[str, ...] = ()) -> Lease:
-        """Reserve one request on the first usable key; waits for its minute window. Raises
-        QuotaWait when no key can take a request until the daily reset (or ever, if all refused).
+    def acquire(self, est_tokens: int = 6000, *, priority: str = "user") -> Lease:
+        """Reserve one request on the (single) key; waits for the minute window. Raises QuotaWait
+        when Gemini is paused, the key is refused, or today's cap is used.
+        Wrap acquire + the HTTP call in `one_at_a_time()` (concurrency 1).
 
         `priority`: "user" is work you triggered (a CV, an email, a click); "background" is bulk
         scoring. Background yields while any user call waits, and never uses the last
-        `user_reserve` requests of a key's day. `avoid`: key labels that just failed (503/429);
-        skipped while another usable key exists."""
+        `user_reserve` requests of the day."""
         background = priority == "background"
         if not background:
             with self._lock:
                 self._user_waiting += 1
         try:
-            return self._acquire(est_tokens, background, avoid)
+            while background and self._user_waiting > 0:
+                self._sleep(0.5)  # user work goes first
+            return self._acquire(est_tokens, background)
         finally:
             if not background:
                 with self._lock:
                     self._user_waiting -= 1
 
-    def _acquire(self, est_tokens: int, background: bool, avoid: tuple[str, ...]) -> Lease:
+    @contextmanager
+    def one_at_a_time(self) -> Iterator[None]:
+        """Concurrency 1 over every Gemini model: the next request starts when this one is done."""
+        with _in_flight:
+            yield
+
+    def _acquire(self, est_tokens: int, background: bool) -> Lease:
         while True:
-            if background and self._user_waiting > 0:
-                self._sleep(0.5)  # user work goes first
-                continue
             wait = 0.0
-            limit = self.rpd - (self.user_reserve if background else 0)
+            cap = self.rpd
+            limit = cap - (self.user_reserve if background else 0)
             with self._lock, Session(self.engine) as s:
+                if is_paused(s):
+                    reason = config(s)["paused_reason"] or "paused"
+                    raise QuotaWait(f"Gemini is paused ({reason}). Settings → Models.", None)
                 usable = None
-                fallback = None  # a usable key we were asked to avoid
                 exhausted = disabled = 0
                 for label, key in self.keys:
                     st = self._state(s, label)
@@ -149,15 +244,11 @@ class KeyPool:
                         disabled += 1
                         continue
                     usage = self._usage(s, label)
-                    if usage.calls >= limit:
+                    if self._used_today(s, label) >= limit:
                         exhausted += 1
-                        continue
-                    if label in avoid:
-                        fallback = fallback or (label, key, usage)
                         continue
                     usable = (label, key, usage)
                     break
-                usable = usable or fallback
                 if usable is None:
                     s.commit()
                     if exhausted:
@@ -171,7 +262,7 @@ class KeyPool:
                     raise QuotaWait("No Gemini API key configured (GEMINI_API_KEYS in .env).", None)
                 label, key, usage = usable
                 now = self._clock()
-                window = self._windows.setdefault(label, deque())
+                window = self._windows.setdefault(f"{id(self.engine)}:{label}", deque())
                 while window and now - window[0][0] >= WINDOW:
                     window.popleft()
                 tokens = sum(w[1] for w in window)
@@ -194,14 +285,14 @@ class KeyPool:
         """Google says this key's daily quota is used up (our own count was lower)."""
         with self._lock, Session(self.engine) as s:
             usage = self._usage(s, lease.label)
-            usage.calls = max(usage.calls, self.rpd)
+            usage.calls += max(0, self.rpd - self._used_today(s, lease.label))
             s.add(usage)
             s.commit()
-        log.warning("gemini %s (%s) is out of quota for today; moving on", lease.label,
-                    fingerprint(lease.key))
+        log.warning("gemini %s (…%s) is out of quota for today", lease.label, last4(lease.key))
 
     def disable(self, lease: Lease, reason: str) -> None:
-        """Google refuses this key: never use it again until the user enables it."""
+        """Google refuses this key (403 / permission): disable it at once, stop ALL Gemini traffic
+        (the pause switch) so CV and email generation move to Claude, until you resume."""
         with self._lock, Session(self.engine) as s:
             st = self._state(s, lease.label)
             if st is None:
@@ -209,8 +300,8 @@ class KeyPool:
             st.disabled_at, st.disabled_reason = utcnow(), reason[:200]
             s.add(st)
             s.commit()
-        log.warning("gemini %s (%s) disabled: %s", lease.label, fingerprint(lease.key),
-                    reason[:120])
+        log.warning("gemini %s (…%s) disabled: %s", lease.label, last4(lease.key), reason[:120])
+        pause(self.engine, f"Google refused {lease.label} (…{last4(lease.key)}): {reason}")
 
     def enable(self, label: str) -> bool:
         with self._lock, Session(self.engine) as s:
@@ -232,16 +323,17 @@ class KeyPool:
         with self._lock, Session(self.engine) as s:
             for label, key in self.keys:
                 st = self._state(s, label)
-                usage = self._usage(s, label)
                 disabled = st is not None and st.disabled_at is not None
-                used = usage.calls
+                used = self._used_today(s, label)
                 state = "disabled" if disabled else "exhausted" if used >= self.rpd else "ok"
-                window = self._windows.get(label, deque())
+                window = self._windows.get(f"{id(self.engine)}:{label}", deque())
                 recent = sum(1 for w in window if self._clock() - w[0] < WINDOW)
-                out.append({"label": label, "fingerprint": fingerprint(key), "used": used,
+                out.append({"label": label, "fingerprint": fingerprint(key), "last4": last4(key),
+                            "used": used,
                             "limit": self.rpd, "remaining": max(0, self.rpd - used), "state": state,
                             "reason": st.disabled_reason if disabled and st else None,
                             "last_minute": recent})
+            cfg = config(s)
             s.commit()
         live = [k for k in out if k["state"] != "disabled"]
         remaining = sum(k["remaining"] for k in live)
@@ -249,7 +341,9 @@ class KeyPool:
                   "remaining": remaining, "keys": len(live), "user_reserve": self.user_reserve}
         return {"model": self.model, "keys": out, "limits": {"rpm": self.rpm, "tpm": self.tpm,
                                                               "rpd": self.rpd},
-                "pooled": pooled,
+                "pooled": pooled, "paused": bool(cfg["paused"]),
+                "paused_reason": cfg["paused_reason"], "max_keys": int(cfg["max_keys"]),
+                "reserve": self.user_reserve,
                 "remaining_today": remaining, "day": pacific_day(now),
                 "resets_at": next_reset(now).isoformat()}
 
@@ -258,16 +352,10 @@ _pools: dict[tuple[int, str], KeyPool] = {}
 _pools_lock = threading.Lock()
 
 
-# Free-tier limits per key where they differ from the Gemini defaults (requests/min, input
-# tokens/min, requests/day).
-MODEL_LIMITS = {"gemma-4-31b-it": (30, 16_000, 14_400), "gemma-4-26b-a4b-it": (30, 16_000, 14_400)}
-
-
 def pool_for(engine: Engine, model: str) -> KeyPool:
     with _pools_lock:
         pool = _pools.get((id(engine), model))
         if pool is None:
-            rpm, tpm, rpd = MODEL_LIMITS.get(model, (RPM, TPM, RPD))
-            pool = KeyPool(engine, model, rpm=rpm, tpm=tpm, rpd=rpd)
+            pool = KeyPool(engine, model)  # the same conservative limits for every model
             _pools[(id(engine), model)] = pool
         return pool

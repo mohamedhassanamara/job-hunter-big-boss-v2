@@ -86,20 +86,20 @@ def test_a_call_sends_the_schema_and_thinking_and_counts_tokens(clean: None) -> 
     assert (s["calls"], s["tokens_in"], s["tokens_thinking"], s["retries_503"]) == (1, 1200, 17, 0)
 
 
-def test_503_moves_to_the_other_key_after_a_backoff_and_is_counted(clean: None) -> None:
+def test_503_retries_the_same_key_after_a_backoff_and_is_counted(clean: None) -> None:
     clock = Clock(NOON)
     r, sent = runner(clock, lambda _r, n: error(503, "high demand") if n == 1 else ok())
     r.call("s", "u", SummaryDraft)
-    assert [x["key"] for x in sent] == ["k1-secret", "k2-secret"]  # rotated, not the same key
+    assert [x["key"] for x in sent] == ["k1-secret", "k1-secret"]  # no rotation
     assert r.summary()["retries_503"] == 1 and clock.slept[0] == 5.0
 
 
-def test_after_the_retries_it_fails_and_never_falls_back(clean: None) -> None:
+def test_after_three_tries_it_fails_and_never_falls_back(clean: None) -> None:
     clock = Clock(NOON)
     r, sent = runner(clock, lambda _r, _n: error(503, "high demand"))
     with pytest.raises(GenerationFailed) as exc:
         r.call("s", "u", SummaryDraft)
-    assert exc.value.retryable and len(sent) == 6  # first try + five backoffs
+    assert exc.value.retryable and len(sent) == 3 and clock.slept == [5.0, 10.0]
     assert generation_failure(CVGenerationFailed("x")) is None
     assert generation_failure(RuntimeError("wrapped").with_traceback(None)) is None
 
@@ -112,12 +112,14 @@ def test_invalid_json_gets_one_retry_with_the_error_fed_back(clean: None) -> Non
     assert "Your answer was invalid" in json.dumps(sent[1]["body"]["contents"])
 
 
-def test_a_daily_429_parks_the_key_and_moves_on(clean: None) -> None:
+def test_a_daily_429_parks_the_key_and_stops(clean: None) -> None:
     clock = Clock(NOON)
     r, sent = runner(clock, lambda _r, n: error(
-        429, "quota", "GenerateRequestsPerDayPerProjectPerModel") if n == 1 else ok())
-    r.call("s", "u", SummaryDraft)
-    assert [x["key"] for x in sent] == ["k1-secret", "k2-secret"]
+        429, "quota", "GenerateRequestsPerDayPerProjectPerModel") if n == 1 else ok(),
+        keys=KEYS[:1])
+    with pytest.raises(GenerationFailed) as exc:
+        r.call("s", "u", SummaryDraft)
+    assert [x["key"] for x in sent] == ["k1-secret"] and exc.value.quota_resume is not None
 
 
 def test_quota_used_up_is_a_failure_that_knows_when_it_resumes(clean: None) -> None:
@@ -161,13 +163,6 @@ def test_background_yields_to_user_work_and_keeps_a_reserve(clean: None) -> None
     snap = pool.snapshot()
     assert snap["pooled"] == {"used": 12, "limit": 12, "remaining": 0, "keys": 1,
                               "user_reserve": 2}
-
-
-def test_avoid_skips_a_key_that_just_failed_unless_it_is_the_only_one(clean: None) -> None:
-    clock = Clock(NOON)
-    pool = make_pool(clock)
-    assert pool.acquire(100, avoid=("key 1",)).label == "key 2"
-    assert make_pool(clock, keys=KEYS[:1]).acquire(100, avoid=("key 1",)).label == "key 1"
 
 
 # ----------------------------------------------------------------------------- model choice

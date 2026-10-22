@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, col, delete, select
 
 from app.db import engine
-from app.models import Job, ProviderKeyState, ProviderUsage, ScoringTask
+from app.models import AppSetting, Job, ProviderKeyState, ProviderUsage, ScoringTask
 from app.models.enums import ScoringTaskStatus
 from app.providers.base import (
     ConcurrencyLimited,
@@ -23,7 +23,7 @@ from app.providers.base import (
     TransientError,
 )
 from app.providers.gemini import GeminiFitScorer, classify_error
-from app.services import scoring
+from app.services import gemini_keys, scoring
 from app.services.gemini_keys import KeyPool, next_reset, pacific_day
 
 MODEL = "gemini-3.5-flash-lite"
@@ -55,6 +55,7 @@ def clean(seeded: None) -> None:
     with Session(engine) as s:
         s.exec(delete(ProviderUsage).where(col(ProviderUsage.provider).like("gemini%")))
         s.exec(delete(ProviderKeyState).where(ProviderKeyState.provider == "gemini"))
+        s.exec(delete(AppSetting).where(AppSetting.key == "gemini"))  # pause switch, cap
         s.commit()
 
 
@@ -172,13 +173,15 @@ def test_no_key_and_all_keys_refused_are_waits_that_need_you(clean: None) -> Non
         make_pool(clock, keys=[]).acquire()
     assert none.value.resume_at is None
     pool = make_pool(clock)
-    for _ in range(2):
-        pool.disable(pool.acquire(), "HTTP 400: API key not valid")
-    with pytest.raises(QuotaWait, match="refused or disabled") as refused:
+    pool.disable(pool.acquire(), "HTTP 403: permission denied")
+    with pytest.raises(QuotaWait, match="paused") as refused:  # a refusal pauses everything
         pool.acquire()
     assert refused.value.resume_at is None
     assert pool.snapshot()["keys"][0]["state"] == "disabled"
-    assert pool.enable("key 1") and pool.acquire().label == "key 1"
+    assert pool.enable("key 1")
+    with Session(engine) as db:
+        gemini_keys.resume(db.get_bind())
+    assert pool.acquire().label == "key 1"
 
 
 def test_scoring_returns_a_validated_assessment(clean: None) -> None:
@@ -188,37 +191,39 @@ def test_scoring_returns_a_validated_assessment(clean: None) -> None:
     assert result.role_match.score == 8 and server.seen == ["k1-secret"]
 
 
-def test_a_daily_429_parks_the_key_and_the_same_request_moves_to_key_two(clean: None) -> None:
+def test_a_daily_429_parks_the_key_and_waits_for_the_reset_without_looping(clean: None) -> None:
     clock = Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC))
-    pool = make_pool(clock)
+    pool = make_pool(clock, keys=KEYS[:1])
     server = Server({"k1-secret": [error(429, "Quota exceeded", DAILY)]})
-    assert scorer(server, pool, clock).assess("s", "u", JOB).role_match.score == 8
-    assert server.seen == ["k1-secret", "k2-secret"]
-    assert pool.snapshot()["keys"][0]["state"] == "exhausted"
-    scorer(server, pool, clock).assess("s", "u", JOB)
-    assert server.seen[-1] == "k2-secret"  # key 1 is not tried again today
-
-
-def test_both_keys_out_of_daily_quota_waits_for_the_reset(clean: None) -> None:
-    clock = Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC))
-    server = Server({"k1-secret": [error(429, "q", DAILY)], "k2-secret": [error(429, "q", DAILY)]})
     with pytest.raises(QuotaWait) as wait:
-        scorer(server, make_pool(clock), clock).assess("s", "u", JOB)
+        scorer(server, pool, clock).assess("s", "u", JOB)
     assert wait.value.resume_at == datetime(2026, 10, 21, 7, 0, tzinfo=UTC)
-    assert server.seen == ["k1-secret", "k2-secret"]  # one try each, no loop
+    assert server.seen == ["k1-secret"]  # one try, no loop, no second key
+    assert pool.snapshot()["keys"][0]["state"] == "exhausted"
 
 
-def test_a_refused_key_is_disabled_and_never_retried(clean: None) -> None:
+def test_one_403_disables_the_key_pauses_gemini_and_moves_cv_and_email_to_claude(
+        clean: None) -> None:
     clock = Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC))
-    pool = make_pool(clock)
-    server = Server({"k1-secret": [error(400, "API key not valid. Please pass a valid API key.")]})
+    pool = make_pool(clock, keys=KEYS[:1])
+    denied = error(403, "Permission denied: the project has been suspended")
+    server = Server({"k1-secret": [denied]})
     s = scorer(server, pool, clock)
-    s.assess("s", "u", JOB)
-    s.assess("s", "u", JOB)
-    assert server.seen == ["k1-secret", "k2-secret", "k2-secret"]
-    snap = pool.snapshot()["keys"]
-    assert snap[0]["state"] == "disabled" and "not valid" in snap[0]["reason"]
-    assert "k1-secret" not in json.dumps(snap)  # keys are never exposed, only label + fingerprint
+    with pytest.raises(ScoringFailed, match="paused"):
+        s.assess("s", "u", JOB)
+    assert server.seen == ["k1-secret"]  # one request, never retried
+    snap = pool.snapshot()
+    assert snap["keys"][0]["state"] == "disabled" and snap["paused"] is True
+    assert "k1-secret" not in json.dumps(snap)  # only the label and the last 4 characters
+    assert snap["keys"][0]["last4"] == "cret"
+    with pytest.raises(QuotaWait, match="paused"):  # all Gemini traffic stops
+        s.assess("s", "u", JOB)
+    assert server.seen == ["k1-secret"]
+    with Session(engine) as db:  # CV and email now go to Claude, whatever the setting says
+        from app.services import model_choice
+
+        for task in ("cv", "email"):
+            assert model_choice.choice(db, task)["provider"] == "anthropic"
 
 
 def test_503_is_retried_with_backoff_then_gives_up_as_transient(clean: None) -> None:
@@ -231,7 +236,7 @@ def test_503_is_retried_with_backoff_then_gives_up_as_transient(clean: None) -> 
     down = Server({"k1-secret": [busy] * 4})
     with pytest.raises(TransientError):
         scorer(down, make_pool(clock2), clock2).assess("s", "u", JOB)
-    assert len(down.seen) == 4 and clock2.slept == [5.0, 10.0, 20.0]
+    assert len(down.seen) == 3 and clock2.slept == [5.0, 10.0]  # three tries, then give up
 
 
 def test_a_minute_limit_429_is_a_concurrency_limit_for_the_queue(clean: None) -> None:
@@ -314,32 +319,66 @@ def gemini_model(client: TestClient, monkeypatch: pytest.MonkeyPatch, clean: Non
     from app.api import scoring as scoring_api
     from app.services import gemini_keys
 
-    monkeypatch.setattr(gemini_keys, "configured_keys", lambda: KEYS)
+    monkeypatch.setattr(gemini_keys, "configured_keys", lambda n=None: KEYS[: n or 1])
     monkeypatch.setattr(scoring_api, "workspace_is_real", lambda workspace: True)
     models = client.get("/api/settings").json()["values"]["models"]
     client.put("/api/settings/models", json={"value": {
         **models, "scoring": {**models["scoring"], "model": MODEL, "fallback": None}}})
 
 
-def test_quota_endpoint_per_key_and_rescore_preview_in_days(
+def test_quota_endpoint_single_key_cap_and_rescore_preview_in_days(
         client: TestClient, gemini_model: None) -> None:
     quota = client.get("/api/scoring/quota").json()
     assert quota["provider"] == "gemini"
-    assert [k["label"] for k in quota["keys"]] == ["key 1", "key 2"]
-    assert quota["remaining_today"] == 1000 and quota["limits"]["rpd"] == 500
-    assert "k1-secret" not in json.dumps(quota)
+    assert [k["label"] for k in quota["keys"]] == ["key 1"]  # key 2 is listed but never used
+    assert quota["remaining_today"] == 200 and quota["limits"] == {
+        "rpm": 6, "tpm": 250_000, "rpd": 200}
+    assert quota["reserve"] == 50 and quota["paused"] is False
+    assert "k1-secret" not in json.dumps(quota) and quota["keys"][0]["last4"] == "cret"
     preview = client.get("/api/scoring/rescore-preview", params={"scope": "outdated"}).json()
-    assert preview["model"] == MODEL and preview["daily_capacity"] == 1000
-    assert preview["days"] == 1 and preview["count"] > 0  # the sample is far below 1,000 jobs
-    with Session(engine) as s:  # key 1 used up for today (the endpoint above created the row)
-        row = s.exec(select(ProviderUsage).where(
-            ProviderUsage.provider == MODEL, ProviderUsage.key_label == "key 1",
-            ProviderUsage.period == pacific_day())).one()
-        row.calls = 500
-        s.add(row)
+    assert preview["model"] == MODEL and preview["daily_capacity"] == 150  # 200 minus your 50
+    assert preview["days"] == 1 and preview["count"] > 0
+    with Session(engine) as s:  # the day's cap used up 
+        s.add(ProviderUsage(provider=MODEL, key_label="key 1", period=pacific_day(), calls=200))
         s.commit()
     assert client.get("/api/scoring/quota").json()["keys"][0]["state"] == "exhausted"
-    assert client.get("/api/scoring/quota").json()["remaining_today"] == 500
+    assert client.get("/api/scoring/quota").json()["remaining_today"] == 0
+
+
+def test_the_cap_counts_every_gemini_model_and_background_keeps_the_reserve(
+        clean: None) -> None:
+    clock = Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC))
+    with Session(engine) as s:
+        s.add(AppSetting(key="gemini", value={"daily_cap": 10}))
+        s.commit()
+    scoring_pool = KeyPool(engine, MODEL, keys=KEYS[:1], rpm=100, user_reserve=4,
+                           clock=clock.time, sleep=clock.sleep, now=clock.utc)
+    other = KeyPool(engine, "gemini-3.1-flash-lite", keys=KEYS[:1], rpm=100, user_reserve=4,
+                    clock=clock.time, sleep=clock.sleep, now=clock.utc)
+    for _ in range(3):
+        scoring_pool.acquire(priority="background")
+    for _ in range(3):
+        other.acquire(priority="background")  # another model: same cap
+    with pytest.raises(QuotaWait):  # 6 of 10 used = the 4 left are yours
+        scoring_pool.acquire(priority="background")
+    for _ in range(4):
+        other.acquire(priority="user")
+    with pytest.raises(QuotaWait) as wait:
+        scoring_pool.acquire(priority="user")
+    assert wait.value.resume_at == datetime(2026, 10, 21, 7, 0, tzinfo=UTC)
+
+
+def test_only_the_first_key_is_used_even_when_more_are_listed(
+        clean: None, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "gemini_api_keys", "aaaa1111,bbbb2222,cccc3333")
+    assert gemini_keys.configured_keys() == [("key 1", "aaaa1111")]  # default: 1
+    assert len(gemini_keys.configured_keys(2)) == 2  # the setting "Max Gemini keys in use"
+    pool = KeyPool(engine, MODEL)  # reads the setting from the database
+    assert [label for label, _ in pool.keys] == ["key 1"]
+    clock = Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC))
+    assert pool.snapshot()["keys"][0]["last4"] == "1111" and clock  # never the full value
 
 
 def test_the_outdated_scope_is_best_first_and_skips_duplicates(
@@ -384,9 +423,11 @@ def test_auto_score_after_discovery_can_be_turned_off(client: TestClient) -> Non
 def test_continue_with_and_key_enable_endpoints(client: TestClient, gemini_model: None) -> None:
     assert client.post("/api/scoring/continue-with", json={"model": None}).status_code == 200
     assert client.post("/api/scoring/keys/key%201/enable").status_code == 404  # nothing disabled
-    pool = make_pool(Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC)))
-    pool.disable(pool.acquire(), "HTTP 400: API key not valid")
+    pool = make_pool(Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC)), keys=KEYS[:1])
+    pool.disable(pool.acquire(), "HTTP 403: permission denied")
+    assert client.get("/api/scoring/quota").json()["paused"] is True
+    assert client.post("/api/scoring/keys/key%201/enable").status_code == 200
+    assert client.get("/api/scoring/quota").json()["paused"] is False
     from app.services.gemini_keys import pool_for
 
-    pool_for(engine, MODEL).enable("key 1")  # what the endpoint does
     assert pool_for(engine, MODEL).snapshot()["keys"][0]["state"] in ("ok", "exhausted")

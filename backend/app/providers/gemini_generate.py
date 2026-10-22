@@ -7,9 +7,10 @@ call changes (`ClaudeCVGenerator._call` is replaced). Facts that matter:
   calls are "user" priority: they yield to nothing, and background scoring yields to them.
 - Native JSON schema (`responseJsonSchema`, the same inlined schema Claude's CLI gets) and a
   `thinkingConfig` from the Settings thinking level (`minimal` = none; `dynamic` = model decides).
-- 429/503/timeouts retry with backoff and move to another key; invalid JSON gets ONE retry with
-  the error fed back. When the retries are used up it raises `GenerationFailed`: it never falls
-  back to another model (the user clicks Retry or "Generate with Claude").
+- 429/503/timeouts retry with backoff (3 tries in all, one key, no rotation); invalid JSON gets
+  ONE retry with the error fed back. When the retries are used up it raises `GenerationFailed`
+  (the user clicks Retry or "Generate with Claude"). A 403 / refused key disables the key and
+  pauses Gemini: from then on `model_choice.choice` hands CV and email to Claude.
 - Privacy: a request containing the profile's email, phone number or link URLs is refused
   before it is sent (`check_private`).
 """
@@ -32,7 +33,7 @@ from app.providers.gemini import BASE_URL, _error_text, classify_error
 from app.providers.ollama import strip_fence
 from app.services.gemini_keys import KeyPool, pool_for
 
-BACKOFF = (5.0, 10.0, 20.0, 40.0, 60.0)  # seconds before the next try after a 429/503/timeout
+BACKOFF = (5.0, 10.0)  # seconds before the next try after a 429/503/timeout: 3 tries, then give up
 THINKING_LEVELS = ("minimal", "low", "medium", "high", "dynamic")
 DEFAULT_MODEL, DEFAULT_THINKING = "gemini-3.5-flash-lite", "minimal"
 
@@ -139,22 +140,22 @@ class GeminiRunner:
                                      "responseJsonSchema": schema,
                                      "thinkingConfig": self.thinking}}
         est = (len(system) + sum(len(p["text"]) for c in contents for p in c["parts"])) // 3 + 2000
-        avoid: list[str] = []
         last = ""
         for attempt in range(len(self.backoff) + 1):
-            try:
-                lease = self.pool.acquire(est, priority="user", avoid=tuple(avoid))
-            except QuotaWait as exc:
-                raise GenerationFailed(str(exc), quota_resume=exc.resume_at) from exc
-            t0 = time.monotonic()
-            status, res = 0, None
-            try:
-                with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
-                    res = client.post(f"{BASE_URL}/{self.model}:generateContent",
-                                      params={"key": lease.key}, json=body)
-                status = res.status_code
-            except httpx.HTTPError as exc:
-                last = exc.__class__.__name__
+            with self.pool.one_at_a_time():
+                try:
+                    lease = self.pool.acquire(est, priority="user")
+                except QuotaWait as exc:
+                    raise GenerationFailed(str(exc), quota_resume=exc.resume_at) from exc
+                t0 = time.monotonic()
+                status, res = 0, None
+                try:
+                    with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
+                        res = client.post(f"{BASE_URL}/{self.model}:generateContent",
+                                          params={"key": lease.key}, json=body)
+                    status = res.status_code
+                except httpx.HTTPError as exc:
+                    last = exc.__class__.__name__
             rec["attempts"].append({"status": status, "key": lease.label,
                                     "seconds": round(time.monotonic() - t0, 1)})
             if res is not None and status == 200:
@@ -175,15 +176,15 @@ class GeminiRunner:
                 if res is not None:
                     last = f"{status}: {_error_text(res)}"
             if kind == "daily":
-                self.pool.mark_exhausted(lease)
+                self.pool.mark_exhausted(lease)  # the next acquire() raises QuotaWait
                 continue
-            if kind == "refused":
+            if kind == "refused":  # one refusal is enough: key disabled, Gemini paused
                 self.pool.disable(lease, last)
-                continue
+                raise GenerationFailed(f"Google refused the Gemini key ({last}). Gemini is "
+                                       "paused: generate with Claude.", retryable=False)
             if kind == "fatal":
                 raise GenerationFailed(f"Gemini error {last}", retryable=False)
-            avoid.append(lease.label)  # rate / transient: try another key after a pause
-            if attempt < len(self.backoff):
+            if attempt < len(self.backoff):  # rate / transient: pause, then the same key again
                 self._sleep(self.backoff[attempt])
         raise GenerationFailed(f"Gemini did not answer after {len(self.backoff) + 1} tries "
                                f"({last}). Retry, or generate with Claude.")

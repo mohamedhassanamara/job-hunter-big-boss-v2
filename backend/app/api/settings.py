@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
-    "motivation", "providers", "generation",
+    "motivation", "providers", "generation", "gemini",
 }
 
 
@@ -75,6 +75,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services import generation
 
     values["generation"] = generation.settings(session)
+    from app.services import gemini_keys
+
+    values["gemini"] = gemini_keys.config(session)
     values["smtp"] = {"gap_min_minutes": 4, "gap_max_minutes": 7, "max_per_queue": 20,
                       **{k: v for k, v in (values.get("smtp") or {}).items()
                          if k != "interval_minutes"}}
@@ -247,6 +250,20 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 raise HTTPException(422, f"{name} must be true or false")
         body.value = {"auto_cv": bool(body.value.get("auto_cv", True)),
                       "auto_email": bool(body.value.get("auto_email", False))}
+    if key == "gemini":
+        for name, lo, hi in (("max_keys", 1, 5), ("daily_cap", 10, 1000)):
+            v = body.value.get(name)
+            if v is not None and (not isinstance(v, int) or isinstance(v, bool)
+                                  or not lo <= v <= hi):
+                raise HTTPException(422, f"{name} must be a whole number between {lo} and {hi}")
+        # the pause switch and its reason are written by the app, never through this form
+        from app.services import gemini_keys
+
+        cur = gemini_keys.config(session)
+        body.value = {"max_keys": body.value.get("max_keys", cur["max_keys"]),
+                      "daily_cap": body.value.get("daily_cap", cur["daily_cap"]),
+                      "paused": cur["paused"], "paused_reason": cur["paused_reason"],
+                      "paused_at": cur["paused_at"]}
     if key == "motivation":
         _check_motivation(session, body.value)
     if key == "research":
