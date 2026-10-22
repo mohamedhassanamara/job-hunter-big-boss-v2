@@ -1,3 +1,4 @@
+import { useSyncFromServer } from '@/hooks/useSyncFromServer'
 import { CircleX, Copy, MessageSquareText, Plus, Sparkles, Trash2, TriangleAlert, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -26,6 +27,7 @@ function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete:
   const verify = useVerifyAnswer()
   const [text, setText] = useState(answer.answer)
   const pendingEdit = patch.isPending || text !== answer.answer
+  useSyncFromServer(answer.answer, text, setText)
   const codeErrors = answer.violations.some((v) => v.severity === 'error')
   const canCopy = verified(answer.verification_state) && !pendingEdit
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -101,6 +103,7 @@ function AnswerCard({ answer, onDelete }: { answer: ApplicationAnswer; onDelete:
         state={pendingEdit ? 'stale' : answer.verification_state}
         verifying={verify.isPending}
         gate="Copy"
+        fixTarget={pendingEdit ? undefined : { kind: 'answer', id: answer.id }}
         onVerify={pendingEdit || codeErrors ? undefined : () => verify.mutate(answer.id, { onError: (e) => toast.error(e.message) })}
       />
     </li>

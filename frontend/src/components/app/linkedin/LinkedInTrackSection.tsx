@@ -1,3 +1,4 @@
+import { useSyncFromServer } from '@/hooks/useSyncFromServer'
 import { ClipboardPaste, Copy, ExternalLink, Mail, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useRef, useState } from 'react'
@@ -121,6 +122,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const [regen, setRegen] = useState(false)
   const [text, setText] = useState(draft?.text ?? '')
   const pendingEdit = edit.isPending || (draft?.text ?? '') !== text
+  useSyncFromServer(draft?.text ?? '', text, setText)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const save = (value: string) => {
     if (timer.current) clearTimeout(timer.current)
@@ -196,6 +198,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           state={pendingEdit ? 'stale' : vstate}
           verifying={verify.isPending}
           gate="Copy"
+          fixTarget={pendingEdit ? undefined : { kind: 'linkedin', id: person.id, sub: kind }}
           onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind }, { onError: (e) => toast.error(e.message) })}
         />
       )}
@@ -227,6 +230,8 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
   const [text, setText] = useState(draft?.text ?? '')
   const [subject, setSubject] = useState(draft?.subject ?? '')
   const pendingEdit = edit.isPending || (draft?.text ?? '') !== text || (draft?.subject ?? '') !== subject
+  useSyncFromServer(draft?.text ?? '', text, setText)
+  useSyncFromServer(draft?.subject ?? '', subject, setSubject)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const save = (next: { inmail_text?: string; inmail_subject?: string }) => {
     if (timer.current) clearTimeout(timer.current)
@@ -354,6 +359,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
           state={pendingEdit ? 'stale' : vstate}
           verifying={verify.isPending}
           gate="Copy"
+          fixTarget={pendingEdit ? undefined : { kind: 'linkedin', id: person.id, sub: 'inmail' }}
           onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind: 'inmail' }, { onError: (e) => toast.error(e.message) })}
         />
       )}

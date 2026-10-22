@@ -211,7 +211,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'interview-pitch', title: 'Tell me about yourself', body: 'Three or four sentences that lead from your current role to this one. Edit any sentence: it autosaves and is re-checked, with no new Claude call.', placement: 'right' },
       { target: 'interview-story', title: 'STAR stories', body: 'Situation, task, action and result, each from a different item of your Experience and chosen for what the listing asks for. The chips show which items every sentence comes from.', placement: 'left' },
       { target: 'interview-questions', title: 'Likely questions', body: 'Taken from this listing, each pointing at the story that answers it best, plus questions you can ask them.', placement: 'right' },
-      { target: 'claim-check', title: 'The claim check', body: 'Before you can approve, the Claude claim verifier judges every sentence against your Experience, facts and the listing. A text you edit afterwards must pass again.', placement: 'top' },
+      { target: 'claim-check', title: 'The claim check', body: 'Before you can approve, the Claude claim verifier judges every sentence against your Experience, facts and the listing. A text you edit afterwards must pass again. Click a flagged claim to see a suggested fix built only from your sources: Apply, Edit then apply, or Ignore.', placement: 'top' },
       { target: 'interview-approve', title: 'Approve', body: 'Approving marks this version as the one to practise with. Regenerating writes a new draft and keeps the old one superseded.', placement: 'bottom' },
     ],
   },

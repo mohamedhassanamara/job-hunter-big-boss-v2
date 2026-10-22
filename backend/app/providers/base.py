@@ -516,6 +516,11 @@ class VerifyClaim(BaseModel):
     source_id: str = ""  # e.g. "pool:5", "cv", "facts", "signal:12", "listing"; "" when none
     source_quote: str = ""  # copied verbatim from that source ("" when none)
     reason: str = ""
+    # For a flagged claim only: the whole sentence rewritten with facts from the sources ("" = no
+    # support for it, so the sentence should go), the source it relies on and its exact quote.
+    suggestion: str = ""
+    suggestion_source_id: str = ""
+    suggestion_quote: str = ""
 
 
 class VerifyPlan(BaseModel):

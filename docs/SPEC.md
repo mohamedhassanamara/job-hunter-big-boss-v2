@@ -398,6 +398,16 @@ Every email, LinkedIn note or follow-up, cover letter and form answer is checked
    adds a cause), the source quote and a reason, shown in the review screen ("Check claims" runs it on demand).
 - **When:** at approval (emails, letters; reused if the exact text is unchanged), on demand, and before Copy /
   "I sent it" (LinkedIn, form answers). Any edit makes the last check stale. A verifier that can't run blocks too.
+- **Suggested fixes** (`services/claim_fix.py`, `POST /api/claim-fixes/apply`; emails, letters, form text, answers,
+  LinkedIn): each blocking claim carries one `fix`, from the SAME verification call (prompt v7: a whole-sentence
+  `suggestion` with its source and exact quote, or none = "remove this sentence"). Code repairs first, no model: wrong
+  years → the approved wording, a wrong number/tool → the one in the claim's source quote, a banned phrase removed,
+  a greeting gets the contact's name. Every candidate passes the code checks (quote really in its source, numbers,
+  tools, years, honesty, banned phrases); a failing one becomes "remove". In the claim list, a flagged claim opens a card
+  (suggested text, source quote) with Apply / Edit then apply / Ignore, plus "Apply all fixes" for several. Applying
+  edits the text (through the normal edit path), re-verifies only the changed sentences and merges the verdicts into the
+  record. A fix is refused when the check is stale. Nothing new blocks approval, and Ignore / approve without
+  verification stay possible. No Gemini call.
 - **Send gate:** right before a queued email goes out, its exact subject, text (with the signature) and CV file must
   match the verified hashes; otherwise it isn't sent and goes back to review with the reason.
 - **Regression set:** `make eval-verifier` (must pass: your approved examples; must fail: "mentoring other developers",

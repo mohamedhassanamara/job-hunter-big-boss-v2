@@ -1,3 +1,4 @@
+import { useSyncFromServer } from '@/hooks/useSyncFromServer'
 import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
@@ -78,6 +79,9 @@ export function LetterEditor({ letter, onNewVersion, approving = false }: { lett
   const [salutation, setSalutation] = useState(letter.salutation)
   const [paragraphs, setParagraphs] = useState(letter.paragraphs.map((p) => p.text))
   const [ask, setAsk] = useState(letter.ask)
+  useSyncFromServer(letter.salutation, salutation, setSalutation)
+  useSyncFromServer(letter.paragraphs.map((p) => p.text), paragraphs, setParagraphs)
+  useSyncFromServer(letter.ask, ask, setAsk)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timer = useRef<number | undefined>(undefined)
   const pending = useRef<LetterPatchInput>({})
@@ -144,6 +148,7 @@ export function LetterEditor({ letter, onNewVersion, approving = false }: { lett
           state={approving ? 'none' : letter.verification_state}
           verifying={verify.isPending || approving}
           gate="approval"
+          fixTarget={saveState === 'saving' ? undefined : { kind: 'letter', id: letter.id }}
           onVerify={letter.status === 'draft' && !letter.violations.some((v) => v.severity === 'error') ? () => verify.mutate(letter.id, { onError: (e) => toast.error(e.message) }) : undefined}
         />
       )}

@@ -2016,6 +2016,18 @@ export interface MotivationSettings {
 
 export type ClaimVerdict = 'supported' | 'unsupported' | 'exaggerated' | 'merged' | 'causal' | 'not_a_claim' | 'garbled'
 
+/** A checked suggestion for a flagged claim (services/claim_fix.py): replace the sentence with
+ * `text` (built only from the sources), or remove it when nothing supports the point. */
+export interface ClaimFix {
+  kind: 'replace' | 'remove'
+  text: string
+  /** code = deterministic repair, claude = the verifier's own suggestion, checks = it failed our checks. */
+  origin: 'code' | 'claude' | 'checks'
+  note: string
+  source_id: string
+  source_quote: string
+}
+
 export interface VerifiedClaim {
   sentence: string
   claim: string
@@ -2026,6 +2038,7 @@ export interface VerifiedClaim {
   reason: string
   quote_not_found?: boolean
   skipped?: boolean
+  fix?: ClaimFix
 }
 
 /** The last claim verification of a text (services/verifier.py). */
