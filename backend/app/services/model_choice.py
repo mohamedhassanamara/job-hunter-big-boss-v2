@@ -4,6 +4,9 @@
 (gemini-3.5-flash-lite, thinking minimal). A call can override it once with `use="claude"`
 ("Generate with Claude" after a failure): the setting never changes and nothing falls back on
 its own.
+
+While Gemini is paused (`services/gemini_keys.is_paused`: the key was refused, or the switch in
+Settings → Models) a Gemini choice resolves to Claude Code (subscription) instead.
 """
 
 from typing import Any
@@ -30,6 +33,10 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
         claude = model if model.startswith("claude-") else DEFAULT_CLAUDE
         return {"provider": "anthropic", "model": claude, "thinking_level": None}
     if model.startswith("gemini-"):
+        from app.services.gemini_keys import is_paused
+
+        if is_paused(s):  # Google refused the key, or you flipped the switch: Claude writes
+            return {"provider": "anthropic", "model": DEFAULT_CLAUDE, "thinking_level": None}
         return {"provider": "gemini", "model": model,
                 "thinking_level": cfg.get("thinking_level") or DEFAULT_THINKING}
     return {"provider": "anthropic", "model": model, "thinking_level": None}

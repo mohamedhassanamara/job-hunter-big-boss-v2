@@ -387,6 +387,18 @@ export function useContinueWith() {
   })
 }
 
+/** The pause switch: no Gemini request at all, CV and email generation use Claude. */
+export function usePauseGemini() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (paused: boolean) => api.post<{ paused: boolean }>('/scoring/gemini/pause', { paused }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['scoring-quota'] })
+      void qc.invalidateQueries({ queryKey: keys.settings })
+    },
+  })
+}
+
 export function useEnableGeminiKey() {
   const qc = useQueryClient()
   return useMutation({

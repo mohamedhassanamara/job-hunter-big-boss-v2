@@ -2,6 +2,7 @@ import math
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import col, select
 
@@ -24,7 +25,7 @@ from app.schemas.scoring import (
     ScoringHealth,
     ScoringStatus,
 )
-from app.services import open_jobs, scoring
+from app.services import gemini_keys, open_jobs, scoring
 from app.services.gemini_keys import configured_keys, pool_for
 from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
 from app.services.text import html_to_text
@@ -79,7 +80,7 @@ def scoring_health(
         return ScoringHealth(reachable=True, model="mock-scorer", model_present=True,
                              message="Sample data uses a mock scorer", models=[], pull_command="")
     if model.startswith("gemini-"):
-        keys = configured_keys()
+        keys = configured_keys(int(gemini_keys.config(session)["max_keys"]))  # config only, no call
         return ScoringHealth(
             reachable=bool(keys), model=model, model_present=bool(keys),
             message=f"{len(keys)} Gemini API key(s) configured" if keys
@@ -145,8 +146,9 @@ def rescore_preview(scope: str, session: SessionDep, workspace: WorkspaceDep) ->
     if ctx.model.startswith("gemini-") and workspace_is_real(workspace):
         snap = pool_for(engine_for(workspace), ctx.model).snapshot()
         usable = [k for k in snap["keys"] if k["state"] != "disabled"]
-        capacity = len(usable) * snap["limits"]["rpd"]
-        left = max(0, len(ids) - snap["remaining_today"])
+        # scoring never uses the requests kept for you (the daily cap minus the reserve)
+        capacity = len(usable) * max(0, snap["limits"]["rpd"] - snap["reserve"])
+        left = max(0, len(ids) - max(0, snap["remaining_today"] - snap["reserve"]))
         days = 1 if left == 0 else (1 + math.ceil(left / capacity) if capacity else None)
     return RescorePreview(scope=scope, count=len(ids), skipped=skipped,
                           model=ctx.model, eta_seconds=eta, days=days, daily_capacity=capacity)
@@ -197,11 +199,31 @@ def scoring_quota(session: SessionDep, workspace: WorkspaceDep,
                 {"label": "key 2", "fingerprint": "d4e5f6", "used": 212, "limit": 500,
                  "remaining": 288, "state": "ok", "reason": None, "last_minute": 3}]
         return {"provider": "gemini", "model": model, "keys": keys, "sample": True,
-                "limits": {"rpm": 15, "tpm": 250_000, "rpd": 500}, "remaining_today": 288,
+                "limits": {"rpm": 6, "tpm": 250_000, "rpd": 500}, "remaining_today": 288,
+                "paused": False, "paused_reason": None, "max_keys": 1, "reserve": 50,
                 "pooled": {"used": 712, "limit": 1000, "remaining": 288, "keys": 2,
                            "user_reserve": 50},
                 "day": "sample", "resets_at": None}
     return {"provider": "gemini", **pool_for(engine_for(workspace), model).snapshot()}
+
+
+class GeminiPauseIn(BaseModel):
+    paused: bool
+
+
+@router.post("/scoring/gemini/pause")
+def pause_gemini(body: GeminiPauseIn, session: SessionDep, workspace: WorkspaceDep
+                 ) -> dict[str, Any]:
+    """The one-click switch (Settings → Models): paused = no Gemini request at all and CV / email
+    generation use Claude. Resuming re-enables nothing that Google refused: use "Use it again"."""
+    if not workspace_is_real(workspace):
+        raise HTTPException(409, "Sample data has no real Gemini key")
+    if body.paused:
+        gemini_keys.save_config(session, paused=True, paused_reason="paused by you",
+                                paused_at=utcnow().isoformat())
+    else:
+        gemini_keys.save_config(session, paused=False, paused_reason=None, paused_at=None)
+    return {"paused": body.paused}
 
 
 @router.post("/scoring/keys/{label}/enable")
@@ -213,6 +235,7 @@ def enable_key(label: str, session: SessionDep, workspace: WorkspaceDep) -> dict
     ok = pool_for(engine_for(workspace), ctx.model).enable(label)
     if not ok:
         raise HTTPException(404, f"No disabled key called {label}")
+    gemini_keys.save_config(session, paused=False, paused_reason=None, paused_at=None)
     return {"ok": True}
 
 

@@ -2,7 +2,7 @@ import { KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { clockTime, pluralize, relativeTime } from '@/lib/format'
-import { useEnableGeminiKey, useScoringQuota } from '@/lib/queries/workflow'
+import { useEnableGeminiKey, usePauseGemini, useScoringQuota } from '@/lib/queries/workflow'
 import { cn } from '@/lib/utils'
 import { ToneBadge } from './badges'
 
@@ -11,11 +11,42 @@ import { ToneBadge } from './badges'
 export function GeminiQuotaList({ className, model }: { className?: string; model?: string }) {
   const quota = useScoringQuota(model)
   const enable = useEnableGeminiKey()
+  const pause = usePauseGemini()
   const q = quota.data
   if (!q || q.provider !== 'gemini' || !q.keys) return null
   const resets = q.resets_at
   return (
     <div className={cn('space-y-2', className)} data-tour="gemini-quota">
+      {!q.sample && (
+        <div className={cn('rounded-md border p-3 text-sm', q.paused ? 'border-border bg-danger-bg' : 'border-border bg-warning-bg')}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="font-medium">Gemini: single key, accounts under review</span>
+            <span className="tabular-nums text-fg-muted">
+              {q.pooled?.used ?? 0} of {q.limits?.rpd ?? 0} requests used today · {q.reserve ?? 0} kept for what you trigger · {q.limits?.rpm}/min, one at a time
+            </span>
+            <Button
+              size="xs"
+              variant={q.paused ? 'default' : 'outline'}
+              className="ml-auto"
+              disabled={pause.isPending}
+              onClick={() =>
+                pause.mutate(!q.paused, {
+                  onError: (e) => toast.error(e.message),
+                  onSuccess: () => toast.success(q.paused ? 'Gemini resumed' : 'Gemini paused: Claude writes CVs and emails'),
+                })
+              }
+            >
+              {q.paused ? 'Resume Gemini' : 'Pause Gemini, use Claude'}
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-fg-muted">
+            {q.keys.length > 0 ? `Using ${q.keys.map((k) => `${k.label} (…${k.last4})`).join(', ')}.` : 'No key configured.'}{' '}
+            {q.paused
+              ? `Paused${q.paused_reason ? `: ${q.paused_reason}` : ''}. Scoring waits; CVs and emails are written by Claude.`
+              : 'If Google refuses the key even once, Gemini stops and Claude takes over.'}
+          </p>
+        </div>
+      )}
       {q.pooled && (
         <p className="flex flex-wrap items-center gap-x-2 text-sm">
           <span className="font-medium">Pooled quota</span>
@@ -35,7 +66,7 @@ export function GeminiQuotaList({ className, model }: { className?: string; mode
               <div className="flex items-center gap-2 text-sm">
                 <KeyRound className="size-3.5 text-fg-subtle" />
                 <span className="font-medium capitalize">{k.label}</span>
-                <span className="font-mono text-2xs text-fg-subtle">…{k.fingerprint}</span>
+                <span className="font-mono text-2xs text-fg-subtle">…{k.last4}</span>
                 {k.state === 'ok' && <ToneBadge tone="green">Available</ToneBadge>}
                 {k.state === 'exhausted' && <ToneBadge tone="amber">Used up today</ToneBadge>}
                 {k.state === 'disabled' && <ToneBadge tone="red">Disabled</ToneBadge>}
@@ -68,7 +99,7 @@ export function GeminiQuotaList({ className, model }: { className?: string; mode
       <p className="text-xs text-fg-muted">
         {pluralize(q.keys.length, 'key')} · {q.remaining_today ?? 0} requests left today across enabled keys
         {resets ? ` · resets at ${clockTime(resets)} (${relativeTime(resets)})` : ''}
-        {q.sample ? ' · sample data' : ''}. Free tier per key: {q.limits?.rpm}/min, {Math.round((q.limits?.tpm ?? 0) / 1000)}K tokens/min, {q.limits?.rpd}/day.
+        {q.sample ? ' · sample data' : ''}. Limits: {q.limits?.rpm}/min, one at a time, {q.limits?.rpd}/day across every Gemini model.
       </p>
     </div>
   )
