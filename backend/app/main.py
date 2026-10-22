@@ -28,9 +28,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         # The sandbox may not exist yet: the first tour builds it.
         with contextlib.suppress(Exception):
             mark_stale_runs(demo_engine)
-    # Persistent scoring queue: tasks interrupted by the last shutdown/reload carry on.
+    # Persistent scoring queue: interrupted tasks go back to "queued" but are NOT started: the
+    # backlog stays paused (no Gemini request at startup) until you start it.
     with contextlib.suppress(Exception):
-        workspace_queue("real").resume()
+        workspace_queue("real").resume(start=False)
     if settings.scheduler_enabled:
         scheduler.start(engine)
     if settings.send_worker_enabled:  # real workspace only; the sandbox never sends

@@ -201,3 +201,23 @@ def test_enqueue_never_scored_skips_every_scored_job(jobs: list[Job]) -> None:
     assert queue.wait(10)
     assert sorted(scorer.calls) == sorted(j.title for j in never)
     assert queue.enqueue_never_scored() == 0  # now everything has a score
+
+
+def test_startup_resume_requeues_but_sends_nothing(jobs: list[Job]) -> None:
+    with Session(engine) as s:
+        run = ScoringRun(trigger="discovery", primary_model=CLOUD)
+        s.add(run)
+        s.commit()
+        s.refresh(run)
+        for n, job in enumerate(jobs):
+            status = ScoringTaskStatus.in_progress if n == 0 else ScoringTaskStatus.queued
+            s.add(ScoringTask(run_id=run.id, job_id=job.id, force=True, position=n,
+                              status=status))
+        s.commit()
+    scorer = Scripted(CLOUD)
+    restarted = ScoringQueue(engine, lambda model: scorer)
+    assert restarted.resume(start=False) == len(jobs)  # what app startup does
+    assert scorer.calls == [] and not restarted._alive()
+    assert all(t.status == ScoringTaskStatus.queued for t in tasks_of(restarted))
+    restarted.start()  # your explicit start
+    assert restarted.wait(10) and len(scorer.calls) == len(jobs)
