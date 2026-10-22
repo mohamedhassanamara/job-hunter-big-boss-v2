@@ -1,3 +1,4 @@
+import { useSyncFromServer } from '@/hooks/useSyncFromServer'
 import { CircleCheck, CircleX, FileText, ListPlus, Mail, RefreshCw, RotateCcw, Send, ShieldOff, TriangleAlert, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
@@ -181,6 +182,8 @@ export function DraftEditor({
   const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
   const [body, setBody] = useState(draft.body)
+  useSyncFromServer(draft.subject, subject, setSubject)
+  useSyncFromServer(draft.body, body, setBody)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timer = useRef<number | undefined>(undefined)
   const editable = draft.status === 'draft'
@@ -298,6 +301,7 @@ export function DraftEditor({
             state={approving ? 'none' : draft.verification_state}
             verifying={verify.isPending || approving}
             gate="approval"
+            fixTarget={editable && saveState !== 'saving' ? { kind: 'email', id: draft.id } : undefined}
             onVerify={editable && errors.length === 0 ? () => verify.mutate(draft.id, { onError: (e) => toast.error(e.message) }) : undefined}
           />
         )}

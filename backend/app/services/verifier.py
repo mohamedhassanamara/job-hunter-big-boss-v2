@@ -236,8 +236,9 @@ def postcheck(claims: list[VerifyClaim], sources: dict[str, str],
 
 
 def run(verifier: Any, kind: str, text: str, sources: dict[str, str],
-        attachment_sha256: str | None = None) -> dict[str, Any]:
-    """One verification; never raises (a verifier that can't run gives status "error")."""
+        attachment_sha256: str | None = None, fixer: Any = None) -> dict[str, Any]:
+    """One verification; never raises (a verifier that can't run gives status "error").
+    With a `fixer` (services/claim_fix.py) every blocking claim also carries a checked `fix`."""
     started = time.monotonic()
     base = {"hash": text_hash(text), "attachment_sha256": attachment_sha256,
             "model": getattr(verifier, "model", None),
@@ -250,6 +251,9 @@ def run(verifier: Any, kind: str, text: str, sources: dict[str, str],
         return {**base, "status": "error", "error": str(exc)[:500], "claims": [],
                 "duration_ms": int((time.monotonic() - started) * 1000)}
     claims = postcheck(plan.claims, sources, text)
+    from app.services import claim_fix
+
+    claim_fix.attach(claims, fixer, BLOCKING)
     blocking = [c for c in claims if c["verdict"] in BLOCKING]
     return {**base, "status": "failed" if blocking else "passed", "claims": claims,
             "blocking": len(blocking), "auth": getattr(verifier, "auth_source", None),
@@ -289,7 +293,22 @@ def email_attachment(s: Session, draft: OutreachDraft) -> str | None:
     return file_hash(str(pdf)) if pdf else None
 
 
-def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, Any]:
+class Prepared:
+    """One document ready for the verifier: what it says, its sources, and the fixer."""
+
+    def __init__(self, s: Session, app: Application, kind: str, text: str,
+                 sources: dict[str, str], attachment: str | None = None, language: str = "en"):
+        from app.services import claim_fix
+
+        self.kind, self.text, self.sources, self.attachment = kind, text, sources, attachment
+        self.fixer = claim_fix.for_application(s, app, sources, language)
+
+    def run(self, verifier: Any, text: str | None = None) -> dict[str, Any]:
+        return run(verifier, self.kind, self.text if text is None else text, self.sources,
+                   self.attachment, self.fixer)
+
+
+def prepare_email(s: Session, draft: OutreachDraft) -> Prepared:
     app = s.get(Application, draft.application_id)
     job = s.get(Job, app.job_id)
     cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
@@ -305,7 +324,12 @@ def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, A
         sources["listing"] = f"{job.title}\n{job.description or ''}"
         sources["facts"] += application_line(app)
         kind = "email about a job application, to the person at the company (with its subject)"
-    record = run(verifier, kind, email_text(s, draft), sources, email_attachment(s, draft))
+    return Prepared(s, app, kind, email_text(s, draft), sources, email_attachment(s, draft),
+                    plan.get("language") or "en")
+
+
+def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, Any]:
+    record = prepare_email(s, draft).run(verifier)
     draft.verification = record
     s.add(draft)
     return record
@@ -352,8 +376,7 @@ def send_gate(draft: OutreachDraft, subject: str, body: str, attachment_path: st
     return None
 
 
-def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
-                    verifier: Any) -> dict[str, Any]:
+def prepare_linkedin(s: Session, row: LinkedInOutreach, kind: str) -> Prepared:
     message = dict({"note": row.note, "followup": row.followup, "inmail": row.inmail}[kind] or {})
     if not message.get("text"):
         raise VerifyError("Draft the message first")
@@ -370,8 +393,14 @@ def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
 
     label = {"note": "LinkedIn connection note", "followup": "LinkedIn follow-up",
              "inmail": "LinkedIn InMail (subject line, then body)"}[kind]
-    record = run(verifier, label, inmail_text(message) if kind == "inmail" else message["text"],
-                 sources)
+    return Prepared(s, app, label,
+                    inmail_text(message) if kind == "inmail" else message["text"], sources)
+
+
+def verify_linkedin(s: Session, row: LinkedInOutreach, kind: str,
+                    verifier: Any) -> dict[str, Any]:
+    record = prepare_linkedin(s, row, kind).run(verifier)
+    message = dict({"note": row.note, "followup": row.followup, "inmail": row.inmail}[kind] or {})
     message["verification"] = record
     setattr(row, kind, message)
     s.add(row)
@@ -384,7 +413,7 @@ def letter_text(s: Session, letter: CoverLetter) -> str:
     return plain_text(s, letter)
 
 
-def verify_letter(s: Session, letter: CoverLetter, verifier: Any) -> dict[str, Any]:
+def prepare_letter(s: Session, letter: CoverLetter) -> Prepared:
     app = s.get(Application, letter.application_id)
     job = s.get(Job, app.job_id)
     cv = s.get(CVVersion, letter.cv_version_id) if letter.cv_version_id else \
@@ -392,7 +421,11 @@ def verify_letter(s: Session, letter: CoverLetter, verifier: Any) -> dict[str, A
     sources = candidate_sources(s, load_pool(s), cv) | signal_sources(s, job.company_id) \
         | {"listing": f"{job.title}\n{job.description or ''}"} | recipient_source(s, job)
     kind = "cover letter" if (letter.format or "pdf") == "pdf" else "text for an application form"
-    record = run(verifier, kind, letter_text(s, letter), sources)
+    return Prepared(s, app, kind, letter_text(s, letter), sources, language=letter.language)
+
+
+def verify_letter(s: Session, letter: CoverLetter, verifier: Any) -> dict[str, Any]:
+    record = prepare_letter(s, letter).run(verifier)
     letter.verification = record
     s.add(letter)
     return record
@@ -438,7 +471,7 @@ def require_interview_prep(s: Session, prep: Any, verifier: Any) -> dict[str, An
     return record
 
 
-def verify_answer(s: Session, answer: ApplicationAnswer, verifier: Any) -> dict[str, Any]:
+def prepare_answer(s: Session, answer: ApplicationAnswer) -> Prepared:
     if not answer.answer.strip():
         raise VerifyError("Write the answer first")
     app = s.get(Application, answer.application_id)
@@ -446,8 +479,12 @@ def verify_answer(s: Session, answer: ApplicationAnswer, verifier: Any) -> dict[
     sources = candidate_sources(s, load_pool(s), _approved_cv(s, app.id)) \
         | signal_sources(s, job.company_id) \
         | {"listing": f"{job.title}\n{job.description or ''}"}
-    record = run(verifier, f"answer to the application question “{answer.question}”",
-                 answer.answer, sources)
+    return Prepared(s, app, f"answer to the application question “{answer.question}”",
+                    answer.answer, sources, language=answer.language)
+
+
+def verify_answer(s: Session, answer: ApplicationAnswer, verifier: Any) -> dict[str, Any]:
+    record = prepare_answer(s, answer).run(verifier)
     answer.verification = record
     s.add(answer)
     return record

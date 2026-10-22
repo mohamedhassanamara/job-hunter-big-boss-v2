@@ -201,6 +201,7 @@ interface ModelsValue {
   }
   cv: GeneratorValue
   email: GeneratorValue
+  letter?: GeneratorValue
 }
 
 /** CV / email generator: Gemini (shared free keys) or Claude; thinking applies to Gemini only. */
@@ -356,6 +357,15 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         value={m.email}
         onChange={(email) => draft.setValue({ ...m, email })}
       />
+      <Field label="Letter generator" hint="Cover letters, form text and application answers. Always Claude Code (your subscription); independent of the CV and email models.">
+        <Select
+          value={m.letter?.model?.startsWith('claude-') ? m.letter.model : 'claude-sonnet-5'}
+          onValueChange={(model) => draft.setValue({ ...m, letter: { provider: 'anthropic', model } })}
+          options={GENERATOR_MODELS.filter((o) => o.value.startsWith('claude-'))}
+          className="w-64"
+          aria-label="Letter generator model"
+        />
+      </Field>
     </Card>
     <AutomationCard settings={settings} />
     </>
