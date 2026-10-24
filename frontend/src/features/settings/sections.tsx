@@ -14,7 +14,6 @@ import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/q
 import type { RemoteScope, SearchProfile, SettingsView } from '@/lib/types'
 import { CountryPicker } from './CountryPicker'
 import { TracksEditor } from './TracksEditor'
-import { GeminiQuotaList } from '@/components/app/GeminiQuota'
 import { OllamaStatus } from './ScoringSections'
 
 export function Card({
@@ -217,6 +216,25 @@ const GENERATOR_MODELS = [
   { value: 'claude-opus-5-5', label: 'Claude Opus 5.5' },
   { value: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
 ]
+
+const SCORING_MODELS = [
+  { value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex - Recommended)' },
+  { value: 'free/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash (APInex)' },
+  { value: 'free/gpt-6-luna', label: 'GPT-6 Luna (APInex)' },
+  { value: 'free/glm-5.3-flash', label: 'GLM 5.3 Flash (APInex)' },
+  { value: 'free/mimo-v2.6-pro', label: 'Mimo V2.6 Pro (APInex)' },
+  { value: 'qwen2.5:7b', label: 'Qwen 2.5 7B (Ollama Local)' },
+  { value: 'gemma4:12b', label: 'Gemma 4 12B (Ollama Local)' },
+  { value: 'gemma4:31b-cloud', label: 'Gemma 4 31B (Ollama Cloud)' },
+  { value: 'llama3.3:70b-cloud', label: 'Llama 3.3 70B (Ollama Cloud)' },
+]
+
+const SCORING_FALLBACK_MODELS = [
+  { value: 'qwen2.5:7b', label: 'Qwen 2.5 7B (Ollama Local - Recommended)' },
+  { value: 'gemma4:12b', label: 'Gemma 4 12B (Ollama Local)' },
+  { value: 'gemma4:31b-cloud', label: 'Gemma 4 31B (Ollama Cloud)' },
+  { value: 'llama3.3:70b-cloud', label: 'Llama 3.3 70B (Ollama Cloud)' },
+]
 const THINKING_LEVELS = [
   { value: 'minimal', label: 'No thinking (minimal)' },
   { value: 'low', label: 'Low' },
@@ -265,7 +283,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     const max = Math.max(c.min, c.max)
     draft.setValue({ ...m, scoring: { ...m.scoring, cloud_concurrency: { min, max, start: Math.min(max, Math.max(min, c.start)) } } })
   }
-  const quotaModel = [m.scoring.model, m.cv?.model, m.email?.model].find((x) => x?.startsWith('gemini-'))
+  const quotaModel = [m.cv?.model, m.email?.model].find((x) => x?.startsWith('gemini-'))
   return (
     <>
     <Card
@@ -284,22 +302,23 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="green">Live</ToneBadge>
-        Scoring, CV and email generation share the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude, and can write a CV or email when you pick it.
+        Scoring runs through the APInex Gateway (15 RPM) with automatic Ollama fallback. CV and email generation share the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude.
       </div>
-      <Field label="Fit scoring" hint="A Gemini model (gemini-3.5-flash-lite, keys in .env as GEMINI_API_KEYS) or an Ollama model. Ollama cloud models end in -cloud and run on ollama.com.">
-        <Input
+      <Field label="Fit scoring" hint="Primary scoring model. APInex gateway models run with strict 15 RPM rolling throttle.">
+        <Select
           value={m.scoring.model}
-          onChange={(e) => draft.setValue({ ...m, scoring: { ...m.scoring, model: e.target.value } })}
-          className="w-64 font-mono text-xs"
+          onValueChange={(model) => draft.setValue({ ...m, scoring: { ...m.scoring, model, provider: model.startsWith('free/') ? 'apinex' : 'ollama' } })}
+          options={SCORING_MODELS}
+          className="w-80"
           aria-label="Scoring model"
         />
       </Field>
-      <Field label="Local fallback" hint="Used for the rest of a run when the cloud usage limit is reached. Empty = pause instead.">
-        <Input
-          value={m.scoring.fallback ?? ''}
-          onChange={(e) => draft.setValue({ ...m, scoring: { ...m.scoring, fallback: e.target.value } })}
-          placeholder="gemma4:12b"
-          className="w-64 font-mono text-xs"
+      <Field label="Ollama fallback" hint="Used automatically for the rest of a run when APInex quota is exhausted or rate limit is reached.">
+        <Select
+          value={m.scoring.fallback ?? 'qwen2.5:7b'}
+          onValueChange={(fallback) => draft.setValue({ ...m, scoring: { ...m.scoring, fallback } })}
+          options={SCORING_FALLBACK_MODELS}
+          className="w-80"
           aria-label="Fallback model"
         />
       </Field>
@@ -331,7 +350,14 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         />
       </Field>
       <div className="space-y-2">
-        {quotaModel ? <GeminiQuotaList model={quotaModel} /> : <OllamaStatus label="Scoring" />}
+        {m.scoring.model.startsWith('free/') ? (
+          <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+            <ToneBadge tone="green">APInex Gateway</ToneBadge>
+            <span>15 RPM rolling throttle active · Automatic Ollama fallback on exhaustion ({m.scoring.fallback || 'qwen2.5:7b'})</span>
+          </div>
+        ) : (
+          <OllamaStatus label="Scoring" />
+        )}
         {m.scoring.fallback && <OllamaStatus model={m.scoring.fallback} label="Fallback" />}
         {quotaModel && (
           <details className="rounded-md border border-border bg-surface px-3 py-2 text-xs text-fg-muted">

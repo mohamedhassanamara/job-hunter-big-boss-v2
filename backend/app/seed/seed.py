@@ -901,7 +901,24 @@ def ensure_defaults(engine: Engine) -> None:
         missing = [k for k in fx.SETTINGS if k not in existing]
         for key in missing:
             s.add(AppSetting(key=key, value=fx.SETTINGS[key]))
-        if missing:
+        # Migrate scoring model from Gemini to APInex if needed
+        models_row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+        if models_row and isinstance(models_row.value, dict):
+            val = dict(models_row.value)
+            scoring_cfg = dict(val.get("scoring") or {})
+            if (
+                scoring_cfg.get("model", "").startswith("gemini-")
+                or scoring_cfg.get("provider") == "gemini"
+            ):
+                scoring_cfg["model"] = "free/minimax-m3.1-flash"
+                scoring_cfg["provider"] = "apinex"
+                if not scoring_cfg.get("fallback") or scoring_cfg.get("fallback", "").startswith("gemini-"):
+                    scoring_cfg["fallback"] = "qwen2.5:7b"
+                val["scoring"] = scoring_cfg
+                models_row.value = val
+                s.add(models_row)
+                s.commit()
+        elif missing:
             s.commit()
 
 

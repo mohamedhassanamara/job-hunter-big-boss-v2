@@ -79,13 +79,25 @@ def scoring_health(
     if workspace == "demo" or get_settings().job_sources == "mock":
         return ScoringHealth(reachable=True, model="mock-scorer", model_present=True,
                              message="Sample data uses a mock scorer", models=[], pull_command="")
-    if model.startswith("gemini-"):
-        keys = configured_keys(int(gemini_keys.config(session)["max_keys"]))  # config only, no call
+    if (
+        model.startswith("free/")
+        or "minimax" in model
+        or "deepseek" in model
+        or model == "apinex"
+    ):
+        from app.providers.apinex_client import APInexClient
+
+        h = APInexClient(primary_model=model).health()
         return ScoringHealth(
-            reachable=bool(keys), model=model, model_present=bool(keys),
-            message=f"{len(keys)} Gemini API key(s) configured" if keys
-            else "No Gemini API key configured (GEMINI_API_KEYS in .env).",
-            models=[], pull_command="")
+            reachable=h.ok,
+            model=model,
+            model_present=h.ok,
+            message=h.message,
+            models=["free/minimax-m3.1-flash", "free/deepseek-v4.1-flash"],
+            pull_command="",
+        )
+    if model.startswith("gemini-"):
+        raise HTTPException(400, "Gemini is deprecated for scoring")
     health = OllamaFitScorer(model).health()
     return ScoringHealth(
         reachable=health.reachable,
@@ -191,6 +203,18 @@ def scoring_quota(session: SessionDep, workspace: WorkspaceDep,
     no quota."""
     ctx = scoring.load_context(session)
     model = model or ctx.model
+    if (
+        model.startswith("free/")
+        or "minimax" in model
+        or "deepseek" in model
+        or model == "apinex"
+    ):
+        return {
+            "provider": "apinex",
+            "model": model,
+            "rpm_limit": 15,
+            "fallback_model": ctx.fallback_model or "qwen2.5:7b",
+        }
     if not model.startswith("gemini-"):
         return {"provider": "other", "model": model}
     if not workspace_is_real(workspace):  # the tour sandbox: a believable sample, nothing is called

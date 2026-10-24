@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     # use them, never discovery itself.
     gemini_api_keys: str = ""
     gemini_api_key: str = ""
+    # APInex gateway for fit scoring
+    apinex_api_key: str = ""
     # The send queue worker (real workspace only; tests turn it off).
     send_worker_enabled: bool = True
     # The background drafting worker (CV on shortlist, email when ready; tests turn it off).

@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
+import { ToneBadge } from '@/components/app/badges'
 import { Button } from '@/components/ui/button'
 import { pluralize } from '@/lib/format'
 import { useScoringQuota, useScoringStatus } from '@/lib/queries/workflow'
@@ -13,7 +14,9 @@ export function ScoringTodayCard() {
   const quota = useScoringQuota()
   const [confirm, setConfirm] = useState(false)
   if (!data) return null
-  const hasQuota = quota.data?.provider === 'gemini'
+  const isGemini = data.model.startsWith('gemini-')
+  const isAPInex = data.model.startsWith('free/') || data.model.includes('minimax') || data.model.includes('deepseek')
+  const hasQuota = isGemini && quota.data?.provider === 'gemini'
   const behind = data.current_total > 0 && data.current_scored < data.current_total
   if (!behind && !data.running && !hasQuota) return null
   const pct = data.current_total ? Math.round((data.current_scored / data.current_total) * 100) : 0
@@ -43,14 +46,20 @@ export function ScoringTodayCard() {
               {data.running
                 ? `Scoring now, best jobs first${data.eta_seconds ? ` (about ${Math.max(1, Math.round(data.eta_seconds / 60))} min for this batch)` : ''}.`
                 : data.waiting_until
-                  ? 'Waiting for the Gemini quota to reset; it continues by itself.'
+                  ? 'Waiting for the quota to reset; it continues by itself.'
                   : behind
                     ? `${pluralize(data.current_total - data.current_scored, 'job')} still on an older score.`
                     : 'Every job is on the current prompt and model.'}
             </p>
           </div>
         )}
-        <GeminiQuotaList />
+        {isGemini && <GeminiQuotaList />}
+        {isAPInex && (
+          <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+            <ToneBadge tone="green">APInex Gateway</ToneBadge>
+            <span>15 RPM throttle active · Ollama fallback ready</span>
+          </div>
+        )}
         {behind && !data.running && !data.waiting_until && (
           <Button size="sm" onClick={() => setConfirm(true)}>
             Rescore outdated jobs…

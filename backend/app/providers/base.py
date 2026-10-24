@@ -4,7 +4,7 @@ plug in behind these Protocols. Phase 0 ships deterministic mocks only (see prov
 from datetime import datetime
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from app.models.enums import DescriptionLevel, RemoteType, Source
@@ -108,7 +108,7 @@ RedFlagType = Literal[
 class SubScore(BaseModel):
     score: int = Field(ge=0, le=10)
     reason: str
-    evidence: str = Field(description="Verbatim quote from the job text, or empty")
+    evidence: str = Field(default="", description="Verbatim quote from the job text, or empty")
 
 
 class RedFlag(BaseModel):
@@ -158,6 +158,59 @@ class FitAssessment(BaseModel):
     strengths: list[str] = Field(default_factory=list, max_length=3)
     gaps: list[str] = Field(default_factory=list, max_length=3)
     summary: str
+
+    # Fields returned by APInex / fit_score.md v7
+    overall_score: int | None = None
+    verdict: str | None = None
+    disqualifying_flags: list[str] = Field(default_factory=list)
+    key_strengths: list[str] = Field(default_factory=list)
+    critical_gaps: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _from_flexible_schema(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        # Adapt APInex / fit_score v7 response if 'dimensions' is present
+        if "dimensions" in data and isinstance(data["dimensions"], dict):
+            dims = data["dimensions"]
+            for dim_name in DIMENSIONS:
+                dim_val = dims.get(dim_name)
+                if isinstance(dim_val, dict):
+                    raw_s = dim_val.get("score", 5)
+                    try:
+                        score_int = int(round(float(raw_s)))
+                    except (ValueError, TypeError):
+                        score_int = 5
+                    # Scale to 0-10 if > 10
+                    if score_int > 10:
+                        score_int = int(round(score_int / 10.0))
+                    score_int = max(0, min(10, score_int))
+                    data[dim_name] = {
+                        "score": score_int,
+                        "reason": str(dim_val.get("reason") or ""),
+                        "evidence": str(dim_val.get("evidence") or ""),
+                    }
+                elif dim_name not in data:
+                    data[dim_name] = {"score": 5, "reason": "", "evidence": ""}
+
+            if "key_strengths" in data and "strengths" not in data:
+                data["strengths"] = [str(s) for s in data["key_strengths"] if str(s).strip()][:3]
+            if "critical_gaps" in data and "gaps" not in data:
+                data["gaps"] = [str(g) for g in data["critical_gaps"] if str(g).strip()][:3]
+            if "disqualifying_flags" in data and "red_flags" not in data:
+                flags = data["disqualifying_flags"] or []
+                data["red_flags"] = [
+                    {"type": "other", "text": str(f).strip(), "evidence": ""}
+                    for f in flags if str(f).strip()
+                ][:8]
+            if "summary" not in data and "verdict" in data:
+                data["summary"] = f"Verdict: {data['verdict']}"
+            elif "summary" in data and not isinstance(data["summary"], str):
+                data["summary"] = str(data["summary"])
+
+        return data
 
     def sub_scores(self) -> dict[str, SubScore]:
         return {d: getattr(self, d) for d in DIMENSIONS}
