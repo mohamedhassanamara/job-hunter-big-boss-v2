@@ -40,7 +40,7 @@ def test_v3_render_carries_the_matched_track(seeded: None) -> None:
         system, user = render(job, s.get(Company, job.company_id), ctx)
     assert "Track: Mobile" in user and "Flutter Developer" in user
     assert "Years in this track: 2.5" in user
-    assert "flag_checks" in system and "Data Engineering" not in system
+    assert "disqualifying_flags" in system and "Data Engineering" not in system
 
 
 def test_schema_requires_every_flag_check() -> None:
@@ -57,13 +57,18 @@ def test_schema_requires_every_flag_check() -> None:
     assert set(item["required"]) == {"requirement", "evidence", "missing"}
 
 
-def test_v5_asks_for_core_requirements_any_integer_and_explicit_language_levels() -> None:
+def test_v7_asks_for_dimensions_and_realistic_eu_rubric() -> None:
     prompt = load_prompt("fit_score")
-    assert prompt.version == 6
-    for needle in ("core_requirements:", "caps the score in code", "ANY integer from 0 to 10",
-                   "A stated level counts as stating the requirement", "NEVER count as a core",
-                   "at most 3 requirements, and ONLY what the role is built around",
-                   "sehr gute Deutschkenntnisse"):
+    assert prompt.version == 7
+    for needle in (
+        "role_match",
+        "skills_match",
+        "seniority_fit",
+        "location_eligibility",
+        "language_requirements",
+        "EU Blue Card",
+        "disqualifying_flags",
+    ):
         assert needle in prompt.system
 
 

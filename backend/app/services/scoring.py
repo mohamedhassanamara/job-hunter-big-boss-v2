@@ -131,8 +131,8 @@ def load_context(s: Session) -> ScoringContext:
     return ScoringContext(
         profile=profile,
         scoring=scoring,
-        model=model_cfg.get("model", "qwen2.5:7b"),
-        fallback_model=model_cfg.get("fallback") or None,
+        model=model_cfg.get("model", "free/minimax-m3.1-flash"),
+        fallback_model=model_cfg.get("fallback") or "qwen2.5:7b",
         cloud_concurrency={k: max(1, min(8, int(v))) for k, v in cloud.items()},
         local_concurrency=max(1, min(2, local)),
         tracks=search.tracks if search else [],
@@ -419,7 +419,14 @@ RAISE_AFTER = 10  # successes in a row before the adaptive limit goes up by one
 
 
 def is_cloud(model: str) -> bool:
-    return model.endswith(("-cloud", ":cloud")) or model.startswith("gemini-")
+    return (
+        model.endswith(("-cloud", ":cloud"))
+        or model.startswith("gemini-")
+        or model.startswith("free/")
+        or "minimax" in model
+        or "deepseek" in model
+        or model == "apinex"
+    )
 
 
 def max_concurrency(model: str) -> int:
@@ -762,7 +769,7 @@ class ScoringQueue:
             if self.model != fallback:
                 self._record_fallback(reason, fallback)
                 self._use_model(fallback, ctx)
-                log.warning("scoring switched to %s: %s", fallback, reason)
+                log.warning("APInex quota/rate limit exhausted. Falling back to Ollama model %s: %s", fallback, reason)
         return True
 
     # workers ----------------------------------------------------------------------------------

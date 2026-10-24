@@ -45,19 +45,24 @@ def job_sources(enabled: list[Source], *, mock: bool | None = None) -> dict[Sour
     return {s: MockJobSource(s) if use_mock else real_source(s) for s in enabled}
 
 
-def fit_scorer(*, mock: bool | None = None, model: str = "qwen2.5:7b",
+def fit_scorer(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flash",
                engine: Any = None) -> FitScorer:
-    """Real workspace: Gemini for `gemini-*` models (bulk scoring on the free API keys), Ollama for
-    the rest. Tests and the tour sandbox: the deterministic mock."""
+    """Real workspace: APInex for cloud scoring (MiniMax M3.1 Flash / DeepSeek), Ollama for
+    local models. Tests and the tour sandbox: the deterministic mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     if use_mock:
         return MockFitScorer()
     if model.startswith("gemini-"):
-        from app.db import engine as default_engine
-        from app.providers.gemini import GeminiFitScorer
-        from app.services.gemini_keys import pool_for
+        raise ValueError("Gemini is deprecated for scoring")
+    if (
+        model.startswith("free/")
+        or "minimax" in model
+        or "deepseek" in model
+        or model == "apinex"
+    ):
+        from app.providers.apinex_client import APInexFitScorer
 
-        return GeminiFitScorer(model, pool_for(engine or default_engine, model))
+        return APInexFitScorer(model=model)
     from app.providers.ollama import OllamaFitScorer
 
     return OllamaFitScorer(model)

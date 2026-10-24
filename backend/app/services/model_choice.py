@@ -53,8 +53,14 @@ def claude_model(s: Session, key: str) -> str:
 
 
 def check(value: dict[str, Any]) -> None:
-    """Validation for `PUT /settings/models` (cv / email entries). Raises ValueError."""
+    """Validation for `PUT /settings/models`. Raises ValueError."""
     from app.providers.gemini_generate import THINKING_LEVELS
+
+    scoring_cfg = (value or {}).get("scoring")
+    if scoring_cfg:
+        scoring_model = str(scoring_cfg.get("model") or "")
+        if scoring_model.startswith("gemini-"):
+            raise ValueError("Gemini is deprecated for scoring")
 
     letter = ((value or {}).get("letter") or {}).get("model")
     if letter and not str(letter).startswith("claude-"):

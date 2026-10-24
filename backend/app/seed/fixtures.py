@@ -529,8 +529,8 @@ SETTINGS: dict[str, dict] = {
         ]
     },
     "models": {
-        # Cloud first; a usage limit switches the rest of a run to the local fallback.
-        "scoring": {"provider": "ollama", "model": "gemma4:31b-cloud", "fallback": "gemma4:12b",
+        # APInex gateway for fit scoring (15 RPM); switches to Ollama fallback on exhaustion.
+        "scoring": {"provider": "apinex", "model": "free/minimax-m3.1-flash", "fallback": "qwen2.5:7b",
                     "cloud_concurrency": {"min": 1, "start": 4, "max": 4},
                     "local_concurrency": 2},
         # Generators: Gemini on the shared free keys; Claude stays selectable per task.
