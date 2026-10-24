@@ -223,16 +223,14 @@ def build_request(s: Session, app: Application, job: Job, company: Company, cont
     profile = _setting(s, "profile")
     ranking = ranking_settings(s)
     job_text = f"{job.title}\n{job.description or ''}"
-    allowed_auth = cl.mention_authorization(s, job_text)
     role = cl.current_role(pool, job_text)
     return EmailRequest(
         job={"title": job.title, "company": company.name, "location": job.location,
              "description": (job.description or "")[:6000]},
         contact={"first_name": _first_name(contact), "full_name": contact.full_name,
                  "title": contact.title, "role_group": ranking.label(contact.role_rank)},
-        candidate={"name": profile.get("full_name", ""), "based_in": profile.get("based_in", ""),
-                   "work_authorization": profile.get("work_authorization", "")
-                   if allowed_auth else None,
+        candidate={"name": profile.get("full_name", ""),
+                   "first_name": (profile.get("full_name", "") or "").split(" ")[0],
                    "company_reason": (app.company_reason or "").strip() or None,
                    "current_role": {"id": role.id, "title": role.title, "org": role.org}
                    if role else None,
@@ -241,7 +239,6 @@ def build_request(s: Session, app: Application, job: Job, company: Company, cont
         rules={"max_words": int(cfg.get("max_words") or 150),
                "banned_phrases": list(cfg.get("banned_phrases") or []),
                "language": email_language(s, job, app),
-               "mention_work_authorization": allowed_auth,
                "jargon": list(_letter_jargon(s))},
     )
 
@@ -778,19 +775,11 @@ _AUTH_TEXT = {"needs_sponsorship": "would need visa sponsorship to work in the j
 
 
 def logistics(pool: Pool) -> dict[str, str]:
-    """Where you are and what you'd need, in the words a constraint sentence may use (Settings →
-    Candidate; languages as the profile lists them: a language requirement may be answered with
-    these and never with a language that isn't listed). Willing to relocate unless the profile
-    says `willing_to_relocate: false`. The verifier reads the same lines as FACTS, so a
-    sentence stating them is supported."""
+    """Languages as the profile lists them. Immigration and visa status are excluded."""
     p = pool.profile
     langs = ", ".join(f"{x.get('language')} ({x.get('level')})" for x in p.get("languages") or []
                       if x.get("language"))
-    return {"based_in": (p.get("based_in") or "").strip(),
-            "languages": langs,
-            "work_authorization": _AUTH_TEXT.get(p.get("work_authorization") or "", ""),
-            "relocation": "willing to relocate for the job"
-            if p.get("willing_to_relocate", True) else ""}
+    return {"languages": langs}
 
 
 def application_facts(app: Application) -> dict[str, Any]:
@@ -838,10 +827,10 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
     rules = {"language": language, "min_words": ac.MIN_WORDS, "max_words": ac.MAX_WORDS,
              "banned_phrases": request.rules.get("banned_phrases"),
              "jargon": request.rules.get("jargon"), "signals": signals,
-             "style": "an honest, direct application follow-up: say you applied (or are "
-                      "applying) and wanted to reach out; a short first-person summary of the "
-                      "one or two things that matter most for this job; any requirement you "
-                      "don't meet said once, plainly; a simple ask. Plain and warm.",
+             "style": "a concise, professional peer-to-peer follow-up: say you applied (or are "
+                      "applying) and wanted to reach out directly; 1-2 high-impact technical proof "
+                      "points from your experience pool adapted to the recipient's domain and title; "
+                      "a low-friction technical conversation ask. Never mention visa, sponsorship or relocation.",
              "style_reference": applied_references(s)}
     return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
                         pool=request.pool, rules=rules)

@@ -4,7 +4,7 @@ plug in behind these Protocols. Phase 0 ships deterministic mocks only (see prov
 from datetime import datetime
 from typing import Any, Literal, Protocol
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from app.models.enums import DescriptionLevel, RemoteType, Source
@@ -395,8 +395,10 @@ class IntroEmailPlan(BaseModel):
 
 class AppliedEmailPlan(BaseModel):
     """An honest application follow-up for a job the candidate applied (or is applying) for.
-    Code builds the greeting and the subject and assembles: opening, experience, constraint,
-    signal, ask."""
+    Code builds the greeting and the subject and assembles: opening, experience, signal, ask.
+    Immigration, visa and relocation constraints are strictly excluded from cold emails."""
+
+    model_config = ConfigDict(extra="ignore")
 
     role: str = Field(description=(
         "The role's name in plain words for the subject line (e.g. 'Mobile Developer'): the "
@@ -407,20 +409,22 @@ class AppliedEmailPlan(BaseModel):
         "company and wanted to reach out directly. The role and the listing may be named"))
     experience: list[EmailSentence] = Field(description=(
         "One or two sentences (at most two proofs, one sentence each) from the EXPERIENCE POOL "
-        "on the experience that best answers the listing's core requirements, plain "
-        "language, each citing pool ids"))
-    constraint: str = Field(default="", description=(
-        "Empty unless the listing states a requirement the candidate doesn't meet "
-        "(residency, work permit, language): then one plain statement, once, using FACTS."
-        "logistics only"))
-    constraint_quote: str = Field(default="", description=(
-        "The exact words of the JOB that state that requirement; empty when constraint is empty"))
+        "on the experience that best answers the recipient's domain and the listing's core requirements, "
+        "plain language, each citing pool ids"))
     signal: HookSentence = Field(default_factory=lambda: HookSentence(text=""), description=(
         "Optional: one company fact from SIGNALS that genuinely adds something, with its id. "
         "Empty text when none"))
     ask: str = Field(description=(
         "A simple, natural ask (look at the attached CV, a short call); a statement or a "
         "question"))
+
+    @property
+    def constraint(self) -> str:
+        return ""
+
+    @property
+    def constraint_quote(self) -> str:
+        return ""
 
 
 class EmailRequest(BaseModel):

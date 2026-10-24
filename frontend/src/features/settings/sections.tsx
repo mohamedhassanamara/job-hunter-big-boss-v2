@@ -219,7 +219,6 @@ const GENERATOR_MODELS = [
 
 const SCORING_MODELS = [
   { value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex - Recommended)' },
-  { value: 'free/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash (APInex)' },
   { value: 'free/gpt-6-luna', label: 'GPT-6 Luna (APInex)' },
   { value: 'free/glm-5.3-flash', label: 'GLM 5.3 Flash (APInex)' },
   { value: 'free/mimo-v2.6-pro', label: 'Mimo V2.6 Pro (APInex)' },

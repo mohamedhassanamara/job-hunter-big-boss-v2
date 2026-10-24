@@ -1,9 +1,9 @@
-"""APInex gateway client for OpenAI-compatible LLM endpoints (MiniMax M3.1 Flash / DeepSeek).
+"""APInex gateway client for OpenAI-compatible LLM endpoints (MiniMax M3.1 Flash).
 
 Base URL: https://apinex.bond/v1
-Primary model: free/minimax-m3.1-flash
-Fallback model: free/deepseek-v4.1-flash
+Default Model: free/minimax-m3.1-flash
 Strict Rate Limit: 15 RPM (rolling 60s window)
+Fallback: Directly escalates to Ollama on persistent 429 or quota exhaustion.
 """
 
 import asyncio
@@ -33,12 +33,20 @@ from app.providers.base import (
 log = logging.getLogger("jobhunter.apinex")
 
 DEFAULT_BASE_URL = "https://apinex.bond/v1"
-PRIMARY_MODEL = "free/minimax-m3.1-flash"
-FALLBACK_MODEL = "free/deepseek-v4.1-flash"
+DEFAULT_MODEL = "free/minimax-m3.1-flash"
 TIMEOUT = 60.0
 RATE_LIMIT_RPM = 15
 RATE_LIMIT_WINDOW = 60.0
-BACKOFF_429_SECONDS = 10.0
+MAX_ATTEMPTS = 3
+RETRY_DELAY_RE = re.compile(r"Retry in (\d+(?:\.\d+)?)s", re.IGNORECASE)
+EXHAUSTION_KEYWORDS = (
+    "insufficient_quota",
+    "daily_limit",
+    "quota_exceeded",
+    "insufficient balance",
+    "quota exceeded",
+    "exceeded your current quota",
+)
 
 
 def strip_code_fence(text: str) -> str:
@@ -62,6 +70,29 @@ def sanitize_and_parse_json(content: str) -> dict[str, Any]:
         raise ValueError(f"Invalid JSON from model: {exc}") from exc
 
 
+def parse_retry_delay(res: httpx.Response, default: float = 4.0) -> float:
+    """Extract retry delay from Retry-After header or 'Retry in Xs' body text."""
+    retry_header = res.headers.get("retry-after")
+    if retry_header:
+        try:
+            return float(retry_header)
+        except ValueError:
+            pass
+    match = RETRY_DELAY_RE.search(res.text)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    return default
+
+
+def is_permanent_quota_exhausted(text: str) -> bool:
+    """Check if the error body indicates permanent quota/balance exhaustion rather than transient 429."""
+    lower = text.lower()
+    return any(keyword in lower for keyword in EXHAUSTION_KEYWORDS)
+
+
 @dataclass
 class ProviderHealth:
     ok: bool
@@ -70,7 +101,8 @@ class ProviderHealth:
 
 class RollingRateLimiter:
     """Thread-safe and async-safe rolling rate limiter.
-    Strictly limits calls to `limit` requests within `window` seconds."""
+    Strictly limits calls to `limit` requests within `window` seconds.
+    Timestamp is recorded before network dispatch."""
 
     def __init__(
         self,
@@ -135,17 +167,16 @@ _shared_limiter = RollingRateLimiter(limit=RATE_LIMIT_RPM, window=RATE_LIMIT_WIN
 
 
 class APInexClient:
-    """Async & sync OpenAI-compatible client for APInex gateway with 15 RPM throttle."""
+    """Async & sync OpenAI-compatible client for APInex gateway with 15 RPM throttle and intelligent 429 retry."""
 
     def __init__(
         self,
         api_key: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
-        primary_model: str = PRIMARY_MODEL,
-        fallback_model: str = FALLBACK_MODEL,
+        model: str = DEFAULT_MODEL,
         timeout: float = TIMEOUT,
-        backoff_429: float = BACKOFF_429_SECONDS,
         limiter: RollingRateLimiter | None = None,
+        sleep_fn: Callable[[float], None] = time.sleep,
         transport: httpx.BaseTransport | None = None,
         async_transport: httpx.AsyncBaseTransport | None = None,
     ):
@@ -155,11 +186,10 @@ class APInexClient:
             or getattr(get_settings(), "apinex_api_key", "")
         ).strip()
         self.base_url = base_url.rstrip("/")
-        self.primary_model = primary_model
-        self.fallback_model = fallback_model
+        self.model = model
         self.timeout = timeout
-        self.backoff_429 = backoff_429
         self.limiter = limiter or _shared_limiter
+        self._sleep_fn = sleep_fn
         self._transport = transport
         self._async_transport = async_transport
 
@@ -168,7 +198,7 @@ class APInexClient:
             return ProviderHealth(
                 False, "No APInex API key configured (APINEX_API_KEY in .env or environment)."
             )
-        return ProviderHealth(True, f"Ready (APInex {self.primary_model} · 15 RPM)")
+        return ProviderHealth(True, f"Ready (APInex {self.model} · 15 RPM)")
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -193,150 +223,189 @@ class APInexClient:
         except (KeyError, IndexError, TypeError) as exc:
             raise ValueError(f"Malformed response structure: {data}") from exc
 
-    # Synchronous completion -------------------------------------------------------------------
-
-    def _call_model_sync(
-        self, client: httpx.Client, model: str, system_prompt: str, user_prompt: str
-    ) -> dict[str, Any]:
-        self.limiter.acquire_sync()
-        payload = self._build_payload(model, system_prompt, user_prompt)
-        res = client.post(
-            f"{self.base_url}/chat/completions",
-            json=payload,
-            headers=self._headers(),
-        )
-        if res.status_code == 429:
-            raise ConcurrencyLimited(f"HTTP 429 Too Many Requests: {res.text[:200]}")
-        if res.status_code != 200:
-            raise RuntimeError(f"HTTP {res.status_code}: {res.text[:300]}")
-        data = res.json()
-        content = self._extract_content(data)
-        return sanitize_and_parse_json(content)
+    # Synchronous execution with retry ---------------------------------------------------------
 
     def complete_sync(
         self, system_prompt: str, user_prompt: str, model: str | None = None
     ) -> dict[str, Any]:
-        """Call primary model; retry once with fallback model on non-200, 429, timeout or invalid JSON."""
-        target_model = model or self.primary_model
+        """Call model with up to 3 attempts, backing off on HTTP 429. Raises QuotaExceeded on persistent 429."""
+        target_model = model or self.model
+        payload = self._build_payload(target_model, system_prompt, user_prompt)
+        last_error = ""
+
         with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
-            try:
-                return self._call_model_sync(client, target_model, system_prompt, user_prompt)
-            except Exception as primary_exc:
-                if target_model != self.fallback_model:
-                    # If 429 rate limit or quota hit, back off before retry
-                    if isinstance(primary_exc, ConcurrencyLimited):
+            for attempt in range(MAX_ATTEMPTS):
+                self.limiter.acquire_sync()
+                try:
+                    res = client.post(
+                        f"{self.base_url}/chat/completions",
+                        json=payload,
+                        headers=self._headers(),
+                    )
+                except httpx.TimeoutException as exc:
+                    last_error = f"Timeout ({exc})"
+                    if attempt < MAX_ATTEMPTS - 1:
                         log.warning(
-                            "Primary model %s hit rate limit (429). Sleeping %.1fs before fallback...",
+                            "APInex timeout on %s. Retrying (%d/%d)...",
                             target_model,
-                            self.backoff_429,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                        time.sleep(self.backoff_429)
-                    else:
+                        self._sleep_fn(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex request timed out after {MAX_ATTEMPTS} attempts: {exc}") from exc
+                except httpx.HTTPError as exc:
+                    last_error = f"HTTP error ({exc})"
+                    if attempt < MAX_ATTEMPTS - 1:
                         log.warning(
-                            "Primary model %s failed (%s). Retrying once with fallback %s...",
+                            "APInex HTTP error on %s: %s. Retrying (%d/%d)...",
                             target_model,
-                            primary_exc,
-                            self.fallback_model,
+                            exc,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                    try:
-                        return self._call_model_sync(
-                            client, self.fallback_model, system_prompt, user_prompt
-                        )
-                    except Exception as fallback_exc:
-                        is_quota = (
-                            isinstance(primary_exc, ConcurrencyLimited)
-                            or isinstance(fallback_exc, ConcurrencyLimited)
-                            or "quota" in str(primary_exc).lower()
-                            or "quota" in str(fallback_exc).lower()
-                            or "429" in str(primary_exc)
-                            or "429" in str(fallback_exc)
-                        )
-                        if is_quota:
-                            raise QuotaExceeded(
-                                f"APInex quota/rate limit exhausted on primary and fallback: {fallback_exc}"
-                            ) from fallback_exc
-                        raise ScoringFailed(
-                            f"APInex scoring failed on primary ({primary_exc}) and fallback ({fallback_exc})"
-                        ) from fallback_exc
-                if isinstance(primary_exc, ConcurrencyLimited) or "429" in str(primary_exc):
-                    raise QuotaExceeded(f"APInex rate limit exhausted: {primary_exc}") from primary_exc
-                raise ScoringFailed(f"APInex scoring failed: {primary_exc}") from primary_exc
+                        self._sleep_fn(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex request failed: {exc}") from exc
 
-    # Asynchronous completion ------------------------------------------------------------------
+                if res.status_code == 200:
+                    data = res.json()
+                    content = self._extract_content(data)
+                    return sanitize_and_parse_json(content)
 
-    async def _call_model_async(
-        self, client: httpx.AsyncClient, model: str, system_prompt: str, user_prompt: str
-    ) -> dict[str, Any]:
-        await self.limiter.acquire_async()
-        payload = self._build_payload(model, system_prompt, user_prompt)
-        res = await client.post(
-            f"{self.base_url}/chat/completions",
-            json=payload,
-            headers=self._headers(),
-        )
-        if res.status_code == 429:
-            raise ConcurrencyLimited(f"HTTP 429 Too Many Requests: {res.text[:200]}")
-        if res.status_code != 200:
-            raise RuntimeError(f"HTTP {res.status_code}: {res.text[:300]}")
-        data = res.json()
-        content = self._extract_content(data)
-        return sanitize_and_parse_json(content)
+                if res.status_code == 429:
+                    last_error = f"HTTP 429: {res.text[:200]}"
+                    if is_permanent_quota_exhausted(res.text):
+                        raise QuotaExceeded(f"APInex quota exhausted: {res.text[:200]}")
+
+                    if attempt < MAX_ATTEMPTS - 1:
+                        delay = parse_retry_delay(res)
+                        sleep_sec = delay + 1.5
+                        log.warning(
+                            "APInex 15 RPM throttled. Sleeping %.2fs before retry (%d/%d)...",
+                            sleep_sec,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
+                        )
+                        self._sleep_fn(sleep_sec)
+                        continue
+
+                    raise QuotaExceeded(
+                        f"APInex quota or persistent rate limit exhausted after {MAX_ATTEMPTS} attempts: {last_error}"
+                    )
+
+                if res.status_code >= 500:
+                    last_error = f"HTTP {res.status_code}: {res.text[:200]}"
+                    if attempt < MAX_ATTEMPTS - 1:
+                        log.warning(
+                            "APInex server error %d. Retrying (%d/%d)...",
+                            res.status_code,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
+                        )
+                        self._sleep_fn(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
+
+                raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
+
+        raise ScoringFailed(f"APInex request failed: {last_error}")
+
+    # Asynchronous execution with retry --------------------------------------------------------
 
     async def complete(
         self, system_prompt: str, user_prompt: str, model: str | None = None
     ) -> dict[str, Any]:
-        """Async call with fallback retry and 429 backoff."""
-        target_model = model or self.primary_model
+        """Async call with up to 3 attempts, backing off on HTTP 429."""
+        target_model = model or self.model
+        payload = self._build_payload(target_model, system_prompt, user_prompt)
+        last_error = ""
+
         async with httpx.AsyncClient(timeout=self.timeout, transport=self._async_transport) as client:
-            try:
-                return await self._call_model_async(client, target_model, system_prompt, user_prompt)
-            except Exception as primary_exc:
-                if target_model != self.fallback_model:
-                    if isinstance(primary_exc, ConcurrencyLimited):
+            for attempt in range(MAX_ATTEMPTS):
+                await self.limiter.acquire_async()
+                try:
+                    res = await client.post(
+                        f"{self.base_url}/chat/completions",
+                        json=payload,
+                        headers=self._headers(),
+                    )
+                except httpx.TimeoutException as exc:
+                    last_error = f"Timeout ({exc})"
+                    if attempt < MAX_ATTEMPTS - 1:
                         log.warning(
-                            "Primary model %s hit rate limit (429). Awaiting %.1fs before fallback...",
+                            "APInex timeout on %s. Retrying (%d/%d)...",
                             target_model,
-                            self.backoff_429,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                        await asyncio.sleep(self.backoff_429)
-                    else:
+                        await asyncio.sleep(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex request timed out after {MAX_ATTEMPTS} attempts: {exc}") from exc
+                except httpx.HTTPError as exc:
+                    last_error = f"HTTP error ({exc})"
+                    if attempt < MAX_ATTEMPTS - 1:
                         log.warning(
-                            "Primary model %s failed (%s). Retrying once with fallback %s...",
+                            "APInex HTTP error on %s: %s. Retrying (%d/%d)...",
                             target_model,
-                            primary_exc,
-                            self.fallback_model,
+                            exc,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                    try:
-                        return await self._call_model_async(
-                            client, self.fallback_model, system_prompt, user_prompt
+                        await asyncio.sleep(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex request failed: {exc}") from exc
+
+                if res.status_code == 200:
+                    data = res.json()
+                    content = self._extract_content(data)
+                    return sanitize_and_parse_json(content)
+
+                if res.status_code == 429:
+                    last_error = f"HTTP 429: {res.text[:200]}"
+                    if is_permanent_quota_exhausted(res.text):
+                        raise QuotaExceeded(f"APInex quota exhausted: {res.text[:200]}")
+
+                    if attempt < MAX_ATTEMPTS - 1:
+                        delay = parse_retry_delay(res)
+                        sleep_sec = delay + 1.5
+                        log.warning(
+                            "APInex 15 RPM throttled. Sleeping %.2fs before retry (%d/%d)...",
+                            sleep_sec,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                    except Exception as fallback_exc:
-                        is_quota = (
-                            isinstance(primary_exc, ConcurrencyLimited)
-                            or isinstance(fallback_exc, ConcurrencyLimited)
-                            or "quota" in str(primary_exc).lower()
-                            or "quota" in str(fallback_exc).lower()
-                            or "429" in str(primary_exc)
-                            or "429" in str(fallback_exc)
+                        await asyncio.sleep(sleep_sec)
+                        continue
+
+                    raise QuotaExceeded(
+                        f"APInex quota or persistent rate limit exhausted after {MAX_ATTEMPTS} attempts: {last_error}"
+                    )
+
+                if res.status_code >= 500:
+                    last_error = f"HTTP {res.status_code}: {res.text[:200]}"
+                    if attempt < MAX_ATTEMPTS - 1:
+                        log.warning(
+                            "APInex server error %d. Retrying (%d/%d)...",
+                            res.status_code,
+                            attempt + 1,
+                            MAX_ATTEMPTS,
                         )
-                        if is_quota:
-                            raise QuotaExceeded(
-                                f"APInex quota/rate limit exhausted on primary and fallback: {fallback_exc}"
-                            ) from fallback_exc
-                        raise ScoringFailed(
-                            f"APInex scoring failed on primary ({primary_exc}) and fallback ({fallback_exc})"
-                        ) from fallback_exc
-                if isinstance(primary_exc, ConcurrencyLimited) or "429" in str(primary_exc):
-                    raise QuotaExceeded(f"APInex rate limit exhausted: {primary_exc}") from primary_exc
-                raise ScoringFailed(f"APInex scoring failed: {primary_exc}") from primary_exc
+                        await asyncio.sleep(2.0)
+                        continue
+                    raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
+
+                raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
+
+        raise ScoringFailed(f"APInex request failed: {last_error}")
 
 
 class APInexFitScorer:
     """FitScorer implementation routing through APInexClient."""
 
-    def __init__(self, model: str = PRIMARY_MODEL, client: APInexClient | None = None):
+    def __init__(self, model: str = DEFAULT_MODEL, client: APInexClient | None = None):
         self.model = model
-        self.client = client or APInexClient(primary_model=model)
+        self.client = client or APInexClient(model=model)
 
     def health(self) -> ProviderHealth:
         return self.client.health()

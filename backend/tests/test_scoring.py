@@ -330,21 +330,31 @@ def test_apinex_client_parsing_and_fallback() -> None:
     assert parsed["overall_score"] == 88
     assert parsed["dimensions"]["role_match"]["score"] == 9
 
-    # Case 2: Primary returns 500 -> Retries once with fallback model and succeeds
+    # Case 2: Primary encounters 429 with "Retry in 1s" -> sleeps and retries same model
     calls = []
+    sleeps = []
 
-    def mock_fallback_on_500(request: httpx.Request) -> httpx.Response:
+    def mock_retry_on_429(request: httpx.Request) -> httpx.Response:
         data = json.loads(request.content)
         calls.append(data["model"])
-        if data["model"] == "free/minimax-m3.1-flash":
-            return httpx.Response(500, text="Internal Gateway Error")
+        if len(calls) == 1:
+            return httpx.Response(
+                429,
+                text="HTTP 429 Rate limit exceeded. Max 15 requests per minute for this account. Retry in 1s.",
+            )
         resp = {"choices": [{"message": {"content": json.dumps(sample_output)}}]}
         return httpx.Response(200, json=resp)
 
-    client_fallback = APInexClient(api_key="test-key", transport=httpx.MockTransport(mock_fallback_on_500))
-    res = client_fallback.complete_sync("system", "user")
+    client_retry = APInexClient(
+        api_key="test-key",
+        sleep_fn=lambda s: sleeps.append(s),
+        transport=httpx.MockTransport(mock_retry_on_429),
+    )
+    res = client_retry.complete_sync("system", "user")
     assert res["verdict"] == "apply"
-    assert calls == ["free/minimax-m3.1-flash", "free/deepseek-v4.1-flash"]
+    assert calls == ["free/minimax-m3.1-flash", "free/minimax-m3.1-flash"]
+    assert len(sleeps) == 1
+    assert abs(sleeps[0] - 2.5) < 0.01
 
 
 def test_fit_assessment_cleanly_parses_apinex_v7_schema() -> None:
@@ -507,7 +517,7 @@ def test_apinex_rate_limiter_throttles_16th_call() -> None:
 
 
 def test_apinex_exhaustion_triggers_ollama_fallback() -> None:
-    """Verifies that when APInex returns 429 on both primary and fallback models, QuotaExceeded is raised."""
+    """Verifies that when APInex returns 429 persistently or quota exhausted, QuotaExceeded is raised."""
     import httpx
     from app.providers.apinex_client import APInexClient, RollingRateLimiter
     from app.providers.base import QuotaExceeded
@@ -515,14 +525,33 @@ def test_apinex_exhaustion_triggers_ollama_fallback() -> None:
     def mock_all_429(request: httpx.Request) -> httpx.Response:
         return httpx.Response(429, text="Rate limit exceeded across all free gateway keys")
 
-    limiter = RollingRateLimiter(limit=100, window=60.0)
-    client = APInexClient(api_key="test-key", backoff_429=0.01, limiter=limiter, transport=httpx.MockTransport(mock_all_429))
+    limiter = RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None)
+    client = APInexClient(
+        api_key="test-key",
+        sleep_fn=lambda s: None,
+        limiter=limiter,
+        transport=httpx.MockTransport(mock_all_429),
+    )
 
     with pytest.raises(QuotaExceeded) as exc_info:
         client.complete_sync("system prompt", "user prompt")
 
     assert "APInex" in str(exc_info.value)
     assert "rate limit exhausted" in str(exc_info.value)
+
+    # Also verify immediate QuotaExceeded on balance/quota exhaustion keywords
+    def mock_quota_zero(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, text='{"error": "insufficient_quota", "message": "Daily balance exceeded"}')
+
+    client_exhausted = APInexClient(
+        api_key="test-key",
+        sleep_fn=lambda s: None,
+        limiter=limiter,
+        transport=httpx.MockTransport(mock_quota_zero),
+    )
+    with pytest.raises(QuotaExceeded) as exc_info_quota:
+        client_exhausted.complete_sync("system", "user")
+    assert "quota exhausted" in str(exc_info_quota.value).lower()
 
 
 def test_gemini_is_hard_deprecated_for_scoring() -> None:

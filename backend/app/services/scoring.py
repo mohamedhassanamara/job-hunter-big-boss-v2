@@ -424,7 +424,6 @@ def is_cloud(model: str) -> bool:
         or model.startswith("gemini-")
         or model.startswith("free/")
         or "minimax" in model
-        or "deepseek" in model
         or model == "apinex"
     )
 

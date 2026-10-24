@@ -228,7 +228,8 @@ def _non_empty(doc: CVDocument, key: str) -> bool:
     return bool(value)
 
 
-def build_context(doc: CVDocument, profile: CVProfile, template: CVTemplate) -> dict[str, Any]:
+def build_context(doc: CVDocument, profile: CVProfile, template: CVTemplate,
+                  micro_spacing: bool = False) -> dict[str, Any]:
     config = template.config
     experience_key = {"experience": "roles"}
     sections = []
@@ -248,12 +249,15 @@ def build_context(doc: CVDocument, profile: CVProfile, template: CVTemplate) -> 
         "certifications": [c.model_dump() for c in doc.certifications],
         "education": [e.model_dump() for e in doc.education],
         "volunteering": [v.model_dump() for v in doc.volunteering],
+        "micro_spacing": micro_spacing,
     }
 
 
-def render_tex(doc: CVDocument, profile: CVProfile, template: CVTemplate) -> str:
+def render_tex(doc: CVDocument, profile: CVProfile, template: CVTemplate,
+               micro_spacing: bool = False) -> str:
     env = jinja_env(template.path)
-    tex = env.get_template("cv.tex.j2").render(**build_context(doc, profile, template))
+    tex = env.get_template("cv.tex.j2").render(**build_context(doc, profile, template,
+                                                               micro_spacing=micro_spacing))
     return re.sub(r"\n{3,}", "\n\n", tex)
 
 

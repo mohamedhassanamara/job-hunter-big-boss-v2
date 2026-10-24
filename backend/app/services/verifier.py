@@ -135,14 +135,14 @@ def candidate_sources(s: Session, pool: Pool, cv: CVVersion | None) -> dict[str,
     from app.services.outreach import logistics
 
     where = logistics(pool)
-    if where["based_in"]:
+    if where.get("based_in"):
         lines.append(f"Based in: {where['based_in']}")
-    if where["work_authorization"]:
+    if where.get("work_authorization"):
         lines.append(f"Work authorization: the candidate {where['work_authorization']}")
-    if where["languages"]:
+    if where.get("languages"):
         lines.append(f"Languages the candidate works in: {where['languages']} (no other language "
                      "is claimed)")
-    if where["relocation"]:
+    if where.get("relocation"):
         lines.append(f"Relocation: the candidate is {where['relocation']}")
     if words := glossary.verifier_lines(pool.profile):
         lines.append(words)

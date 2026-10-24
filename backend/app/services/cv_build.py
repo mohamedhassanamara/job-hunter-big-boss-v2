@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from app.providers.base import CVPlan, PlanBullet, PlanEntry
+from app.providers.base import CVPlan, PlanBullet, PlanEntry, PlanProject
 from app.services import bullet_tailor, cv_rules
 from app.services.cv_pool import Pool, span
 from app.services.cv_render import (
@@ -42,15 +42,18 @@ LINES_PER_BULLET = 1.7
 class FitState:
     counts: dict[str, int] = field(default_factory=dict)  # "role:12" → visible bullets
     short_summary: bool = False
+    micro_spacing: bool = False
 
     def to_dict(self) -> dict[str, Any]:
-        return {"counts": dict(self.counts), "short_summary": self.short_summary}
+        return {"counts": dict(self.counts), "short_summary": self.short_summary,
+                "micro_spacing": self.micro_spacing}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "FitState":
         data = data or {}
         return cls(counts=dict(data.get("counts") or {}),
-                   short_summary=bool(data.get("short_summary")))
+                   short_summary=bool(data.get("short_summary")),
+                   micro_spacing=bool(data.get("micro_spacing")))
 
 
 def _key(kind: str, entry: PlanEntry) -> str:
@@ -354,18 +357,43 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
     """Compile, measure, adjust, up to MAX_PASSES adjustments. Grows only while under the fill
     target and within the allowances; keeps the best one-page result seen; if none fit, returns
     the last (with its page count, flagged by the caller)."""
-    lay = lay or layout(plan, pool)
+    was_empty_projects = not plan.projects
+    if was_empty_projects and pool:
+        for p in pool.of("project"):
+            facts = pool.facts(p)
+            if len(facts) >= 2:
+                plan.projects.append(PlanProject(
+                    item_id=p.id,
+                    relevance=6,
+                    bullets=[
+                        PlanBullet(source_index=idx, text=f, priority=idx + 1, strength=3, adapted=False)
+                        for idx, f in enumerate(facts)
+                    ],
+                    stack=list(p.tags)[:6] if p.tags else [],
+                ))
+    if lay is None:
+        lay = layout(plan, pool)
+    else:
+        for p in plan.projects:
+            k = _key("project", p)
+            if k not in lay.bounds:
+                item = pool.get(p.item_id) if pool else None
+                lay.bounds[k] = cv_rules.allowance(
+                    "project", item, p.relevance, lay.rules, len(p.bullets)
+                )
     state = clamp(plan, state, lay) if state is not None else initial_state(plan, lay)
-    target = float(lay.rules.get("fill_min") or template.min_fill)
+    if was_empty_projects:
+        for p in plan.projects:
+            state.counts[_key("project", p)] = 0
+    target = max(0.98, float(lay.rules.get("fill_min") or template.min_fill))
     max_stack = int(template.config.get("max_stack_items") or 6)
     best: FitResult | None = None
     history: list[dict[str, Any]] = []
     last: FitResult | None = None
-    stage = 0  # overflow escalation: 0 trim to minimums, 1 drop a project, 2 short summary,
-    # 3 drop volunteering, 4 below minimums
+    stage = 0  # overflow escalation
     for attempt in range(MAX_PASSES + 3):
         doc = build_document(plan, pool, state, overrides, max_stack, lay)
-        tex = render_tex(doc, profile, template)
+        tex = render_tex(doc, profile, template, micro_spacing=state.micro_spacing)
         result = compile_tex(tex, out_dir, "cv")
         history.append({"pass": attempt, "pages": result.pages, "fill": round(result.fill, 3),
                         "ok": result.ok})
@@ -379,35 +407,59 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
         if attempt == MAX_PASSES + 2:
             break
         if result.pages > 1:
+            if state.micro_spacing:
+                state.micro_spacing = False
+                continue
             overflow_lines = ((result.pages - 2) + result.fill) * LINES_PER_PAGE
             need = max(1, math.ceil(overflow_lines / LINES_PER_BULLET))
-            removed = shrink(plan, state, need, lay)
+            is_minor = overflow_lines < 3.0
+            removed = shrink(plan, state, need, lay, floor=True)
             while removed < need and stage < 5:
                 if stage == 0:
                     stage = 1
                 elif stage == 1:
-                    removed += 3 * drop_entry(plan, state, "project")
-                    stage = 2
+                    if is_minor:
+                        if not state.short_summary:
+                            state.short_summary = True
+                            removed += 2
+                        else:
+                            removed += shrink(plan, state, need - removed, lay, floor=False)
+                        stage = 2
+                    else:
+                        if not state.short_summary:
+                            state.short_summary = True
+                            removed += 2
+                        removed += 3 * drop_entry(plan, state, "project")
+                        stage = 2
                 elif stage == 2:
-                    if not state.short_summary:
-                        state.short_summary, removed = True, removed + 2
+                    if not is_minor:
+                        removed += 3 * drop_entry(plan, state, "project")
+                    elif not state.short_summary:
+                        state.short_summary = True
+                        removed += 2
                     stage = 3
                 elif stage == 3:
                     removed += 2 * drop_entry(plan, state, "volunteering")
                     stage = 4
                 else:
+                    if is_minor:
+                        removed += 3 * drop_entry(plan, state, "project")
                     removed += shrink(plan, state, need - removed, lay, floor=False)
                     stage = 5
             if removed == 0:
                 break  # nothing left to trim
         else:
             gap_lines = (target + 0.02 - result.fill) * LINES_PER_PAGE
-            if not grow(plan, state, max(1, math.floor(gap_lines / LINES_PER_BULLET)), lay):
+            added = grow(plan, state, max(1, math.floor(gap_lines / LINES_PER_BULLET)), lay)
+            if not added:
+                if 0.93 <= result.fill < target and not state.micro_spacing:
+                    state.micro_spacing = True
+                    continue
                 break  # the allowances are used up: shorter beats padded
     chosen = best or last
     assert chosen is not None
     if chosen is not last:  # re-render the best one-page state so files on disk match it
-        tex = render_tex(chosen.document, profile, template)
+        tex = render_tex(chosen.document, profile, template, micro_spacing=chosen.state.micro_spacing)
         chosen.compiled = compile_tex(tex, out_dir, "cv")
         chosen.tex = tex
     chosen.passes = len(history) - 1

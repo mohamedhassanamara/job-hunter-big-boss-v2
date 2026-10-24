@@ -82,18 +82,17 @@ def scoring_health(
     if (
         model.startswith("free/")
         or "minimax" in model
-        or "deepseek" in model
         or model == "apinex"
     ):
         from app.providers.apinex_client import APInexClient
 
-        h = APInexClient(primary_model=model).health()
+        h = APInexClient(model=model).health()
         return ScoringHealth(
             reachable=h.ok,
             model=model,
             model_present=h.ok,
             message=h.message,
-            models=["free/minimax-m3.1-flash", "free/deepseek-v4.1-flash"],
+            models=["free/minimax-m3.1-flash"],
             pull_command="",
         )
     if model.startswith("gemini-"):
@@ -206,7 +205,6 @@ def scoring_quota(session: SessionDep, workspace: WorkspaceDep,
     if (
         model.startswith("free/")
         or "minimax" in model
-        or "deepseek" in model
         or model == "apinex"
     ):
         return {

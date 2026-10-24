@@ -26,7 +26,7 @@ DEFAULT_BANNED = [
     "detail-oriented", "dynamic", "rockstar", "ninja", "guru", "touch base", "circle back",
     "reach out to you today", "i came across your profile", "perfect fit", "dream job",
     "j'espère que vous allez bien", "je me permets de vous contacter", "espero que estés bien",
-    "roi", "retour sur investissement",
+    "roi", "retour sur investissement", "rules me out",
 ]
 DEFAULT_MAX_WORDS = 150
 DUPLICATE_THRESHOLD = 0.5  # 3-word shingle overlap with a draft to someone else
@@ -137,7 +137,9 @@ def lint(subject: str, greeting: str, body_parts: list[str], ask: str | None,
     if ctx.first_name and fold(ctx.first_name) not in fold(greeting):
         out.append(violation("name", f"The greeting doesn't use {ctx.first_name}'s first name",
                              "greeting", "error"))
-    if fold(ctx.company) not in folded:
+    from app.services.dedupe import normalize_company
+    norm_comp = normalize_company(ctx.company)
+    if fold(ctx.company) not in folded and (not norm_comp or fold(norm_comp) not in folded):
         out.append(violation("company", f"The company name “{ctx.company}” isn't mentioned",
                              "body", "error"))
     for other in ctx.other_companies:
