@@ -1,10 +1,10 @@
 """Interview preparation: one job at a time, checked in code and by the claim verifier."""
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
-from app.models import Application, AppSetting, Company, InterviewPrep, Job
+from app.models import Application, Company, InterviewPrep, Job
 from app.providers.registry import interview_drafter
 from app.schemas.interview import (
     InterviewGenerateIn,
@@ -12,7 +12,7 @@ from app.schemas.interview import (
     InterviewPrepOut,
     InterviewStudio,
 )
-from app.services import cover_letter, verifier
+from app.services import cover_letter, model_choice, verifier
 from app.services import interview_prep as ip
 from app.services.cv_pool import load_pool
 
@@ -20,8 +20,7 @@ router = APIRouter(tags=["interview prep"])
 
 
 def _model(session: Session) -> str:
-    row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    return ((row.value if row else {}).get("cv") or {}).get("model") or "claude-sonnet-5"
+    return model_choice.claude_model(session, "interview")
 
 
 def prep_out(s: Session, prep: InterviewPrep, pool=None) -> InterviewPrepOut:  # noqa: ANN001

@@ -537,6 +537,8 @@ SETTINGS: dict[str, dict] = {
         "cv": {"provider": "gemini", "model": "gemini-3.5-flash-lite", "thinking_level": "minimal"},
         "email": {"provider": "gemini", "model": "gemini-3.5-flash-lite",
                   "thinking_level": "minimal"},
+        # Cover letters, form text and application answers: Claude Code only, never the CV/email model.
+        "letter": {"provider": "anthropic", "model": "claude-sonnet-5"},
     },
     # Automatic drafting (never approves anything): the CV when you shortlist a job, the email
     # when a verified contact AND an approved CV both exist. The email one starts off.

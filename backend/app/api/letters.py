@@ -2,13 +2,12 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.models import (
     Application,
     ApplicationAnswer,
-    AppSetting,
     Company,
     CoverLetter,
     CVVersion,
@@ -30,8 +29,8 @@ from app.schemas.letters import (
 )
 from app.services import answers as answer_service
 from app.services import cover_letter as cl
+from app.services import model_choice, verifier
 from app.services import outreach_check as oc
-from app.services import verifier
 from app.services.cv_pool import load_pool
 from app.services.cv_render import has_letter, load_template
 from app.services.text import detect_language
@@ -93,8 +92,8 @@ def get_letter_studio(app_id: int, session: SessionDep) -> LetterStudio:
 
 
 def _model(session: Session) -> str:
-    row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    return ((row.value if row else {}).get("cv") or {}).get("model") or "claude-sonnet-5"
+    """The Letter generator setting (`models.letter`), never the CV or email one."""
+    return model_choice.claude_model(session, "letter")
 
 
 @router.post("/applications/{app_id}/letter/generate", response_model=LetterOut)
