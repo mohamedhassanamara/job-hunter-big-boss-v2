@@ -331,15 +331,15 @@ def test_quota_endpoint_single_key_cap_and_rescore_preview_in_days(
     quota = client.get("/api/scoring/quota").json()
     assert quota["provider"] == "gemini"
     assert [k["label"] for k in quota["keys"]] == ["key 1"]  # key 2 is listed but never used
-    assert quota["remaining_today"] == 200 and quota["limits"] == {
-        "rpm": 6, "tpm": 250_000, "rpd": 200}
+    assert quota["remaining_today"] == 500 and quota["limits"] == {
+        "rpm": 6, "tpm": 250_000, "rpd": 500}
     assert quota["reserve"] == 50 and quota["paused"] is False
     assert "k1-secret" not in json.dumps(quota) and quota["keys"][0]["last4"] == "cret"
     preview = client.get("/api/scoring/rescore-preview", params={"scope": "outdated"}).json()
-    assert preview["model"] == MODEL and preview["daily_capacity"] == 150  # 200 minus your 50
+    assert preview["model"] == MODEL and preview["daily_capacity"] == 450  # 500 minus your 50
     assert preview["days"] == 1 and preview["count"] > 0
     with Session(engine) as s:  # the day's cap used up 
-        s.add(ProviderUsage(provider=MODEL, key_label="key 1", period=pacific_day(), calls=200))
+        s.add(ProviderUsage(provider=MODEL, key_label="key 1", period=pacific_day(), calls=500))
         s.commit()
     assert client.get("/api/scoring/quota").json()["keys"][0]["state"] == "exhausted"
     assert client.get("/api/scoring/quota").json()["remaining_today"] == 0

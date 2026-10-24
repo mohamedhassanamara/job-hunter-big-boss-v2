@@ -42,10 +42,23 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
     return {"provider": "anthropic", "model": model, "thinking_level": None}
 
 
+def claude_model(s: Session, key: str) -> str:
+    """The Claude model for a step that only ever runs through `claude -p` (`models.<key>`:
+    letter, interview, rewrite). Never reads the CV or email setting; a non-Claude value
+    (e.g. a Gemini id) is ignored."""
+    row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    model = str(((((row.value if row else {}) or {}).get(key)) or {}).get("model") or "")
+    return model if model.startswith("claude-") and not model.startswith("claude-haiku") \
+        else DEFAULT_CLAUDE
+
+
 def check(value: dict[str, Any]) -> None:
     """Validation for `PUT /settings/models` (cv / email entries). Raises ValueError."""
     from app.providers.gemini_generate import THINKING_LEVELS
 
+    letter = ((value or {}).get("letter") or {}).get("model")
+    if letter and not str(letter).startswith("claude-"):
+        raise ValueError("models.letter.model must be a claude-* model (it runs through claude -p)")
     for task in TASKS:
         cfg = (value or {}).get(task)
         if cfg is None:

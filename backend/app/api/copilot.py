@@ -13,6 +13,7 @@ from app.schemas.copilot import (
     CopilotThreadOut,
 )
 from app.services import copilot as svc
+from app.services import model_choice
 
 router = APIRouter(tags=["copilot"])
 
@@ -117,8 +118,7 @@ def rewrite_answer(message_id: int, session: SessionDep, engine: EngineDep,
                    workspace: WorkspaceDep) -> CopilotMessageOut:
     """Rewrite an answer with Claude (claude -p, your subscription), saved as a new answer."""
     get_or_404(session, CopilotMessage, message_id, "Answer")
-    row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    model = ((row.value if row else {}).get("cv") or {}).get("model") or "claude-sonnet-5"
+    model = model_choice.claude_model(session, "rewrite")
     try:
         out = svc.rewrite(engine, message_id,
                           rewriter(mock=True if workspace == "demo" else None, model=model))

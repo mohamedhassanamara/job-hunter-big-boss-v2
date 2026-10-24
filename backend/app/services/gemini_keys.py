@@ -1,7 +1,7 @@
 """Gemini API keys for bulk scoring: a limiter per key and a daily quota per key and model.
 
 - SINGLE-KEY MODE (accounts under review): only the first `gemini.max_keys` keys of .env are used
-  (default 1), one request at a time, at most 6 a minute and `gemini.daily_cap` (200) a day over
+  (default 1), one request at a time, at most 6 a minute and `gemini.daily_cap` (500) a day over
   every Gemini model, 50 of them kept for work you trigger. The day resets at midnight Pacific.
   No rotation, no bursts. Nothing here ever calls Google by itself: only real requests do.
 - Google refusing the key (403 / permission) disables it, PAUSES all Gemini traffic
@@ -41,8 +41,8 @@ log = logging.getLogger(__name__)
 PACIFIC = ZoneInfo("America/Los_Angeles")
 PROVIDER = "gemini"  # provider_key_state: a refused key is refused for every model
 # Conservative single-key limits (the accounts are under review): at most 6 requests a minute,
-# one at a time, 200 a day across every Gemini model, 50 of them kept for work you trigger.
-RPM, TPM, RPD = 6, 250_000, 200
+# one at a time, 500 a day across every Gemini model, 50 of them kept for work you trigger.
+RPM, TPM, RPD = 6, 250_000, 500
 USER_RESERVE = 50  # requests/day that background work (scoring) never uses
 MAX_KEYS = 1
 DEFAULTS = {"max_keys": MAX_KEYS, "daily_cap": RPD, "paused": False, "paused_reason": None,
