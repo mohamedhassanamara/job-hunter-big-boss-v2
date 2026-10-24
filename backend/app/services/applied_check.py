@@ -58,6 +58,9 @@ _LISTING_LOCATION = re.compile(
     r"wohnsitz|arbeitserlaubnis|arbeitsgenehmigung|aufenthalt\w*|vor ort vor|"
     r"r[ée]sidence|permis de travail|titre de s[ée]jour|autorisation de travail)\b", re.I)
 _SIGNAL_RUN = 7
+_VISA_DISCLAIMER_WORDS = re.compile(
+    r"\b(?:visas?|sponsorship|sponsor\w*|work authori[sz]ation|work permit|right to work|"
+    r"rules me out|relocat\w*)\b", re.I)
 # A signal says what it says: never what it "shows about" the company (the verifier blocks that
 # kind of embroidery; this warns earlier).
 _INFERENCE = re.compile(
@@ -97,11 +100,10 @@ def subject_line(role: str, name: str, language: str) -> str:
 
 
 def body(plan: AppliedEmailPlan) -> str:
-    """greeting · opening (+ a signal, when one is used) · experience · constraint · ask."""
+    """greeting · opening (+ a signal, when one is used) · experience · ask."""
     opening = " ".join(x for x in (plan.opening.strip(), plan.signal.text.strip()) if x)
     experience = " ".join(s.text.strip() for s in plan.experience)
-    parts = [plan.greeting.strip(), opening, experience, plan.constraint.strip(),
-             plan.ask.strip()]
+    parts = [plan.greeting.strip(), opening, experience, plan.ask.strip()]
     return clean("\n\n".join(p for p in parts if p))
 
 
@@ -153,7 +155,9 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
                 rf"\b{re.escape(oc.fold(other))}\b", folded):
             out.append(violation("company", f"Mentions “{other}”, the company of another draft",
                                  "body", "error"))
-    if ctx.company and oc.fold(ctx.company) not in oc.fold(everything):
+    from app.services.dedupe import normalize_company
+    norm_comp = normalize_company(ctx.company) if ctx.company else ""
+    if ctx.company and oc.fold(ctx.company) not in oc.fold(everything) and (not norm_comp or oc.fold(norm_comp) not in oc.fold(everything)):
         out.append(violation("company", f"The company name “{ctx.company}” isn't mentioned",
                              "body"))
     for claim in bad_years(_facts_without_statement(text, ctx), ctx.allowed_years,
@@ -162,6 +166,10 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     from app.services import honesty
 
     out += honesty.violations(text, ctx.honesty)
+    if match := _VISA_DISCLAIMER_WORDS.search(text):
+        out.append(violation("visa_disclaimer_banned",
+                             f"Cold outreach must never mention visa, sponsorship or relocation caveats (found “{match.group(0)}”)",
+                             "body", "error"))
     # --- warnings: style
     if len(ctx.job_text or "") < SNIPPET_CHARS:
         out.append(violation("snippet", "Listing is a short snippet: constraints like residency or "
@@ -229,6 +237,10 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     if not plan.opening.strip():
         out.append(violation("opening", "Say that you applied (or are applying) for the role",
                              "opening", "error"))
+    elif match := _VISA_DISCLAIMER_WORDS.search(plan.opening):
+        out.append(violation("visa_disclaimer_banned",
+                             f"Opening contains banned disclaimer “{match.group(0)}”: cold outreach must never mention visa, sponsorship or relocation",
+                             "opening", "error"))
     if not plan.experience:
         out.append(violation("experience", "Add one or two proofs of relevant experience",
                              "experience", "error"))
@@ -238,6 +250,10 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     facts = [f for item in ctx.pool.items.values() for f in ctx.pool.facts(item)]
     for i, sentence in enumerate(plan.experience, 1):
         where = f"experience {i}"
+        if match := _VISA_DISCLAIMER_WORDS.search(sentence.text):
+            out.append(violation("visa_disclaimer_banned",
+                                 f"Experience contains banned disclaimer “{match.group(0)}”: cold outreach must never mention visa, sponsorship or relocation",
+                                 where, "error"))
         text = _facts_without_statement(sentence.text, ctx)
         if text != sentence.text and len(re.findall(r"\w+", text)) <= 3:
             continue  # only "I have <the years statement>": the years rule checks it
@@ -267,8 +283,7 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     # Company facts: the opening and the ask only restate who and what; any number or tool in
     # them must come from the pool, the listing or the signals.
     source = _source_text(ctx)
-    for label, part in (("opening", plan.opening), ("ask", plan.ask),
-                        ("constraint", plan.constraint)):
+    for label, part in (("opening", plan.opening), ("ask", plan.ask)):
         out += [violation("grounding", f"The {label}: {p}", label, "error")
                 for p in oc._source_problems(part, source)]
     if plan.signal.text.strip():
@@ -295,12 +310,6 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
                     ctx.signals[i] for i in plan.signal.signal_ids)) >= _SIGNAL_RUN:
                 out.append(violation("signal", "Don't recite the company's own description back "
                                      "to them: say what struck you, in your words", "signal"))
-    if plan.constraint.strip():
-        quote = oc.fold(plan.constraint_quote)
-        if not quote or quote not in oc.fold(ctx.job_text):
-            out.append(violation("constraint", "Quote the listing's own words for the "
-                                 "requirement you mention (it doesn't state it as written)",
-                                 "constraint"))
     for label, part in (("experience", " ".join(s.text for s in plan.experience)),):
         run = ic._longest_run(part, ctx.job_text)
         if run >= 7 or _overlap(part, ctx.job_text) >= RESTATE_THRESHOLD:

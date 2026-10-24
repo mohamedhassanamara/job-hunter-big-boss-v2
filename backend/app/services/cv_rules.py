@@ -86,19 +86,19 @@ DEFAULT_SKILL_KEEP: dict[str, dict[str, list[str]]] = {
 }
 
 DEFAULT_STRUCTURE: dict[str, Any] = {
-    "current": [3, 4],        # the role you're in now
-    "long_role": [2, 3],      # roles longer than long_role_months
+    "current": [3, 5],        # the role you're in now
+    "long_role": [2, 4],      # roles longer than long_role_months
     "long_role_months": 12,
     "short_role": [1, 3],     # shorter roles: 1-3 depending on relevance to the track
     "graduation": [1, 3],     # graduation / end-of-studies projects
     "internship": [1, 2],     # never more than 2
-    "projects_max": 2,
-    "project_bullets": [2, 3],  # never a 1-bullet project
+    "projects_max": 3,
+    "project_bullets": [2, 4],  # never a 1-bullet project
     "volunteering_max": 1,
     "skill_groups_max": 4,
     "skill_items_max": 8,
-    "fill_min": 0.88,         # never add filler beyond the allowances to reach it
-    "summary_max_words": 45,
+    "fill_min": 0.98,         # target 98%-100% vertical page fullness
+    "summary_max_words": 48,
     "summary_max_sentences": 2,
 }
 
@@ -204,7 +204,7 @@ def allowance(kind: str, item: ExperienceItem | None, relevance: int, rules: dic
         kind_ = role_type(item, rules, today) if item else "short_role"
         lo, hi = rules[kind_]
         if kind_ in ("short_role", "graduation"):  # 1-3 by how much it matters for this job
-            hi = min(hi, 3 if relevance >= 8 else 2 if relevance >= 5 else 1)
+            hi = min(hi, 3 if relevance >= 6 else 2 if relevance >= 4 else 1)
             lo = max(lo, 2) if relevance >= 8 and hi >= 2 else min(lo, hi)
     hi = min(hi, available)
     return min(lo, hi), hi

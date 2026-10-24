@@ -127,23 +127,31 @@ def test_a_good_follow_up_passes(job_ready: dict) -> None:  # noqa: F811
 
 
 def test_what_the_old_rules_blocked_is_now_allowed(job_ready: dict) -> None:  # noqa: F811
-    """The listing, the role, your location and visa, a closing that isn't a question and a short
-    email: none of them is an error any more."""
+    """The listing, the role, a closing that isn't a question and a short email: none of them
+    is an error any more."""
     found = ac.check_plan(
-        plan(job_ready, ask="I've attached my CV.",
-             constraint="To be upfront: I'm based in Tunis, and the posting mentions German "
-                        "residency. I'm ready to relocate but would need visa sponsorship.",
-             constraint_quote="German residency required"),
+        plan(job_ready, ask="I've attached my CV."),
         ctx_for(job_ready, job_text=f"Data Engineer\n{RESIDENCY} We build data pipelines."))
     assert errors(found) == set(), found
     assert "length" in warnings(found)  # the 90-170 range is a warning, never a block
 
 
-def test_location_and_visa_are_a_warning_when_the_listing_asks_for_nothing(
-        job_ready: dict) -> None:  # noqa: F811
-    found = ac.check_plan(plan(job_ready, constraint="I'm based in Tunis and would need visa "
-                               "sponsorship."), ctx_for(job_ready))
-    assert errors(found) == set() and "constraint" in warnings(found)
+def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dict) -> None:  # noqa: F811
+    say = plan(job_ready, opening="I've just applied for Data Engineer at Voxa, though I would need visa sponsorship.")
+    found = ac.check_plan(say, ctx_for(job_ready))
+    assert "visa_disclaimer_banned" in errors(found)
+
+    say_exp = plan(job_ready, experience=[EmailSentence(text="I built systems and need sponsorship.", citations=[job_ready["role"]])])
+    found_exp = ac.check_plan(say_exp, ctx_for(job_ready))
+    assert "visa_disclaimer_banned" in errors(found_exp)
+
+
+def test_body_assembly_excludes_constraints(job_ready: dict) -> None:  # noqa: F811
+    p = plan(job_ready, ask="Would you look at my CV?")
+    body_text = ac.body(p)
+    assert "visa" not in body_text.lower()
+    assert "sponsorship" not in body_text.lower()
+    assert "relocation" not in body_text.lower()
 
 
 @pytest.mark.parametrize(("change", "expected"), [
@@ -305,8 +313,7 @@ def test_the_applied_verifier_gets_the_listing_your_situation_and_the_applicatio
     assert "listing" in spy.seen["sources"] and "email about a job application" \
         in spy.seen["kind"]
     facts = spy.seen["sources"]["facts"]
-    assert "Based in:" in facts and "Relocation:" in facts \
-        and "Application: the candidate is applying" in facts
+    assert "Application: the candidate is applying" in facts
 
 
 def test_approving_an_applied_email_records_an_applied_example(job_ready: dict, client) -> None:  # noqa: F811, ANN001
@@ -375,12 +382,9 @@ def test_a_language_requirement_does_not_allow_mentioning_your_visa(
         job_ready: dict) -> None:  # noqa: F811
     only_language = ctx_for(job_ready, job_text="Data Engineer\nBusiness fluent in English "
                             "required. We are based in Berlin.")
-    say = plan(job_ready, constraint="I'm based in Tunis and would need visa sponsorship.")
-    assert "constraint" in warnings(ac.check_plan(say, only_language))
-    located = ctx_for(job_ready, job_text=f"Data Engineer\n{RESIDENCY}")
-    assert "constraint" not in warnings(ac.check_plan(
-        plan(job_ready, constraint="I'm based in Tunis and would need visa sponsorship.",
-             constraint_quote="German residency required"), located))
+    say = plan(job_ready, opening="I applied for Data Engineer at Voxa and would need visa sponsorship.")
+    found = ac.check_plan(say, only_language)
+    assert "visa_disclaimer_banned" in errors(found)
 
 
 def test_a_copying_draft_is_regenerated_once_and_the_better_one_kept(

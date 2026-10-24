@@ -47,7 +47,7 @@ def job_sources(enabled: list[Source], *, mock: bool | None = None) -> dict[Sour
 
 def fit_scorer(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flash",
                engine: Any = None) -> FitScorer:
-    """Real workspace: APInex for cloud scoring (MiniMax M3.1 Flash / DeepSeek), Ollama for
+    """Real workspace: APInex for cloud scoring (MiniMax M3.1 Flash), Ollama for
     local models. Tests and the tour sandbox: the deterministic mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     if use_mock:
@@ -57,7 +57,6 @@ def fit_scorer(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flas
     if (
         model.startswith("free/")
         or "minimax" in model
-        or "deepseek" in model
         or model == "apinex"
     ):
         from app.providers.apinex_client import APInexFitScorer
@@ -77,11 +76,20 @@ def _claude_cv(model: str) -> CVGenerator:
 
 def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5",
                  thinking_level: str | None = None, engine: Any = None) -> CVGenerator:
-    """Real workspace: Gemini for `gemini-*` models (the shared free keys), else Claude Code
+    """Real workspace: APInex for `free/*` / minimax models, Gemini for `gemini-*`, else Claude Code
     headless. Tests and the tour sandbox: the deterministic mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     if use_mock:
         return MockCVGenerator()
+    if (
+        model.startswith("free/")
+        or "minimax" in model
+        or "deepseek" in model
+        or model == "apinex"
+    ):
+        from app.providers.apinex_cv import APInexCVGenerator
+
+        return APInexCVGenerator(model=model)
     if model.startswith("gemini-"):
         from app.db import engine as default_engine
         from app.providers.gemini_generate import GeminiCVGenerator, runner_for

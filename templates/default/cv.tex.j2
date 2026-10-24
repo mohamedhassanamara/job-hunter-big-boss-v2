@@ -22,7 +22,6 @@
 \renewcommand{\footrulewidth}{0pt}
 
 \urlstyle{same}
-\raggedbottom
 \raggedright
 \setlength{\tabcolsep}{0in}
 
@@ -32,7 +31,11 @@
 \titleformat{\section}{
   \scshape\raggedright\large\color{primaryColor}
 }{}{0em}{}[\color{primaryColor}\titlerule]
-\titlespacing*{\section}{0pt}{6pt}{4pt}
+\BLOCK{if micro_spacing}
+\titlespacing*{\section}{0pt}{6pt plus 3pt minus 1pt}{3.5pt plus 1.5pt minus 1pt}
+\BLOCK{else}
+\titlespacing*{\section}{0pt}{5pt plus 2pt minus 1pt}{3pt plus 1pt minus 1pt}
+\BLOCK{endif}
 
 \newcommand{\resumeItem}[1]{
   \item\small{#1}
@@ -53,10 +56,17 @@
     \end{tabular*}
 }
 
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=5pt, topsep=2pt]}
+\BLOCK{if micro_spacing}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=5.5pt plus 3pt minus 1pt, topsep=3pt plus 1.5pt]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=1.5pt, topsep=2pt, parsep=0pt]}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=2.2pt plus 1.5pt minus 0.5pt, topsep=2.5pt plus 1.5pt minus 1pt, parsep=0pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}}
+\BLOCK{else}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=4pt plus 2pt minus 1pt, topsep=2pt plus 1pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=1.5pt plus 1pt minus 0.5pt, topsep=2pt plus 1pt minus 1pt, parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}}
+\BLOCK{endif}
 
 \#{ ---------------------------------------------------------------- macros }
 \BLOCK{macro contact(item)}\faIcon{\VAR{item.icon|raw}} \BLOCK{if item.url}\href{\VAR{item.url|url}}{\underline{\VAR{item.label}}}\BLOCK{else}\VAR{item.label}\BLOCK{endif}\BLOCK{endmacro}

@@ -89,8 +89,8 @@ def test_role_types(it: ExperienceItem, expected: str) -> None:
 def test_allowances_follow_recency_and_duration_not_relevance() -> None:
     lay = layout(make_plan(), make_pool(), RULES, today=TODAY)
     b = lay.bounds
-    assert b["role:1"] == (3, 4)  # current, even with modest relevance
-    assert b["role:3"] == (2, 3)  # 2.5-year role, relevance 4
+    assert b["role:1"] == (3, 5)  # current, even with modest relevance
+    assert b["role:3"] == (2, 4)  # 2.5-year role, relevance 4
     assert b["role:4"] == (1, 2)  # internship, relevance 10: still max 2
     assert b["role:2"] == (2, 3)  # graduation project, highly relevant: starts at 2
     assert b["role:5"] == (1, 1)  # short, barely relevant
@@ -103,7 +103,7 @@ def test_initial_state_minimums_two_projects_never_one_bullet() -> None:
     c = state.counts
     assert (c["role:1"], c["role:3"], c["role:4"], c["role:2"]) == (3, 2, 1, 2)
     shown = [k for k in c if k.startswith("project:") and c[k]]
-    assert shown == ["project:6", "project:7"] and c["project:8"] == 0  # "Tiny" has 1 fact
+    assert shown == ["project:6", "project:7", "project:9"] and c["project:8"] == 0  # "Tiny" has 1 fact
     doc = build_document(plan, make_pool(), state, lay=layout(plan, make_pool(), RULES,
                                                               today=TODAY))
     assert all(len(p.bullets) >= 2 for p in doc.projects)
@@ -329,7 +329,7 @@ def test_request_carries_guide_exemplar_and_layout() -> None:
     assert "\\" not in style["summary"] and "\\" not in style["bullets"][0]
     hints = cv_service.layout_hints(make_pool(), RULES)
     assert hints["roles"]["4"] == "internship: 1-2 bullets"
-    assert "at most 2 projects" in hints["projects"]
+    assert "at most 3 projects" in hints["projects"]
     from app.providers.claude_cv import user_message
 
     msg = user_message(CVRequest(job={}, pool={}, guide="GUIDE TEXT", style=style, layout=hints))
@@ -420,9 +420,9 @@ def test_a_layout_from_an_older_version_is_clamped_to_the_allowances(monkeypatch
     result = fit_to_page(plan, make_pool(), CVProfile(full_name="Ada"), load_template("default"),
                          tmp_path, state=old, lay=lay)
     c = result.state.counts
-    assert c["role:3"] <= 3 and c["role:4"] <= 2 and c["role:5"] <= 1
-    assert c["project:7"] in (0, 2, 3) and c["project:7"] != 1
-    assert sum(1 for k, v in c.items() if k.startswith("project:") and v) <= 2
+    assert c["role:3"] <= 4 and c["role:4"] <= 2 and c["role:5"] <= 1
+    assert c["project:7"] in (0, 2, 3, 4) and c["project:7"] != 1
+    assert sum(1 for k, v in c.items() if k.startswith("project:") and v) <= 3
     for key, count in c.items():
         assert count <= lay.bounds[key][1], key
 

@@ -29,7 +29,7 @@ icons:
     portfolio: globe
     other: link
 # One-page fit: the page must be at least this full (0-1); bullets per role before trimming.
-min_fill: 0.92
+min_fill: 0.98
 max_bullets_per_role: 5
 max_stack_items: 6       # tech shown next to a project name
 

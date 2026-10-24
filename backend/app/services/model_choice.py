@@ -16,6 +16,7 @@ from sqlmodel import Session, select
 from app.models import AppSetting
 
 DEFAULT_GEMINI = "gemini-3.5-flash-lite"
+DEFAULT_APINEX = "free/minimax-m3.1-flash"
 DEFAULT_CLAUDE = "claude-sonnet-5"
 DEFAULT_THINKING = "minimal"
 TASKS = ("cv", "email")
@@ -26,12 +27,15 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
     """{provider, model, thinking_level} for a task, honouring a one-shot `use="claude"`."""
     row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
     cfg = dict(((row.value if row else {}) or {}).get(task) or {})
-    model = str(cfg.get("model") or DEFAULT_GEMINI)
+    default_model = DEFAULT_APINEX if task == "cv" else DEFAULT_GEMINI
+    model = str(cfg.get("model") or default_model)
     if model.startswith("claude-haiku"):
         model = DEFAULT_CLAUDE
     if use == "claude":
         claude = model if model.startswith("claude-") else DEFAULT_CLAUDE
         return {"provider": "anthropic", "model": claude, "thinking_level": None}
+    if model.startswith("free/") or "minimax" in model or "deepseek" in model or model == "apinex":
+        return {"provider": "apinex", "model": model, "thinking_level": None}
     if model.startswith("gemini-"):
         from app.services.gemini_keys import is_paused
 

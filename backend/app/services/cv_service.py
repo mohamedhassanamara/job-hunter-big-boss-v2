@@ -235,10 +235,13 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
     v.error = None if result.compiled.ok else f"{result.compiled.error}\n{result.compiled.log_tail}"
 
 
-def generate(engine: Engine, app_id: int, generator: CVGenerator,
+def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
              template: str | None = None, verifier: Any = None) -> CVVersion:
-    """One Claude call → tailoring checks (+ the claim verifier on each adapted bullet) → plan
+    """One generator call (or 2-pass APInex) → tailoring checks (+ the claim verifier on each adapted bullet) → plan
     checks → fit loop → a new draft version. The pool is only read."""
+    if generator is None:
+        from app.providers.apinex_cv import APInexCVGenerator
+        generator = APInexCVGenerator()
     started = time.monotonic()
     with Session(engine) as s:
         app = s.get(Application, app_id)
