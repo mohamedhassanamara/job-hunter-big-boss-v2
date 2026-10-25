@@ -9,9 +9,9 @@ from sqlmodel import col, select
 from app.api.deps import SessionDep, WorkspaceDep, get_or_404
 from app.config import get_settings
 from app.db import engine_for
-from app.models import Company, FitScore, Job
+from app.models import Application, Company, FitScore, Job
 from app.models.base import utcnow
-from app.models.enums import DescriptionLevel, Source
+from app.models.enums import DescriptionLevel, Source, Stage
 from app.providers.ollama import OllamaFitScorer
 from app.schemas.jobs import JobListItem
 from app.schemas.scoring import (
@@ -26,7 +26,7 @@ from app.schemas.scoring import (
     ScoringStatus,
 )
 from app.services import gemini_keys, open_jobs, scoring
-from app.services.gemini_keys import configured_keys, pool_for
+from app.services.gemini_keys import pool_for
 from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
 from app.services.text import html_to_text
 from app.services.views import job_item
@@ -128,6 +128,11 @@ def _scope_ids(session, scope: str, job_ids: list[int]) -> tuple[list[int], int]
     ids = _raw_scope_ids(session, scope, job_ids)
     if scope == "jobs":
         return ids, 0
+    if scope == "unscored":
+        closed = set(session.exec(
+            select(Application.job_id).where(Application.stage == Stage.closed)).all())
+        open_unscored = [i for i in ids if i not in closed]
+        return open_unscored, len(ids) - len(open_unscored)
     split = open_jobs.split_open(session, ids)
     return split.open, split.skipped
 
@@ -173,8 +178,8 @@ def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> En
         )
     ids, _ = _scope_ids(session, body.scope, body.job_ids)
     queue = scoring.workspace_queue(workspace)
-    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale"),
-                         trigger="rescore", only_open=body.scope != "jobs")
+    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale", "unscored"),
+                         trigger="rescore", only_open=body.scope not in ("jobs", "unscored"))
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)
