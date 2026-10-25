@@ -23,6 +23,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
 from app.models import (
+    Application,
     AppSetting,
     Company,
     ExperienceItem,
@@ -34,7 +35,7 @@ from app.models import (
     SearchProfile,
 )
 from app.models.base import utcnow
-from app.models.enums import FitStatus, ScoringTaskStatus
+from app.models.enums import FitStatus, ScoringTaskStatus, Stage
 from app.providers.base import (
     ConcurrencyLimited,
     FitScorer,
@@ -372,13 +373,17 @@ class ScoreCounts:
 
 
 def counts(s: Session) -> ScoreCounts:
-    """Per-job state of the latest score: scored (current), stale, failed or unscored."""
+    """Per-job state of the latest score: scored (current), stale, failed or unscored.
+    Excludes closed / dismissed jobs."""
     ctx = load_context(s)
     latest: dict[int, FitScore] = {}
     for row in s.exec(select(FitScore).order_by(col(FitScore.created_at), col(FitScore.id))):
         latest[row.job_id] = row
+    closed = set(s.exec(select(Application.job_id).where(Application.stage == Stage.closed)).all())
     out = ScoreCounts()
     for job_id in s.exec(select(Job.id)).all():
+        if job_id in closed:
+            continue
         out.total += 1
         row = latest.get(job_id)
         if row is None or row.prompt_version is None:  # legacy mock scores count as unscored

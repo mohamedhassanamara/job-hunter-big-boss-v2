@@ -1,7 +1,5 @@
 import { CircleAlert, Copy, LoaderCircle, Pause, RefreshCw, Sparkles, X } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
-import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { Button } from '@/components/ui/button'
 import { pluralize } from '@/lib/format'
@@ -17,7 +15,7 @@ function eta(seconds: number | null) {
 
 /**
  * Scoring state for Discover: progress while the background queue runs, a blocked reason
- * (Ollama down / model missing), and prompts for stale / unscored / failed jobs.
+ * (Ollama down / model missing), and prompts for unscored / failed jobs.
  */
 export function ScoringProgress({ className }: { className?: string }) {
   const { data } = useScoringStatus()
@@ -25,12 +23,11 @@ export function ScoringProgress({ className }: { className?: string }) {
   const cancel = useCancelScoring()
   const start = useStartScoring()
   const continueWith = useContinueWith()
-  const [confirmStale, setConfirmStale] = useState(false)
   if (!data) return null
   const run = data.run
   const ollama = run?.fallback_model || 'gemma4:31b-cloud'
 
-  const queue = (scope: 'stale' | 'failed' | 'unscored') =>
+  const queue = (scope: 'failed' | 'unscored') =>
     rescore.mutate(
       { scope },
       {
@@ -134,10 +131,8 @@ export function ScoringProgress({ className }: { className?: string }) {
     )
   }
 
-  const notices: { key: string; text: string; action: string; scope: 'stale' | 'failed' | 'unscored' }[] = []
+  const notices: { key: string; text: string; action: string; scope: 'failed' | 'unscored' }[] = []
   if (data.unscored) notices.push({ key: 'u', text: `${pluralize(data.unscored, 'job')} not scored yet`, action: 'Score them', scope: 'unscored' })
-  if (data.stale)
-    notices.push({ key: 's', text: `Your experience changed: ${pluralize(data.stale, 'score')} ${data.stale === 1 ? 'is' : 'are'} stale`, action: 'Rescore stale…', scope: 'stale' })
   if (data.failed_jobs) notices.push({ key: 'f', text: `${pluralize(data.failed_jobs, 'job')} failed to score`, action: 'Retry failed', scope: 'failed' })
   if (!notices.length) return <ScoringFallbackNotice />
   return (
@@ -152,7 +147,7 @@ export function ScoringProgress({ className }: { className?: string }) {
               size="xs"
               variant="ghost"
               className="text-primary"
-              onClick={() => (n.scope === 'stale' ? setConfirmStale(true) : queue(n.scope))}
+              onClick={() => queue(n.scope)}
               disabled={rescore.isPending}
             >
               {n.action}
@@ -160,7 +155,6 @@ export function ScoringProgress({ className }: { className?: string }) {
           </span>
         ))}
       </div>
-      <RescoreConfirmDialog scope="stale" open={confirmStale} onOpenChange={setConfirmStale} />
     </>
   )
 }
