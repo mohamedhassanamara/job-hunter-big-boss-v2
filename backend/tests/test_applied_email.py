@@ -452,3 +452,26 @@ def test_a_years_only_sentence_needs_no_citation(job_ready: dict) -> None:  # no
                       citations=[job_ready["role"]])])
     found = ac.check_plan(p, ctx)
     assert not any(v["type"] == "grounding" and "no citations" in v["message"] for v in found)
+
+
+def test_the_visa_ban_covers_the_ask_and_german_and_french_terms(job_ready: dict) -> None:  # noqa: F811
+    for words in ("Ich brauche eine Arbeitserlaubnis", "Mein Aufenthalt ist befristet",
+                  "J'ai besoin d'un titre de séjour", "une question de parrainage",
+                  "an Umzug wäre nötig"):
+        in_opening = plan(job_ready, opening=f"I've just applied for the role at Voxa. {words}.")
+        assert "visa_disclaimer_banned" in errors(ac.check_plan(in_opening, ctx_for(job_ready)))
+    in_ask = plan(job_ready, ask="Could we talk about visa sponsorship?")
+    assert "visa_disclaimer_banned" in errors(ac.check_plan(in_ask, ctx_for(job_ready)))
+
+
+def test_a_signal_or_company_fact_may_use_the_words(job_ready: dict) -> None:  # noqa: F811
+    fact = "Voxa sponsors a data conference every year"
+    ctx = ctx_for(job_ready, signals={7: fact})
+    say = plan(job_ready, signal=HookSentence(text=fact + ".", signal_ids=[7]))
+    found = ac.check_plan(say, ctx)
+    assert "visa_disclaimer_banned" not in {v["type"] for v in found}, found
+    # an edited email: the paragraph that carries the company fact is left alone, the rest is not
+    text = ac.body(say)
+    assert "visa_disclaimer_banned" not in {v["type"] for v in ac.check_text("Role", text, ctx)}
+    edited = text.replace("It's attached.", "It's attached. I need a visa.")
+    assert "visa_disclaimer_banned" in errors(ac.check_text("Role", edited, ctx))

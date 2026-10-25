@@ -246,7 +246,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Email prompt v14 (applied mode): experience = a short first-person summary of 1-2 things, not the bullets. Copy check
   `applied_check.copy_run` (8+ consecutive words with a pool bullet or a `style_reference` example) → one automatic regeneration
   ("summarize in your own words"), still copying = warning. Numbers ≤ 2 and tools ≤ 3 per email, fragments (no "I") warn, a
-  location/visa/relocation sentence warns unless the listing states a LOCATION requirement (`listing_states_location`: a language
+  location sentence warns unless the listing states a LOCATION requirement (`listing_states_location`: a language
   requirement doesn't count). The style reference lives in `email_example` (kind `style_reference`, `inputs.mode = applied`) and is
   sent as a STYLE REFERENCE block; kind `must_warn` rows (emails that copied) are checked by `make eval-emails`
   (`eval.emails.check_must_warn`). Verifier prompt v6 accepts faithful paraphrase and adds the non-blocking `garbled` verdict.
@@ -280,13 +280,16 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   with a posting gets the **application follow-up** (`services/applied_check.py`, `generate_applied`, plan
   `AppliedEmailPlan`): opening (applied / applying, nothing else), at most two cited one-sentence proofs (aim 90-120
   words), an optional
-  signal (default empty), a constraint only when the listing states a requirement you don't meet (said once, from
-  `outreach.logistics`; quoted from the listing), a natural ask; code builds the greeting and the subject ("<Role>
+  signal (default empty), a natural ask; no constraint sentence (the `constraint` field is gone); code builds the greeting and the subject ("<Role>
   application – <name>"); no research starts. **Only facts block** (pool grounding, years, honesty, names, company
-  facts from the listing/signals); length (90-170), tools, banned phrases, jargon, restating, a long opening,
-  unprompted location/visa, a listing under `applied_check.SNIPPET_CHARS` (1,500) are warnings (the Job page offers
-  Fetch/Paste first; fetching never touches LinkedIn). The Claude verifier gets the listing, "Based in / Work authorization /
-  Relocation" facts and the application status for these emails. Don't re-add the old blocking rules here.
+  facts from the listing/signals), and the **visa ban**: any visa, sponsorship, work-permit/authorization or relocation
+  wording (EN, plus DE/FR: Arbeitserlaubnis, Aufenthalt…, Umzug, titre de séjour, permis de travail, parrainage…) in the
+  model-written parts (opening, experience, ask) is an error (`applied_check.visa_disclaimer_banned`; the listing's
+  signal and company facts may use the words; on an edited email the paragraph that carries a signal is skipped);
+  length (90-170), tools, banned phrases, jargon, restating, a long opening,
+  an unprompted location sentence, a listing under `applied_check.SNIPPET_CHARS` (1,500) are warnings (the Job page offers
+  Fetch/Paste first; fetching never touches LinkedIn). The Claude verifier gets the listing and the application status for these emails (the "Based in /
+  Work authorization / Relocation" lines are no longer sent: the emails never mention them). Don't re-add the old blocking rules here.
 - Language (`services/language.py`): detected among en/fr/de/es/ar; write in the listing's language only if it is a
   working-level language in the profile AND en/fr (the app builds greetings/subjects/years in those two), else English;
   explicit choices (draft dropdown, `application.letter_language`, Settings → Email) win; `plan.language_choice` stores
@@ -378,8 +381,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Gates: email and letter approval (`require_email` / `require_letter`, reused when the exact text is unchanged),
   Copy and "I sent it" for LinkedIn and form answers. The send queue's last step (`send_gate`) compares the exact
   subject + body + CV file with the verified hashes; any difference sends the email back to review.
-- Facts it knows (prompt v5): your profile's "Based in", "Work authorization", "Relocation" lines and the
-  "Application" status are in FACTS; the listing is a source for job-linked emails. The regression set includes
+- Facts it knows (prompt v5): the "Application" status is in FACTS (the "Based in", "Work authorization",
+  "Relocation" lines no longer populate for job-linked emails: the visa ban keeps them out of the text); the listing is a source for job-linked emails. The regression set includes
   `mode: applied` must-pass and `must_fail` emails (`data/eval/email_examples.json`, `--import`).
 - Suggested fixes (`services/claim_fix.py`, prompt v7): each blocking claim gets a `fix` from the same call (no extra request, no Gemini); code repairs first, every candidate re-checked in code, failing ones become "remove"; `POST /claim-fixes/apply` edits via the normal edit path and re-verifies only the changed sentences. It never changes what blocks.
 - Tests and the sandbox use `MockVerifier`. `make eval-verifier` runs the must-pass / must-fail set (email_example
