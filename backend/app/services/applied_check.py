@@ -58,9 +58,14 @@ _LISTING_LOCATION = re.compile(
     r"wohnsitz|arbeitserlaubnis|arbeitsgenehmigung|aufenthalt\w*|vor ort vor|"
     r"r[ée]sidence|permis de travail|titre de s[ée]jour|autorisation de travail)\b", re.I)
 _SIGNAL_RUN = 7
+# The ban applies to what the model writes (opening, experience, ask), in the languages the
+# emails are written in. A signal or a company fact may say "sponsor" about anything else.
 _VISA_DISCLAIMER_WORDS = re.compile(
-    r"\b(?:visas?|sponsorship|sponsor\w*|work authori[sz]ation|work permit|right to work|"
-    r"rules me out|relocat\w*)\b", re.I)
+    r"\b(?:visas?|visum|sponsorship|sponsor\w*|work authori[sz]ation|work permit|"
+    r"right to work|rules me out|relocat\w*|"
+    r"arbeitserlaubnis|arbeitsgenehmigung|aufenthalt\w*|umzug|relokation|umsiedlung|"
+    r"titre de s[ée]jour|permis de travail|autorisation de travail|parrainage|"
+    r"d[ée]m[ée]nagement|relocalisation)\b", re.I)
 # A signal says what it says: never what it "shows about" the company (the verifier blocks that
 # kind of embroidery; this warns earlier).
 _INFERENCE = re.compile(
@@ -132,8 +137,31 @@ def _is_company_word(word: str, company: str) -> bool:
     return w in _LEGAL or w in parts or w == oc.fold(company or "").replace(" ", "")
 
 
-def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]:
-    """What any version of the email must satisfy (generated or edited by you)."""
+def _visa_banned(text: str, where: str) -> list[dict[str, str]]:
+    if match := _VISA_DISCLAIMER_WORDS.search(text):
+        return [violation(
+            "visa_disclaimer_banned",
+            "Cold outreach must never mention visa, sponsorship or relocation caveats "
+            f"(found “{match.group(0)}”)", where, "error")]
+    return []
+
+
+def _visa_in_edited_text(text: str, ctx: ic.Context) -> list[dict[str, str]]:
+    """An edited email has no plan: check every paragraph but the greeting and the company
+    fact (the paragraph that shares a run of words with a selected signal)."""
+    signals = list(ctx.signals.values())
+    out: list[dict[str, str]] = []
+    for paragraph in text.split("\n\n")[1:]:
+        if any(ic._longest_run(paragraph, sig) >= 4 for sig in signals):
+            continue
+        out += _visa_banned(paragraph, "body")
+    return out[:1]
+
+
+def text_rules(subject: str, text: str, ctx: ic.Context, *,
+               visa_in_whole_text: bool = True) -> list[dict[str, str]]:
+    """What any version of the email must satisfy (generated or edited by you).
+    `visa_in_whole_text=False`: the caller scopes the visa ban itself (job-linked emails)."""
     out: list[dict[str, str]] = []
     folded = oc.fold(text)
     everything = f"{subject}\n{text}"
@@ -166,10 +194,8 @@ def text_rules(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     from app.services import honesty
 
     out += honesty.violations(text, ctx.honesty)
-    if match := _VISA_DISCLAIMER_WORDS.search(text):
-        out.append(violation("visa_disclaimer_banned",
-                             f"Cold outreach must never mention visa, sponsorship or relocation caveats (found “{match.group(0)}”)",
-                             "body", "error"))
+    if visa_in_whole_text:
+        out += _visa_banned(text, "body")
     # --- warnings: style
     if len(ctx.job_text or "") < SNIPPET_CHARS:
         out.append(violation("snippet", "Listing is a short snippet: constraints like residency or "
@@ -237,10 +263,9 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     if not plan.opening.strip():
         out.append(violation("opening", "Say that you applied (or are applying) for the role",
                              "opening", "error"))
-    elif match := _VISA_DISCLAIMER_WORDS.search(plan.opening):
-        out.append(violation("visa_disclaimer_banned",
-                             f"Opening contains banned disclaimer “{match.group(0)}”: cold outreach must never mention visa, sponsorship or relocation",
-                             "opening", "error"))
+    else:
+        out += _visa_banned(plan.opening, "opening")
+    out += _visa_banned(plan.ask, "ask")
     if not plan.experience:
         out.append(violation("experience", "Add one or two proofs of relevant experience",
                              "experience", "error"))
@@ -250,10 +275,7 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     facts = [f for item in ctx.pool.items.values() for f in ctx.pool.facts(item)]
     for i, sentence in enumerate(plan.experience, 1):
         where = f"experience {i}"
-        if match := _VISA_DISCLAIMER_WORDS.search(sentence.text):
-            out.append(violation("visa_disclaimer_banned",
-                                 f"Experience contains banned disclaimer “{match.group(0)}”: cold outreach must never mention visa, sponsorship or relocation",
-                                 where, "error"))
+        out += _visa_banned(sentence.text, where)
         text = _facts_without_statement(sentence.text, ctx)
         if text != sentence.text and len(re.findall(r"\w+", text)) <= 3:
             continue  # only "I have <the years statement>": the years rule checks it
@@ -316,7 +338,7 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
             out.append(violation("restates", f"The {label} restates the listing ({run} words in "
                                  "a row): say it in your own words", label))
     subject = subject_line(plan.role, ctx.candidate_name, ctx.language)
-    return out + text_rules(subject, body(plan), ctx)
+    return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False)
 
 
 def check_text(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]:
@@ -325,5 +347,6 @@ def check_text(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     rest = _facts_without_statement(text, ctx).split("\n", 1)[-1]
     out = [violation("grounding", p, "body", "error")
            for p in oc._source_problems(rest, _source_text(ctx))]
-    return out + text_rules(subject, text, ctx)
+    return (out + _visa_in_edited_text(text, ctx)
+            + text_rules(subject, text, ctx, visa_in_whole_text=False))
 
