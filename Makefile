@@ -21,7 +21,7 @@ backend:
 frontend:
 	cd $(FRONTEND) && npm run dev
 
-migrate: ## Apply Alembic migrations
+migrate: ## Apply Alembic migrations (alembic/env.py backs the DB up first when one is pending)
 	cd $(BACKEND) && .venv/bin/alembic upgrade head
 
 seed: ## Rebuild the tour sandbox (sample data lives ONLY there, never in the real DB)
