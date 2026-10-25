@@ -901,6 +901,7 @@ def ensure_defaults(engine: Engine) -> None:
         missing = [k for k in fx.SETTINGS if k not in existing]
         for key in missing:
             s.add(AppSetting(key=key, value=fx.SETTINGS[key]))
+        changed = bool(missing)
         # Migrate scoring model from Gemini to APInex if needed
         models_row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
         if models_row and isinstance(models_row.value, dict):
@@ -917,8 +918,8 @@ def ensure_defaults(engine: Engine) -> None:
                 val["scoring"] = scoring_cfg
                 models_row.value = val
                 s.add(models_row)
-                s.commit()
-        elif missing:
+                changed = True
+        if changed:
             s.commit()
 
 

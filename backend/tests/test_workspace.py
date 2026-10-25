@@ -79,3 +79,20 @@ def test_ensure_defaults_adds_new_setting_keys_without_overwriting(client: TestC
     values = client.get("/api/settings").json()["values"]
     assert values["scoring"]["weights"]["role_match"] == 0.30  # added
     assert values["sources"] == {"adzuna": False}  # untouched
+
+
+def test_ensure_defaults_restores_a_deleted_key_when_models_exists(client: TestClient) -> None:
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models import AppSetting
+    from app.seed.seed import ensure_defaults
+
+    with Session(engine) as s:
+        assert s.exec(select(AppSetting).where(AppSetting.key == "models")).first() is not None
+        s.delete(s.exec(select(AppSetting).where(AppSetting.key == "generation")).one())
+        s.commit()
+    ensure_defaults(engine)
+    with Session(engine) as s:  # a fresh session: the row must be committed, not just added
+        row = s.exec(select(AppSetting).where(AppSetting.key == "generation")).one()
+    assert row.value == {"auto_cv": True, "auto_email": False}
