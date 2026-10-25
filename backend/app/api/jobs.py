@@ -25,7 +25,7 @@ def list_jobs(
     country: Annotated[list[str] | None, Query()] = None,
     min_score: int | None = None,
     posted_within: int | None = Query(None, description="days"),
-    hide_duplicates: bool = False,
+    hide_duplicates: bool = True,
     label: Literal["unlabeled", "good", "maybe", "no"] | None = None,
     flags: Literal["hide_hard", "only_flagged"] | None = None,
     track: Annotated[list[str] | None, Query()] = None,
@@ -44,7 +44,7 @@ def list_jobs(
             needle = q.lower()
             if needle not in i.title.lower() and needle not in i.company.name.lower():
                 return False
-        if source and i.source not in source:
+        if source and not any(s in source for s in (i.sources or [i.source])):
             return False
         if remote and i.remote_type not in remote:
             return False

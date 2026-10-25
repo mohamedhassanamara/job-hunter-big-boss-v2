@@ -347,19 +347,50 @@ export function useScoringHealth(model?: string) {
   })
 }
 
+export type RescoreParams = Record<string, unknown> & {
+  scope: 'stale' | 'failed' | 'unscored' | 'all' | 'outdated' | 'jobs'
+  job_ids?: number[]
+  confirm?: boolean
+  track?: string
+  since_days?: number
+  limit?: number
+  only_unscored?: boolean
+}
+
 export function useRescore() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: { scope: 'stale' | 'failed' | 'unscored' | 'all' | 'outdated' | 'jobs'; job_ids?: number[]; confirm?: boolean }) =>
+    mutationFn: (body: RescoreParams) =>
       api.post<{ enqueued: number }>('/scoring/rescore', body),
     onSettled: () => qc.invalidateQueries({ queryKey: keys.scoringStatus }),
   })
 }
 
-export function useRescorePreview(scope: 'all' | 'stale' | 'outdated', enabled: boolean) {
+export function useRescorePreview(
+  params: {
+    scope: 'all' | 'stale' | 'outdated' | 'unscored' | 'failed' | 'jobs'
+    track?: string
+    since_days?: number
+    limit?: number
+    only_unscored?: boolean
+    job_ids?: number[]
+  } | 'all' | 'stale' | 'outdated',
+  enabled: boolean,
+) {
+  const queryObj = typeof params === 'string' ? { scope: params } : params
+  const searchParams = new URLSearchParams()
+  searchParams.set('scope', queryObj.scope)
+  if (queryObj.track && queryObj.track !== 'all') searchParams.set('track', queryObj.track)
+  if (queryObj.since_days !== undefined && queryObj.since_days > 0) searchParams.set('since_days', String(queryObj.since_days))
+  if (queryObj.limit !== undefined && queryObj.limit > 0) searchParams.set('limit', String(queryObj.limit))
+  if (queryObj.only_unscored) searchParams.set('only_unscored', 'true')
+  if (queryObj.job_ids?.length) {
+    for (const id of queryObj.job_ids) searchParams.append('job_ids', String(id))
+  }
+
   return useQuery({
-    queryKey: ['rescore-preview', scope],
-    queryFn: () => api.get<RescorePreview>(`/scoring/rescore-preview?scope=${scope}`),
+    queryKey: ['rescore-preview', queryObj],
+    queryFn: () => api.get<RescorePreview>(`/scoring/rescore-preview?${searchParams.toString()}`),
     enabled,
     staleTime: 0,
   })

@@ -81,7 +81,13 @@ export function JobPanel({
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <LocationText location={job.location} />
                 <RemoteBadge remote={job.remote_type} />
-                <SourceBadge source={job.source} short={false} />
+                {job.sources && job.sources.length > 1 ? (
+                  job.sources.map((src) => (
+                    <SourceBadge key={src} source={src} short={false} />
+                  ))
+                ) : (
+                  <SourceBadge source={job.source} short={false} />
+                )}
                 {job.application.stage !== 'new' && <TrackBadges tracks={job.application.tracks} />}
               </div>
               <p className="text-xs text-fg-subtle">
@@ -117,7 +123,17 @@ export function JobPanel({
                   </Button>
                 </>
               )}
-              <ExternalListingButton url={job.url} label={`Open on ${SOURCE_LABELS[job.source]}`} />
+              {job.source_urls && Object.keys(job.source_urls).length > 1 ? (
+                Object.entries(job.source_urls).map(([src, url]) => (
+                  <ExternalListingButton
+                    key={src}
+                    url={url}
+                    label={`Open on ${SOURCE_LABELS[src as keyof typeof SOURCE_LABELS] || src}`}
+                  />
+                ))
+              ) : (
+                <ExternalListingButton url={job.url} label={`Open on ${SOURCE_LABELS[job.source]}`} />
+              )}
             </div>
 
             <div data-tour="discover-label" className="flex items-center justify-between gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-2">

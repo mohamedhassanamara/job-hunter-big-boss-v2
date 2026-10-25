@@ -22,9 +22,7 @@ import httpx
 
 from app.config import get_settings
 from app.providers.base import (
-    ConcurrencyLimited,
     FitAssessment,
-    FitScorer,
     JobSnapshot,
     QuotaExceeded,
     ScoringFailed,

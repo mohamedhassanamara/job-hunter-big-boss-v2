@@ -87,7 +87,9 @@ class JobListItem(BaseModel):
     title: str
     company: CompanyRef
     source: str
+    sources: list[str] = []
     url: str
+    source_urls: dict[str, str] = {}
     location: str
     country: str | None
     remote_type: str
@@ -207,6 +209,7 @@ class PipelineCard(BaseModel):
     title: str
     company_name: str
     source: str
+    sources: list[str] = []
     location: str
     remote_type: str
     fit: FitBrief | None

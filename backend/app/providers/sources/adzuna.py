@@ -6,16 +6,19 @@ unsupported. Descriptions are truncated snippets (~500 chars); the full text is 
 page behind `redirect_url`.
 """
 
+import logging
 from datetime import datetime
 from typing import Any
 
 from app.config import get_settings
 from app.models.enums import DescriptionLevel, RemoteType, Source
 from app.providers.base import ProfileSpec, RawJob
-from app.providers.http import PoliteClient
+from app.providers.http import PoliteClient, SourceError
 from app.services.geo import country_from_text, fold
 from app.services.roles import capped, query_phrases
 from app.services.text import html_to_text
+
+logger = logging.getLogger("jobhunter.sources.adzuna")
 
 BASE = "https://api.adzuna.com/v1/api/jobs"
 # Adzuna's country endpoints (what the API offers, not what we search: targets come from the
@@ -63,6 +66,8 @@ def _salary(item: dict[str, Any], country: str = "") -> str | None:
 def parse_adzuna(payload: dict[str, Any], country: str) -> list[RawJob]:
     jobs = []
     for item in payload.get("results") or []:
+        if not item.get("id") or not item.get("redirect_url"):
+            continue
         title = html_to_text(item.get("title"))
         description = html_to_text(item.get("description"))
         location = item.get("location") or {}
@@ -119,25 +124,63 @@ class AdzunaSource:
 
     def fetch_payloads(self, profile: ProfileSpec) -> list[tuple[str, dict[str, Any]]]:
         out = []
+        if self.configured():
+            logger.warning("Adzuna not configured: %s", self.configured())
+            return out
         with PoliteClient("Adzuna", min_interval=1.5) as client:
             try:
                 for country in self.targets(profile):
                     phrases = capped(query_phrases(profile, country), MAX_QUERIES_PER_COUNTRY,
                                      self.warnings, f"Adzuna {country}")
                     for role in phrases:
-                        payload = client.get_json(
-                            f"{BASE}/{ENDPOINTS[country]}/search/1",
-                            params={
-                                "app_id": self.app_id,
-                                "app_key": self.app_key,
-                                "title_only": role,
-                                "results_per_page": RESULTS_PER_PAGE,
-                                "max_days_old": profile.max_age_days,
-                                "sort_by": "date",
-                                "content-type": "application/json",
-                            },
-                        )
-                        out.append((country, payload))
+                        endpoint = f"{BASE}/{ENDPOINTS[country]}/search/1"
+                        params = {
+                            "app_id": self.app_id,
+                            "app_key": self.app_key,
+                            "title_only": role,
+                            "results_per_page": RESULTS_PER_PAGE,
+                            "max_days_old": profile.max_age_days,
+                            "sort_by": "date",
+                            "content-type": "application/json",
+                        }
+                        try:
+                            payload = client.get_json(endpoint, params=params)
+                            out.append((country, payload))
+                        except SourceError as exc:
+                            status = getattr(exc, "status", None)
+                            logger.error(
+                                "Adzuna fetch failed [%s] for %s (%s): %s",
+                                status or "ERR",
+                                country,
+                                role,
+                                exc,
+                            )
+                            if status == 401:
+                                self.warnings.append(
+                                    "Adzuna: Invalid credentials (HTTP 401). "
+                                    "Check ADZUNA_APP_ID / ADZUNA_APP_KEY."
+                                )
+                                return out
+                            elif status == 429:
+                                self.warnings.append(
+                                    f"Adzuna rate limit hit (HTTP 429). "
+                                    f"Continuing with {len(out)} fetched batches."
+                                )
+                                return out
+                            else:
+                                self.warnings.append(
+                                    f"Adzuna {country} query '{role}' failed: {exc}"
+                                )
+                                continue
+                        except Exception as exc:
+                            logger.error(
+                                "Adzuna unexpected error for %s (%s): %s",
+                                country,
+                                role,
+                                exc,
+                            )
+                            self.warnings.append(f"Adzuna {country} error: {exc}")
+                            continue
             finally:
                 self.requests = client.requests
         return out

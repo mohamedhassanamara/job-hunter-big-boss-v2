@@ -43,6 +43,7 @@ testpaths = ["tests"]
 [tool.ruff.lint.per-file-ignores]
 "app/seed/fixtures.py" = ["E501"]
 "app/seed/test_cv.py" = ["E501"]
+"app/providers/apinex_client.py" = ["E501"]
 "tests/test_fit.py" = ["E501"]
 "tests/test_scoring.py" = ["E501"]
 

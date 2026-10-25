@@ -296,7 +296,9 @@ def test_queue_skips_a_job_closed_while_it_waited(seeded: None) -> None:
 
 def test_apinex_client_parsing_and_fallback() -> None:
     import json
+
     import httpx
+
     from app.providers.apinex_client import APInexClient
 
     sample_output = {
@@ -389,7 +391,7 @@ def test_fit_assessment_cleanly_parses_apinex_v7_schema() -> None:
 
 def test_german_eu_listing_without_explicit_ban_not_disqualified(seeded: None) -> None:
     """Verifies that an EU/German job listing without explicit bans is not disqualified."""
-    from app.providers.base import FitAssessment, JobSnapshot, SubScore
+    from app.providers.base import FitAssessment, SubScore
     from app.services import fit
 
     sub_high = SubScore(score=9, reason="Strong match")
@@ -441,10 +443,11 @@ def test_live_apinex_invocation_if_key_present(monkeypatch: pytest.MonkeyPatch) 
     """Invokes live APInex API when APINEX_LIVE=1 and APINEX_API_KEY is configured in the environment."""
     import os
     import socket
-    from tests.conftest import _real_connect
+
     from app.config import get_settings
     from app.providers.apinex_client import APInexClient
     from app.providers.base import FitAssessment
+    from tests.conftest import _real_connect
 
     if not os.environ.get("APINEX_LIVE"):
         pytest.skip("Set APINEX_LIVE=1 to run the live gateway integration test")
@@ -519,6 +522,7 @@ def test_apinex_rate_limiter_throttles_16th_call() -> None:
 def test_apinex_exhaustion_triggers_ollama_fallback() -> None:
     """Verifies that when APInex returns 429 persistently or quota exhausted, QuotaExceeded is raised."""
     import httpx
+
     from app.providers.apinex_client import APInexClient, RollingRateLimiter
     from app.providers.base import QuotaExceeded
 

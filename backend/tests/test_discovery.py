@@ -90,8 +90,10 @@ def test_cross_source_duplicate(empty_db: None) -> None:
     run_id = run_discovery(engine, {Source.adzuna: a, Source.wttj: w})
     runs = source_runs(run_id)
     assert runs["adzuna"].new_count == 1 and runs["wttj"].duplicate_count == 1
-    by_source = {j.source: j for j in jobs()}
-    assert by_source["wttj"].duplicate_of_id == by_source["adzuna"].id
+    all_jobs = jobs()
+    assert len(all_jobs) == 1
+    canonical = all_jobs[0]
+    assert "adzuna" in canonical.sources and "wttj" in canonical.sources
 
 
 def test_failing_source_does_not_break_others(empty_db: None) -> None:

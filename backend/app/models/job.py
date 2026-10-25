@@ -43,6 +43,9 @@ class Job(TableBase, table=True):
     # ({field: "json-ld" | "page" | "meta" | "url" | "you" | "missing"}).
     linkedin_job_id: str | None = Field(default=None, index=True)
     capture: dict[str, Any] | None = Field(default=None, sa_type=JSON)
+    # Linked sources and source URLs across multiple job boards
+    sources: list[str] = json_field(list)
+    source_urls: dict[str, str] = json_field(dict)
 
 
 class FitScore(TableBase, table=True):
