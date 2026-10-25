@@ -16,10 +16,10 @@ import time
 from collections import deque
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, func
 from sqlmodel import Session, col, select
 
 from app.models import (
@@ -405,6 +405,12 @@ def estimate_seconds(s: Session, ctx: ScoringContext, n: int) -> int | None:
     dialog). Uses recent real durations for that model; ~20s per call when there is no history."""
     if n <= 0:
         return 0
+    if (
+        ctx.model.startswith("free/")
+        or "minimax" in ctx.model
+        or ctx.model == "apinex"
+    ):
+        return round(n * 4.0)  # 15 RPM gateway throttle = ~4s per job
     recent = s.exec(
         select(FitScore.duration_ms)
         .where(FitScore.model == ctx.model, FitScore.status == FitStatus.ok,
@@ -414,6 +420,71 @@ def estimate_seconds(s: Session, ctx: ScoringContext, n: int) -> int | None:
     per_job = (sum(recent) / len(recent) / 1000) if recent else 20.0
     workers = ctx.cloud_concurrency["start"] if is_cloud(ctx.model) else ctx.local_concurrency
     return round(per_job * n / max(1, workers))
+
+
+def filter_jobs_for_scoring(
+    s: Session,
+    base_ids: list[int] | None = None,
+    *,
+    track: str | None = None,
+    since_days: int | None = None,
+    limit: int | None = None,
+    only_unscored: bool = False,
+    job_ids: list[int] | None = None,
+) -> list[int]:
+    """Filter open non-duplicate, non-dismissed jobs by track, date range, or explicit IDs."""
+    stmt = select(Job).where(col(Job.duplicate_of_id).is_(None))
+    if job_ids:
+        stmt = stmt.where(col(Job.id).in_(job_ids))
+    elif base_ids is not None:
+        if not base_ids:
+            return []
+        stmt = stmt.where(col(Job.id).in_(base_ids))
+
+    if track and track.strip() and track.lower() != "all":
+        t = track.strip().lower()
+        stmt = stmt.where(func.lower(col(Job.matched_track)) == t)
+
+    if since_days is not None and since_days > 0:
+        cutoff = utcnow() - timedelta(days=since_days)
+        stmt = stmt.where(col(Job.created_at) >= cutoff)
+
+    # Exclude closed/dismissed applications
+    closed = set(s.exec(select(Application.job_id).where(Application.stage == Stage.closed)).all())
+
+    # Check latest score per job for only_unscored filtering and ordering
+    latest_sub = (
+        select(func.max(FitScore.id))
+        .where(FitScore.status == FitStatus.ok)
+        .group_by(FitScore.job_id)
+    )
+    latest_scores = {
+        r.job_id: r
+        for r in s.exec(select(FitScore).where(col(FitScore.id).in_(latest_sub)))
+    }
+
+    jobs = s.exec(stmt).all()
+    filtered: list[Job] = []
+    for j in jobs:
+        if j.id in closed:
+            continue
+        latest = latest_scores.get(j.id)
+        if only_unscored and latest is not None and latest.score is not None:
+            continue
+        filtered.append(j)
+
+    # Order: never-scored first, then highest score first, then id
+    def sort_key(j: Job) -> tuple:
+        latest = latest_scores.get(j.id)
+        has_score = latest is not None and latest.score is not None
+        score_val = latest.score if has_score else 0
+        return (not has_score, score_val or 0, j.id or 0)
+
+    filtered.sort(key=sort_key, reverse=True)
+    out_ids = [j.id for j in filtered if j.id is not None]
+    if limit is not None and limit > 0:
+        out_ids = out_ids[:limit]
+    return out_ids
 
 
 # -------------------------------------------------------------------------------------- queue
@@ -773,7 +844,11 @@ class ScoringQueue:
             if self.model != fallback:
                 self._record_fallback(reason, fallback)
                 self._use_model(fallback, ctx)
-                log.warning("APInex quota/rate limit exhausted. Falling back to Ollama model %s: %s", fallback, reason)
+                log.warning(
+                    "APInex quota/rate limit exhausted. Falling back to Ollama model %s: %s",
+                    fallback,
+                    reason,
+                )
         return True
 
     # workers ----------------------------------------------------------------------------------

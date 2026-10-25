@@ -53,10 +53,14 @@ class ScoringHealth(BaseModel):
 
 
 class RescoreIn(BaseModel):
-    scope: Literal["stale", "failed", "unscored", "all", "outdated", "jobs"] = "stale"
+    scope: Literal["stale", "failed", "unscored", "all", "outdated", "jobs"] = "outdated"
     job_ids: list[int] = []
-    # Re-scoring jobs that already have a valid score (all, stale) needs an explicit OK.
+    # Re-scoring jobs that already have a valid score (all, stale, outdated) needs an explicit OK.
     confirm: bool = False
+    track: str | None = None  # optional track filter e.g. "mobile", "backend", "Data/AI"
+    since_days: int | None = None  # optional: jobs added in the last N days
+    limit: int | None = None  # optional: cap batch size
+    only_unscored: bool = False  # optional: true to only target unscored
 
 
 class RescorePreview(BaseModel):

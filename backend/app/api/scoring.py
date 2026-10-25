@@ -1,7 +1,7 @@
 import math
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import col, select
@@ -151,11 +151,30 @@ def _raw_scope_ids(session, scope: str, job_ids: list[int]) -> list[int]:  # noq
 
 
 @router.get("/scoring/rescore-preview", response_model=RescorePreview)
-def rescore_preview(scope: str, session: SessionDep, workspace: WorkspaceDep) -> RescorePreview:
+def rescore_preview(
+    session: SessionDep,
+    workspace: WorkspaceDep,
+    scope: str = "outdated",
+    track: str | None = None,
+    since_days: int | None = None,
+    limit: int | None = None,
+    only_unscored: bool = False,
+    job_ids: list[int] = Query(default=[]),
+) -> RescorePreview:
     """What a bulk rescore would do: how many jobs, which model, roughly how long."""
-    if scope not in ("stale", "failed", "unscored", "all", "outdated"):
+    if scope not in ("stale", "failed", "unscored", "all", "outdated", "jobs"):
         raise HTTPException(422, f"Unknown scope {scope}")
-    ids, skipped = _scope_ids(session, scope, [])
+    ids, skipped = _scope_ids(session, scope, job_ids)
+    if track or since_days or limit or only_unscored or job_ids:
+        ids = scoring.filter_jobs_for_scoring(
+            session,
+            base_ids=ids,
+            track=track,
+            since_days=since_days,
+            limit=limit,
+            only_unscored=only_unscored,
+            job_ids=job_ids or None,
+        )
     ctx = scoring.load_context(session)
     eta = scoring.estimate_seconds(session, ctx, len(ids))
     days = capacity = None
@@ -177,8 +196,18 @@ def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> En
             409, "Rescoring existing scores needs confirmation (see /scoring/rescore-preview)"
         )
     ids, _ = _scope_ids(session, body.scope, body.job_ids)
+    if body.track or body.since_days or body.limit or body.only_unscored or body.job_ids:
+        ids = scoring.filter_jobs_for_scoring(
+            session,
+            base_ids=ids,
+            track=body.track,
+            since_days=body.since_days,
+            limit=body.limit,
+            only_unscored=body.only_unscored,
+            job_ids=body.job_ids or None,
+        )
     queue = scoring.workspace_queue(workspace)
-    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale", "unscored"),
+    added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale", "unscored", "outdated"),
                          trigger="rescore", only_open=body.scope not in ("jobs", "unscored"))
     if queue.blocked:
         raise HTTPException(503, queue.blocked)

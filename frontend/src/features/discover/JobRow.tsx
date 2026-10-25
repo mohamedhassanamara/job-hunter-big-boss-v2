@@ -68,7 +68,15 @@ export function JobRow({
         <RemoteBadge remote={job.remote_type} />
         {!isNew && <DraftingBadges tracks={job.application.tracks} className="max-xl:hidden" />}
         {job.application.tracks.outreach !== 'no_contact' && <TrackBadge kind="outreach" tracks={job.application.tracks} className="max-xl:hidden" />}
-        <SourceBadge source={job.source} />
+        {job.sources && job.sources.length > 1 ? (
+          <div className="flex items-center gap-1">
+            {job.sources.map((src) => (
+              <SourceBadge key={src} source={src} />
+            ))}
+          </div>
+        ) : (
+          <SourceBadge source={job.source} />
+        )}
       </div>
       <Tooltip content={`Posted ${absoluteDate(posted)}`}>
         <span className="w-8 text-right text-xs text-fg-subtle tabular-nums">{shortAge(posted)}</span>

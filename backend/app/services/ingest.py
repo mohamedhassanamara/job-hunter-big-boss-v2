@@ -14,7 +14,7 @@ from sqlmodel import Session, col, select
 
 from app.models import Application, ApplicationEvent, Company, Contact, Job
 from app.models.base import utcnow
-from app.models.enums import ContactSource, ContactTier, EventKind
+from app.models.enums import ContactSource, ContactTier, DescriptionLevel, EventKind
 from app.providers.base import RawJob
 from app.services.dedupe import dedupe_key, normalize_company
 
@@ -76,21 +76,55 @@ def ingest(
         original = session.exec(
             select(Job).where(Job.dedupe_key == key, col(Job.duplicate_of_id).is_(None))
         ).first()
+        if not original and raw.apply_url:
+            original = session.exec(
+                select(Job).where(
+                    Job.apply_url == raw.apply_url,
+                    col(Job.duplicate_of_id).is_(None),
+                )
+            ).first()
+
+        if original:
+            # Merge into existing canonical job instead of creating a duplicate row
+            src_str = str(raw.source.value if hasattr(raw.source, "value") else raw.source)
+            sources_list = list(original.sources or [])
+            if src_str not in sources_list:
+                sources_list.append(src_str)
+            original.sources = sources_list
+
+            urls_dict = dict(original.source_urls or {})
+            urls_dict[src_str] = raw.url
+            original.source_urls = urls_dict
+
+            if raw.apply_url and not original.apply_url:
+                original.apply_url = raw.apply_url
+
+            if len(raw.description or "") > len(original.description or ""):
+                original.description = raw.description
+                original.description_level = raw.description_level
+                if raw.description_level == DescriptionLevel.full:
+                    original.full_fetched_at = now
+
+            original.last_seen_at = now
+            session.add(original)
+            stats.duplicates += 1
+            continue
+
+        src_str = str(raw.source.value if hasattr(raw.source, "value") else raw.source)
         job = Job(
             **raw.model_dump(exclude={"company"}),
             company_id=company.id,
             source_run_id=source_run_id,
             dedupe_key=key,
-            duplicate_of_id=original.id if original else None,
+            duplicate_of_id=None,
+            sources=[src_str],
+            source_urls={src_str: raw.url},
             discovered_at=now,
             last_seen_at=now,
         )
         session.add(job)
         session.flush()
-        if original:
-            stats.duplicates += 1
-        else:
-            stats.new += 1
+        stats.new += 1
         stats.job_ids.append(job.id)
 
         contact = session.exec(
@@ -107,8 +141,6 @@ def ingest(
         session.add(application)
         session.flush()
         message = f"Discovered on {SOURCE_NAMES.get(raw.source, raw.source)}"
-        if original:
-            message += " · flagged as duplicate"
         session.add(
             ApplicationEvent(
                 application_id=application.id, kind=EventKind.discovered, message=message

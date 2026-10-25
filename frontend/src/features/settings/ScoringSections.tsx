@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { TagInput } from '@/components/app/TagInput'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
-import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
+import { RescoreModal } from '@/components/app/RescoreModal'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/input'
@@ -351,7 +351,7 @@ export function ScoringSection({ settings }: { settings: SettingsView }) {
           <RefreshCw />
           Rescore all jobs…
         </Button>
-        <RescoreConfirmDialog scope="all" open={rescoreAll} onOpenChange={setRescoreAll} />
+        <RescoreModal scope="all" open={rescoreAll} onOpenChange={setRescoreAll} />
       </Field>
       <Field label="Weights" hint="Relative importance of each sub-score">
         <div className="space-y-2">

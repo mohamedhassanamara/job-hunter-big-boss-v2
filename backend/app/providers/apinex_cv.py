@@ -9,7 +9,7 @@ import logging
 import time
 from typing import Any
 
-from app.providers.apinex_client import APInexClient, DEFAULT_MODEL
+from app.providers.apinex_client import DEFAULT_MODEL, APInexClient
 from app.providers.base import (
     CVGenerationFailed,
     CVPlan,

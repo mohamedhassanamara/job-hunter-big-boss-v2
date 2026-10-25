@@ -161,7 +161,9 @@ export interface JobListItem {
   title: string
   company: CompanyRef
   source: Source
+  sources?: Source[]
   url: string
+  source_urls?: Record<string, string>
   location: string
   country: string | null
   remote_type: RemoteType
@@ -280,6 +282,7 @@ export interface PipelineCard {
   title: string
   company_name: string
   source: Source
+  sources?: Source[]
   location: string
   remote_type: RemoteType
   fit: FitBrief | null

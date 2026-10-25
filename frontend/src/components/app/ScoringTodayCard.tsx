@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react'
 import { useState } from 'react'
-import { RescoreConfirmDialog } from '@/components/app/RescoreConfirmDialog'
+import { RescoreModal } from '@/components/app/RescoreModal'
 import { ToneBadge } from '@/components/app/badges'
 import { Button } from '@/components/ui/button'
 import { pluralize } from '@/lib/format'
@@ -66,7 +66,7 @@ export function ScoringTodayCard() {
           </Button>
         )}
       </div>
-      <RescoreConfirmDialog scope="outdated" open={confirm} onOpenChange={setConfirm} />
+      <RescoreModal scope="outdated" open={confirm} onOpenChange={setConfirm} />
     </section>
   )
 }

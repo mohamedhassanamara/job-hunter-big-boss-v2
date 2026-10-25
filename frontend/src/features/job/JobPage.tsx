@@ -353,7 +353,13 @@ export default function JobPage() {
             <span className="text-fg-subtle">·</span>
             <LocationText location={job.location} />
             <RemoteBadge remote={job.remote_type} />
-            <SourceBadge source={job.source} short={false} />
+            {job.sources && job.sources.length > 1 ? (
+              job.sources.map((src) => (
+                <SourceBadge key={src} source={src} short={false} />
+              ))
+            ) : (
+              <SourceBadge source={job.source} short={false} />
+            )}
             <span className="text-xs text-fg-subtle">
               Posted {relativeTime(job.posted_at)}
               {job.salary_text && ` · ${job.salary_text}`}
@@ -425,7 +431,24 @@ export default function JobPage() {
           <InterviewPrepSection job={job} />
           <QuestionsSection job={job} />
           <NotesCard key={`notes-${job.id}`} job={job} />
-          <Section title="Listing" action={<ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />}>
+          <Section
+            title="Listing"
+            action={
+              job.source_urls && Object.keys(job.source_urls).length > 1 ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {Object.entries(job.source_urls).map(([src, url]) => (
+                    <ExternalListingButton
+                      key={src}
+                      url={url}
+                      label={`View on ${SOURCE_LABELS[src as keyof typeof SOURCE_LABELS] || src}`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ExternalListingButton url={job.url} label={`View on ${SOURCE_LABELS[job.source]}`} />
+              )
+            }
+          >
             <div className="p-4">
               <Prose text={job.description} />
             </div>
