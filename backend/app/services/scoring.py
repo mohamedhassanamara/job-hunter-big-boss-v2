@@ -431,15 +431,21 @@ def filter_jobs_for_scoring(
     limit: int | None = None,
     only_unscored: bool = False,
     job_ids: list[int] | None = None,
+    picked: bool = False,
 ) -> list[int]:
-    """Filter open non-duplicate, non-dismissed jobs by track, date range, or explicit IDs."""
-    stmt = select(Job).where(col(Job.duplicate_of_id).is_(None))
-    if job_ids:
-        stmt = stmt.where(col(Job.id).in_(job_ids))
-    elif base_ids is not None:
-        if not base_ids:
+    """Filter jobs by track, date range or explicit IDs. `base_ids` (a scope's jobs) always
+    bounds the result: explicit `job_ids` only narrow it. Duplicates and closed/dismissed jobs
+    are dropped unless the user `picked` the jobs one by one."""
+    stmt = select(Job)
+    if not picked:
+        stmt = stmt.where(col(Job.duplicate_of_id).is_(None))
+    wanted: set[int] | None = set(job_ids) if job_ids else None
+    if base_ids is not None:
+        wanted = set(base_ids) if wanted is None else wanted & set(base_ids)
+    if wanted is not None:
+        if not wanted:
             return []
-        stmt = stmt.where(col(Job.id).in_(base_ids))
+        stmt = stmt.where(col(Job.id).in_(wanted))
 
     if track and track.strip() and track.lower() != "all":
         t = track.strip().lower()
@@ -450,7 +456,10 @@ def filter_jobs_for_scoring(
         stmt = stmt.where(col(Job.created_at) >= cutoff)
 
     # Exclude closed/dismissed applications
-    closed = set(s.exec(select(Application.job_id).where(Application.stage == Stage.closed)).all())
+    closed: set[int] = set()
+    if not picked:
+        closed = set(
+            s.exec(select(Application.job_id).where(Application.stage == Stage.closed)).all())
 
     # Check latest score per job for only_unscored filtering and ordering
     latest_sub = (

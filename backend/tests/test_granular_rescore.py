@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from sqlmodel import Session
@@ -139,3 +140,69 @@ def test_granular_filter_only_unscored() -> None:
         unscored_only = filter_jobs_for_scoring(session, track="mobile", only_unscored=True)
         assert j_unscored.id in unscored_only
         assert j_scored.id not in unscored_only
+
+
+def _rescore_fixture(session: Session) -> dict[str, int]:
+    """One open job, one closed (dismissed), one duplicate, in a track of their own."""
+    co = _ensure_company(session)
+    now = utcnow()
+    tag = uuid.uuid4().hex[:8]  # the session DB is shared: nothing here may collide
+
+    def make(ext: str, **kw) -> Job:
+        return Job(source=Source.adzuna, external_id=f"rs-{tag}-{ext}", url=f"http://rs/{tag}/{ext}",
+                   title=f"RS {ext}", company_id=co.id, dedupe_key=f"rs::{tag}::{ext}",
+                   matched_track=f"Track-{tag}", created_at=now, **kw)
+
+    ok, closed, parent = make("open"), make("closed"), make("parent")
+    session.add_all([ok, closed, parent])
+    session.commit()
+    dup = make("dup", duplicate_of_id=parent.id)
+    session.add_all([dup, Application(job_id=closed.id, stage=Stage.closed)])
+    session.commit()
+    return {"track": f"Track-{tag}", "open": ok.id, "closed": closed.id,
+            "parent": parent.id, "dup": dup.id}
+
+
+def test_rescore_by_scope_and_filter_skips_closed_and_duplicates() -> None:
+    from app.api.scoring import _scope_ids
+
+    with Session(engine) as session:
+        ids = _rescore_fixture(session)
+        for scope in ("all", "unscored", "outdated"):
+            base, _ = _scope_ids(session, scope, [])
+            picked = filter_jobs_for_scoring(session, base_ids=base, track=ids["track"],
+                                             since_days=3650, limit=10)
+            assert ids["open"] in picked and ids["parent"] in picked, scope
+            assert ids["closed"] not in picked and ids["dup"] not in picked, scope
+
+
+def test_rescore_limit_is_taken_from_open_jobs_only() -> None:
+    from app.api.scoring import _scope_ids
+
+    with Session(engine) as session:
+        ids = _rescore_fixture(session)
+        base, _ = _scope_ids(session, "all", [])
+        out = filter_jobs_for_scoring(session, base_ids=base, track=ids["track"], limit=2)
+        assert set(out) == {ids["open"], ids["parent"]}  # closed/duplicate don't use the limit
+
+
+def test_job_ids_narrow_a_scope_and_never_widen_it() -> None:
+    from app.api.scoring import _scope_ids
+
+    with Session(engine) as session:
+        ids = _rescore_fixture(session)
+        base, _ = _scope_ids(session, "outdated", [])
+        out = filter_jobs_for_scoring(session, base_ids=base, job_ids=[ids["closed"], ids["open"]])
+        assert out == [ids["open"]]
+
+
+def test_jobs_picked_one_by_one_can_still_be_rescored() -> None:
+    from app.api.scoring import _scope_ids
+
+    with Session(engine) as session:
+        ids = _rescore_fixture(session)
+        pick = [ids["closed"], ids["dup"], ids["open"]]
+        base, skipped = _scope_ids(session, "jobs", pick)
+        assert base == pick and skipped == 0
+        out = filter_jobs_for_scoring(session, base_ids=base, job_ids=pick, picked=True)
+        assert set(out) == set(pick)

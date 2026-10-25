@@ -9,9 +9,9 @@ from sqlmodel import col, select
 from app.api.deps import SessionDep, WorkspaceDep, get_or_404
 from app.config import get_settings
 from app.db import engine_for
-from app.models import Application, Company, FitScore, Job
+from app.models import Company, FitScore, Job
 from app.models.base import utcnow
-from app.models.enums import DescriptionLevel, Source, Stage
+from app.models.enums import DescriptionLevel, Source
 from app.providers.ollama import OllamaFitScorer
 from app.schemas.jobs import JobListItem
 from app.schemas.scoring import (
@@ -128,11 +128,6 @@ def _scope_ids(session, scope: str, job_ids: list[int]) -> tuple[list[int], int]
     ids = _raw_scope_ids(session, scope, job_ids)
     if scope == "jobs":
         return ids, 0
-    if scope == "unscored":
-        closed = set(session.exec(
-            select(Application.job_id).where(Application.stage == Stage.closed)).all())
-        open_unscored = [i for i in ids if i not in closed]
-        return open_unscored, len(ids) - len(open_unscored)
     split = open_jobs.split_open(session, ids)
     return split.open, split.skipped
 
@@ -174,6 +169,7 @@ def rescore_preview(
             limit=limit,
             only_unscored=only_unscored,
             job_ids=job_ids or None,
+            picked=scope == "jobs",
         )
     ctx = scoring.load_context(session)
     eta = scoring.estimate_seconds(session, ctx, len(ids))
@@ -205,10 +201,11 @@ def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> En
             limit=body.limit,
             only_unscored=body.only_unscored,
             job_ids=body.job_ids or None,
+            picked=body.scope == "jobs",
         )
     queue = scoring.workspace_queue(workspace)
     added = queue.enqueue(ids, force=body.scope in ("all", "jobs", "stale", "unscored", "outdated"),
-                         trigger="rescore", only_open=body.scope not in ("jobs", "unscored"))
+                         trigger="rescore", only_open=body.scope != "jobs")
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)
