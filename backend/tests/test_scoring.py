@@ -566,3 +566,66 @@ def test_gemini_is_hard_deprecated_for_scoring() -> None:
 
 
 
+
+
+def _v7_answer(**scores: object) -> dict:
+    dims = {
+        n: {"score": 7, "reason": "ok"}
+        for n in ("role_match", "skills_match", "seniority_fit", "location_eligibility",
+                  "language_requirements")
+    }
+    for name, value in scores.items():
+        if value is None:
+            dims.pop(name)
+        else:
+            dims[name]["score"] = value
+    return {"dimensions": dims, "summary": "s"}
+
+
+@pytest.mark.parametrize("bad", [None, "n/a", 55, -1, True])
+def test_a_missing_or_invalid_sub_score_is_never_defaulted(bad: object) -> None:
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError):
+        FitAssessment.model_validate(_v7_answer(skills_match=bad))
+
+
+def test_a_missing_dimension_is_not_replaced_by_5() -> None:
+    import pydantic
+
+    answer = _v7_answer()
+    answer["dimensions"].pop("seniority_fit")
+    with pytest.raises(pydantic.ValidationError):
+        FitAssessment.model_validate(answer)
+
+
+class _FakeApinexClient:
+    def __init__(self, answers: list[dict]):
+        self.answers = answers
+        self.prompts: list[str] = []
+
+    def complete_sync(self, system: str, user: str, model: str | None = None) -> dict:
+        self.prompts.append(user)
+        return self.answers.pop(0)
+
+
+def _job() -> JobSnapshot:
+    return JobSnapshot(title="t", company="c", location="l", description="d")
+
+
+def test_apinex_scorer_retries_once_then_accepts() -> None:
+    from app.providers.apinex_client import APInexFitScorer
+
+    client = _FakeApinexClient([_v7_answer(skills_match=None), _v7_answer()])
+    result = APInexFitScorer(client=client).assess("sys", "user", _job())  # type: ignore[arg-type]
+    assert result.skills_match.score == 7
+    assert len(client.prompts) == 2 and "invalid" in client.prompts[1]
+
+
+def test_apinex_scorer_fails_after_one_retry_and_never_stores_a_default() -> None:
+    from app.providers.apinex_client import APInexFitScorer
+
+    client = _FakeApinexClient([_v7_answer(skills_match=None), _v7_answer(role_match="x")])
+    with pytest.raises(ScoringFailed):
+        APInexFitScorer(client=client).assess("sys", "user", _job())  # type: ignore[arg-type]
+    assert len(client.prompts) == 2

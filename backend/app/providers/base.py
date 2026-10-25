@@ -177,23 +177,17 @@ class FitAssessment(BaseModel):
             dims = data["dimensions"]
             for dim_name in DIMENSIONS:
                 dim_val = dims.get(dim_name)
+                # A missing or invalid sub-score is never defaulted: leaving it out (or out of
+                # range) makes validation fail, and the scorer retries once, then gives up.
                 if isinstance(dim_val, dict):
-                    raw_s = dim_val.get("score", 5)
-                    try:
-                        score_int = int(round(float(raw_s)))
-                    except (ValueError, TypeError):
-                        score_int = 5
-                    # Scale to 0-10 if > 10
-                    if score_int > 10:
-                        score_int = int(round(score_int / 10.0))
-                    score_int = max(0, min(10, score_int))
-                    data[dim_name] = {
-                        "score": score_int,
+                    entry = {
                         "reason": str(dim_val.get("reason") or ""),
                         "evidence": str(dim_val.get("evidence") or ""),
                     }
-                elif dim_name not in data:
-                    data[dim_name] = {"score": 5, "reason": "", "evidence": ""}
+                    raw_s = dim_val.get("score")
+                    if isinstance(raw_s, (int, float)) and not isinstance(raw_s, bool):
+                        entry["score"] = int(round(raw_s))
+                    data[dim_name] = entry
 
             if "key_strengths" in data and "strengths" not in data:
                 data["strengths"] = [str(s) for s in data["key_strengths"] if str(s).strip()][:3]

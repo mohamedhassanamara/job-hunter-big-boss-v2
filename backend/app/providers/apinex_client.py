@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
+from pydantic import ValidationError
 
 from app.config import get_settings
 from app.providers.base import (
@@ -409,8 +410,25 @@ class APInexFitScorer:
         return self.client.health()
 
     def assess(self, system: str, user: str, job: JobSnapshot) -> FitAssessment:
-        data = self.client.complete_sync(system, user, model=self.model)
-        try:
-            return FitAssessment.model_validate(data)
-        except Exception as exc:
-            raise ScoringFailed(f"Invalid FitAssessment structure from APInex: {exc}") from exc
+        """One retry when the answer is missing a sub-score or has an invalid one; then it
+        fails (`ScoringFailed`). A sub-score is never defaulted."""
+        error = ""
+        for attempt in range(2):
+            ask = user
+            if attempt:
+                ask += (
+                    f"\n\nYour previous answer was invalid: {error}. Reply again with the full "
+                    "JSON, every dimension with an integer score from 0 to 10."
+                )
+            data = self.client.complete_sync(system, ask, model=self.model)
+            try:
+                return FitAssessment.model_validate(data)
+            except ValidationError as exc:
+                error = _short_validation(exc)
+        raise ScoringFailed(f"Invalid FitAssessment from APInex after a retry: {error}")
+
+
+def _short_validation(exc: ValidationError) -> str:
+    first = exc.errors()[0]
+    where = ".".join(str(p) for p in first.get("loc", ()))
+    return f"{where}: {first.get('msg', 'invalid')}"
