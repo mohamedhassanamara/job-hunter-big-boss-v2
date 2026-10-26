@@ -120,3 +120,22 @@ class CVReviewRow(BaseModel):
     error: str | None
     approvable: bool  # exactly the Approve gate (one page, no blocking errors, no failure)
     created_at: datetime
+    left_out_count: int = 0  # pool bullets and projects of this job's CV that are not on it
+
+
+class CVLeftOutItem(BaseModel):
+    key: str  # the CV Studio override key: role:ID:INDEX, project:ID:INDEX or project:ID
+    kind: str  # bullet | project
+    title: str
+    org: str | None = None
+    text: str | None = None  # the pool's own bullet (None for a whole project)
+    relevance: int | None = None  # 0-10 as the model rated it for this job; None = not rated
+    why: str
+    included: bool  # you forced it in
+
+
+class CVLeftOut(BaseModel):
+    items: list[CVLeftOutItem]
+    force_in: list[str]
+    fill: float | None
+    page_count: int | None

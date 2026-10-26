@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
+  CVLeftOut,
   CVApproveResult,
   CVReviewRow,
   CVPatchInput,
@@ -146,6 +147,7 @@ export function usePatchCV() {
     onSuccess: (version) => {
       void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) })
       void qc.invalidateQueries({ queryKey: keys.cvReview })
+      void qc.invalidateQueries({ queryKey: ['cv', 'left-out'] })
     },
   })
 }
@@ -575,6 +577,11 @@ export function useGenerationStatus() {
     last.current = signature
   }, [signature, qc])
   return status
+}
+
+/** What a CV draft leaves out of your pool, with the model's relevance for the job (Review CVs). */
+export function useCVLeftOut(cvId: number, enabled: boolean) {
+  return useQuery({ queryKey: keys.cvLeftOut(cvId), queryFn: () => api.get<CVLeftOut>(`/cv/${cvId}/left-out`), enabled })
 }
 
 /** CV drafts of shortlisted jobs with the Approve gate evaluated (Review CVs). */

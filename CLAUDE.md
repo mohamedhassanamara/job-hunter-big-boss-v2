@@ -411,7 +411,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Review CVs (services/cv_review.py, features/cv-review/)
 
-- `/review-cvs` lists the latest draft CV of every shortlisted job (`GET /cv/review`, sidebar count `cvs_to_review`, `g r`). Left: job, track, check chip, fill. Right: the shared `cv-studio/CVWorkspace` (PDF + editor) from CV Studio. Keys: J/K, A approve then the next job, R regenerate (feedback: new summary; empty: whole CV), E focus the summary, S skip. The Approve gate is one rule in two places: `cv_review.blocking_errors` / `approve_cv` on the server and `cv-studio/cvGate.ts` in the client (one page, no bullet/skill/number/tool error; summary notes never block). CV Studio itself is unchanged.
+- `/review-cvs` lists the latest draft CV of every shortlisted job (`GET /cv/review`, sidebar count `cvs_to_review`, `g r`). Left: job, track, check chip, fill. Right: the shared `cv-studio/CVWorkspace` (PDF + editor) from CV Studio. Keys: J/K, A approve then the next job, R regenerate (feedback: new summary; empty: whole CV), E focus the summary, S skip. The Approve gate is one rule in two places: `cv_review.blocking_errors` / `approve_cv` on the server and `cv-studio/cvGate.ts` in the client (one page, no bullet/skill/number/tool error; summary notes never block). CV Studio itself is unchanged. Each row's "Left out (n)" popover (`LeftOutPopover`, `GET /cv/{id}/left-out`, `cv_service.left_out`) lists the pool bullets/projects the draft leaves out with their relevance (`plan.extras_rated` / `fill_log`) and toggles them through `PATCH /cv/{id}` force_in (re-fit in code, `with_forced_bullets`/`with_forced_projects` apply `check_extra`, no model call).
 
 ## Speed (shell requests under 300 ms on a 5,500-job DB)
 

@@ -9,6 +9,8 @@ from sqlmodel import Session, col, select
 from app.models import Application, Company, CVVersion, Job
 from app.models.enums import CVStatus, Stage
 from app.schemas.cv import CVReviewRow
+from app.services import cv_service
+from app.services.cv_pool import Pool, load_pool
 
 
 def blocking_errors(violations: list[dict] | None) -> list[dict]:
@@ -19,6 +21,13 @@ def blocking_errors(violations: list[dict] | None) -> list[dict]:
 def approvable(v: CVVersion) -> bool:
     return (v.status == CVStatus.draft and v.page_count == 1 and not v.error
             and not blocking_errors(v.violations))
+
+
+def _left_out_count(v: CVVersion, pool: Pool) -> int:
+    try:
+        return sum(1 for x in cv_service.left_out(v, pool) if not x["included"])
+    except Exception:  # a version without a plan or content: nothing to list
+        return 0
 
 
 def rows(s: Session) -> list[CVReviewRow]:
@@ -38,6 +47,7 @@ def rows(s: Session) -> list[CVReviewRow]:
                     .order_by(col(CVVersion.version))).all():
         latest[v.application_id] = v  # the highest non-superseded version wins
     out = []
+    pool = load_pool(s)
     for app_id, v in latest.items():
         if v.status != CVStatus.draft:
             continue
@@ -49,5 +59,6 @@ def rows(s: Session) -> list[CVReviewRow]:
             error_count=len(blocking_errors(v.violations)),
             summary_warnings=sum(1 for x in v.violations or [] if x.get("where") == "summary"
                                  and x.get("severity") != "error"),
-            error=v.error, approvable=approvable(v), created_at=v.created_at))
+            error=v.error, approvable=approvable(v), created_at=v.created_at,
+            left_out_count=_left_out_count(v, pool)))
     return sorted(out, key=lambda r: r.created_at)

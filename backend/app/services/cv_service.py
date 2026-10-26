@@ -205,7 +205,11 @@ def _tracks(s: Session) -> list[dict[str, Any]]:
 
 
 def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_name: str,
-                 overrides: dict[str, Any], state: FitState | None) -> None:
+                 overrides: dict[str, Any], state: FitState | None,
+                 store_plan: CVPlan | None = None) -> None:
+    """Fit and render `plan`; the plan stored with the version is `store_plan` when given (the
+    bullets you force in from Left out are added for the render only, so switching them off
+    leaves the plan as the generator wrote it)."""
     template = load_template(template_name)
     out_dir = CV_DIR / str(v.application_id) / f"v{v.version}"
     lay = fit_layout(s, plan, pool, track_of(s, v.application_id))
@@ -215,7 +219,8 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
     v.tex = result.tex
     v.template = template_name
     v.overrides = overrides
-    v.plan = {**(v.plan or {}), "plan": plan.model_dump(), "fit": result.state.to_dict(),
+    v.plan = {**(v.plan or {}), "plan": (store_plan or plan).model_dump(),
+              "fit": result.state.to_dict(),
               "history": result.history}
     v.page_count = result.compiled.pages or None
     v.fill = round(result.compiled.fill, 3) if result.compiled.ok else None
@@ -628,7 +633,12 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
         plan = CVPlan.model_validate(v.plan["plan"])
         pool = load_pool(s)
         new_overrides = overrides if overrides is not None else dict(v.overrides or {})
-        plan = with_forced_projects(plan, pool, new_overrides)
+        from app.services import honesty
+
+        rules = honesty.rules_from(_tracks(s))
+        plan = with_forced_projects(plan, pool, new_overrides, rules)
+        stored_plan = plan
+        plan = with_forced_bullets(plan, pool, new_overrides, rules)
         template_name = _template(template or v.template, s)
         if v.status != CVStatus.draft:
             existing = versions(s, v.application_id)
@@ -654,7 +664,7 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
             issues = [i for i in issues if i.get("where") != "summary"]
             issues += summary_warnings(s, app, pool, plan, typed or plan.summary)
         _save_render(s, v, plan, pool, template_name, new_overrides,
-                     FitState.from_dict(v.plan.get("fit")))
+                     FitState.from_dict(v.plan.get("fit")), store_plan=stored_plan)
         if v.page_count and v.page_count > 1:
             issues.append({"type": "overflow", "severity": "error",
                            "message": f"Still {v.page_count} pages after fitting", "where": "page"})
@@ -665,10 +675,13 @@ def rerender(engine: Engine, cv_id: int, *, overrides: dict[str, Any] | None = N
         return v
 
 
-def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) -> CVPlan:
+def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
+                         honesty_rules: Any = None) -> CVPlan:
     """A project the generator didn't pick but the user forced in joins the plan with its
-    original facts (least relevant, so the fit loop trims it first)."""
+    original facts (least relevant, so the fit loop trims it first). Every fact goes through
+    the fill's own checks (`cv_check.check_extra`); fewer than 2 passing facts refuses it."""
     from app.providers.base import PlanBullet, PlanProject
+    from app.services import cv_check
 
     planned = {p.item_id for p in plan.projects}
     extra = []
@@ -677,11 +690,48 @@ def with_forced_projects(plan: CVPlan, pool: Pool, overrides: dict[str, Any]) ->
         if kind != "project" or ":" in rest or not rest.isdigit() or int(rest) in planned:
             continue
         item = pool.get(int(rest), "project")
-        if item:
-            extra.append(PlanProject(item_id=item.id, relevance=1, stack=item.tags[:6], bullets=[
-                PlanBullet(source_index=n, text=f, priority=n + 1)
-                for n, f in enumerate(pool.facts(item))]))
+        if not item:
+            continue
+        good, why = [], None
+        for n in range(len(pool.facts(item))):
+            text, reason = cv_check.check_extra(pool, "project", item.id, n, honesty_rules)
+            if text:
+                good.append(PlanBullet(source_index=n, text=text, priority=len(good) + 1))
+            else:
+                why = why or reason
+        if len(good) < 2:
+            raise CVError(f"Can't add “{item.title}”: fewer than 2 bullets pass the checks"
+                          + (f" ({why})" if why else ""))
+        extra.append(PlanProject(item_id=item.id, relevance=1, stack=item.tags[:6], bullets=good))
     return plan.model_copy(update={"projects": [*plan.projects, *extra]}) if extra else plan
+
+
+def with_forced_bullets(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
+                        honesty_rules: Any = None) -> CVPlan:
+    """A pool bullet outside the plan that you forced in (`role:ID:INDEX`, Review CVs → Left
+    out) joins its entry with the pool's own text after the same checks as the fill; one that
+    fails them is refused with the reason."""
+    from app.providers.base import PlanBullet
+    from app.services import cv_check
+
+    plan = plan.model_copy(deep=True)
+    for key in overrides.get("force_in") or []:
+        parts = key.split(":")
+        if len(parts) != 3 or parts[0] not in ("role", "project") or not (
+                parts[1].isdigit() and parts[2].isdigit()):
+            continue
+        kind, item_id, idx = parts[0], int(parts[1]), int(parts[2])
+        entry = next((e for e in (plan.roles if kind == "role" else plan.projects)
+                      if e.item_id == item_id), None)
+        if entry is None or any(b.source_index == idx for b in entry.bullets):
+            continue
+        text, why = cv_check.check_extra(pool, kind, item_id, idx, honesty_rules)
+        if text is None:
+            raise CVError(f"Can't include that bullet: {why}")
+        entry.bullets.append(PlanBullet(source_index=idx, text=text,
+                                        priority=len(entry.bullets) + 1,
+                                        strength=1 if cv_rules.is_generic(text) else 3))
+    return plan
 
 
 def edit_violations(plan: CVPlan, pool: Pool, overrides: dict[str, Any],
@@ -761,6 +811,61 @@ def download_name(s: Session, v: CVVersion) -> str:
         name = DEFAULT_SETTINGS["filename_pattern"].format(**values)
     name = re.sub(r"[^\w.\- ]+", "", name).strip().replace(" ", "_")
     return name if name.lower().endswith(".pdf") else f"{name}.pdf"
+
+
+_WHY = {"below_project_threshold": "project below the minimum relevance",
+        "other_track": "project tagged for other tracks",
+        "role_bullet_left_out": "a role bullet of the same relevance was left out first",
+        "did not fit one page": "did not fit one page", "no gain": "no gain on the page",
+        "entry allowance reached": "the role is at its bullet allowance",
+        "projects_max reached": "projects maximum reached",
+        "ranks below the bullets already shown": "ranks below the bullets shown"}
+
+
+def left_out(v: CVVersion, pool: Pool) -> list[dict[str, Any]]:
+    """Pool bullets and projects this CV leaves out (plus the ones you forced in, so the toggle
+    can undo it), each with the relevance the model gave it for this job and why it is out."""
+    usage = pool_usage(v, pool)
+    plan = (v.plan or {}).get("plan") or {}
+    rated: dict[tuple, int] = {}
+    why_of: dict[tuple, str] = {}
+    for e in plan.get("extras_rated") or []:
+        rated[(e["kind"], e["item_id"], e.get("source_index"))] = e["relevance"]
+    for e in plan.get("fill_log") or []:
+        if "item_id" in e:
+            k = (e["kind"], e["item_id"], e.get("source_index"))
+            rated[k] = e["relevance"]
+            if e.get("result") == "skipped":
+                why_of[k] = _WHY.get(e.get("reason") or "", e.get("reason") or "")
+    forced = set(usage["force_in"])
+    out: list[dict[str, Any]] = []
+
+    def row(key: str, kind: str, item: Any, text: str | None, skey: tuple,
+            default_why: str) -> None:
+        out.append({"key": key, "kind": kind, "title": item.title, "org": item.org,
+                    "text": text, "relevance": rated.get(skey),
+                    "why": why_of.get(skey) or default_why, "included": key in forced})
+
+    for kind, entries in (("role", usage["roles"]), ("project", usage["projects"])):
+        for entry in entries:
+            item = pool.get(entry["item_id"])
+            if item is None:
+                continue
+            if kind == "project" and not entry["shown"]:
+                key = f"project:{item.id}"
+                if len(pool.facts(item)) >= 2 or key in forced:
+                    row(key, "project", item, None, ("project", item.id, None),
+                        "not selected for this job" if not entry["bullets"] else "not shown")
+                continue
+            have = {int(b["pool_id"].split(":")[1]): b for b in entry["bullets"]}
+            for idx, fact in enumerate(pool.facts(item)):
+                key = f"{kind}:{item.id}:{idx}"
+                b = have.get(idx)
+                if b is not None and b["shown"] and key not in forced:
+                    continue  # on the CV; a forced one stays listed so it can be switched off
+                row(key, "bullet", item, fact, (kind, item.id, idx),
+                    "trimmed to fit this CV" if b is not None else "not selected for this CV")
+    return out
 
 
 def pool_usage(v: CVVersion, pool: Pool) -> dict[str, Any]:
