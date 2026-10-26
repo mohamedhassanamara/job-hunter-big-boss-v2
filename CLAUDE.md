@@ -218,13 +218,14 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `outreach.source_cv` (the CV the application was sent with), never attached. Code builds everything but the proof
   (`outreach.complete_applied`, `applied_check.opening_line / cta_line / subject_line / speculative_subject`): the opening says
   how and when from the application record (a board is never named: only "a job board"; "earlier today" only if it was
-  today; three wordings rotate per draft count), the ask is a 10-minute technical chat (a call for recruiters/HR,
-  `is_recruiter`), the signature is sign-off, name, `portfolio · github · linkedin` (`outreach.candidate_links`, from Settings →
+  today; three wordings rotate per draft count), the closing is one of three 10-minute chat/call wordings (`applied_check.cta_line`, rotated
+  by `cta_variant`, never the previous email to the same company's: `plan.cta_variant`; wording b says "this week" only Mon-Wed in the
+  `motivation.timezone` weekday, else "in the next few days"; a call for recruiters/HR, `is_recruiter`; never "next week" or a date, a warning), the signature is sign-off, name, `portfolio · github · linkedin` (`outreach.candidate_links`, from Settings →
   Candidate links: data, never code), then the optional Settings → Email opt-out. Blocking: URL/domain in the body,
   attachment wording (`outreach_check.attachment_violations`, every mode), apology/defensive wording, asking whether they
   hire / bypass wording, visa/location, `projects_track` (a projects track's proof cites projects, the graduation project or an
   internship, never a job). Warning: > 110 words (greeting to ask). Copy/duplicate checks run on the proof only. Prompt
-  `outreach.md` v17 (applied: the model returns only `experience`), `verify.md` v8 (the opening's role/method/date are checked
+  `outreach.md` v18 (applied: the model returns only `experience`), `verify.md` v8 (the opening's role/method/date are checked
   against the `Application` facts line). `scripts/manual_outreach_v17.py` holds the data steps and test drafts (`--live`).
 - Drafts: one job at a time (a lock), from the **approved** CV's items only; Claude via `providers/claude_email.py`
   (subclass of the CV generator: same isolation, `apiKeySource == "none"`). Prompt `app/prompts/outreach.md` is

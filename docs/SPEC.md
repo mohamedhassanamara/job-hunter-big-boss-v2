@@ -389,8 +389,10 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   are blocked before that with a clear message, and marking a job applied queues the draft when its contact is
   verified. Code builds the subject ("<Role> application - <name>"), the greeting, the opening ("I applied for
   the <Role> position via <your careers page | LinkedIn | a job board> <earlier today | yesterday | on <date>>
-  and wanted to introduce myself directly.", from the application record, three wordings rotating), the ask (a
-  brief 10-minute technical chat; a call for HR or recruiters) and the signature (sign-off, name, then
+  and wanted to introduce myself directly.", from the application record, three wordings rotating), the closing question (one of three
+  wordings, rotating and never the one the previous email to the same company used: a quick 10-minute technical
+  chat "in the next few days" / "this week" (Monday to Wednesday in your Settings → Motivation timezone only) / a
+  quick call; a call for HR or recruiters; never "next week" or a date; "next week" in the closing is a warning) and the signature (sign-off, name, then
   `portfolio · github · linkedin` from Settings → Candidate links, then the opt-out line from Settings → Email if
   you set one). The model writes only the 1-2 proof sentences. Errors: a URL or domain in the body, attachment
   wording, apology or defensive wording, asking whether they hire or hinting at going around the portal, visa,

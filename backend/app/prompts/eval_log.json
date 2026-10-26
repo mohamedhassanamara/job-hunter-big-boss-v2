@@ -69,6 +69,13 @@
       "cases": 6,
       "errors": 7,
       "note": "Portal-first follow-up, plain text, no attachment. The model writes only the 1-2 proof sentences; the subject, greeting, opening (method and date from the application record), ask and signature are code. Run with --claude. The one case in the new structure (#28, written from a real application) has 0 errors; the 7 errors are the old reference_bad/rejected cases (#3, #4, #8), which are bad examples kept as history and are still caught."
+    },
+    "18": {
+      "report": "data/eval/emails/20261026-221559_outreach_v18.md",
+      "date": "2026-10-26",
+      "cases": 6,
+      "errors": 5,
+      "note": "Only the external_applied closing text changed: the fixed 'next week' ask is now a rotating closing built by code (never 'next week', never a date). Run with --claude. The new-structure case (#28) has 0 errors; the 5 errors are the older reference_bad/rejected/speculative cases (hook and length checks), unchanged in kind from v17."
     }
   }
 }

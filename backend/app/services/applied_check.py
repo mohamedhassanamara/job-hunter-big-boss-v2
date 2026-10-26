@@ -188,16 +188,47 @@ def is_recruiter(title: str | None, group: str | None = None) -> bool:
     return bool(_RECRUITER.search(f"{title or ''} {group or ''}"))
 
 
-def cta_line(language: str, recruiter: bool = False) -> str:
-    """The ask, built by code: a brief 10-minute technical chat (a call for HR or recruiters)."""
-    if language == "fr":
+CTA_VARIANTS = 3
+_NEXT_WEEK = re.compile(r"\b(?:next week|la semaine prochaine|nächste woche)\b", re.I)
+
+
+def cta_variant(previous: int | None, seed: int) -> int:
+    """Which closing to use: rotated by `seed`, never the one the previous email to the same
+    company used (`previous`)."""
+    options = [v for v in range(CTA_VARIANTS) if v != previous]
+    return options[seed % len(options)]
+
+
+def cta_line(language: str, recruiter: bool = False, variant: int = 0, weekday: int = 0) -> str:
+    """The closing question, built by code: a quick 10-minute technical chat (a call for HR and
+    recruiters). Never "next week" and never a date. Wording b says "this week" only on Monday to
+    Wednesday (`weekday` 0-2, in your timezone), else "in the next few days"."""
+    fr, v = language == "fr", variant % CTA_VARIANTS
+    early = weekday <= 2
+    if fr:
         kind = "un bref appel" if recruiter else "un court échange technique"
-        return (f"Seriez-vous disponible pour {kind} de 10 minutes la semaine prochaine afin de "
-                "voir si ce que j'ai construit correspond à la feuille de route de votre "
-                "équipe ?")
-    kind = "call" if recruiter else "technical chat"
-    return (f"Would you be open to a brief 10-minute {kind} next week to see if what I've built "
-            "aligns with your team's roadmap?")
+        if v == 0:
+            return (f"Seriez-vous disponible pour {kind} de 10 minutes dans les prochains jours "
+                    "afin de voir si ce que j'ai construit correspond à la feuille de route de "
+                    "votre équipe ?")
+        if v == 1:
+            when = "cette semaine" if early else "dans les prochains jours"
+            kind = "un court appel" if recruiter else "un court échange technique"
+            return (f"Auriez-vous 10 minutes pour {kind} {when} ? J'aimerais voir si mon travail "
+                    "correspond à la direction que prend votre équipe.")
+        return ("Pourrions-nous faire un court appel de 10 minutes dans les jours qui viennent ? "
+                "Je m'adapte volontiers à votre emploi du temps.")
+    if v == 0:
+        kind = "call" if recruiter else "technical chat"
+        return (f"Would you be open to a quick 10-minute {kind} in the next few days to see if "
+                "what I've built fits your team's roadmap?")
+    if v == 1:
+        kind = "call" if recruiter else "technical chat"
+        when = "this week" if early else "in the next few days"
+        return (f"Do you have 10 minutes for a short {kind} {when}? I'd like to see if my work "
+                "fits where your team is heading.")
+    return ("Could we do a quick 10-minute call in the coming days? Happy to work around your "
+            "schedule.")
 
 
 def body(plan: AppliedEmailPlan) -> str:
@@ -308,6 +339,11 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     out += oc.attachment_violations(everything)
     if v17:
         out += v17_violations(text)
+        closing = (text.strip().split("\n\n") or [""])[-1]
+        if _NEXT_WEEK.search(closing):
+            out.append(violation("closing", "The closing says “next week”: ask for a few minutes "
+                                 "“in the next few days” or “this week” instead, never a date",
+                                 "body"))
     # --- blocking: names, years, honesty, facts without a citation
     if not subject.strip():
         out.append(violation("subject", "The subject is empty", "subject", "error"))

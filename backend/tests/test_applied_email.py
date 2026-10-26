@@ -491,11 +491,71 @@ def test_the_wordings_rotate_and_french_is_built_too() -> None:
     assert fr.startswith("J'ai postulé au poste de Ingénieur via votre site carrières hier")
 
 
-def test_the_ask_is_a_chat_for_engineers_and_a_call_for_recruiters() -> None:
-    assert "brief 10-minute technical chat next week" in ac.cta_line("en")
-    assert "brief 10-minute call next week" in ac.cta_line("en", recruiter=True)
+def test_the_closing_has_three_wordings_a_call_for_recruiters_and_never_next_week() -> None:
+    for recruiter in (False, True):
+        for lang in ("en", "fr"):
+            for v in range(ac.CTA_VARIANTS):
+                for weekday in range(7):
+                    line = ac.cta_line(lang, recruiter, v, weekday)
+                    assert "next week" not in line and "prochaine" not in line
+    assert "quick 10-minute technical chat in the next few days" in ac.cta_line("en", False, 0)
+    assert "quick 10-minute call in the next few days" in ac.cta_line("en", True, 0)
+    assert "short technical chat" in ac.cta_line("en", False, 1)
+    assert "short call" in ac.cta_line("en", True, 1) and "technical" not in ac.cta_line(
+        "en", True, 1)
+    assert ac.cta_line("en", False, 2) == ac.cta_line("en", True, 2)  # already a call
     assert ac.is_recruiter("Senior Technical Recruiter") and ac.is_recruiter("Head of People")
     assert not ac.is_recruiter("CTO", "Engineering leader")
+
+
+def test_wording_b_says_this_week_only_monday_to_wednesday() -> None:
+    for weekday in (0, 1, 2):
+        assert "this week" in ac.cta_line("en", False, 1, weekday)
+        assert "cette semaine" in ac.cta_line("fr", False, 1, weekday)
+    for weekday in (3, 4, 5, 6):
+        line = ac.cta_line("en", False, 1, weekday)
+        assert "this week" not in line and "in the next few days" in line
+
+
+def test_the_closing_never_repeats_the_previous_emails_wording_to_the_company() -> None:
+    for previous in range(ac.CTA_VARIANTS):
+        picked = {ac.cta_variant(previous, seed) for seed in range(12)}
+        assert previous not in picked and len(picked) == ac.CTA_VARIANTS - 1  # still rotates
+    assert {ac.cta_variant(None, seed) for seed in range(3)} == {0, 1, 2}
+
+
+def test_the_weekday_is_read_in_your_timezone(job_ready: dict) -> None:  # noqa: F811
+    from datetime import UTC, datetime
+
+    from app.models import AppSetting
+
+    with Session(engine) as s:
+        row = s.exec(select(AppSetting).where(AppSetting.key == "motivation")).first()
+        if row is None:
+            row = AppSetting(key="motivation", value={})
+        row.value = {**row.value, "timezone": "Africa/Tunis"}
+        s.add(row)
+        s.commit()
+        # Wednesday 23:30 UTC is already Thursday 00:30 in Tunis (UTC+1, no DST).
+        assert outreach.local_weekday(s, datetime(2026, 10, 28, 23, 30, tzinfo=UTC)) == 3
+        assert outreach.local_weekday(s, datetime(2026, 10, 28, 22, 30, tzinfo=UTC)) == 2
+
+
+def test_a_generated_email_avoids_the_previous_closing_to_the_same_company(
+        job_ready: dict) -> None:  # noqa: F811
+    first = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
+    second = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
+    assert first.plan["cta_variant"] != second.plan["cta_variant"]
+    assert first.body.split("\n\n")[-1] != second.body.split("\n\n")[-1]
+    assert "next week" not in second.body
+
+
+def test_next_week_in_the_closing_is_a_warning_not_an_error(job_ready: dict) -> None:  # noqa: F811
+    text = good_body(job_ready).rsplit("\n\n", 1)[0] + "\n\nCould we talk next week?"
+    found = ac.check_text("S - Alex Doe", text, ctx_for(job_ready))
+    assert "closing" in warnings(found) and "closing" not in errors(found)
+    assert "closing" not in warnings(ac.check_text("S - Alex Doe", good_body(job_ready),
+                                                   ctx_for(job_ready)))
 
 
 @pytest.mark.parametrize(("text", "kind"), [

@@ -1,5 +1,5 @@
 ---
-version: 17
+version: 18
 ---
 ## system
 SPECULATIVE EMAIL (no job posting). You write ONE short cold email from a job seeker to ONE decision-maker at a company. It is a personal introduction that asks directly whether they have an opening. It is NOT a reply to a job listing: the candidate applies to the listing separately. The JOB listing is private intel about what the team needs: use it to decide what to talk about, and never mention it. You return JSON only; a program assembles the email, adds the signature and an opt-out line, and checks every rule below.
@@ -80,7 +80,7 @@ This is a short follow-up after the candidate ALREADY applied through the compan
 1. "Hi <first name>,"
 2. One sentence: "I applied for the <role> position via <your careers page | LinkedIn | the job board> <earlier today | yesterday | on <date>> and wanted to introduce myself directly." Use the method and the date as given, never "earlier today" unless it was today, never "careers page" for LinkedIn or a job board.
 3. One or two proof sentences (about 30 words each): one concrete proof from EXPERIENCE that the candidate's stack matches this job's track, in the candidate's own wording. Work described as personal or graduation projects stays projects, never professional experience.
-4. "Would you be open to a brief 10-minute technical chat next week to see if what I've built aligns with your team's roadmap?" (for a recruiter or HR contact: "...a brief 10-minute call...").
+4. A short closing question asking for a quick 10-minute technical chat (for a recruiter or HR contact: a call) "in the next few days" or "this week", to see if what the candidate has built fits the team's roadmap. Never "next week" and never a date.
 Never put a URL or domain in the body (the app adds the signature with the links), never say anything is attached, never apologise, never ask whether they are hiring or hint at going around the portal, and never mention location, visa, sponsorship or relocation. The subject is "<Role> application - <candidate name>".
 
 ## external_speculative

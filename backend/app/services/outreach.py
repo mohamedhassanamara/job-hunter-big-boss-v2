@@ -908,8 +908,37 @@ def add_revision(request: EmailRequest, base: OutreachDraft | None, feedback: st
                                      "previous_body": base.body, "feedback": feedback.strip()}
 
 
+def local_weekday(s: Session | None = None, now: datetime | None = None) -> int:
+    """Monday = 0, in your timezone (Settings → Motivation), else the machine's."""
+    from zoneinfo import ZoneInfo
+
+    name = (_setting(s, "motivation").get("timezone") if s is not None else None) or ""
+    try:
+        zone = ZoneInfo(name) if name else None
+    except Exception:  # an unknown zone name: fall back to the machine's
+        zone = None
+    if now is None:
+        now = datetime.now(zone) if zone else datetime.now().astimezone()
+    elif zone:
+        now = now.astimezone(zone)
+    return now.weekday()
+
+
+def previous_cta_variant(s: Session, company_id: int,
+                         exclude_draft: int | None = None) -> int | None:
+    """The closing wording of the latest earlier email to this company (any application)."""
+    rows = s.exec(select(OutreachDraft).join(Application, col(Application.id) == col(
+        OutreachDraft.application_id)).join(Job, col(Job.id) == col(Application.job_id)).where(
+        Job.company_id == company_id).order_by(col(OutreachDraft.id).desc())).all()
+    for d in rows:
+        if d.id != exclude_draft and (d.plan or {}).get("cta_variant") is not None:
+            return int(d.plan["cta_variant"])
+    return None
+
+
 def complete_applied(plan: Any, app: Application, job: Job, request: EmailRequest,
-                     language: str, variant: int = 0, *, recruiter: bool = False) -> None:
+                     language: str, variant: int = 0, *, recruiter: bool = False,
+                     cta: int = 0, weekday: int = 0) -> None:
     """Everything but the proof, built from the application record: the role, the greeting, the
     opening (how and when you applied) and the ask. The model's own values are overwritten."""
     facts = application_facts(app)
@@ -919,7 +948,7 @@ def complete_applied(plan: Any, app: Application, job: Job, request: EmailReques
         plan.role, facts["method"],
         app.web_applied_at.date() if app.web_applied_at else None,
         datetime.now().astimezone().date(), language, variant)
-    plan.ask = ac.cta_line(language, recruiter)
+    plan.ask = ac.cta_line(language, recruiter, cta, weekday)
     plan.signal = HookSentence(text="")
 
 
@@ -960,11 +989,14 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
             ctx = applied_context(s, app, job, company, contact, pool, language=language)
             variant = len(s.exec(select(OutreachDraft.id).where(
                 OutreachDraft.application_id == app_id)).all())  # a new wording each time
+            cta = ac.cta_variant(previous_cta_variant(s, company.id), variant)
+            weekday = local_weekday(s)
 
             def checked(plan: Any) -> list[dict[str, str]]:
                 complete_applied(plan, app, job, request, language, variant,
                                  recruiter=ac.is_recruiter(contact.title,
-                                                           request.contact.get("role_group")))
+                                                           request.contact.get("role_group")),
+                                 cta=cta, weekday=weekday)
                 return ac.check_plan(plan, ctx)
 
             started = time.monotonic()
@@ -1000,7 +1032,7 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
                 plan={"delivery": "text", "format": "applied", "mode": "applied",
-                      "plan": plan.model_dump(),
+                      "cta_variant": cta, "plan": plan.model_dump(),
                       "attempts": attempts, "language": language,
                       "language_choice": choice.as_dict(),
                       "signal_ids": plan.signal.signal_ids,
