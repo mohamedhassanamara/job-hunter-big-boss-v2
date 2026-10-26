@@ -93,6 +93,8 @@ DEFAULT_STRUCTURE: dict[str, Any] = {
     "graduation": [1, 3],     # graduation / end-of-studies projects
     "internship": [1, 2],     # never more than 2
     "projects_max": 3,
+    "project_min_relevance": 7,         # fill: a project bullet needs this relevance (0-10)
+    "project_other_track_relevance": 9,  # ... when the project is tagged only for other tracks
     "project_bullets": [2, 4],  # never a 1-bullet project
     "volunteering_max": 1,
     "skill_groups_max": 4,

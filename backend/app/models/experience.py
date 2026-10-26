@@ -19,6 +19,8 @@ class ExperienceItem(TableBase, table=True):
     summary: str | None = Field(default=None, sa_type=Text)
     bullets: list[str] = json_field()
     tags: list[str] = json_field()
+    # Projects: the track names it is meant for (empty = every track). Read by the CV fill only.
+    tracks: list[str] = json_field()
     position: int = 0
     is_active: bool = True
     # Test-CV data the user asked for; shown with a warning and removable in one click.
