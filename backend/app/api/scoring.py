@@ -26,7 +26,7 @@ from app.schemas.scoring import (
     ScoringHealth,
     ScoringStatus,
 )
-from app.services import apinex_status, gemini_keys, open_jobs, scoring
+from app.services import apinex_status, gemini_keys, open_jobs, scoring, ttl_cache
 from app.services.gemini_keys import pool_for
 from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
 from app.services.text import html_to_text
@@ -38,30 +38,33 @@ router = APIRouter(tags=["scoring"])
 @router.get("/scoring/status", response_model=ScoringStatus)
 def scoring_status(session: SessionDep, workspace: WorkspaceDep) -> ScoringStatus:
     queue = scoring.workspace_queue(workspace)
-    counts = scoring.counts(session)
-    ctx = scoring.load_context(session)
-    current, total = _current_progress(session, ctx)
-    return ScoringStatus(
-        **queue.status(),
-        jobs_total=counts.total,
-        scored=counts.scored,
-        stale=counts.stale,
-        unscored=counts.unscored,
-        failed_jobs=counts.failed,
-        model=ctx.model,
-        prompt_version=ctx.prompt_version,
-        current_scored=current,
-        current_total=total,
-    )
+
+    def figures() -> dict:
+        counts = scoring.counts(session)
+        ctx = scoring.load_context(session)
+        current, total = _current_progress(session, ctx)
+        return dict(jobs_total=counts.total, scored=counts.scored, stale=counts.stale,
+                    unscored=counts.unscored, failed_jobs=counts.failed, model=ctx.model,
+                    prompt_version=ctx.prompt_version, current_scored=current,
+                    current_total=total)
+
+    # Counts over every job and score are cached a few seconds (any commit clears them): every
+    # open screen polls this. The queue's own state is read live.
+    return ScoringStatus(**queue.status(), **ttl_cache.cached(
+        session.get_bind(), "scoring_status", figures))
 
 
-def _latest_ok(session) -> dict[int, FitScore]:  # noqa: ANN001
+def _latest_ok(session) -> dict[int, tuple[str | None, str | None, int | None]]:  # noqa: ANN001
+    """job id → (prompt version, model, score) of its newest successful score."""
     latest = select(func.max(FitScore.id)).where(FitScore.status == "ok").group_by(FitScore.job_id)
-    return {r.job_id: r for r in session.exec(select(FitScore).where(col(FitScore.id).in_(latest)))}
+    return {r[0]: (r[1], r[2], r[3]) for r in session.exec(
+        select(FitScore.job_id, FitScore.prompt_version, FitScore.model, FitScore.score)
+        .where(col(FitScore.id).in_(latest)))}
 
 
-def _on_current(row: FitScore | None, ctx: scoring.ScoringContext) -> bool:
-    return bool(row and row.prompt_version == ctx.prompt_version and row.model == ctx.model)
+def _on_current(row: tuple[str | None, str | None, int | None] | None,
+                ctx: scoring.ScoringContext) -> bool:
+    return bool(row and row[0] == ctx.prompt_version and row[1] == ctx.model)
 
 
 def _current_progress(session, ctx: scoring.ScoringContext) -> tuple[int, int]:  # noqa: ANN001
@@ -115,7 +118,7 @@ def _outdated_ids(session) -> list[int]:  # noqa: ANN001
     latest = _latest_ok(session)
     ids = session.exec(select(Job.id).where(col(Job.duplicate_of_id).is_(None))).all()
     todo = [i for i in ids if not _on_current(latest.get(i), ctx)]
-    return sorted(todo, key=lambda i: (latest[i].score is not None, -(latest[i].score or 0), i)
+    return sorted(todo, key=lambda i: (latest[i][2] is not None, -(latest[i][2] or 0), i)
                   if i in latest else (False, 0, i))
 
 

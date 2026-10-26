@@ -29,7 +29,7 @@ from app.schemas.today import (
 )
 from app.schemas.tracking import ReminderOut
 from app.services import cv_review, get_contact, linkedin_track, send_queue, tracking
-from app.services.views import job_items, pipeline_cards
+from app.services.views import new_high_fit, pipeline_cards
 
 router = APIRouter(tags=["today"])
 
@@ -39,22 +39,13 @@ def today(session: SessionDep) -> TodayOut:
     profile = session.exec(select(SearchProfile).where(SearchProfile.is_active)).first()
     min_fit = profile.min_fit_score if profile else 65
 
-    new_jobs = session.exec(
-        select(Job)
-        .join(Application, col(Application.job_id) == col(Job.id))
-        .where(Application.stage == Stage.new, col(Job.duplicate_of_id).is_(None))
-    ).all()
-    high = [
-        i for i in job_items(session, new_jobs)
-        if i.fit and i.fit.score is not None and i.fit.score >= min_fit
-    ]
-    high.sort(key=lambda i: -(i.fit.score or 0) if i.fit else 0)
+    high, high_total = new_high_fit(session, min_fit)
 
     # CVs to review: latest version per application is a draft.
-    latest: dict[int, CVVersion] = {}
-    for v in session.exec(select(CVVersion).order_by(col(CVVersion.version))).all():
-        latest[v.application_id] = v
-    review_versions = [v for v in latest.values() if v.status == CVStatus.draft]
+    newest_cv = select(func.max(CVVersion.id)).group_by(CVVersion.application_id)
+    review_versions = list(session.exec(
+        select(CVVersion).where(col(CVVersion.id).in_(newest_cv),
+                                CVVersion.status == CVStatus.draft)).all())
     apps = {
         a.id: a
         for a in session.exec(
@@ -126,8 +117,8 @@ def today(session: SessionDep) -> TodayOut:
         return jobs[source[app_id].job_id]
 
     return TodayOut(
-        new_high_fit=high[:5],
-        new_high_fit_total=len(high),
+        new_high_fit=high,
+        new_high_fit_total=high_total,
         cvs_to_review=[
             CVReviewItem(
                 application_id=v.application_id,

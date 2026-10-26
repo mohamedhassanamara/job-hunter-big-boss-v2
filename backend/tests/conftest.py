@@ -77,3 +77,11 @@ def client(seeded: None) -> TestClient:
     from app.main import app
 
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def fresh_count_cache() -> None:
+    """The few-second cache behind the shell's counts never carries a result across tests."""
+    from app.services import ttl_cache
+
+    ttl_cache.clear()

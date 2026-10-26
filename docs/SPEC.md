@@ -568,6 +568,9 @@ redirects to Outreach → Contacts to get).
 - "Dates as written" prints exactly on the CV (e.g. "Sep 2020 – June 2025").
 - *Empty:* "Add your experience. Every tailored CV is built from it", with "Add first item".
 
+### 3.3a Large lists
+Pipeline and Discover load a page at a time: the Pipeline shows every open application plus the newest 40 New and 60 Closed (the header says so; Discover has the rest), Discover asks the server for 200 jobs and offers "Load more". Filters and sort still apply to the whole set (the header counts the filtered total).
+
 ### 3.8a Today's batch card
 Under the greeting: "This batch" with the three passes and their counts (CVs to review → `/review-cvs`, emails to review → `/outreach`, jobs to apply → `/applications?tab=ready`), the send queue's state and next send time, and the "Find contacts for this batch" button (confirmation with the job count and worst-case credits). Hidden when nothing is open. The `?` dialog lists every key that exists (go-to keys are generated from the sidebar list): Review CVs J K A R E S, CV Studio A, Outreach A R, Queue S (start) P (pause), Applications Ready O A Enter, Contacts to get V L E P N X.
 

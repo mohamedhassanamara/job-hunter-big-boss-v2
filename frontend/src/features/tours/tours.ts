@@ -136,7 +136,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Job detail',
     description: 'One place per opportunity',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       const card = cards.find((c) => c.stage === 'cv_ready') ?? cards[0]
       return card ? `/jobs/${card.job_id}` : '/pipeline'
     },
@@ -197,7 +197,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Listing red flags',
     description: 'No pay range, hype wording, a posting that has been up for months',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       for (const c of cards.filter((c) => c.stage !== 'closed')) {
         const job = await api.get<JobDetail>(`/jobs/${c.job_id}`)
         if (job.listing_flags?.length) return `/jobs/${c.job_id}`
@@ -224,7 +224,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Interview prep',
     description: 'A pitch and STAR stories from your experience, every claim checked',
     resolveRoute: async () => {
-      const cards = (await api.get<PipelineCard[]>('/applications')).filter((c) => c.stage !== 'closed' && c.stage !== 'new')
+      const cards = (await api.get<PipelineCard[]>('/applications?stage=all')).filter((c) => c.stage !== 'closed' && c.stage !== 'new')
       for (const c of cards) {
         const studio = await api.get<InterviewStudio>(`/applications/${c.application_id}/interview-prep`)
         if (studio.prep) return `/jobs/${c.job_id}/interview`
@@ -276,7 +276,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Apply and email on the job page',
     description: 'Two tracks: application and outreach',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       const card = cards.find((c) => c.tracks.outreach === 'drafted') ?? cards.find((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'new')
       return card ? `/jobs/${card.job_id}#outreach` : '/pipeline'
     },
@@ -301,7 +301,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Company signals',
     description: 'Verified facts your cold emails open with',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       const card = cards.find((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'new' && c.stage !== 'closed')
       return card ? `/jobs/${card.job_id}` : '/pipeline'
     },
@@ -326,7 +326,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'LinkedIn messages',
     description: 'Who to message about a job, notes and follow-ups',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       const card = cards.find((c) => c.stage !== 'new' && c.stage !== 'closed')
       return card ? `/jobs/${card.job_id}#linkedin` : '/pipeline'
     },
@@ -361,7 +361,7 @@ export const TOURS: Record<TourId, Tour> = {
     title: 'Contact still there?',
     description: 'Signs your contact left, before you email them',
     resolveRoute: async () => {
-      const cards = await api.get<PipelineCard[]>('/applications')
+      const cards = await api.get<PipelineCard[]>('/applications?stage=all')
       for (const c of cards.filter((c) => c.tracks.outreach !== 'no_contact' && c.stage !== 'closed')) {
         const job = await api.get<JobDetail>(`/jobs/${c.job_id}`)
         if (job.contact_alerts.length) return `/jobs/${c.job_id}`

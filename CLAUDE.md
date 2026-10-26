@@ -412,6 +412,13 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 - `/review-cvs` lists the latest draft CV of every shortlisted job (`GET /cv/review`, sidebar count `cvs_to_review`, `g r`). Left: job, track, check chip, fill. Right: the shared `cv-studio/CVWorkspace` (PDF + editor) from CV Studio. Keys: J/K, A approve then the next job, R regenerate (feedback: new summary; empty: whole CV), E focus the summary, S skip. The Approve gate is one rule in two places: `cv_review.blocking_errors` / `approve_cv` on the server and `cv-studio/cvGate.ts` in the client (one page, no bullet/skill/number/tool error; summary notes never block). CV Studio itself is unchanged.
 
+## Speed (shell requests under 300 ms on a 5,500-job DB)
+
+- `GET /applications` returns the stages you work in by default (`stage=open`: not New, not Closed); `stage=all|new|closed|a,b`, `limit`/`offset` and the `X-Total-Count` header page it, `GET /applications/counts` gives the column counts. The Pipeline loads open + the newest 40 New + 60 Closed. `GET /jobs` filters and sorts on a lean read (no descriptions, no score JSON) and builds full cards for the requested `limit`/`offset` page only (`total` = filtered count); Discover asks for 200 and has "Load more".
+- Never load every `fit_score` row: `views.latest_fits`, `scoring.counts`, `api/scoring._latest_ok` and `views.new_high_fit` read only the newest score per job (`max(id)` subquery) and only the columns they need.
+- `services/ttl_cache.py`: a 4-second per-database cache for the counts behind `/scoring/status`, Today's high-fit list and the experience version. Any committed write clears it (a SQLAlchemy `after_commit` listener), so a click is never followed by a stale count; tests clear it before each test.
+- Polling pauses with the tab (no `refetchIntervalInBackground`).
+
 ## Usage log (services/usage.py, api/usage.py, frontend lib/usage.ts, lib/usagePatterns.ts)
 
 - Local-only measurement of a real batch: table `usage_event` (migration 0034) holds route patterns, action names, a job id and durations (screen active/wall time, slow requests, idle gaps). Never page content, query text, drafts or CV text: `usage.record` validates every name against a strict pattern and drops the rest. The tour sandbox and `setting usage_log.enabled = false` store nothing.

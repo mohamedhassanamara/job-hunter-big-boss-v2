@@ -377,9 +377,11 @@ def counts(s: Session) -> ScoreCounts:
     """Per-job state of the latest score: scored (current), stale, failed or unscored.
     Excludes closed / dismissed jobs."""
     ctx = load_context(s)
-    latest: dict[int, FitScore] = {}
-    for row in s.exec(select(FitScore).order_by(col(FitScore.created_at), col(FitScore.id))):
-        latest[row.job_id] = row
+    # The newest score of each job, only the columns the counts need (not every score's JSON).
+    newest = select(func.max(FitScore.id)).group_by(FitScore.job_id)
+    latest = {r.job_id: r for r in s.exec(
+        select(FitScore.job_id, FitScore.status, FitScore.prompt_version,
+               FitScore.experience_version).where(col(FitScore.id).in_(newest)))}
     closed = set(s.exec(select(Application.job_id).where(Application.stage == Stage.closed)).all())
     out = ScoreCounts()
     for job_id in s.exec(select(Job.id)).all():
