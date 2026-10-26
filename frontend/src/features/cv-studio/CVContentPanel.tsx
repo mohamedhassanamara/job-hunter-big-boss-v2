@@ -162,7 +162,7 @@ function SummaryBlock({ version, usage, readOnly, onSave }: { version: CVVersion
   return (
     <>
       <CitedSummary usage={usage} />
-      <EditableText key={usage.summary.text} value={usage.summary.text} readOnly={readOnly} onSave={onSave} onType={type} rows={4} />
+      <EditableText key={usage.summary.text} value={usage.summary.text} readOnly={readOnly} onSave={onSave} onType={type} rows={4} summary />
       {usage.summary.text !== usage.summary.short && usage.summary.short && (
         <p className="mt-1 text-2xs text-fg-subtle">Short version (used when the page is tight): {usage.summary.short}</p>
       )}
@@ -414,7 +414,7 @@ function ToggleRow({ shown, disabled, onToggle, children }: { shown: boolean; di
 
 /** Text that saves 900ms after typing stops (then the page re-fits). Callers key it by the saved
  * value, so a server-side change resets the draft text. */
-function EditableText({ value, readOnly, onSave, onType, rows = 1, muted = false }: { value: string; readOnly: boolean; onSave: (t: string) => void; onType?: (t: string) => void; rows?: number; muted?: boolean }) {
+function EditableText({ value, readOnly, onSave, onType, rows = 1, muted = false, summary = false }: { value: string; readOnly: boolean; onSave: (t: string) => void; onType?: (t: string) => void; rows?: number; muted?: boolean; summary?: boolean }) {
   const [text, setText] = useState(value)
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -423,6 +423,7 @@ function EditableText({ value, readOnly, onSave, onType, rows = 1, muted = false
     <Textarea
       value={text}
       rows={rows}
+      data-cv-summary={summary ? '' : undefined}
       onChange={(e) => {
         const next = e.target.value
         setText(next)

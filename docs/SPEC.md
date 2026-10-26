@@ -568,6 +568,9 @@ redirects to Outreach → Contacts to get).
 - "Dates as written" prints exactly on the CV (e.g. "Sep 2020 – June 2025").
 - *Empty:* "Add your experience. Every tailored CV is built from it", with "Add first item".
 
+### 3.8b Review CVs (`/review-cvs`)
+The CV drafts of shortlisted jobs as one list (sidebar entry with a count, `g r`, Today's "CVs to review" card links here). Left: job, company, track, a check chip (Ready to approve / N pages / N errors / LaTeX error) and fill %. Right: the PDF and the editable content (same panes as CV Studio, which stays as is). Keys: `J`/`K` move, `A` approves the selected CV (only if the CV Studio rules pass: one page, no bullet, skill, number or tool error) and selects the next, `R` regenerates (with feedback the summary is rewritten toward it; without, a whole new CV), `E` focuses the summary, `S` skips. Empty state: "No CVs waiting for review" with Open Discover and a tour.
+
 ### 3.9 Settings (`/settings`)
 Sections in a left sub-nav:
 - **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible; remote tied to one non-target country is filtered), and min fit score.

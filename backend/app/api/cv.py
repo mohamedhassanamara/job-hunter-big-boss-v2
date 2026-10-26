@@ -16,6 +16,7 @@ from app.schemas.cv import (
     CVApproveResult,
     CVGenerateIn,
     CVPatch,
+    CVReviewRow,
     CVStudio,
     CVVersionOut,
     ReadinessItem,
@@ -27,6 +28,7 @@ from app.schemas.cv import (
 )
 from app.services import (
     cv_fit,
+    cv_review,
     cv_service,
     cv_templates,
     generation,
@@ -59,6 +61,12 @@ def _templates(session: Session) -> list[TemplateOut]:
                         builtin=t.builtin, valid=t.valid, pages=t.pages, error=t.error,
                         is_default=t.name == default)
             for t in cv_templates.list_templates()]
+
+
+@router.get("/cv/review", response_model=list[CVReviewRow])
+def cv_review_list(session: SessionDep) -> list[CVReviewRow]:
+    """The CV drafts of shortlisted jobs, with the Approve gate evaluated (Review CVs page)."""
+    return cv_review.rows(session)
 
 
 @router.get("/applications/{app_id}/cv", response_model=CVStudio)
@@ -210,8 +218,7 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
     if v.page_count is not None and v.page_count != 1:
         raise HTTPException(409, "The CV must fit on exactly one page before approval")
     # Summary checks are information: only bullet, skill, number and tool errors block.
-    found = [x for x in v.violations or []
-             if x.get("severity") == "error" and x.get("where") != "summary"]
+    found = cv_review.blocking_errors(v.violations)
     if found:  # the same rule as letters and emails
         raise HTTPException(409, f"Fix {len(found)} problem{'s' if len(found) > 1 else ''} first: "
                             + found[0]["message"])

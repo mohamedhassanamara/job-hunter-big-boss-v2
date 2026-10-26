@@ -401,6 +401,10 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Uploads: `files.check` (extension + magic bytes, size limit), stored under data/motivation/<workspace>/, served
   by name only (uuid names). Undo for "Mark applied" is `tracking.undo_applied` (+ `pipeline.revert`).
 
+## Review CVs (services/cv_review.py, features/cv-review/)
+
+- `/review-cvs` lists the latest draft CV of every shortlisted job (`GET /cv/review`, sidebar count `cvs_to_review`, `g r`). Left: job, track, check chip, fill. Right: the shared `cv-studio/CVWorkspace` (PDF + editor) from CV Studio. Keys: J/K, A approve then the next job, R regenerate (feedback: new summary; empty: whole CV), E focus the summary, S skip. The Approve gate is one rule in two places: `cv_review.blocking_errors` / `approve_cv` on the server and `cv-studio/cvGate.ts` in the client (one page, no bullet/skill/number/tool error; summary notes never block). CV Studio itself is unchanged.
+
 ## Usage log (services/usage.py, api/usage.py, frontend lib/usage.ts, lib/usagePatterns.ts)
 
 - Local-only measurement of a real batch: table `usage_event` (migration 0034) holds route patterns, action names, a job id and durations (screen active/wall time, slow requests, idle gaps). Never page content, query text, drafts or CV text: `usage.record` validates every name against a strict pattern and drops the rest. The tour sandbox and `setting usage_log.enabled = false` store nothing.

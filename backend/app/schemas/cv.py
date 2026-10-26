@@ -101,3 +101,22 @@ class TemplateIn(BaseModel):
     name: str
     tex: str
     config: str
+
+
+class CVReviewRow(BaseModel):
+    """One CV draft of a shortlisted job, for the Review CVs list."""
+
+    application_id: int
+    job_id: int
+    cv_id: int
+    job_title: str
+    company_name: str
+    track: str | None
+    version: int
+    page_count: int | None
+    fill: float | None
+    error_count: int  # errors that block Approve (bullet, skill, number, tool: not the summary)
+    summary_warnings: int
+    error: str | None
+    approvable: bool  # exactly the Approve gate (one page, no blocking errors, no failure)
+    created_at: datetime
