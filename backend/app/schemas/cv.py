@@ -27,6 +27,7 @@ class CVVersionOut(BaseModel):
 
 class SummaryIn(BaseModel):
     feedback: str | None = None  # "What should change?" (optional)
+    use: str | None = None  # "claude" | "gemini": this call only (after a failure)
 
 
 class SummaryCheckIn(BaseModel):
@@ -72,7 +73,7 @@ class CVStudio(BaseModel):
 
 class CVGenerateIn(BaseModel):
     template: str | None = None
-    use: str | None = None  # "claude": this call only (after a Gemini failure)
+    use: str | None = None  # "claude" | "gemini": this call only (after a failure)
 
 
 class CVPatch(BaseModel):

@@ -22,7 +22,7 @@ DEFAULT_CLAUDE = "claude-sonnet-5"
 DEFAULT_THINKING = "minimal"
 TASKS = ("cv", "email")
 CLAUDE_ONLY = ("letter", "interview", "rewrite", "confirm", "verifier")
-USES = (None, "claude")
+USES = (None, "claude", "gemini")
 
 
 def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
@@ -33,6 +33,12 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
     model = str(cfg.get("model") or default_model)
     if model.startswith("claude-haiku"):
         model = DEFAULT_CLAUDE
+    if use == "gemini":  # "Generate with Gemini" after an APInex failure: this call only
+        from app.services.gemini_keys import is_paused
+
+        if is_paused(s):
+            raise ValueError("Gemini is paused (Settings → Models): resume it first")
+        return {"provider": "gemini", "model": DEFAULT_GEMINI, "thinking_level": DEFAULT_THINKING}
     if use == "claude":
         claude = model if model.startswith("claude-") else DEFAULT_CLAUDE
         return {"provider": "anthropic", "model": claude, "thinking_level": None}
