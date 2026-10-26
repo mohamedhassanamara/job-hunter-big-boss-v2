@@ -393,7 +393,7 @@ def test_the_outdated_scope_is_best_first_and_skips_duplicates(
         latest = _latest_ok(s)
         dup = set(s.exec(select(Job.id).where(col(Job.duplicate_of_id).is_not(None))).all())
         assert ids and not (set(ids) & dup)
-        scores = [latest[i].score for i in ids if i in latest]
+        scores = [latest[i][2] for i in ids if i in latest]
         assert scores == sorted(scores, reverse=True)  # best first
     assert client.post("/api/scoring/rescore", json={"scope": "outdated"}).status_code == 409
 

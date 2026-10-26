@@ -1,5 +1,5 @@
 import { ArrowDownWideNarrow, Compass, EyeOff, Radar, SearchX } from 'lucide-react'
-import { Fragment, useMemo } from 'react'
+import { Fragment } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
 import { DiscoveryProgress } from '@/components/app/DiscoveryProgress'
@@ -17,6 +17,7 @@ import { useHideScores } from '@/hooks/useHideScores'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useIncrementalList } from '@/hooks/useIncrementalList'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
+import { usePageLimit } from '@/hooks/usePageLimit'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { pluralize } from '@/lib/format'
@@ -30,6 +31,8 @@ import { JobPanel } from './JobPanel'
 import { JobRow } from './JobRow'
 
 const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'track', 'min_score', 'posted_within', 'hide_duplicates', 'label', 'flags']
+
+const PAGE = 200
 
 export default function DiscoverPage() {
   const navigate = useNavigate()
@@ -56,24 +59,18 @@ export default function DiscoverPage() {
   // Blind labeling: nothing that reveals the scorer's opinion (score, fit order, fit filters).
   const [hideScores, setHideScores] = useHideScores()
   const query: JobFilters = hideScores ? { ...filters, sort: 'newest', min_score: null, flags: null } : filters
-  const { data, isPending, error, refetch } = useJobs(query)
+  // The server sends one page at a time (the best-ranked first); "Load more" asks for the next.
+  const { limit, more: loadMore } = usePageLimit(JSON.stringify(query), PAGE)
+  const { data, isPending, error, refetch } = useJobs(query, { limit })
   // Only asked when the current view is empty: has anything ever been discovered?
-  const everything = useJobs({ stage: 'all' }, { enabled: !!data && data.total === 0 })
+  const everything = useJobs({ stage: 'all', limit: 1 }, { enabled: !!data && data.total === 0 })
   const neverDiscovered = everything.data?.total === 0
 
   // Respect optimistic stage changes so triaged jobs leave the "New" view immediately.
-  const items = useMemo(
-    () =>
-      (data?.items ?? []).filter((j) =>
-        filters.stage === 'new'
-          ? j.application.stage === 'new'
-          : filters.stage === 'open'
-            ? j.application.stage !== 'closed'
-            : true,
-      ),
-    [data, filters.stage],
+  const items = (data?.items ?? []).filter((j) =>
+    filters.stage === 'new' ? j.application.stage === 'new' : filters.stage === 'open' ? j.application.stage !== 'closed' : true,
   )
-  const ids = useMemo(() => items.map((j) => j.id), [items])
+  const ids = items.map((j) => j.id)
   // 2,000+ jobs: render 100 at a time (more on scroll, or when j/k or ?job= goes further).
   const { visible, hasMore, remaining, sentinel } = useIncrementalList(items, { mustInclude: selectedId !== null ? ids.indexOf(selectedId) : -1 })
 
@@ -147,7 +144,7 @@ export default function DiscoverPage() {
         title="Discover"
         description={
           data
-            ? `${pluralize(items.length, 'job')} · ${hideScores ? 'newest first, scores hidden' : query.sort === 'newest' ? 'newest first' : 'best fit first'}`
+            ? `${pluralize(data.total, 'job')} · ${hideScores ? 'newest first, scores hidden' : query.sort === 'newest' ? 'newest first' : 'best fit first'}`
             : 'Triage newly discovered jobs'
         }
         className="pb-0"
@@ -253,6 +250,13 @@ export default function DiscoverPage() {
                 />
               </Fragment>
             ))
+          )}
+          {!hasMore && data && data.total > (data.items.length ?? 0) && (
+            <div className="px-6 py-3 text-center">
+              <Button size="sm" variant="secondary" onClick={loadMore}>
+                Load {Math.min(PAGE, data.total - data.items.length)} more ({data.total - data.items.length} not shown)
+              </Button>
+            </div>
           )}
           {hasMore && (
             <div ref={sentinel} className="px-6 py-3 text-center text-xs text-fg-subtle" aria-live="polite">

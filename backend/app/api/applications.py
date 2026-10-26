@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from sqlmodel import col, select
+from fastapi import APIRouter, HTTPException, Query, Response
+from sqlmodel import col, func, select
 
 from app.api.deps import SessionDep, get_or_404
 from app.models import Application
@@ -11,10 +11,45 @@ from app.services.views import pipeline_cards
 router = APIRouter(prefix="/applications", tags=["pipeline"])
 
 
+OPEN_STAGES = [s for s in Stage if s not in (Stage.new, Stage.closed)]
+
+
+def _stage_filter(stage: str) -> list[Stage] | None:
+    """`open` (default: past New and not closed), `all`, or a comma-separated list of stages."""
+    if stage == "all":
+        return None
+    if stage == "open":
+        return OPEN_STAGES
+    try:
+        return [Stage(s.strip()) for s in stage.split(",") if s.strip()]
+    except ValueError as exc:
+        raise HTTPException(422, f"Unknown stage in {stage!r}") from exc
+
+
 @router.get("", response_model=list[PipelineCard])
-def list_applications(session: SessionDep) -> list[PipelineCard]:
-    apps = session.exec(select(Application).order_by(col(Application.stage_changed_at).desc()))
-    return pipeline_cards(session, apps.all())
+def list_applications(session: SessionDep, response: Response, stage: str = "open",
+                      limit: int | None = Query(default=None, ge=1, le=500),
+                      offset: int = Query(default=0, ge=0)) -> list[PipelineCard]:
+    """Cards, newest stage change first. By default only what you are working on (not New, not
+    closed: the other stages have thousands of rows); `stage=all`, `stage=new` or a list picks
+    others, `limit`/`offset` page. The filtered total is in the X-Total-Count header."""
+    stages = _stage_filter(stage)
+    base = select(Application)
+    if stages is not None:
+        base = base.where(col(Application.stage).in_(stages))
+    total = session.exec(select(func.count()).select_from(base.subquery())).one()
+    query = base.order_by(col(Application.stage_changed_at).desc(), col(Application.id).desc())
+    if limit is not None:
+        query = query.limit(limit).offset(offset)
+    response.headers["X-Total-Count"] = str(total)
+    return pipeline_cards(session, session.exec(query).all())
+
+
+@router.get("/counts", response_model=dict[str, int])
+def application_counts(session: SessionDep) -> dict[str, int]:
+    """How many applications are in each stage (the board's column counts)."""
+    rows = session.exec(select(Application.stage, func.count()).group_by(Application.stage)).all()
+    return {str(stage): n for stage, n in rows}
 
 
 @router.patch("/{app_id}", response_model=PipelineCard)

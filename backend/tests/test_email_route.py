@@ -34,7 +34,7 @@ def test_stage_moves_no_longer_have_an_email_only_stage() -> None:
 
 
 def app_json(client, app_id: int) -> dict:  # noqa: ANN001
-    return next(c for c in client.get("/api/applications").json()
+    return next(c for c in client.get("/api/applications?stage=all").json()
                 if c["application_id"] == app_id)
 
 

@@ -24,12 +24,15 @@ export interface JobFilters {
   label?: 'unlabeled' | 'good' | 'maybe' | 'no' | null
   flags?: 'hide_hard' | 'only_flagged' | null
   sort?: 'fit' | 'newest'
+  limit?: number
+  offset?: number
 }
 
-export function useJobs(filters: JobFilters, options: { enabled?: boolean } = {}) {
+export function useJobs(filters: JobFilters, options: { enabled?: boolean; limit?: number } = {}) {
+  const paged = { ...filters, limit: options.limit }
   return useQuery({
-    queryKey: keys.jobs(filters as Record<string, unknown>),
-    queryFn: () => api.get<JobList>(`/jobs${qs({ ...filters })}`),
+    queryKey: keys.jobs(paged as Record<string, unknown>),
+    queryFn: () => api.get<JobList>(`/jobs${qs({ ...paged })}`),
     placeholderData: (prev) => prev,
     enabled: options.enabled ?? true,
   })
@@ -43,10 +46,20 @@ export function useJob(id: number) {
   })
 }
 
-export function useApplications() {
+/** Pipeline cards. By default only the stages you work in (not New, not Closed: thousands of
+ * rows); `stage: 'new'` / `'closed'` with a `limit` fetch those columns' newest cards. */
+export function useApplications(params: { stage?: string; limit?: number } = {}) {
   return useQuery({
-    queryKey: keys.applications,
-    queryFn: () => api.get<PipelineCard[]>('/applications'),
+    queryKey: [...keys.applications, params],
+    queryFn: () => api.get<PipelineCard[]>(`/applications${qs({ ...params })}`),
+  })
+}
+
+/** How many applications are in each stage (the board's column counts). */
+export function useApplicationCounts() {
+  return useQuery({
+    queryKey: [...keys.applications, 'counts'],
+    queryFn: () => api.get<Record<string, number>>('/applications/counts'),
   })
 }
 
@@ -85,23 +98,25 @@ export function usePatchApplication() {
     onMutate: async ({ id, patch }) => {
       if (!patch.stage) return
       await qc.cancelQueries({ queryKey: keys.applications })
-      const prev = qc.getQueryData<PipelineCard[]>(keys.applications)
-      qc.setQueryData<PipelineCard[]>(keys.applications, (old) =>
-        old?.map((c) =>
-          c.application_id === id
-            ? {
-                ...c,
-                stage: patch.stage!,
-                close_reason: patch.stage === 'closed' ? (patch.close_reason ?? 'dismissed') : null,
-                stage_changed_at: new Date().toISOString(),
-              }
-            : c,
-        ),
+      const prev = qc.getQueriesData<PipelineCard[]>({ queryKey: keys.applications })
+      qc.setQueriesData<PipelineCard[] | Record<string, number>>({ queryKey: keys.applications }, (old) =>
+        Array.isArray(old)
+          ? old.map((c) =>
+              c.application_id === id
+                ? {
+                    ...c,
+                    stage: patch.stage!,
+                    close_reason: patch.stage === 'closed' ? (patch.close_reason ?? 'dismissed') : null,
+                    stage_changed_at: new Date().toISOString(),
+                  }
+                : c,
+            )
+          : old,
       )
       return { prev }
     },
     onError: (_err, _vars, ctx) => {
-      if (ctx?.prev) qc.setQueryData(keys.applications, ctx.prev)
+      ctx?.prev.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSettled: () => invalidateWork(qc),
   })

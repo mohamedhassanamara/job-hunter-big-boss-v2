@@ -34,7 +34,7 @@ from app.schemas.jobs import (
 )
 from app.schemas.tracking import InterviewOut, ResponseOut, TrackedItem
 from app.services import fit as fitsvc
-from app.services import listing_flags, tracking
+from app.services import listing_flags, tracking, ttl_cache
 from app.services import tracks as track_service
 from app.services.pipeline import ALLOWED, stage_label
 
@@ -55,12 +55,11 @@ def latest_fits(session: Session, job_ids: Iterable[int]) -> dict[int, FitScore]
     ids = list(job_ids)
     if not ids:
         return {}
-    rows = session.exec(
-        select(FitScore)
-        .where(col(FitScore.job_id).in_(ids))
-        .order_by(col(FitScore.created_at), col(FitScore.id))
-    ).all()
-    return {r.job_id: r for r in rows}  # later rows overwrite earlier → latest wins
+    # Only the newest score of each job is read (not every score ever written, with its JSON).
+    newest = (select(func.max(FitScore.id)).where(col(FitScore.job_id).in_(ids))
+              .group_by(FitScore.job_id))
+    rows = session.exec(select(FitScore).where(col(FitScore.id).in_(newest))).all()
+    return {r.job_id: r for r in rows}
 
 
 def _fit_status(fit: FitScore) -> str:
@@ -97,7 +96,8 @@ def fit_brief(fit: FitScore | None, experience_version: str | None = None) -> Fi
 def current_experience_version(session: Session) -> str:
     from app.services.scoring import load_context
 
-    return load_context(session).experience_version
+    return ttl_cache.cached(session.get_bind(), "experience_version",
+                            lambda: load_context(session).experience_version)
 
 
 _STAGE_ORDER = list(Stage)
@@ -440,3 +440,24 @@ def _ranking(session: Session) -> list[dict[str, Any]]:
 
 
 
+
+
+def new_high_fit(session: Session, min_fit: int, limit: int = 5) -> tuple[list[JobListItem], int]:
+    """The best new jobs at or above `min_fit` and how many there are: found with a lean read of
+    the newest scores (not by building every new job's full card), cached a few seconds."""
+    def ranked() -> list[int]:
+        new = (select(Job.id).join(Application, col(Application.job_id) == col(Job.id))
+               .where(Application.stage == Stage.new, col(Job.duplicate_of_id).is_(None)))
+        newest = select(func.max(FitScore.id)).group_by(FitScore.job_id)
+        rows = session.exec(
+            select(FitScore.job_id, FitScore.score, FitScore.status, FitScore.prompt_version)
+            .where(col(FitScore.id).in_(newest), col(FitScore.job_id).in_(new))).all()
+        good = [(r.score, r.job_id) for r in rows
+                if r.prompt_version is not None and r.status == "ok" and r.score is not None
+                and r.score >= min_fit]
+        return [job_id for _score, job_id in sorted(good, key=lambda x: (-x[0], x[1]))]
+
+    ids = ttl_cache.cached(session.get_bind(), f"high_fit:{min_fit}", ranked)
+    top = ids[:limit]
+    by_id = {j.id: j for j in session.exec(select(Job).where(col(Job.id).in_(top))).all()}
+    return job_items(session, [by_id[i] for i in top if i in by_id]), len(ids)

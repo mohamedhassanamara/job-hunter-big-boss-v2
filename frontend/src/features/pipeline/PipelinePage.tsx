@@ -15,11 +15,14 @@ import { SegmentedList, SegmentedTrigger, Tabs } from '@/components/ui/tabs'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { useTriageActions } from '@/hooks/useTriageActions'
 import { COLUMN_LABELS, pluralize } from '@/lib/format'
-import { useApplications, usePatchApplication } from '@/lib/queries/jobs'
+import { useApplicationCounts, useApplications, usePatchApplication } from '@/lib/queries/jobs'
 import { isApplied } from '@/lib/tracking'
 import type { CloseReason, PipelineCard, Stage } from '@/lib/types'
 import { Board } from './Board'
 import { Table } from './Table'
+
+const NEW_SHOWN = 40
+const CLOSED_SHOWN = 60
 
 function BoardSkeleton() {
   return (
@@ -45,7 +48,17 @@ export default function PipelinePage() {
   const [closing, setClosing] = useState<PipelineCard | null>(null)
   const [applying, setApplying] = useState<TrackTarget | null>(null)
   const [interviewing, setInterviewing] = useState<TrackTarget | null>(null)
-  const { data, isPending, error, refetch } = useApplications()
+  // Only the stages you work in are loaded whole; New and Closed have thousands of cards, so the
+  // board shows their newest and the counts say how many more there are (Discover has the rest).
+  const open = useApplications({ stage: 'open' })
+  const fresh = useApplications({ stage: 'new', limit: NEW_SHOWN })
+  const closed = useApplications({ stage: 'closed', limit: CLOSED_SHOWN })
+  const counts = useApplicationCounts()
+  const { isPending, error, refetch } = open
+  const data = useMemo(
+    () => (open.data ? [...open.data, ...(fresh.data ?? []), ...(closed.data ?? [])] : undefined),
+    [open.data, fresh.data, closed.data],
+  )
   const patch = usePatchApplication()
   const triage = useTriageActions()
 
@@ -58,7 +71,9 @@ export default function PipelinePage() {
     )
   }, [data, q, showDismissed])
 
-  const active = (data ?? []).filter((c) => c.stage !== 'new' && c.stage !== 'closed').length
+  const active = open.data?.length ?? 0
+  const hiddenNew = Math.max(0, (counts.data?.new ?? 0) - NEW_SHOWN)
+  const hiddenClosed = Math.max(0, (counts.data?.closed ?? 0) - CLOSED_SHOWN)
 
   const move = (card: PipelineCard, to: Stage, close_reason?: CloseReason) => {
     if (!card.allowed_stages.includes(to)) {
@@ -126,7 +141,13 @@ export default function PipelinePage() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Pipeline"
-        description={data ? `${pluralize(active, 'active application')} · ${view === 'board' ? 'drag cards to move them' : 'click a column to sort'}` : 'Everything you are pursuing'}
+        description={
+          data
+            ? `${pluralize(active, 'active application')} · ${view === 'board' ? 'drag cards to move them' : 'click a column to sort'}${
+                hiddenNew + hiddenClosed > 0 ? ` · New and Closed show the newest ${NEW_SHOWN} and ${CLOSED_SHOWN}` : ''
+              }`
+            : 'Everything you are pursuing'
+        }
         actions={
           <Tabs data-tour="pipeline-view" value={view} onValueChange={(v) => url.set({ view: v === 'board' ? null : v })}>
             <SegmentedList>
