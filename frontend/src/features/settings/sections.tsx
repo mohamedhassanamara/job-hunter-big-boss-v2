@@ -1,4 +1,5 @@
 import { Database } from 'lucide-react'
+import { ApinexCheckinBanner } from '@/components/app/ApinexCheckinBanner'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -306,6 +307,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         />
       }
     >
+      <ApinexCheckinBanner className="rounded-md" />
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="green">Live</ToneBadge>
         Scoring runs through the APInex Gateway (15 RPM) with automatic Ollama fallback. The CV is written through the APInex Gateway too (2-pass) unless you pick Gemini or Claude below; email generation shares the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude.

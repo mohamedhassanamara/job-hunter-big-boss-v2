@@ -8,12 +8,15 @@ export function GenerationFailed({
   message,
   onRetry,
   onClaude,
+  onGemini,
   busy,
 }: {
   what: 'CV' | 'email'
   message: string
   onRetry: () => void
   onClaude: () => void
+  /** One click, this time only: the single Gemini key within its cap. Never automatic. */
+  onGemini?: () => void
   busy?: boolean
 }) {
   return (
@@ -26,6 +29,12 @@ export function GenerationFailed({
         <RefreshCw className={busy ? 'animate-spin' : undefined} />
         Retry
       </Button>
+      {onGemini && (
+        <Button size="sm" variant="secondary" onClick={onGemini} disabled={busy}>
+          <Sparkles />
+          Generate with Gemini
+        </Button>
+      )}
       <Button size="sm" variant="secondary" onClick={onClaude} disabled={busy}>
         <Sparkles />
         Generate with Claude
