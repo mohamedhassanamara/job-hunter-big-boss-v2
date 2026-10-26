@@ -55,6 +55,13 @@
       "cases": 4,
       "errors": 0,
       "note": "Gemini 3.5 flash-lite (minimal) writes the four applied cases (#9, #11, #12, #13) with the summary-style prompt, including the one automatic retry production makes: 0 errors. A first version without the citation wording (\"by the item's own id, never a fact number\") gave 'cites unknown ids' errors on all four on the first attempt; the clause was added before this run. The must_warn set (the three Healy emails that copied bullets) all raise the copy warning (8, 32 and 32 words in a row)."
+    },
+    "16": {
+      "report": "data/eval/emails/20261026-082905_outreach_v16.md",
+      "date": "2026-10-26",
+      "cases": 16,
+      "errors": 5,
+      "note": "Claude (subscription, --claude) wrote all 16 stored cases with v16 (the prompt with the candidate's name and stack persona removed). Applied mode (10 cases: #8, #9, #11, #12, #13, #18-#24): 0 errors in 9; #12 (GAIA) ends with 1 error, 'cites unknown ids 24', after the one automatic retry; warnings are the usual ones (tools named, copy-of-bullet in #9 and #22, short listing snippets). The 4 errors in the speculative reference cases (#1-#4 Zaion: proofs over 35 words, 154-157 words, 'vague') belong to the old introduction mode, which v16 did not touch. The must_warn set (3 Healy emails) still raises the copy warning (8, 32, 32 words in a row)."
     }
   }
 }
