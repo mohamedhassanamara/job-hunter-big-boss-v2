@@ -573,6 +573,7 @@ export function DataSection({ settings }: { settings: SettingsView }) {
 interface TrackingValue {
   followup_days: number[]
   ghost_after_days: number
+  open_next_listing?: boolean
 }
 
 export function TrackingSection({ settings }: { settings: SettingsView }) {
@@ -614,6 +615,9 @@ export function TrackingSection({ settings }: { settings: SettingsView }) {
           <Input value={days} onChange={(e) => setDays(e.target.value)} className="w-40" aria-invalid={!valid} />
           <p className="text-xs text-fg-muted">Comma-separated, e.g. 7, 14. Only the latest due one shows, and a reply or interview stops them.</p>
         </div>
+      </Field>
+      <Field label="Open the next listing after Mark applied" hint="In Applications → Ready: confirming Mark applied selects the next job and opens its listing in a new tab with its CV and letter downloaded. Your browser may ask to allow pop-ups for this app once.">
+        <Switch checked={draft.value.open_next_listing !== false} onCheckedChange={(v) => draft.setValue({ ...draft.value, open_next_listing: v })} aria-label="Open the next listing after Mark applied" />
       </Field>
       <Field label="Suggest closing as no response after (days)">
         <div className="space-y-1">
