@@ -14,14 +14,15 @@ allowed to be mentioned here: the old introduction rules live in `intro_check` (
 """
 
 import re
+from datetime import date, timedelta
 
 from app.providers.base import AppliedEmailPlan, SummarySentence
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
 from app.services.cv_check import numbers, sentence_problems, violation
-from app.services.cv_claims import Vocabulary, bad_years
+from app.services.cv_claims import bad_years
 
-MIN_WORDS, MAX_WORDS = 90, 170  # a warning outside; the prompt aims at 90-120
+MIN_WORDS, MAX_WORDS = 0, 110  # v17: a warning above 110 words (greeting to ask, no signature)
 SNIPPET_CHARS = 1500  # a shorter stored listing is a snippet: requirements may be missing
 MIN_SENTENCES, MAX_SENTENCES = 1, 2  # at most two proofs, one sentence each
 MAX_PROOF_WORDS = 55  # a summary sentence may merge two facts
@@ -91,25 +92,127 @@ def clean(text: str) -> str:
 def plain_role(role: str) -> str:
     """The role as a subject says it: no gender tag, no "– Flutter, Enterprise-App" tail."""
     role = re.sub(r"\s*\((?:[mwfdxi]\s*/\s*){1,3}[mwfdxi]\)", "", role or "", flags=re.I)
-    return " ".join(re.split(r"\s+[–—|]\s+|\s+-\s+", role.strip())[0].split())
+    role = re.split(r",\s*\(", role.strip())[0]  # "Engineer, (New Grad) Milan" → "Engineer"
+    return " ".join(re.split(r"\s+[–—|]\s+|\s+-\s+", role)[0].split())
 
 
 def subject_line(role: str, name: str, language: str) -> str:
-    """"<Role> application – <your name>" (French: "Candidature <role> – <name>"); editable."""
+    """"<Role> application - <your name>" (French: "Candidature <role> - <name>"); editable."""
     role, name = plain_role(role), " ".join((name or "").split())
     if language == "fr":
         head = f"Candidature {role}" if role else "Candidature"
     else:
         head = f"{role} application" if role else "Application"
-    return f"{head} – {name}" if name else head
+    return f"{head} - {name}" if name else head
+
+
+def speculative_subject(role: str, company: str, language: str) -> str:
+    """"Quick intro | <Role> at <Company>" (French: "Présentation rapide | <Role> chez <X>")."""
+    role, company = plain_role(role), " ".join((company or "").split())
+    head = "Présentation rapide" if language == "fr" else "Quick intro"
+    at = "chez" if language == "fr" else "at"
+    if role and company:
+        return f"{head} | {role} {at} {company}"
+    return f"{head} | {role or company}" if role or company else head
+
+
+# ---------------------------------------------------------------- the opening and the ask (code)
+
+_BOARDS = {"adzuna": "Adzuna", "wttj": "Welcome to the Jungle", "bayt": "Bayt",
+           "remotive": "Remotive", "arbeitnow": "Arbeitnow", "linkedin": "LinkedIn"}
+_RECRUITER = re.compile(
+    r"recruit|talent|\bhr\b|human resources|\bpeople\b|ressources humaines|\brh\b|"
+    r"acquisition|sourc(?:er|ing)|personal|rekrut", re.I)
+_MONTHS = {
+    "en": ["January", "February", "March", "April", "May", "June", "July", "August",
+           "September", "October", "November", "December"],
+    "fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre",
+           "octobre", "novembre", "décembre"]}
+VARIANTS = 3
+
+
+def method_phrase(method: str | None, source: str | None, language: str) -> str:
+    """Where the application went in, in the words that fit: never "careers page" for a board
+    or LinkedIn."""
+    if method == "linkedin":
+        return "LinkedIn"
+    if method == "job_board":
+        board = _BOARDS.get((source or "").lower())
+        return board or ("une plateforme d'emploi" if language == "fr" else "a job board")
+    return "votre site carrières" if language == "fr" else "your careers page"
+
+
+def when_phrase(applied: date | None, today: date, language: str) -> str:
+    """"earlier today" only when it was today; "yesterday"; else "on 12 October"."""
+    fr = language == "fr"
+    if applied is None:
+        return ""
+    if applied == today:
+        return "plus tôt aujourd'hui" if fr else "earlier today"
+    if applied == today - timedelta(days=1):
+        return "hier" if fr else "yesterday"
+    month = _MONTHS["fr" if fr else "en"][applied.month - 1]
+    year = f" {applied.year}" if applied.year != today.year else ""
+    return f"le {applied.day} {month}{year}" if fr else f"on {applied.day} {month}{year}"
+
+
+def opening_line(role: str, method: str | None, source: str | None, applied: date | None,
+                 today: date, language: str, variant: int = 0) -> str:
+    """"I applied for the <Role> position via <where> <when> and wanted to introduce myself
+    directly." Everything comes from the application record; three equivalent wordings rotate."""
+    role, via = plain_role(role), method_phrase(method, source, language)
+    when = when_phrase(applied, today, language)
+    v = variant % VARIANTS
+    if language == "fr":
+        post = f"au poste de {role}" if role else "à ce poste"
+        if v == 0:
+            return (f"J'ai postulé {post} via {via} {when} et je souhaitais me présenter "
+                    "directement.").replace("  ", " ")
+        if v == 1:
+            return (f"J'ai déposé ma candidature {post.replace('au poste', 'pour le poste')} via "
+                    f"{via} {when} et je souhaitais me présenter directement.").replace("  ", " ")
+        lead = when[:1].upper() + when[1:]
+        return f"{lead + ', ' if when else ''}j'ai postulé {post} via {via}, et je souhaitais " \
+            "me présenter directement."
+    position = f"the {role} position" if role else "the position"
+    if v == 0:
+        return (f"I applied for {position} via {via} {when} and wanted to introduce myself "
+                "directly.").replace("  ", " ")
+    if v == 1:
+        return (f"I submitted my application for {position} via {via} {when} and wanted to "
+                "introduce myself directly.").replace("  ", " ")
+    lead = when[:1].upper() + when[1:]
+    return f"{lead + ' ' if when else ''}I applied for {position} via {via}, and I wanted to " \
+        "introduce myself directly."
+
+
+def is_recruiter(title: str | None, group: str | None = None) -> bool:
+    return bool(_RECRUITER.search(f"{title or ''} {group or ''}"))
+
+
+def cta_line(language: str, recruiter: bool = False) -> str:
+    """The ask, built by code: a brief 10-minute technical chat (a call for HR or recruiters)."""
+    if language == "fr":
+        kind = "un bref appel" if recruiter else "un court échange technique"
+        return (f"Seriez-vous disponible pour {kind} de 10 minutes la semaine prochaine afin de "
+                "voir si ce que j'ai construit correspond à la feuille de route de votre "
+                "équipe ?")
+    kind = "call" if recruiter else "technical chat"
+    return (f"Would you be open to a brief 10-minute {kind} next week to see if what I've built "
+            "aligns with your team's roadmap?")
 
 
 def body(plan: AppliedEmailPlan) -> str:
-    """greeting · opening (+ a signal, when one is used) · experience · ask."""
-    opening = " ".join(x for x in (plan.opening.strip(), plan.signal.text.strip()) if x)
+    """greeting · opening · proof (the model's only part) · ask. No signature, no opt-out."""
     experience = " ".join(s.text.strip() for s in plan.experience)
-    parts = [plan.greeting.strip(), opening, experience, plan.ask.strip()]
+    parts = [plan.greeting.strip(), plan.opening.strip(), experience, plan.ask.strip()]
     return clean("\n\n".join(p for p in parts if p))
+
+
+def proof_of(text: str) -> str:
+    """The proof paragraph of a v17 body (between the opening and the ask)."""
+    parts = [p for p in (text or "").split("\n\n") if p.strip()]
+    return "\n\n".join(parts[2:-1]) if len(parts) >= 4 else ""
 
 
 def _facts_without_statement(text: str, ctx: ic.Context) -> str:
@@ -137,6 +240,43 @@ def _is_company_word(word: str, company: str) -> bool:
     return w in _LEGAL or w in parts or w == oc.fold(company or "").replace(" ", "")
 
 
+_DOMAIN = re.compile(
+    r"\b(?:https?://|www\.)\S+|\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|dev|io|net|org|app|ai|fr|de|"
+    r"eu|co|me|tech|xyz|info|tn|ly|so|page|site|online|cloud)\b(?:/\S*)?", re.I)
+_APOLOGY = re.compile(
+    r"\b(?:sorry|apolog\w*|forgive|excuse me|even though|although i(?:'m| am| was)|"
+    r"i know (?:that )?you(?:'re| are| probably| must| likely)?|you (?:probably |must |likely )?"
+    r"(?:receive|get|are sent) (?:many|a lot|so many|countless|plenty)|hope you don'?t mind|"
+    r"(?:don'?t|do not) mean to (?:bother|disturb|intrude)|bother you|take up your time|"
+    r"d[ée]sol[ée]\w*|je sais que vous (?:recevez|avez)|pardon\w*|excusez)\b", re.I)
+_BYPASS = re.compile(
+    r"\b(?:are you (?:currently )?hiring|do you (?:currently )?have (?:any )?(?:open(?:ing)?s?|"
+    r"positions?|vacanc\w+)|is there (?:an? )?(?:open(?:ing)?|position|vacancy)|(?:any )?open "
+    r"(?:positions?|roles?) (?:at|on your)|instead of (?:the |your )?(?:portal|careers|"
+    r"application|website|site)|rather than (?:going )?(?:through )?(?:the |your )?(?:portal|"
+    r"careers|application)|bypass\w*|skip(?:ping)? (?:the )?(?:portal|queue|application)|"
+    r"without going through|outside (?:of )?(?:the |your )?(?:portal|application|process)|"
+    r"avoid(?:ing)? (?:the )?(?:portal|queue)|recrutez-vous|avez-vous des postes|"
+    r"au lieu (?:du|de votre) (?:portail|site))\b", re.I)
+
+
+def v17_violations(text: str) -> list[dict[str, str]]:
+    """Blocking rules of the portal-first follow-up: no link or domain in the body (links live
+    in the signature), no apology or defensive wording, no asking whether they hire and no
+    wording about going around the portal."""
+    out: list[dict[str, str]] = []
+    if m := _DOMAIN.search(text):
+        out.append(violation("url", f"“{m.group(0)}”: no link or domain in the body (your links "
+                             "are in the signature)", "body", "error"))
+    if m := _APOLOGY.search(text):
+        out.append(violation("apology", f"“{m.group(0)}”: no apology or defensive wording: say "
+                             "what you did, plainly", "body", "error"))
+    if m := _BYPASS.search(text):
+        out.append(violation("bypass", f"“{m.group(0)}”: you already applied: don't ask whether "
+                             "they hire or hint at going around the portal", "body", "error"))
+    return out
+
+
 def _visa_banned(text: str, where: str) -> list[dict[str, str]]:
     if match := _VISA_DISCLAIMER_WORDS.search(text):
         return [violation(
@@ -159,13 +299,17 @@ def _visa_in_edited_text(text: str, ctx: ic.Context) -> list[dict[str, str]]:
 
 
 def text_rules(subject: str, text: str, ctx: ic.Context, *,
-               visa_in_whole_text: bool = True) -> list[dict[str, str]]:
+               visa_in_whole_text: bool = True, v17: bool = False) -> list[dict[str, str]]:
     """What any version of the email must satisfy (generated or edited by you).
-    `visa_in_whole_text=False`: the caller scopes the visa ban itself (job-linked emails)."""
+    `visa_in_whole_text=False`: the caller scopes the visa ban itself (job-linked emails).
+    `v17`: the portal-first follow-up (no company-name rule, 110 words in all, duplicates and
+    copies judged on the proof only, the v17 errors)."""
     out: list[dict[str, str]] = []
     folded = oc.fold(text)
     everything = f"{subject}\n{text}"
     out += oc.attachment_violations(everything)
+    if v17:
+        out += v17_violations(text)
     # --- blocking: names, years, honesty, facts without a citation
     if not subject.strip():
         out.append(violation("subject", "The subject is empty", "subject", "error"))
@@ -188,7 +332,7 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     norm_comp = normalize_company(ctx.company) if ctx.company else ""
     named = oc.fold(ctx.company) in oc.fold(everything) or (
         norm_comp and oc.fold(norm_comp) in oc.fold(everything))
-    if ctx.company and not named:
+    if ctx.company and not named and not v17:
         out.append(violation("company", f"The company name “{ctx.company}” isn't mentioned",
                              "body"))
     for claim in bad_years(_facts_without_statement(text, ctx), ctx.allowed_years,
@@ -204,8 +348,11 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
         out.append(violation("snippet", "Listing is a short snippet: constraints like residency or "
                              "a language requirement can't be detected. Paste the full description "
                              "or fetch it, then regenerate", "body"))
-    n = len(oc.words(text)) - len(oc.words(greeting))
-    if n < ctx.min_words or n > ctx.max_words:
+    n = len(oc.words(text)) - (0 if v17 else len(oc.words(greeting)))
+    if v17 and n > ctx.max_words:
+        out.append(violation("length", f"{n} words ({ctx.max_words} or fewer reads best)",
+                             "body"))
+    elif not v17 and (n < ctx.min_words or n > ctx.max_words):
         out.append(violation("length", f"{n} words (about {ctx.min_words}-{ctx.max_words} reads "
                              "best)", "body"))
     tools = [x for x in ic._tools(_facts_without_statement(text, ctx), ctx.pool)
@@ -237,7 +384,8 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
         out.append(violation("constraint", "Say where you are and what you'd need once, in one "
                              "place", "body"))
     for draft_id, to, other in ctx.others:
-        score = oc.similarity(text, other)
+        score = oc.similarity(proof_of(text), proof_of(other)) if v17 and proof_of(
+            text) and proof_of(other) else (0.0 if v17 else oc.similarity(text, other))
         if score >= oc.DUPLICATE_THRESHOLD:
             out.append(violation("duplicate", f"{round(score * 100)}% the same as your draft to "
                                  f"{to} (#{draft_id})", "body"))
@@ -260,21 +408,17 @@ def copies(found: list[dict[str, str]]) -> bool:
 
 
 def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
+    """The proof is the only model-written part: grounded, in plain first person, in pool
+    wording. The greeting, opening and ask are code; the whole body gets the v17 rules."""
     from app.services.letter_check import RESTATE_THRESHOLD, _item_terms, _overlap
 
     out: list[dict[str, str]] = []
-    if not plan.opening.strip():
-        out.append(violation("opening", "Say that you applied (or are applying) for the role",
-                             "opening", "error"))
-    else:
-        out += _visa_banned(plan.opening, "opening")
-    out += _visa_banned(plan.ask, "ask")
     if not plan.experience:
-        out.append(violation("experience", "Add one or two proofs of relevant experience",
-                             "experience", "error"))
+        out.append(violation("experience", "Add one or two sentences of proof from your "
+                             "experience", "experience", "error"))
     elif not MIN_SENTENCES <= len(plan.experience) <= MAX_SENTENCES:  # warning: style
-        out.append(violation("experience", f"{len(plan.experience)} experience sentences: at "
-                             f"most {MAX_SENTENCES} proofs, one sentence each", "experience"))
+        out.append(violation("experience", f"{len(plan.experience)} proof sentences: at "
+                             f"most {MAX_SENTENCES}, one sentence each", "experience"))
     facts = [f for item in ctx.pool.items.values() for f in ctx.pool.facts(item)]
     for i, sentence in enumerate(plan.experience, 1):
         where = f"experience {i}"
@@ -301,47 +445,13 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
                              for t in terms):
             out.append(violation("vague", f"“{sentence.text}” is vague: say what it is and "
                                  "with which tools", where))
-    if len(oc.words(plan.opening)) > MAX_OPENING_WORDS:
-        out.append(violation("opening", f"Keep the opening to saying you applied "
-                             f"(about {MAX_OPENING_WORDS} words): reasons and fit belong in the "
-                             "experience", "opening"))
-    # Company facts: the opening and the ask only restate who and what; any number or tool in
-    # them must come from the pool, the listing or the signals.
-    source = _source_text(ctx)
-    for label, part in (("opening", plan.opening), ("ask", plan.ask)):
-        out += [violation("grounding", f"The {label}: {p}", label, "error")
-                for p in oc._source_problems(part, source)]
-    if plan.signal.text.strip():
-        unknown = [i for i in plan.signal.signal_ids if i not in ctx.signals]
-        if not plan.signal.signal_ids or unknown:
-            out.append(violation("signal", "A company fact must cite a selected signal"
-                                 + (f" (not selected: {unknown})" if unknown else ""),
-                                 "signal", "error"))
-        else:
-            cited = " ".join(ctx.signals[i] for i in plan.signal.signal_ids) + f" {ctx.company}"
-            digits = {re.sub(r"[^\d]", "", n) for n in numbers(cited)}
-            vocab = Vocabulary(cited)
-            out += [violation("signal", f"The signal sentence: “{n}” isn't in the signals",
-                              "signal", "error")
-                    for n in numbers(plan.signal.text)
-                    if re.sub(r"[^\d]", "", n) not in digits]
-            out += [violation("signal", f"The signal sentence: “{t}” isn't in the signals",
-                              "signal", "error")
-                    for t in ic._tools(plan.signal.text) if not vocab.knows(t)]
-            if _INFERENCE.search(plan.signal.text):
-                out.append(violation("signal", "Say what the fact is, not what it shows about "
-                                     "them: that is a guess", "signal"))
-            if ic._longest_run(plan.signal.text, " ".join(
-                    ctx.signals[i] for i in plan.signal.signal_ids)) >= _SIGNAL_RUN:
-                out.append(violation("signal", "Don't recite the company's own description back "
-                                     "to them: say what struck you, in your words", "signal"))
-    for label, part in (("experience", " ".join(s.text for s in plan.experience)),):
-        run = ic._longest_run(part, ctx.job_text)
-        if run >= 7 or _overlap(part, ctx.job_text) >= RESTATE_THRESHOLD:
-            out.append(violation("restates", f"The {label} restates the listing ({run} words in "
-                                 "a row): say it in your own words", label))
+    part = " ".join(s.text for s in plan.experience)
+    run = ic._longest_run(part, ctx.job_text)
+    if run >= 7 or _overlap(part, ctx.job_text) >= RESTATE_THRESHOLD:
+        out.append(violation("restates", f"The proof restates the listing ({run} words in a "
+                             "row): say it in your own words", "experience"))
     subject = subject_line(plan.role, ctx.candidate_name, ctx.language)
-    return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False)
+    return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False, v17=True)
 
 
 def check_text(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]:
@@ -351,5 +461,5 @@ def check_text(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     out = [violation("grounding", p, "body", "error")
            for p in oc._source_problems(rest, _source_text(ctx))]
     return (out + _visa_in_edited_text(text, ctx)
-            + text_rules(subject, text, ctx, visa_in_whole_text=False))
+            + text_rules(subject, text, ctx, visa_in_whole_text=False, v17=True))
 

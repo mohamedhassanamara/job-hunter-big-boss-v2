@@ -244,8 +244,6 @@ class MockEmailDrafter:
     def draft_applied(self, request: EmailRequest, feedback: str = "") -> AppliedEmailPlan:
         """A grounded application follow-up from the request (no model)."""
         fr = request.rules.get("language") == "fr"
-        company, title = request.job.get("company"), request.job.get("title")
-        applied = (request.candidate.get("application") or {}).get("applied")
         role = next((r for r in request.pool.get("roles", []) if r.get("tags")), None)
         experience = []
         if role:
@@ -256,16 +254,7 @@ class MockEmailDrafter:
                       if fr else f"At {role.get('org')}, I built production systems with {tag}, "
                                  "from the first design to release, with a small team."),
                 citations=[role["id"]]))
-        opening = (
-            f"J'ai {'postulé' if applied else 'postule'} au poste de {title} chez {company} et "
-            "je voulais vous écrire directement." if fr else
-            f"I've {'just applied' if applied else 'started applying'} for the {title} role at "
-            f"{company} and wanted to reach out to you directly.")
-        return AppliedEmailPlan(
-            role=str(title), greeting=f"Hi {request.contact.get('first_name')},",
-            opening=opening, experience=experience,
-            ask="Seriez-vous disponible pour un court échange la semaine prochaine ?" if fr
-            else "Would you be open to a brief call next week?")
+        return AppliedEmailPlan(experience=experience)
 
     @staticmethod
     def sample(title: str, company: str, first_name: str) -> tuple[str, str]:

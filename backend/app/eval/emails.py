@@ -90,7 +90,7 @@ def _request(s: Session, example: EmailExample) -> tuple[EmailRequest | None, st
     if inputs.get("mode") == "applied" and not inputs.get("request"):
         app = s.get(Application, inputs.get("application_id") or -1)
         contact = case_contact(s, example, app)
-        cv = outreach.approved_cv(s, app) if app else None
+        cv = outreach.source_cv(s, app) if app else None
         if app is None or contact is None or cv is None:
             return None, example.language
         from app.services.cv_pool import load_pool
@@ -136,7 +136,7 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
             stmt = stmt.where(EmailExample.id == case)
         examples = [e for e in s.exec(stmt).all()
                     if (e.inputs or {}).get("channel") != "linkedin"  # emails only
-                    and e.kind not in ("must_fail", "must_warn")]  # their own sets
+                    and e.kind not in ("must_fail", "must_warn", "retired")]  # own sets / history
         examples = examples[:limit] if limit else examples
         for ex in examples:
             request, language = _request(s, ex)
@@ -226,9 +226,18 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
     from app.services import outreach_check as oc
     from app.services.cv_pool import load_pool
 
-    plan = drafter.draft_applied(request)
-    plan.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
     name = str(request.candidate.get("full_name") or "")
+    job = s.get(Job, app.job_id) if app is not None else None
+    recruiter = ac.is_recruiter(request.contact.get("title"), request.contact.get("role_group"))
+
+    def complete(p: Any) -> None:
+        if job is not None and app is not None:
+            outreach.complete_applied(p, app, job, request, language, recruiter=recruiter)
+        else:
+            p.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
+
+    plan = drafter.draft_applied(request)
+    complete(plan)
     found: list[dict] = []
     contact = case_contact(s, ex, app)
     attempts = 1
@@ -241,7 +250,7 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
             notes = oc.feedback(found) + ("\n- Summarize in your own words" if ac.copies(found)
                                           else "")
             retry = drafter.draft_applied(request, notes)
-            retry.greeting = plan.greeting
+            complete(retry)
             retry_found = ac.check_plan(retry, ctx)
             attempts = 2
             if (len(oc.errors(retry_found)), ac.copies(retry_found)) <= (

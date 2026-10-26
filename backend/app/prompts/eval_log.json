@@ -62,6 +62,13 @@
       "cases": 16,
       "errors": 5,
       "note": "Claude (subscription, --claude) wrote all 16 stored cases with v16 (the prompt with the candidate's name and stack persona removed). Applied mode (10 cases: #8, #9, #11, #12, #13, #18-#24): 0 errors in 9; #12 (GAIA) ends with 1 error, 'cites unknown ids 24', after the one automatic retry; warnings are the usual ones (tools named, copy-of-bullet in #9 and #22, short listing snippets). The 4 errors in the speculative reference cases (#1-#4 Zaion: proofs over 35 words, 154-157 words, 'vague') belong to the old introduction mode, which v16 did not touch. The must_warn set (3 Healy emails) still raises the copy warning (8, 32, 32 words in a row)."
+    },
+    "17": {
+      "report": "data/eval/emails/20261026-213127_outreach_v17.md",
+      "date": "2026-10-26",
+      "cases": 6,
+      "errors": 7,
+      "note": "Portal-first follow-up, plain text, no attachment. The model writes only the 1-2 proof sentences; the subject, greeting, opening (method and date from the application record), ask and signature are code. Run with --claude. The one case in the new structure (#28, written from a real application) has 0 errors; the 7 errors are the old reference_bad/rejected cases (#3, #4, #8), which are bad examples kept as history and are still caught."
     }
   }
 }

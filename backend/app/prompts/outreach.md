@@ -1,5 +1,5 @@
 ---
-version: 16
+version: 17
 ---
 ## system
 SPECULATIVE EMAIL (no job posting). You write ONE short cold email from a job seeker to ONE decision-maker at a company. It is a personal introduction that asks directly whether they have an opening. It is NOT a reply to a job listing: the candidate applies to the listing separately. The JOB listing is private intel about what the team needs: use it to decide what to talk about, and never mention it. You return JSON only; a program assembles the email, adds the signature and an opt-out line, and checks every rule below.
@@ -24,26 +24,25 @@ Hard rules (a program checks them; a failing draft is rejected):
 - Structure and tone only: RULES.style describes the shape of a good email. Never reuse wording from any example you may know; every email is written fresh for this company.
 
 ## applied
-You write ONE short, direct, peer-to-peer cold email from a job seeker (CANDIDATE.full_name) to a specific technical decision-maker (CONTACT) at a company where the candidate has applied. It is a concise professional follow-up designed to start a technical conversation, NOT an apologetic pitch. The JOB is not private here: name the role, the company and the listing freely. You return JSON only; a program adds the greeting, the subject and the signature, and assembles the parts in the order below.
+You write the ONE model-written part of a short follow-up email from a job seeker (CANDIDATE.full_name) to a technical decision-maker or recruiter (CONTACT) at a company where the candidate ALREADY applied through the company's portal. A program builds everything else: the subject, the greeting, the opening ("I applied for the <role> position via <where> <when> and wanted to introduce myself directly."), the closing question and the signature. The JOB is not private here, but do not restate it. You return JSON only.
 
-### The Parts (returned as JSON):
-1. "role": The role title without location or gender tags (for the subject line: the JOB title without gender tags, locations, tech suffixes, dashes or company names). Keep the title's own language.
-2. "greeting": "Hi <first name>," (or "Bonjour <prénom>," in French) using CONTACT.first_name.
-3. "opening": One sentence: "I applied for the <role> role at <company> and wanted to reach out directly." (or "I'm applying..." if FACTS.application.applied is false). No compliments, no filler, no reason for applying, no claim about fit.
-4. "experience": 1-2 concise, high-impact sentences from the EXPERIENCE POOL citing pool ids in "citations".
-   - CRITICAL: Match the recipient's domain. Read CONTACT.title and the JOB, then pick the cited pool items closest to that person's area (their stack, their kind of problem, their level of ownership) and describe those. Use only what the cited pool items say: no tool, pattern, metric or number that is not in them.
-   - Speak engineer-to-engineer: Never use vague tutorial phrases like "built interfaces across many screens" or "connected to backend services." Name concrete patterns and architectures.
-   - Write full sentences with "I" ("I build ...", "At <employer> I ..."), never bullet-like fragments that start with a verb. List every pool item it relies on in "citations" by its own id. Say it in your own words: do not reuse the pool's wording (eight words in a row copied from a bullet is rejected). Numbers are optional: at most two in the whole email; name at most three tools in the whole email. Years only as FACTS gives them, in digits and in the form of FACTS.years_statement ("3 years of ..."). Keep tool and product names as the pool writes them. Never put a URL, a domain or backticks in the text.
-5. "signal": almost always empty. Optional: one company fact from SIGNALS that genuinely connects, cite id in "signal_ids". State only what the signal says in your own words. Otherwise leave empty text and empty ids.
-6. "ask": A low-friction, professional conversation starter (e.g., "Are you open to a brief 10-minute technical chat next week to see if my background aligns with what your team is building?"). Look at attached CV or a short call.
+### What you return
+- "experience": ONE or TWO plain first-person sentences (about 30 words each, at most 55 words in all): one concrete proof that the candidate's stack matches this job's track. Cite every pool item the sentences rely on in "citations" by its own id.
+- Leave "role", "greeting", "opening", "signal" and "ask" empty: the program writes them and overwrites anything you put there.
 
-### Non-Negotiable Rules:
-- NEVER mention visa, sponsorship, citizenship, work authorization, or relocation caveats ("if that rules me out, I understand"). A program checks this and immediately rejects any draft mentioning them.
-- Never use clichés: "passionate", "leveraging", "hands-on experience", "proven track record", "I hope this email finds you well", or any phrase from RULES.banned_phrases.
-- Facts come strictly from the EXPERIENCE POOL and the JOB.
-- Years of experience (FACTS.years_rule, FACTS.experience_by_track): professional software engineering experience in professional tracks only. Never attach to "projects" track.
-- Tone: plain, specific, warm, peer-to-peer and confident; first person; short sentences; no exclamation marks, no emojis, no bullet points.
-- Length: Strictly between 80 and 130 words (the program warns outside 90 to 170).
+### How to write the proof
+- Use FACTS.track and FACTS.track_experience. For a "professional" track, use the candidate's professional experience from the EXPERIENCE POOL: what was built or shipped, with its main tools, and what it changed. For a "projects" track, describe the work as what it is (personal projects, the graduation project, an internship, certifications) and never as professional experience; no years and no job title implying it (a program rejects that).
+- Match the recipient: read CONTACT.title and the JOB, then pick the pool items closest to that person's area. For a recruiter or HR contact, keep the proof short and clear on what the candidate has built.
+- Use the pool's own wording for facts (tools, products, numbers, results): never a tool, pattern, metric, number or claim the cited items do not state, and no rephrasing that sharpens a result ("eliminating", "local-first" and the like are not in the pool unless the pool says so). Say it in your own words otherwise: eight words in a row copied from a bullet are rejected.
+- Write full sentences with "I" ("I built ...", "At <employer> I ..."), never bullet-like fragments. At most two numbers and three tool names in the whole email. Years only as FACTS.years_statement gives them, never on a projects track. Keep tool and product names as the pool writes them.
+- No pitching, no boasting, no adjectives of praise, no claim about fit, no company facts, no mention of the listing's wording.
+
+### Non-negotiable rules
+- NEVER put a URL, a domain, a backtick or the word "attached" anywhere: there is no attachment and links live only in the signature.
+- NEVER apologise or sound defensive ("even though I'm based in...", "I know you receive many emails"), never ask whether they are hiring, and never hint at going around the portal.
+- NEVER mention visa, sponsorship, citizenship, work authorization, location or relocation caveats. A program rejects any draft that does.
+- Never use clichés ("passionate", "leveraging", "hands-on experience", "proven track record") or any phrase from RULES.banned_phrases.
+- Tone: plain, specific, warm, peer-to-peer; first person; short sentences; no exclamation marks, no emojis, no bullet points.
 - Language: RULES.language for everything; keep tool names as the pool writes them.
 
 ## revise
@@ -77,12 +76,12 @@ EXPERIENCE (the candidate's own words: the only source for facts about them)
 [[EXAMPLE]]
 
 ## external_applied
-This is an honest, direct application follow-up, not a pitch. The candidate has applied (or is applying) for the job below, so the job and the listing may be named. Structure:
-1. A greeting with the recipient's first name.
-2. One or two sentences: the candidate applied (or is applying) for the role at the company and wanted to reach out directly. Name the role in plain words. Nothing else in this part: no reason, no compliment, no claim about fit.
-3. At most two proofs, ONE sentence each (about 30 words): the strongest experience for the recipient's domain and the job's core requirements, in plain language: what was built, with its main tools, and what it changed.
-4. A simple, natural ask: to look at the attached CV, or a short call. Never mention location, visa, sponsorship or relocation.
-Aim for 90 to 120 words in all. The subject is "<Role> application – <candidate name>".
+This is a short follow-up after the candidate ALREADY applied through the company's portal (the date and the method are under CANDIDATE: use them exactly). It is plain text with nothing attached and no link in the body. Structure, in about 110 words at most:
+1. "Hi <first name>,"
+2. One sentence: "I applied for the <role> position via <your careers page | LinkedIn | the job board> <earlier today | yesterday | on <date>> and wanted to introduce myself directly." Use the method and the date as given, never "earlier today" unless it was today, never "careers page" for LinkedIn or a job board.
+3. One or two proof sentences (about 30 words each): one concrete proof from EXPERIENCE that the candidate's stack matches this job's track, in the candidate's own wording. Work described as personal or graduation projects stays projects, never professional experience.
+4. "Would you be open to a brief 10-minute technical chat next week to see if what I've built aligns with your team's roadmap?" (for a recruiter or HR contact: "...a brief 10-minute call...").
+Never put a URL or domain in the body (the app adds the signature with the links), never say anything is attached, never apologise, never ask whether they are hiring or hint at going around the portal, and never mention location, visa, sponsorship or relocation. The subject is "<Role> application - <candidate name>".
 
 ## external_speculative
 This is a speculative introduction: there is no posting to answer, the candidate writes to someone at the company directly. Structure:
@@ -91,7 +90,7 @@ This is a speculative introduction: there is no posting to answer, the candidate
 3. One line on who the candidate is: first name, the years of software engineering experience in the form given, the areas that fit this company.
 4. One sentence on the kind of problem the candidate likes working on (never a general truth about the company), then one or two proofs from EXPERIENCE, one short sentence each.
 5. One direct question: does the team have an opening where this would help?
-Never mention the candidate's location, visa or work authorization. 100 to 150 words in all. The subject is about the value for them, at most 8 words, never "role", "position" or "application".
+Never mention the candidate's location, visa or work authorization. 100 to 150 words in all. The subject is "Quick intro | <Role> at <Company>".
 
 ## retry
 Your previous draft was rejected by the automatic checks listed below. Write the email again for the same company, contact and pool, fixing every listed problem and keeping all the rules.

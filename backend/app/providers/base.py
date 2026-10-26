@@ -404,30 +404,23 @@ class IntroEmailPlan(BaseModel):
 
 
 class AppliedEmailPlan(BaseModel):
-    """An honest application follow-up for a job the candidate applied (or is applying) for.
-    Code builds the greeting and the subject and assembles: opening, experience, signal, ask.
-    Immigration, visa and relocation constraints are strictly excluded from cold emails."""
+    """The portal-first follow-up (prompt v17) for a job the candidate already applied to. The
+    model writes ONLY `experience` (1-2 proof sentences); code builds the subject, greeting,
+    opening (from the application record), ask and signature, so the other fields are ignored.
+    Immigration, visa and relocation constraints are strictly excluded."""
 
     model_config = ConfigDict(extra="ignore")
 
-    role: str = Field(description=(
-        "The role's name in plain words for the subject line (e.g. 'Mobile Developer'): the "
-        "JOB title without gender tags, location or tech suffixes"))
-    greeting: str = Field(description="'Hi <first name>,' / 'Bonjour <prénom>,'")
-    opening: str = Field(description=(
-        "One or two sentences: the candidate applied (or is applying) for the role at the "
-        "company and wanted to reach out directly. The role and the listing may be named"))
+    role: str = Field(default="", description="Leave empty: code writes it")
+    greeting: str = Field(default="", description="Leave empty: code writes it")
+    opening: str = Field(default="", description="Leave empty: code writes it")
     experience: list[EmailSentence] = Field(description=(
-        "One or two sentences (at most two proofs, one sentence each) from the EXPERIENCE POOL "
-        "on the experience that best answers the recipient's domain and the listing's core "
-        "requirements, "
-        "plain language, each citing pool ids"))
+        "One or two plain first-person sentences (at most two proofs, one sentence each) from "
+        "the EXPERIENCE POOL: one concrete proof of stack alignment for the job's track, in the "
+        "pool's own wording, each citing pool ids"))
     signal: HookSentence = Field(default_factory=lambda: HookSentence(text=""), description=(
-        "Optional: one company fact from SIGNALS that genuinely adds something, with its id. "
-        "Empty text when none"))
-    ask: str = Field(description=(
-        "A simple, natural ask (a short call or technical chat); a statement or a "
-        "question"))
+        "Leave empty: no company fact in this email"))
+    ask: str = Field(default="", description="Leave empty: code writes it")
 
     @property
     def constraint(self) -> str:

@@ -98,6 +98,8 @@ def build_prompt(s: Session, app_id: int, *, mode: str | None = None,
     company = s.get(Company, job.company_id)
     contact = s.get(Contact, app.contact_id) if app.contact_id else None
     mode = ou.email_mode(job, mode)
+    if mode == "applied" and (reason := ou.applied_gate(s, app, job)):
+        raise ExternalError(reason)
     pool = load_pool(s)
     choice = ou.language_choice(s, job, app, language)
     listing = f"{job.title}\n{job.description or ''}".strip()
@@ -118,9 +120,10 @@ def build_prompt(s: Session, app_id: int, *, mode: str | None = None,
                          + "; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in where.items()
                                      if v))
     if mode == "applied":
-        candidate.append("Application: " + ("already applied on "
-                                            f"{app.web_applied_at.date().isoformat()}"
-                                            if app.web_applied_at else "applying now"))
+        facts_ = ou.application_facts(app)
+        candidate.append(f"Application: applied on {facts_['date']} via "
+                         f"{(facts_['method'] or '').replace('_', ' ')}; track: "
+                         f"{job.matched_track or 'unknown'}")
     recipient = (f"First name: {ou._first_name(contact)}\nFull name: {contact.full_name}\n"
                  f"Role: {contact.title or 'unknown'}" if contact
                  else "(no contact yet: address the email to the hiring team)")
@@ -197,15 +200,18 @@ def check_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifi
         raise ExternalError("Paste the draft first")
     job, company, contact = _contact_for(s, app)
     mode = ou.email_mode(job, mode)
+    if mode == "applied" and (reason := ou.applied_gate(s, app, job)):
+        raise ExternalError(reason)
     pool = load_pool(s)
     choice = ou.language_choice(s, job, app, language)
     subject, body = split_pasted(text, (pool.profile.get("full_name") or "").strip())
     if not subject:
         subject = (ac.subject_line("", pool.profile.get("full_name") or "", choice.language)
-                   if mode == "applied" else ic.subject_line(company.name, choice.language))
+                   if mode == "applied" else ac.speculative_subject(
+                       job.title, company.name, choice.language))
     found = _code_checks(s, app, job, company, contact, pool, subject, body, mode, choice.language)
     draft = OutreachDraft(application_id=app.id, contact_id=contact.id, subject=subject,
-                          body=body, cv_version_id=(ou.approved_cv(s, app) or CVVersion()).id,
+                          body=body, cv_version_id=(ou.source_cv(s, app) or CVVersion()).id,
                           plan={"language": choice.language, "format": _format(mode)})
     record = _verify(s, app, job, draft, verifier_, mode)
     return {"subject": subject, "body": body, "mode": mode, "language": choice.as_dict(),
@@ -231,7 +237,7 @@ def _verify(s: Session, app: Application, job: Job, draft: OutreachDraft, verifi
             mode: str) -> dict[str, Any]:
     """The same sources the approval uses, on the text exactly as it would be sent."""
     pool = load_pool(s)
-    cv = ou.approved_cv(s, app)
+    cv = ou.source_cv(s, app)
     sources = verifier.candidate_sources(s, pool, cv) \
         | verifier.signal_sources(s, job.company_id, None) \
         | verifier.recipient_source(s, job, draft.contact_id)
@@ -250,9 +256,7 @@ def save_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifie
     if app is None:
         raise ExternalError("Application not found")
     job, company, contact = _contact_for(s, app)
-    cv = ou.approved_cv(s, app)
-    if cv is None:
-        raise ExternalError("Approve the CV first: the email is written from it")
+    cv = ou.source_cv(s, app)
     if not contact.email:
         raise ExternalError(f"{contact.full_name} has no email address")
     checked = check_pasted(s, app_id, text, mode=mode, verifier_=verifier_, language=language)
@@ -264,8 +268,9 @@ def save_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifie
         s.add(old)
     draft = OutreachDraft(
         application_id=app_id, contact_id=contact.id, subject=checked["subject"],
-        body=checked["body"], model="external AI (pasted)", cv_version_id=cv.id,
-        plan={"format": _format(mode), "mode": mode, "source": "external", "plan": {},
+        body=checked["body"], model="external AI (pasted)", cv_version_id=cv.id if cv else None,
+        plan={"delivery": "text", "format": _format(mode), "mode": mode, "source": "external",
+              "plan": {},
               "attempts": 1, "language": checked["language"]["language"],
               "language_choice": checked["language"], "intro_line": "", "signals": [],
               "application": ou.application_facts(app), "via": "external",

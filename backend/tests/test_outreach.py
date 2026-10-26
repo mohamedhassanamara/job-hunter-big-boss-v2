@@ -65,7 +65,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v16"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v17"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]
@@ -239,7 +239,7 @@ def test_generate_retries_once_with_the_problems_then_stores_the_draft(job_ready
     assert draft.cv_version_id == job_ready["cv"] and draft.body.startswith("Hi Ana,")
     with Session(engine) as s:
         body = outreach.full_body(s, s.get(OutreachDraft, draft.id))
-    assert body.rstrip().endswith("Alex Sample")  # signature added by code; no last line
+    assert "Alex Sample" in body.rstrip().splitlines()[-2:]  # name, then the links line
 
 
 def test_a_still_failing_draft_is_kept_with_its_problems_and_cant_be_approved(
@@ -480,12 +480,16 @@ def test_the_signature_ends_with_the_name_unless_contacts_are_on() -> None:
            "signature": {"name": "Alex", "title": "Engineer", "email": "a@x.test",
                          "phone": "+1 555", "linkedin": "https://www.linkedin.com/in/alex/",
                          "show_phone": False}}
-    assert outreach.signature_block(cfg) == "Best regards,\nAlex"
+    links = outreach.candidate_links(cfg, [
+        {"type": "portfolio", "url": "https://alex.example.dev"},
+        {"type": "github", "url": "https://github.com/alex"}])
+    assert links == "alex.example.dev · github.com/alex · linkedin.com/in/alex"
+    assert outreach.signature_block(cfg, "en", links) == f"Best regards,\nAlex\n{links}"
     cfg["signature"]["show_contacts"] = True
-    block = outreach.signature_block(cfg)
+    block = outreach.signature_block(cfg, "en", links)
     assert "+1 555" not in block and "linkedin.com/in/alex" in block and "a@x.test" in block
     cfg["signature"]["show_phone"] = True
-    assert "+1 555" in outreach.signature_block(cfg)
+    assert "+1 555" in outreach.signature_block(cfg, "en", links)
 
 
 def test_the_phone_toggle_saves_from_settings(client) -> None:  # noqa: ANN001

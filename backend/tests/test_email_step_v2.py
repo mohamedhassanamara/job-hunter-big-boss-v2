@@ -392,7 +392,7 @@ def test_the_prompt_is_self_contained_and_leaves_private_data_out(job_ready: dic
         assert private not in prompt
     assert "Write the whole email in English" in prompt and out["language"]["language"] == "en"
     assert "never add a tool" in prompt.lower() or "Never add a tool" in prompt
-    assert "at most two proofs" in prompt.lower()
+    assert "one or two proof sentences" in prompt.lower()
     assert "Only paste it into AI tools you trust" in out["note"]
     assert out["items"] and out["mode"] == "applied"
 
@@ -407,9 +407,9 @@ def test_the_mode_changes_the_structure_and_the_language_rule_is_in_the_prompt(
         applied = external_ai.build_prompt(s, job_ready["app"], mode="applied")
         speculative = external_ai.build_prompt(s, job_ready["app"], mode="speculative")
         french = external_ai.build_prompt(s, job_ready["app"], mode="applied", language="fr")
-    assert "application follow-up" in applied["prompt"]
+    assert "short follow-up after the candidate already applied" in applied["prompt"].lower()
     assert "speculative introduction" in speculative["prompt"]
-    assert "application follow-up" not in speculative["prompt"]
+    assert "follow-up after the candidate" not in speculative["prompt"]
     assert applied["language"]["detected"] == "de" and "Write the whole email in English" \
         in applied["prompt"] and "German" in applied["prompt"]
     assert "Write the whole email in French" in french["prompt"]

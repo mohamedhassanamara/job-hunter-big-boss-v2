@@ -9,6 +9,7 @@ signature and the opt-out line come from Settings → Email and are added at pre
 import re
 import threading
 import time
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import Engine
@@ -32,6 +33,7 @@ from app.providers.base import (
     EmailDrafter,
     EmailDraftPlan,
     EmailRequest,
+    HookSentence,
     Mailer,
     OutgoingEmail,
     SendFailed,
@@ -292,19 +294,37 @@ def body_text(plan: EmailDraftPlan) -> str:
     return f"{plan.greeting}\n\n{' '.join(s.text for s in plan.sentences)}\n\n{plan.ask}"
 
 
-def signature_block(cfg: dict[str, Any], language: str = "en") -> str:
+def _display_link(url: str) -> str:
+    return re.sub(r"^https?://(www\.)?", "", (url or "").strip()).rstrip("/")
+
+
+def candidate_links(cfg: dict[str, Any], profile_links: list[dict[str, Any]]) -> str:
+    """"<portfolio> · <github> · <linkedin>" from Settings → Candidate links (LinkedIn may be
+    overridden in Settings → Email). Only the ones that are set."""
+    def first(kind: str) -> str:
+        return next((x.get("url") for x in profile_links
+                     if x.get("type") == kind and x.get("url")), "")
+
+    linkedin = cfg["signature"].get("linkedin") or first("linkedin")
+    urls = [first("portfolio"), first("github"), linkedin]
+    return " · ".join(_display_link(u) for u in urls if u)
+
+
+def signature_block(cfg: dict[str, Any], language: str = "en",
+                    links: str = "") -> str:
+    """Sign-off, your name, then your links on one line (the email carries no attachment, so
+    this is where they live). Title, email and phone are opt-in (Settings → Email)."""
     sig = cfg["signature"]
     sign_off = (cfg.get("sign_off_fr") if language == "fr" else None) or cfg.get("sign_off") \
         or "Best regards,"
-    lines = [sign_off, sig.get("name") or ""]
+    lines = [sign_off, sig.get("name") or "", links]
     if not sig.get("show_contacts"):
-        return "\n".join(x for x in lines if x)  # "Best regards," and your name, nothing else
+        return "\n".join(x for x in lines if x)
     if sig.get("title"):
         lines.append(sig["title"])
     # The phone number reveals the country code: off unless you turn it on (Settings → Email).
     phone = sig.get("phone") if sig.get("show_phone") else ""
-    linkedin = re.sub(r"^https?://(www\.)?", "", (sig.get("linkedin") or "").strip()).rstrip("/")
-    reach = " · ".join(x for x in (sig.get("email"), phone, linkedin) if x)
+    reach = " · ".join(x for x in (sig.get("email"), phone) if x)
     if reach:
         lines.append(reach)
     return "\n".join(x for x in lines if x)
@@ -314,7 +334,8 @@ def full_body(s: Session, draft: OutreachDraft) -> str:
     """The email as it is sent: your text and the signature (plus your last line, if set)."""
     cfg = outreach_settings(s)
     language = (draft.plan or {}).get("language") or "en"
-    parts = [draft.body.strip(), signature_block(cfg, language)]
+    links = candidate_links(cfg, _setting(s, "profile").get("links") or [])
+    parts = [draft.body.strip(), signature_block(cfg, language, links)]
     opt_out = (cfg.get("opt_out_fr") if language == "fr" else None) or cfg.get("opt_out")
     if opt_out:
         parts.append(opt_out)
@@ -491,7 +512,7 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
 
             def checked(plan: Any) -> tuple[str, list[dict[str, str]], dict[str, Any]]:
                 plan.greeting = ic.greeting_line(request.contact["first_name"], language)
-                plan.subject = ic.subject_line(company.name, language)  # code, not the model
+                plan.subject = ac.speculative_subject(job.title, company.name, language)  # code
                 intro = ic.intro_line(first, plan.intro_focus, language, english, french)
                 ctx = intro_context(s, app, job, company, contact, pool, language=language,
                                     intro=intro)
@@ -821,9 +842,12 @@ def logistics(pool: Pool) -> dict[str, str]:
 
 
 def application_facts(app: Application) -> dict[str, Any]:
-    """Whether the application is already sent (Mark applied), for the opening's tense."""
+    """The application record the opening is built from: whether it went in (Mark applied), when,
+    and how (company site, job board or LinkedIn). `reference` is None: the app stores none."""
     return {"applied": app.web_applied_at is not None,
-            "date": app.web_applied_at.date().isoformat() if app.web_applied_at else None}
+            "date": app.web_applied_at.date().isoformat() if app.web_applied_at else None,
+            "method": str(app.web_method) if app.web_method else None,
+            "reference": None}
 
 
 def applied_context(s: Session, app: Application, job: Job, company: Company, contact: Contact,
@@ -839,7 +863,7 @@ def applied_context(s: Session, app: Application, job: Job, company: Company, co
 
 def applied_request(s: Session, app: Application, job: Job, company: Company, contact: Contact,
                     cv: CVVersion, pool: Pool, language: str) -> EmailRequest:
-    from app.services import honesty, research
+    from app.services import honesty
     from app.services.cover_letter import _statements
     from app.services.cv_service import _tracks
 
@@ -859,17 +883,17 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
                      [i.title for i in pool.of("skill")], hr),
                  **honesty.prompt_facts(hr), "logistics": logistics(pool),
                  "application": application_facts(app),
+                 "track": job.matched_track,
+                 "track_experience": "projects" if job.matched_track in projects
+                 else "professional",
                  "current_role": request.candidate.get("current_role")}
-    signals = [{"id": x.id, "kind": x.kind, "fact": x.fact, "quote": x.quote}
-               for x in research.signals(s, company.id, selected_only=True)]
-    rules = {"language": language, "min_words": ac.MIN_WORDS, "max_words": ac.MAX_WORDS,
+    rules = {"language": language, "max_words": ac.MAX_WORDS,
              "banned_phrases": request.rules.get("banned_phrases"),
-             "jargon": request.rules.get("jargon"), "signals": signals,
-             "style": "a concise, professional peer-to-peer follow-up: say you applied (or are "
-                      "applying) and wanted to reach out directly; 1-2 high-impact technical proof "
-                      "points from your experience pool adapted to the recipient's domain and "
-                      "title; a low-friction technical conversation ask. Never mention visa, "
-                      "sponsorship or relocation.",
+             "jargon": request.rules.get("jargon"), "signals": [],
+             "style": "only the proof: one or two plain first-person sentences, one concrete "
+                      "proof of stack alignment for the job's track, in the pool's own wording. "
+                      "The program writes the rest. No link, no apology, no mention of an "
+                      "attachment, visa, sponsorship, location or relocation.",
              "style_reference": applied_references(s)}
     return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
                         pool=request.pool, rules=rules)
@@ -881,6 +905,21 @@ def add_revision(request: EmailRequest, base: OutreachDraft | None, feedback: st
     if base is not None and (feedback or "").strip():
         request.rules["revision"] = {"previous_subject": base.subject,
                                      "previous_body": base.body, "feedback": feedback.strip()}
+
+
+def complete_applied(plan: Any, app: Application, job: Job, request: EmailRequest,
+                     language: str, variant: int = 0, *, recruiter: bool = False) -> None:
+    """Everything but the proof, built from the application record: the role, the greeting, the
+    opening (how and when you applied) and the ask. The model's own values are overwritten."""
+    facts = application_facts(app)
+    plan.role = ac.plain_role(job.title)
+    plan.greeting = ic.greeting_line(request.contact["first_name"], language)
+    plan.opening = ac.opening_line(
+        plan.role, facts["method"], job.source,
+        app.web_applied_at.date() if app.web_applied_at else None,
+        datetime.now().astimezone().date(), language, variant)
+    plan.ask = ac.cta_line(language, recruiter)
+    plan.signal = HookSentence(text="")
 
 
 def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any = None,
@@ -918,9 +957,13 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
             base = s.get(OutreachDraft, base_draft_id) if base_draft_id else None
             add_revision(request, base, feedback)
             ctx = applied_context(s, app, job, company, contact, pool, language=language)
+            variant = len(s.exec(select(OutreachDraft.id).where(
+                OutreachDraft.application_id == app_id)).all())  # a new wording each time
 
             def checked(plan: Any) -> list[dict[str, str]]:
-                plan.greeting = ic.greeting_line(request.contact["first_name"], language)
+                complete_applied(plan, app, job, request, language, variant,
+                                 recruiter=ac.is_recruiter(contact.title,
+                                                           request.contact.get("role_group")))
                 return ac.check_plan(plan, ctx)
 
             started = time.monotonic()

@@ -205,8 +205,12 @@ def application_line(app: Application) -> str:
     from app.services.outreach import application_facts
 
     facts = application_facts(app)
-    return "\nApplication: " + (f"the candidate applied for this job on {facts['date']}"
-                                if facts["applied"] else "the candidate is applying for this job")
+    if not facts["applied"]:
+        return "\nApplication: the candidate is applying for this job"
+    how = {"company_site": "the company's own careers site", "job_board": "a job board",
+           "linkedin": "LinkedIn"}.get(facts["method"] or "", "")
+    return (f"\nApplication: the candidate applied for this job on {facts['date']}"
+            + (f", through {how}" if how else ""))
 
 
 def _approved_cv(s: Session, app_id: int) -> CVVersion | None:

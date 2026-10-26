@@ -1,13 +1,17 @@
-"""The job-linked email (prompt v11, mode "applied"): an honest application follow-up. Only facts
-block (pool, listing and signals, names, years, honesty); style is a warning; the old research-
-based introduction stays as the "speculative" mode. Offline: the mock drafter, no model."""
+"""The job-linked email (prompt v17, mode "applied"): the portal-first follow-up. Code builds the
+subject, greeting, opening (from the application record), ask and signature; the model writes
+only the proof. Facts, names, years, links, apologies and attachment wording block; length and
+style warn. The research-based introduction stays as the "speculative" mode. Offline: the mock
+drafter, no model."""
+
+from datetime import date
 
 import pytest
 from sqlmodel import Session, select
 
 from app.db import engine
 from app.models import Application, EmailExample, Job
-from app.providers.base import AppliedEmailPlan, EmailSentence, HookSentence
+from app.providers.base import AppliedEmailPlan, EmailSentence
 from app.providers.mock import MockEmailDrafter
 from app.services import applied_check as ac
 from app.services import intro_check as ic
@@ -47,16 +51,20 @@ def ctx_for(job_ready: dict, job_text: str = "Data Engineer\nWe build data pipel
 def plan(job_ready: dict, **kw) -> AppliedEmailPlan:  # noqa: F811, ANN003
     base = dict(
         role="Data Engineer", greeting="Hi Ana,",
-        opening="I've just applied for the Data Engineer role at Voxa and wanted to reach out "
-                "to you directly.",
+        opening=ac.opening_line("Data Engineer", "company_site", "adzuna", date(2026, 10, 20),
+                                date(2026, 10, 26), "en"),
         experience=[
             EmailSentence(text=f"At {job_ready['org']}, I built data pipelines with "
                                f"{job_ready['tag']}, from the first design to production, for "
                                "a small team.", citations=[job_ready["role"]]),
             EmailSentence(text="I like keeping them reliable as the volume grows.",
                           citations=[job_ready["role"]])],
-        ask="Would you be open to a brief call next week?")
+        ask=ac.cta_line("en"))
     return AppliedEmailPlan(**{**base, **kw})
+
+
+def good_body(job_ready: dict) -> str:  # noqa: F811
+    return ac.body(plan(job_ready))
 
 
 # ------------------------------------------------------------------------------------ mode
@@ -74,10 +82,12 @@ def test_a_job_with_a_posting_is_applied_and_one_without_is_speculative() -> Non
 
 
 def test_the_subject_is_role_application_and_your_name() -> None:
-    assert ac.subject_line("Mobile Developer", "Mohamed Hassen Amara", "en") \
-        == "Mobile Developer application – Mohamed Hassen Amara"
+    assert ac.subject_line("Mobile Developer", "Alex Doe", "en") \
+        == "Mobile Developer application - Alex Doe"
     assert ac.subject_line("Développeur mobile", "Alex Doe", "fr") \
-        == "Candidature Développeur mobile – Alex Doe"
+        == "Candidature Développeur mobile - Alex Doe"
+    assert ac.speculative_subject("Data Engineer (m/w/d) – Berlin", "Voxa", "en") \
+        == "Quick intro | Data Engineer at Voxa"
     assert ac.plain_role("Mobile Engineer (m/w/d) – Flutter, Enterprise-App") == "Mobile Engineer"
     assert ac.plain_role("Senior Backend Engineer – Platform") == "Senior Backend Engineer"
     assert ac.plain_role("Full-Stack Developer") == "Full-Stack Developer"
@@ -91,10 +101,10 @@ def test_generate_writes_the_application_follow_up_without_researching(
     d = outreach.generate(engine, job_ready["app"], MockEmailDrafter(), researcher=NoResearch(),
                           hook_checker=NoResearch())
     assert d.plan["format"] == "applied" and d.plan["mode"] == "applied"
-    assert d.subject.startswith("Data Engineer application – ")
+    assert d.subject.startswith("Data Engineer application - ")
     parts = d.body.split("\n\n")
     assert parts[0] == "Hi Ana," and "applied" in parts[1] and "Data Engineer" in parts[1]
-    assert parts[-1].endswith("call next week?")  # a natural ask, not a forced question
+    assert parts[-1].endswith("roadmap?")  # the ask is built by code
     assert not errors(d.violations), d.violations
     assert d.plan["application"]["applied"] is True  # portal first: the gate needs it
     assert "snippet" in warnings(d.violations)  # the fixture's listing is one short line
@@ -133,20 +143,21 @@ def test_what_the_old_rules_blocked_is_now_allowed(job_ready: dict) -> None:  # 
         plan(job_ready, ask="Would you be open to a quick call?"),
         ctx_for(job_ready, job_text=f"Data Engineer\n{RESIDENCY} We build data pipelines."))
     assert errors(found) == set(), found
-    assert "length" in warnings(found)  # the 90-170 range is a warning, never a block
+    assert "length" not in warnings(found)  # well under 110 words
 
 
-@pytest.mark.parametrize("ask", ["I've attached my CV.", "Please find my CV attached.",
-                                 "I have attached my resume.", "Mon CV est ci-joint."])
-def test_attachment_wording_is_a_blocking_error(job_ready: dict, ask: str) -> None:  # noqa: F811
-    found = ac.check_plan(plan(job_ready, ask=ask), ctx_for(job_ready))
+@pytest.mark.parametrize("sentence", [
+    "I've attached my CV.", "Please find my CV attached.", "I have attached my resume.",
+    "Mon CV est ci-joint."])
+def test_attachment_wording_is_a_blocking_error(job_ready: dict, sentence: str) -> None:  # noqa: F811
+    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " " + sentence,
+                          ctx_for(job_ready))
     assert "attachment" in errors(found), found
 
 
 def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dict) -> None:  # noqa: F811
-    say = plan(job_ready, opening="I've just applied for Data Engineer at Voxa, though I "
-                                  "would need visa sponsorship.")
-    found = ac.check_plan(say, ctx_for(job_ready))
+    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " I would need visa "
+                          "sponsorship.", ctx_for(job_ready))
     assert "visa_disclaimer_banned" in errors(found)
 
     say_exp = plan(job_ready, experience=[EmailSentence(
@@ -156,8 +167,7 @@ def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dic
 
 
 def test_body_assembly_excludes_constraints(job_ready: dict) -> None:  # noqa: F811
-    p = plan(job_ready, ask="Would you look at my CV?")
-    body_text = ac.body(p)
+    body_text = ac.body(plan(job_ready))
     assert "visa" not in body_text.lower()
     assert "sponsorship" not in body_text.lower()
     assert "relocation" not in body_text.lower()
@@ -166,28 +176,21 @@ def test_body_assembly_excludes_constraints(job_ready: dict) -> None:  # noqa: F
 @pytest.mark.parametrize(("change", "expected"), [
     ({"experience": [EmailSentence(text="I built it with Kafka and Terraform at scale.",
                                    citations=[0])]}, "grounding"),
-    ({"opening": "I applied for the Data Engineer role at Voxa with 12 years behind me."},
-     "years"),
+    ({"experience": [EmailSentence(text="I have 12 years of experience building pipelines.",
+                                   citations=[0])]}, "years"),
     ({"greeting": "Hi Bob,"}, "name"),
-    ({"opening": "I applied for the Data Engineer role at Zeta and wanted to reach out."},
+    ({"experience": [EmailSentence(text="I built pipelines at Zeta.", citations=[0])]},
      "company"),
-    ({"signal": HookSentence(text="Voxa grew 45% last year.", signal_ids=[7])}, "signal"),
-    ({"signal": HookSentence(text="Voxa helps insurers.", signal_ids=[])}, "signal"),
     ({"experience": []}, "experience"),
-    ({"opening": ""}, "opening"),
 ])
 def test_only_facts_names_and_years_block(job_ready: dict, change: dict, expected: str) -> None:  # noqa: F811
-    p = plan(job_ready, **change)
-    if expected == "name":
-        p.greeting = "Hi Bob,"
-    found = ac.check_plan(p, ctx_for(job_ready))
+    found = ac.check_plan(plan(job_ready, **change), ctx_for(job_ready))
     assert expected in errors(found), found
 
 
 def test_style_is_only_a_warning(job_ready: dict) -> None:  # noqa: F811
-    found = ac.check_plan(
-        plan(job_ready, ask="Let's synergize!", opening="I applied for the Data Engineer role at "
-             "Voxa. I am passionate about it!"), ctx_for(job_ready, banned=["synergize"]))
+    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " Let's synergize!",
+                          ctx_for(job_ready, banned=["synergize"]))
     assert errors(found) == set(), found
     assert {"banned", "tone"} <= warnings(found)
 
@@ -260,39 +263,11 @@ def test_your_languages_are_facts_the_verifier_can_use(job_ready: dict) -> None:
     assert "English (Full professional), French (Native) (no other language is claimed)" in facts
 
 
-def test_a_long_opening_that_argues_a_fit_is_warned(job_ready: dict) -> None:  # noqa: F811
-    found = ac.check_plan(plan(job_ready, opening=(
-        "I've just applied for the Data Engineer role at Voxa and wanted to reach out directly, "
-        "since your insurance automation work is close to everything I have been building lately "
-        "in my own projects, and I would love to bring that same energy and care to your team "
-        "this year.")), ctx_for(job_ready))
-    assert errors(found) == set() and "opening" in warnings(found)
-
-
-def test_a_signal_is_optional_and_never_recited(job_ready: dict) -> None:  # noqa: F811
-    ok = ac.check_plan(plan(job_ready, signal=HookSentence(
-        text="The 37% automation a mutual insurer reached with you is what drew me in.",
-        signal_ids=[7])), ctx_for(job_ready))
-    assert errors(ok) == set()
-    recited = ac.check_plan(plan(job_ready, signal=HookSentence(
-        text="A mutual insurer automated 37% of its incoming requests with you.",
-        signal_ids=[7])), ctx_for(job_ready, signals={
-            7: "A mutual insurer automated 37% of its incoming requests with you."}))
-    assert errors(recited) == set() and "signal" in warnings(recited)
-
-
-def test_a_signal_that_guesses_what_it_shows_is_warned(job_ready: dict) -> None:  # noqa: F811
-    found = ac.check_plan(plan(job_ready, signal=HookSentence(
-        text="A mutual insurer reached 37% automation, which says a lot about how you work.",
-        signal_ids=[7])), ctx_for(job_ready))
-    assert errors(found) == set() and "signal" in warnings(found)
-
-
 def test_an_edited_email_keeps_the_fact_checks_and_only_warns_about_style(
         job_ready: dict) -> None:  # noqa: F811
     ctx = ctx_for(job_ready)
     ok = "Hi Ana,\n\nI applied for the Data Engineer role at Voxa.\n\nI built pipelines."
-    assert errors(ac.check_text("Data Engineer application – Alex Doe", ok, ctx)) == set()
+    assert errors(ac.check_text("Data Engineer application - Alex Doe", ok, ctx)) == set()
     bad = ok + " I also run Kubernetes clusters with 99% uptime."
     assert "grounding" in errors(ac.check_text("S", bad, ctx))
     assert "subject" in errors(ac.check_text("", ok, ctx))
@@ -375,9 +350,8 @@ def test_experience_is_written_with_i_not_as_a_fragment(job_ready: dict) -> None
 
 
 def test_numbers_and_tools_are_counted_over_the_whole_email(job_ready: dict) -> None:  # noqa: F811
-    busy = plan(job_ready, ask="I cut costs by 40%, load times by 30% and errors by 15%: "
-                               "would you look at my CV?")
-    found = ac.check_plan(busy, ctx_for(job_ready))
+    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " I cut costs by 40%, load "
+                          "times by 30% and errors by 15%.", ctx_for(job_ready))
     assert "numbers" in warnings(found)
     assert "numbers" not in warnings(ac.check_plan(plan(job_ready), ctx_for(job_ready)))
 
@@ -391,9 +365,8 @@ def test_a_language_requirement_does_not_allow_mentioning_your_visa(
         job_ready: dict) -> None:  # noqa: F811
     only_language = ctx_for(job_ready, job_text="Data Engineer\nBusiness fluent in English "
                             "required. We are based in Berlin.")
-    say = plan(job_ready, opening="I applied for Data Engineer at Voxa and would need visa "
-                                  "sponsorship.")
-    found = ac.check_plan(say, only_language)
+    found = ac.check_text("Role", good_body(job_ready) + " I would need visa sponsorship.",
+                          only_language)
     assert "visa_disclaimer_banned" in errors(found)
 
 
@@ -468,20 +441,125 @@ def test_the_visa_ban_covers_the_ask_and_german_and_french_terms(job_ready: dict
     for words in ("Ich brauche eine Arbeitserlaubnis", "Mein Aufenthalt ist befristet",
                   "J'ai besoin d'un titre de séjour", "une question de parrainage",
                   "an Umzug wäre nötig"):
-        in_opening = plan(job_ready, opening=f"I've just applied for the role at Voxa. {words}.")
-        assert "visa_disclaimer_banned" in errors(ac.check_plan(in_opening, ctx_for(job_ready)))
-    in_ask = plan(job_ready, ask="Could we talk about visa sponsorship?")
-    assert "visa_disclaimer_banned" in errors(ac.check_plan(in_ask, ctx_for(job_ready)))
+        in_proof = plan(job_ready, experience=[EmailSentence(
+            text=f"I built pipelines. {words}.", citations=[job_ready["role"]])])
+        assert "visa_disclaimer_banned" in errors(ac.check_plan(in_proof, ctx_for(job_ready)))
+        edited = good_body(job_ready) + f" {words}."
+        assert "visa_disclaimer_banned" in errors(ac.check_text("S", edited, ctx_for(job_ready)))
 
 
-def test_a_signal_or_company_fact_may_use_the_words(job_ready: dict) -> None:  # noqa: F811
+def test_a_company_fact_paragraph_may_use_the_words(job_ready: dict) -> None:  # noqa: F811
     fact = "Voxa sponsors a data conference every year"
     ctx = ctx_for(job_ready, signals={7: fact})
-    say = plan(job_ready, signal=HookSentence(text=fact + ".", signal_ids=[7]))
-    found = ac.check_plan(say, ctx)
-    assert "visa_disclaimer_banned" not in {v["type"] for v in found}, found
-    # an edited email: the paragraph that carries the company fact is left alone, the rest is not
-    text = ac.body(say)
+    text = good_body(job_ready) + f"\n\n{fact}."
     assert "visa_disclaimer_banned" not in {v["type"] for v in ac.check_text("Role", text, ctx)}
-    edited = text.replace("next week?", "next week? I need a visa.")
+    edited = text.replace("roadmap?", "roadmap? I need a visa.")
     assert "visa_disclaimer_banned" in errors(ac.check_text("Role", edited, ctx))
+
+
+# ------------------------------------------------------------------ v17: built by code
+
+
+TODAY = date(2026, 10, 26)
+
+
+def test_the_opening_says_how_and_when_from_the_application_record() -> None:
+    today = ac.opening_line("Mobile Engineer", "company_site", "adzuna", TODAY, TODAY, "en")
+    assert today == ("I applied for the Mobile Engineer position via your careers page earlier "
+                     "today and wanted to introduce myself directly.")
+    assert "yesterday" in ac.opening_line("X", "linkedin", None, date(2026, 10, 25), TODAY, "en")
+    assert "on 12 October" in ac.opening_line("X", "company_site", None, date(2026, 10, 12),
+                                              TODAY, "en")
+    assert "earlier today" not in ac.opening_line("X", "company_site", None,
+                                                  date(2026, 10, 25), TODAY, "en")
+
+
+@pytest.mark.parametrize("variant", range(ac.VARIANTS))
+def test_a_linkedin_or_board_application_never_says_careers_page(variant: int) -> None:
+    linkedin = ac.opening_line("Engineer", "linkedin", "adzuna", TODAY, TODAY, "en", variant)
+    board = ac.opening_line("Engineer", "job_board", "wttj", TODAY, TODAY, "en", variant)
+    assert "LinkedIn" in linkedin and "careers" not in linkedin
+    assert "Welcome to the Jungle" in board and "careers" not in board
+    assert "a job board" in ac.opening_line("E", "job_board", "boards", TODAY, TODAY, "en", variant)
+    assert "Engineer" in board and board.endswith("introduce myself directly.")
+
+
+def test_the_wordings_rotate_and_french_is_built_too() -> None:
+    lines = {ac.opening_line("E", "company_site", None, TODAY, TODAY, "en", v)
+             for v in range(ac.VARIANTS)}
+    assert len(lines) == ac.VARIANTS
+    fr = ac.opening_line("Ingénieur", "company_site", None, date(2026, 10, 25), TODAY, "fr")
+    assert fr.startswith("J'ai postulé au poste de Ingénieur via votre site carrières hier")
+
+
+def test_the_ask_is_a_chat_for_engineers_and_a_call_for_recruiters() -> None:
+    assert "brief 10-minute technical chat next week" in ac.cta_line("en")
+    assert "brief 10-minute call next week" in ac.cta_line("en", recruiter=True)
+    assert ac.is_recruiter("Senior Technical Recruiter") and ac.is_recruiter("Head of People")
+    assert not ac.is_recruiter("CTO", "Engineering leader")
+
+
+@pytest.mark.parametrize(("text", "kind"), [
+    ("See https://portfolio.example/work for details.", "url"),
+    ("More on mysite.dev please.", "url"),
+    ("Even though I'm based in Tunis, I can work remotely.", "apology"),
+    ("I know you receive many emails.", "apology"),
+    ("Sorry to bother you.", "apology"),
+    ("Are you hiring right now?", "bypass"),
+    ("I'm writing instead of the portal because it is faster.", "bypass"),
+])
+def test_links_apologies_and_bypass_wording_block(job_ready: dict, text: str, kind: str) -> None:  # noqa: F811
+    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " " + text, ctx_for(job_ready))
+    assert kind in errors(found), found
+
+
+def test_more_than_110_words_is_only_a_warning(job_ready: dict) -> None:  # noqa: F811
+    wordy = good_body(job_ready) + " " + "I enjoy this work a lot. " * 12
+    found = ac.check_text("S - Alex Doe", wordy, ctx_for(job_ready))
+    assert "length" in warnings(found) and "length" not in errors(found)
+    assert "length" not in warnings(ac.check_text("S - Alex Doe", good_body(job_ready),
+                                                  ctx_for(job_ready)))
+
+
+def test_the_duplicate_check_looks_at_the_proof_only(job_ready: dict) -> None:  # noqa: F811
+    mine = good_body(job_ready)
+    same_proof = mine.replace("Hi Ana,", "Hi Bob,").replace("Data Engineer position", "Role")
+    other = (1, "Bob", same_proof)
+    assert "duplicate" in warnings(ac.check_text("S", mine, ctx_for(job_ready, others=[other])))
+    other_opening = mine.split("\n\n")
+    other_opening[2] = "I run the on-call rota for the payments platform."
+    different = (2, "Cy", "\n\n".join(other_opening))
+    assert "duplicate" not in warnings(ac.check_text("S", mine, ctx_for(
+        job_ready, others=[different])))
+
+
+def test_a_generated_email_is_built_from_the_record_with_links_in_the_signature(
+        job_ready: dict) -> None:  # noqa: F811
+    from app.models import AppSetting
+
+    with Session(engine) as s:
+        row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
+        profile = dict(row.value)
+        profile["links"] = [{"type": "portfolio", "label": "", "url": "https://me.example.dev"},
+                            {"type": "github", "label": "", "url": "https://github.com/alex"},
+                            {"type": "linkedin", "label": "", "url": "https://www.linkedin.com/in/alex"}]
+        row.value = profile
+        s.add(row)
+        s.commit()
+    try:
+        d = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
+        parts = d.body.split("\n\n")
+        assert len(parts) == 4 and parts[1].startswith("I applied for the Data Engineer position")
+        assert "https://" not in d.body and "me.example.dev" not in d.body  # links: signature only
+        assert len(d.body.split()) <= 110 and not errors(d.violations), d.violations
+        with Session(engine) as s:
+            full = outreach.full_body(s, d)
+        tail = full.split("\n\n")[-1].split("\n")
+        assert tail[0] == "Best regards," and tail[-1] == (
+            "me.example.dev · github.com/alex · linkedin.com/in/alex")
+    finally:
+        with Session(engine) as s:
+            row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
+            row.value = {**row.value, "links": []}
+            s.add(row)
+            s.commit()

@@ -183,8 +183,8 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
     elif _SUBJECT_BAD.search(subject):
         out.append(violation("subject", "The subject is about the value, never the role, an "
                              "application or a fake reply", "subject", "error"))
-    elif len(oc.words(subject)) > 8:
-        out.append(violation("subject", "The subject is long (8 words at most)", "subject"))
+    elif len(oc.words(subject)) > 10:
+        out.append(violation("subject", "The subject is long (10 words at most)", "subject"))
     n = len(oc.words(text)) - len(oc.words(text.split("\n", 1)[0]))  # without the greeting
     if n < ctx.min_words or n > ctx.max_words:
         out.append(violation("length", f"{n} words (aim for {ctx.min_words}-{ctx.max_words})",
