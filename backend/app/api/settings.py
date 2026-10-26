@@ -341,6 +341,8 @@ def _check_outreach(value: dict) -> None:
     photo = (sig.get("photo_path") or "").strip()
     if photo and not Path(photo).expanduser().is_file():
         raise HTTPException(422, f"Signature photo not found: {photo}")
+    if not isinstance(value.get("approve_adds_to_queue", True), bool):
+        raise HTTPException(422, "approve_adds_to_queue must be true or false")
     lang = value.get("language", "auto")
     if lang != "auto" and not (isinstance(lang, str) and len(lang) == 2):
         raise HTTPException(422, "language must be auto or a 2-letter code (en, fr…)")

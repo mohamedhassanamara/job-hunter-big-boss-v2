@@ -11,7 +11,8 @@ import { useHotkeys } from '@/hooks/useHotkeys'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { shortAge } from '@/lib/format'
-import { useDraftAction, useDrafts, useQueueDraft } from '@/lib/queries/workflow'
+import { useSettings } from '@/lib/queries/library'
+import { useDequeueDraft, useDraftAction, useDrafts, useQueueAll, useQueueDraft } from '@/lib/queries/workflow'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft } from '@/lib/types'
@@ -34,6 +35,11 @@ export function ReviewTab() {
   const { data, isPending, error, refetch } = useDrafts(status)
   const action = useDraftAction()
   const queueDraft = useQueueDraft()
+  const dequeue = useDequeueDraft()
+  const queueAll = useQueueAll()
+  const settings = useSettings()
+  // Approve also adds the email to the send queue (Settings → Email); Remove from queue undoes it.
+  const addOnApprove = (settings.data?.values.outreach as { approve_adds_to_queue?: boolean } | undefined)?.approve_adds_to_queue !== false
 
   const drafts = useMemo(() => data ?? [], [data])
   const ids = useMemo(() => drafts.map((d) => d.id), [drafts])
@@ -56,16 +62,32 @@ export function ReviewTab() {
         onSuccess: (d) => {
           if (status === 'draft') url.set({ draft: next })
           if (verdict === 'approve') {
-            toast.success('Approved: ready to send', {
-              description: `To ${d.contact?.full_name} · ${d.company_name}`,
-              action: {
-                label: 'Add to queue',
-                onClick: () =>
-                  queueDraft.mutate(d.id, {
-                    onSuccess: () => toast.success('Added to the send queue'),
-                    onError: (e) => toast.error(e.message),
-                  }),
-              },
+            const to = `To ${d.contact?.full_name} · ${d.company_name}`
+            if (!addOnApprove) {
+              toast.success('Approved: ready to send', {
+                description: to,
+                action: {
+                  label: 'Add to queue',
+                  onClick: () =>
+                    queueDraft.mutate(d.id, {
+                      onSuccess: () => toast.success('Added to the send queue'),
+                      onError: (e) => toast.error(e.message),
+                    }),
+                },
+              })
+              return
+            }
+            queueDraft.mutate(d.id, {
+              onSuccess: () =>
+                toast.success('Approved and added to the send queue', {
+                  description: to,
+                  duration: 8000,
+                  action: {
+                    label: 'Remove from queue',
+                    onClick: () => dequeue.mutate(d.id, { onSuccess: () => toast('Removed from the queue: still approved'), onError: (e) => toast.error(e.message) }),
+                  },
+                }),
+              onError: (e) => toast.error(`Approved, but not queued: ${e.message}`),
             })
           } else {
             toast('Draft rejected', {
@@ -88,8 +110,30 @@ export function ReviewTab() {
   }
 
   useListKeyboard({ ids, selectedId: selected?.id ?? null, onSelect: select })
+  // The same conditions as the Approve button: the key never just fails on the server.
+  const approveBlocked = (d: Draft) =>
+    d.violations.some((v) => v.severity === 'error')
+      ? 'Fix the problems the checks found first'
+      : d.contact_alerts.length > 0
+        ? `${d.contact?.full_name ?? 'The contact'} may have left: verify them or write to someone else first`
+        : d.verification_state === 'failed'
+          ? 'Claims in this exact text don’t hold: edit them, then approve'
+          : null
+  const approveByKey = (d: Draft) => {
+    const why = approveBlocked(d)
+    if (why) toast.error(why)
+    else decide(d, 'approve')
+  }
+  const approvedNotQueued = status === 'approved' ? drafts.filter((d) => d.status === 'approved') : []
+  const addAll = () =>
+    queueAll.mutate(approvedNotQueued.map((d) => d.id), {
+      onSuccess: (r) =>
+        r.stoppedBy
+          ? toast.warning(`Added ${r.added}, ${r.left} left`, { description: r.stoppedBy })
+          : toast.success(`Added ${r.added} to the send queue`),
+    })
   useHotkeys({
-    a: () => selected && decide(selected, 'approve'),
+    a: () => selected && approveByKey(selected),
     r: () => selected && decide(selected, 'reject'),
   })
 
@@ -105,6 +149,11 @@ export function ReviewTab() {
               <SegmentedTrigger value="all" className="flex-1 justify-center px-1.5">All</SegmentedTrigger>
             </SegmentedList>
           </Tabs>
+          {approvedNotQueued.length > 0 && (
+            <Button size="sm" variant="secondary" className="mt-2 w-full" onClick={addAll} disabled={queueAll.isPending} data-tour="outreach-add-all">
+              Add all approved ({approvedNotQueued.length}) to the queue
+            </Button>
+          )}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {isPending ? (
@@ -146,6 +195,18 @@ export function ReviewTab() {
                 <p className="mt-1 truncate text-xs text-fg-subtle">{d.subject}</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   {status !== 'draft' && <ToneBadge tone={DRAFT_STATUS[d.status].tone}>{DRAFT_STATUS[d.status].label}</ToneBadge>}
+                  {d.status === 'queued' && (
+                    <button
+                      type="button"
+                      className="text-2xs text-fg-muted underline-offset-2 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        dequeue.mutate(d.id, { onSuccess: () => toast('Removed from the queue: still approved'), onError: (err) => toast.error(err.message) })
+                      }}
+                    >
+                      Remove from queue
+                    </button>
+                  )}
                   {d.status === 'draft' && <VerifyChip state={d.verification_state} errors={d.violations.some((v) => v.severity === 'error')} />}
                 </div>
               </button>
@@ -154,7 +215,7 @@ export function ReviewTab() {
         </div>
         {drafts.length > 0 && status === 'draft' && (
           <p className="border-t border-border px-4 py-2 text-2xs text-fg-subtle">
-            J/K to move · A approve · R reject
+            J/K to move · A approve{addOnApprove ? ' and queue' : ''} · R reject
           </p>
         )}
       </div>

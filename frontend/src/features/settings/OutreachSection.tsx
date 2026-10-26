@@ -17,6 +17,7 @@ interface OutreachValue {
   banned_phrases: string[]
   max_words: number
   language: string
+  approve_adds_to_queue?: boolean
 }
 
 /** Cold-email rules: signature and opt-out (added by code), banned phrases, length, language. */
@@ -47,6 +48,9 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
         />
       }
     >
+      <Field label="Approve adds to the send queue" hint="Approving an email in Review also queues it (the queue starts itself if it had emptied and a test email was sent). Remove from queue undoes it. Approval stays a deliberate key press.">
+        <Switch checked={value.approve_adds_to_queue !== false} onCheckedChange={(v) => setValue({ ...value, approve_adds_to_queue: v })} aria-label="Approve adds to the send queue" />
+      </Field>
       <Field label="Signature" hint="Empty fields use Settings → Candidate">
         <div className="grid grid-cols-2 gap-2">
           <Input placeholder={profile.full_name || 'Name'} value={value.signature.name} onChange={(e) => sig('name', e.target.value)} aria-label="Signature name" />

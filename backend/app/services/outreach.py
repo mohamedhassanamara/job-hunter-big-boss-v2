@@ -59,6 +59,8 @@ DEFAULT_OUTREACH: dict[str, Any] = {
     "banned_phrases": oc.DEFAULT_BANNED,
     "max_words": oc.DEFAULT_MAX_WORDS,
     "language": "auto",  # "auto" = the listing's language (French listing → French email)
+    # Approving an email also adds it to the send queue (Remove from queue undoes it).
+    "approve_adds_to_queue": True,
     # Added by code (never the model) when you already applied on the website; {date} = that day.
     "application_mention": {
         "en": "I have also applied through your careers page on {date}.",

@@ -43,7 +43,7 @@ import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
 import { useMotivation } from '@/lib/queries/motivation'
 import { useReminderAction } from '@/lib/queries/tracking'
-import { useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
+import { useQueueAll, useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
 import { INTERVIEW_TYPE_LABELS, pct, shortDateTime } from '@/lib/tracking'
 import type { Reminder, Today } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -329,6 +329,7 @@ function Onboarding() {
 /** The email route, step by step: drafts to review, approved emails to queue, the queue. */
 function EmailsCard({ data }: { data: Today }) {
   const queueDraft = useQueueDraft()
+  const queueAll = useQueueAll()
   const q = data.queue
   const total = data.drafts_to_approve.length + data.emails_to_queue.length
   return (
@@ -343,6 +344,23 @@ function EmailsCard({ data }: { data: Today }) {
               <ArrowRight className="size-4 text-fg-subtle" />
             </RowLink>
           ))}
+          {data.emails_to_queue.length > 1 && (
+            <div className="flex items-center justify-between border-b border-border px-4 py-2">
+              <span className="text-xs text-fg-muted">{data.emails_to_queue.length} approved emails not in the queue</span>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={queueAll.isPending}
+                onClick={() =>
+                  queueAll.mutate(data.emails_to_queue.map((d) => d.draft_id), {
+                    onSuccess: (r) => (r.stoppedBy ? toast.warning(`Added ${r.added}, ${r.left} left`, { description: r.stoppedBy }) : toast.success(`Added ${r.added} to the send queue`)),
+                  })
+                }
+              >
+                Add all approved
+              </Button>
+            </div>
+          )}
           {data.emails_to_queue.map((d) => (
             <div key={`q-${d.draft_id}`} className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0">
               <Link to={`/jobs/${d.job_id}#outreach`} className="min-w-0 flex-1 hover:underline">
