@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
   CVLeftOut,
+  CVRegenEstimate,
+  CVRegenMode,
+  CVRegenResult,
   CVApproveResult,
   CVReviewRow,
   CVPatchInput,
@@ -577,6 +580,41 @@ export function useGenerationStatus() {
     last.current = signature
   }, [signature, qc])
   return status
+}
+
+/** About how many requests "Regenerate selected" takes, against the Gemini daily cap left. */
+export function useRegenEstimate(count: number, mode: CVRegenMode, feedback: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['cv', 'regen-estimate', count, mode, feedback.trim() !== ''],
+    queryFn: () => api.get<CVRegenEstimate>(`/cv/regenerate-batch/estimate${qs({ count, mode, feedback: feedback.trim() || undefined })}`),
+    enabled: enabled && count > 0,
+    placeholderData: (previous) => previous,
+  })
+}
+
+/** Queue a regeneration for each selected CV (background; each result is a new draft). */
+export function useRegenerateBatch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { application_ids: number[]; mode: CVRegenMode; feedback: string | null; confirm: boolean; use?: 'gemini' | 'claude' }) =>
+      api.post<CVRegenResult>('/cv/regenerate-batch', body),
+    onSettled: () => {
+      invalidateWork(qc)
+      void qc.invalidateQueries({ queryKey: ['generation-status'] })
+    },
+  })
+}
+
+/** Retry one failed row (same request), optionally with Gemini for this one call. */
+export function useRetryRegen() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { application_id: number; use?: 'gemini' | 'claude' }) => api.post<CVRegenResult>('/cv/regenerate-batch/retry', body),
+    onSettled: () => {
+      invalidateWork(qc)
+      void qc.invalidateQueries({ queryKey: ['generation-status'] })
+    },
+  })
 }
 
 /** What a CV draft leaves out of your pool, with the model's relevance for the job (Review CVs). */

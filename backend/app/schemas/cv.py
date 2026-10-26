@@ -103,6 +103,14 @@ class TemplateIn(BaseModel):
     config: str
 
 
+class CVRegenState(BaseModel):
+    status: str  # queued | running | done | failed | skipped
+    error: str | None = None
+    warning: str | None = None
+    retryable: bool = True
+    model: str | None = None
+
+
 class CVReviewRow(BaseModel):
     """One CV draft of a shortlisted job, for the Review CVs list."""
 
@@ -121,7 +129,41 @@ class CVReviewRow(BaseModel):
     approvable: bool  # exactly the Approve gate (one page, no blocking errors, no failure)
     created_at: datetime
     left_out_count: int = 0  # pool bullets and projects of this job's CV that are not on it
+    has_approved: bool = False  # an approved version exists: a regeneration leaves it approved
+    regen: CVRegenState | None = None  # the latest "Regenerate selected" task for this job
 
+
+class CVRegenIn(BaseModel):
+    application_ids: list[int]
+    mode: str = "whole"  # whole | summary
+    feedback: str | None = None
+    use: str | None = None  # None | "gemini" | "claude": this batch only
+    confirm: bool = False  # required above 20 CVs
+
+
+class CVRegenRetryIn(BaseModel):
+    application_id: int
+    use: str | None = None
+
+
+class CVRegenOut(BaseModel):
+    queued: int
+    already_queued: int
+    skipped: list[dict]
+    batch_id: str
+
+
+class CVRegenEstimate(BaseModel):
+    count: int
+    per_cv: int
+    requests: int
+    provider: str
+    model: str
+    remaining_gemini: int | None
+    gemini_cap: int | None
+    exceeds_remaining: bool
+    needs_confirmation: bool
+    confirm_above: int
 
 class CVLeftOutItem(BaseModel):
     key: str  # the CV Studio override key: role:ID:INDEX, project:ID:INDEX or project:ID

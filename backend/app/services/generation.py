@@ -31,7 +31,7 @@ from app.models.enums import DraftStatus, Stage
 log = logging.getLogger(__name__)
 
 ACTIVE = ("queued", "running")
-KINDS = ("cv", "email")
+KINDS = ("cv", "email", "cv_regen")  # cv_regen: Review CVs → Regenerate selected
 TICK_SECONDS = 3.0
 RETRY_DELAY = timedelta(minutes=3)
 MAX_ATTEMPTS = 2  # task-level, after the generator's own backoff
@@ -166,6 +166,7 @@ def tick(engine: Engine, *, mock: bool, workspace: str = "real") -> bool:
     with Session(engine) as s:
         task = s.get(GenerationTask, task_id)
         kind, app_id, use = task.kind, task.application_id, task.use
+        request = dict((task.details or {}).get("request") or {})
         app = s.get(Application, app_id)
         skip = _skip_reason(s, app, kind)
     if skip is not None:
@@ -175,6 +176,10 @@ def tick(engine: Engine, *, mock: bool, workspace: str = "real") -> bool:
     try:
         if kind == "cv":
             result_id, model, details = _run_cv(engine, app_id, use, mock, workspace)
+        elif kind == "cv_regen":
+            result_id, model, details = _run_cv_regen(engine, app_id, use, mock, workspace,
+                                                      request)
+            details = {"request": request, **details}
         else:
             result_id, model, details = _run_email(engine, app_id, use, mock, workspace)
     except Exception as exc:  # noqa: BLE001 (stored on the task, shown on the job)
@@ -191,6 +196,10 @@ def _skip_reason(s: Session, app: Application | None, kind: str) -> str | None:
 
     if app is None:
         return "The job no longer exists"
+    if kind == "cv_regen":
+        from app.services import cv_regen
+
+        return cv_regen.skip_reason(s, app)
     if kind == "cv":
         if Stage(app.stage) != Stage.shortlisted:
             return "No longer shortlisted"
@@ -215,6 +224,36 @@ def _run_cv(engine: Engine, app_id: int, use: str | None, mock: bool,
     generator = cv_generator(mock=mock, model=pick["model"], engine=engine,
                              thinking_level=pick["thinking_level"])
     version = cv_service.generate(engine, app_id, generator, None, verifier=verifier)
+    return version.id, generator.model, _details(generator)
+
+
+def _run_cv_regen(engine: Engine, app_id: int, use: str | None, mock: bool, workspace: str,
+                  request: dict[str, Any]) -> tuple[int, str, dict[str, Any]]:
+    """Regenerate one CV of the batch: a whole new draft (and, with feedback, its summary written
+    toward it) or only the summary of the latest version. Always a DRAFT: an approved CV stays
+    approved until you approve the new one."""
+    from app.providers.registry import cv_generator
+    from app.services import cv_regen, cv_service, model_choice
+    from app.services import verifier as verifier_service
+
+    with Session(engine) as s:
+        pick = model_choice.choice(s, "cv", use)
+        verifier = verifier_service.for_workspace(s, workspace)
+    generator = cv_generator(mock=mock, model=pick["model"], engine=engine,
+                             thinking_level=pick["thinking_level"])
+    mode, feedback = request.get("mode", "whole"), (request.get("feedback") or "").strip() or None
+    if mode == "summary":
+        with Session(engine) as s:
+            latest = cv_regen.latest_version(s, app_id)
+            latest_id, is_draft = latest.id, latest.status == "draft"
+        if is_draft:
+            version = cv_service.regenerate_summary(engine, latest_id, generator, feedback)
+        else:
+            version = cv_service.revise_summary(engine, latest_id, generator, feedback)
+    else:
+        version = cv_service.generate(engine, app_id, generator, None, verifier=verifier)
+        if feedback:
+            version = cv_service.regenerate_summary(engine, version.id, generator, feedback)
     return version.id, generator.model, _details(generator)
 
 

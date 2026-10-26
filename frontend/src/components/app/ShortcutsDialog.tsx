@@ -32,7 +32,9 @@ const GROUPS: { title: string; items: [string[], string][] }[] = [
     items: [
       [['J', 'K'], 'Move'],
       [['A'], 'Approve, then the next CV'],
+      [['X'], 'Tick the current CV'],
       [['R'], 'Regenerate (feedback optional)'],
+      [['Shift', 'R'], 'Regenerate the ticked CVs'],
       [['E'], 'Edit the summary'],
       [['S'], 'Skip'],
     ],

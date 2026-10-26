@@ -1,4 +1,4 @@
-import { CircleCheck, FileText, RefreshCw, SkipForward, SquarePen } from 'lucide-react'
+import { CircleCheck, FileText, ListChecks, RefreshCw, SkipForward, SquarePen } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -8,17 +8,21 @@ import { RegenerateDialog } from '@/components/app/RegenerateDialog'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Kbd } from '@/components/ui/kbd'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useHotkeys } from '@/hooks/useHotkeys'
 import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { ApiError } from '@/lib/api'
-import { useApproveCV, useCVReview, useCVStudio, useGenerateCV, useRegenerateSummary } from '@/lib/queries/workflow'
+import { useApproveCV, useCVReview, useCVStudio, useGenerateCV, useRegenerateBatch, useRegenerateSummary, useRetryRegen } from '@/lib/queries/workflow'
 import type { CVReviewRow } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { FitBadge, Workspace } from '../cv-studio/CVWorkspace'
 import { approveGate } from '../cv-studio/cvGate'
 import { LeftOutPopover } from './LeftOutPopover'
+import { RegenerateSelectedDialog } from './RegenerateSelectedDialog'
+import { useRowSelection } from './useRowSelection'
 
 function CheckChip({ row }: { row: CVReviewRow }) {
   if (row.error) return <ToneBadge tone="red">LaTeX error</ToneBadge>
@@ -28,8 +32,31 @@ function CheckChip({ row }: { row: CVReviewRow }) {
   return <ToneBadge tone="green">Ready to approve</ToneBadge>
 }
 
+/** The state of a row's "Regenerate selected" task; a failed one offers Retry (and Gemini for one call). */
+function RegenChip({ row }: { row: CVReviewRow }) {
+  const retry = useRetryRegen()
+  const r = row.regen
+  if (!r) return null
+  if (r.status === 'queued') return <ToneBadge tone="gray">Regeneration queued</ToneBadge>
+  if (r.status === 'running') return <ToneBadge tone="blue">Regenerating…</ToneBadge>
+  if (r.status === 'done') return <ToneBadge tone="green">Regenerated</ToneBadge>
+  if (r.status === 'skipped') return <ToneBadge tone="gray">Skipped: {r.warning}</ToneBadge>
+  const go = (use?: 'gemini') => retry.mutate({ application_id: row.application_id, use }, { onError: (e) => toast.error(e.message) })
+  return (
+    <span className="flex flex-wrap items-center gap-1.5" title={r.error ?? undefined}>
+      <ToneBadge tone="red">Regeneration failed</ToneBadge>
+      <Button size="xs" variant="outline" disabled={retry.isPending} onClick={() => go()}>
+        Retry
+      </Button>
+      <Button size="xs" variant="ghost" disabled={retry.isPending} onClick={() => go('gemini')}>
+        Use Gemini
+      </Button>
+    </span>
+  )
+}
+
 /** The CV drafts of your shortlisted jobs as one list: J/K move, A approves and goes to the next,
- * R regenerates with feedback, E edits the summary, S skips. The approval rules are CV Studio's. */
+ * R regenerates with feedback (X ticks a row, Shift+R regenerates the ticked ones), E edits the summary, S skips. The approval rules are CV Studio's. */
 export default function CVReviewPage() {
   const url = useSearchParamState()
   const { data, isPending, error, refetch } = useCVReview()
@@ -37,12 +64,17 @@ export default function CVReviewPage() {
   const generate = useGenerateCV()
   const regenSummary = useRegenerateSummary()
   const [regenerating, setRegenerating] = useState(false)
+  const [batchOpen, setBatchOpen] = useState(false)
+  const [batchKey, setBatchKey] = useState(0) // a fresh dialog (empty feedback) after each batch
+  const batch = useRegenerateBatch()
 
   const rows = useMemo(() => data ?? [], [data])
   const ids = useMemo(() => rows.map((r) => r.application_id), [rows])
   const wanted = url.get('app') ? Number(url.get('app')) : null
   const selected = rows.find((r) => r.application_id === wanted) ?? rows[0]
   const select = useCallback((id: number) => url.set({ app: String(id) }), [url])
+  const picks = useRowSelection(ids)
+  const pickedRows = rows.filter((r) => picks.has(r.application_id))
 
   const studio = useCVStudio(selected?.application_id ?? NaN)
   const version = studio.data?.versions.find((v) => v.id === selected?.cv_id)
@@ -107,6 +139,31 @@ export default function CVReviewPage() {
     }
   }
 
+  const openBatch = () => {
+    if (picks.selected.length === 0) toast('Tick the CVs to regenerate first', { description: 'X ticks the current row; shift-click a checkbox for a range.' })
+    else setBatchOpen(true)
+  }
+
+  const submitBatch = (mode: 'whole' | 'summary', feedback: string, confirm: boolean) => {
+    batch.mutate(
+      { application_ids: picks.selected, mode, feedback: feedback || null, confirm },
+      {
+        onSuccess: (res) => {
+          toast.success(`${res.queued} regeneration${res.queued === 1 ? '' : 's'} queued`, {
+            description: [res.already_queued ? `${res.already_queued} already queued` : '', res.skipped.length ? `${res.skipped.length} not in the list` : ''].filter(Boolean).join(' · ') || 'Each result is a new draft.',
+          })
+          picks.selectNone()
+          setBatchOpen(false)
+          setBatchKey((k) => k + 1)
+        },
+        onError: (e) => toast.error(e.message),
+      },
+    )
+  }
+
+  // R regenerates this CV; Shift+R the ticked ones (the list's own keys can't see Shift).
+  useHotkeys({ r: (e) => (e.shiftKey ? openBatch() : setRegenerating(true)) }, { enabled: !regenerating && !batchOpen })
+
   useListKeyboard({
     ids,
     selectedId: selected?.application_id ?? null,
@@ -116,11 +173,11 @@ export default function CVReviewPage() {
         const row = rows.find((r) => r.application_id === id)
         if (row) onApprove(row)
       },
-      r: () => setRegenerating(true),
+      x: (id) => picks.toggle(id),
       e: focusSummary,
       s: onSkip,
     },
-    enabled: !regenerating,
+    enabled: !regenerating && !batchOpen,
   })
 
   const busy = generate.isPending || regenSummary.isPending
@@ -134,6 +191,21 @@ export default function CVReviewPage() {
       />
       <div className="flex min-h-0 flex-1">
         <div data-tour="review-cvs-list" className="flex w-[340px] shrink-0 flex-col border-r border-border bg-bg max-xl:w-[290px]">
+          {rows.length > 0 && (
+            <div data-tour="review-cvs-select" className="flex items-center gap-2 border-b border-border px-4 py-2 text-xs text-fg-muted">
+              <span className="tabular-nums">{picks.selected.length} selected</span>
+              <Button size="xs" variant="ghost" onClick={picks.selectAll}>
+                Select all
+              </Button>
+              <Button size="xs" variant="ghost" onClick={picks.selectNone} disabled={picks.selected.length === 0}>
+                Select none
+              </Button>
+              <Button size="xs" variant="outline" className="ml-auto" onClick={openBatch} disabled={picks.selected.length === 0}>
+                <ListChecks />
+                Regenerate selected <Kbd>⇧R</Kbd>
+              </Button>
+            </div>
+          )}
           <div className="min-h-0 flex-1 overflow-y-auto">
             {isPending ? (
               <SkeletonRows rows={6} />
@@ -165,7 +237,13 @@ export default function CVReviewPage() {
                   )}
                 >
                   {selected?.application_id === r.application_id && <span className="absolute inset-y-0 left-0 w-0.5 bg-primary" />}
-                  <button onClick={() => select(r.application_id)} className="block w-full px-4 pb-1 pt-3 text-left">
+                  <Checkbox
+                    checked={picks.has(r.application_id)}
+                    onClick={(e) => picks.toggle(r.application_id, e.shiftKey)}
+                    aria-label={`Select ${r.job_title} at ${r.company_name}`}
+                    className="absolute left-3.5 top-3.5 z-10"
+                  />
+                  <button onClick={() => select(r.application_id)} className="block w-full py-3 pb-1 pl-10 pr-4 text-left">
                     <p className="truncate text-sm font-medium">{r.job_title}</p>
                     <p className="truncate text-xs text-fg-muted">
                       {r.company_name}
@@ -175,10 +253,12 @@ export default function CVReviewPage() {
                       <CheckChip row={r} />
                       {r.fill != null && r.page_count === 1 && <span className="text-2xs text-fg-subtle tabular-nums">{Math.round(r.fill * 100)}% full</span>}
                       {r.summary_warnings > 0 && <ToneBadge tone="amber">{r.summary_warnings} summary note{r.summary_warnings === 1 ? '' : 's'}</ToneBadge>}
+                      {r.has_approved && <ToneBadge tone="gray">Approved CV kept</ToneBadge>}
                     </div>
                   </button>
-                  <div className="px-4 pb-2.5">
+                  <div className="flex flex-wrap items-center gap-2 pb-2.5 pl-10 pr-4">
                     <LeftOutPopover row={r} />
+                    <RegenChip row={r} />
                   </div>
                 </div>
               ))
@@ -186,7 +266,7 @@ export default function CVReviewPage() {
           </div>
           {rows.length > 0 && (
             <p className="border-t border-border px-4 py-2 text-2xs text-fg-subtle">
-              J/K move · A approve, next · R regenerate · E edit summary · S skip
+              J/K move · A approve, next · X tick · R regenerate · ⇧R regenerate ticked · E summary · S skip
             </p>
           )}
         </div>
@@ -237,6 +317,15 @@ export default function CVReviewPage() {
           )}
         </div>
       </div>
+      <RegenerateSelectedDialog
+        key={batchKey}
+        open={batchOpen}
+        onClose={() => setBatchOpen(false)}
+        count={picks.selected.length}
+        approvedCount={pickedRows.filter((r) => r.has_approved).length}
+        pending={batch.isPending}
+        onSubmit={submitBatch}
+      />
       <RegenerateDialog
         open={regenerating}
         onClose={() => setRegenerating(false)}

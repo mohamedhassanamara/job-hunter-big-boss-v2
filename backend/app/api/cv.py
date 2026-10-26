@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,10 @@ from app.schemas.cv import (
     CVGenerateIn,
     CVLeftOut,
     CVPatch,
+    CVRegenEstimate,
+    CVRegenIn,
+    CVRegenOut,
+    CVRegenRetryIn,
     CVReviewRow,
     CVStudio,
     CVVersionOut,
@@ -29,6 +34,7 @@ from app.schemas.cv import (
 )
 from app.services import (
     cv_fit,
+    cv_regen,
     cv_review,
     cv_service,
     cv_templates,
@@ -68,6 +74,56 @@ def _templates(session: Session) -> list[TemplateOut]:
 def cv_review_list(session: SessionDep) -> list[CVReviewRow]:
     """The CV drafts of shortlisted jobs, with the Approve gate evaluated (Review CVs page)."""
     return cv_review.rows(session)
+
+
+@router.get("/cv/regenerate-batch/estimate", response_model=CVRegenEstimate)
+def regenerate_estimate(session: SessionDep, engine: EngineDep, count: int = 1,
+                        mode: str = "whole", feedback: str | None = None,
+                        use: str | None = None) -> CVRegenEstimate:
+    """About how many model requests a batch takes, against the Gemini daily cap left."""
+    if mode not in cv_regen.MODES or use not in model_choice.USES or count < 0:
+        raise HTTPException(422, "Unknown mode or model")
+    return CVRegenEstimate(**cv_regen.estimate(session, engine, count, mode, feedback, use))
+
+
+@router.post("/cv/regenerate-batch", response_model=CVRegenOut)
+def regenerate_batch(body: CVRegenIn, session: SessionDep, engine: EngineDep) -> CVRegenOut:
+    """Queue a regeneration for each selected CV (background, existing CV model and retry rules).
+    Every result is a new draft: approved CVs stay approved. Above 20 CVs `confirm` is required."""
+    if body.use not in model_choice.USES:
+        raise HTTPException(422, "use must be gemini or claude")
+    if not body.application_ids:
+        raise HTTPException(422, "Select at least one CV")
+    if len(set(body.application_ids)) > cv_regen.CONFIRM_ABOVE and not body.confirm:
+        raise HTTPException(409, f"More than {cv_regen.CONFIRM_ABOVE} CVs: confirm first")
+    if body.use == "gemini":
+        try:
+            model_choice.choice(session, "cv", "gemini")
+        except ValueError as exc:  # Gemini paused
+            raise HTTPException(409, str(exc)) from exc
+    try:
+        out = cv_regen.enqueue_batch(session, body.application_ids, body.mode, body.feedback,
+                                     body.use, uuid.uuid4().hex[:8])
+    except cv_regen.RegenError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    return CVRegenOut(**out)
+
+
+@router.post("/cv/regenerate-batch/retry", response_model=CVRegenOut)
+def regenerate_retry(body: CVRegenRetryIn, session: SessionDep) -> CVRegenOut:
+    """Retry one failed row (same request), optionally with Gemini for this one call."""
+    if body.use not in model_choice.USES:
+        raise HTTPException(422, "use must be gemini or claude")
+    try:
+        if body.use == "gemini":
+            model_choice.choice(session, "cv", "gemini")
+        task = cv_regen.retry(session, body.application_id, body.use)
+    except (cv_regen.RegenError, ValueError) as exc:
+        raise HTTPException(409, str(exc)) from exc
+    session.commit()
+    batch = (task.details.get("request") or {}).get("batch_id", "")
+    return CVRegenOut(queued=1, already_queued=0, skipped=[], batch_id=batch)
 
 
 @router.get("/cv/{cv_id}/left-out", response_model=CVLeftOut)
