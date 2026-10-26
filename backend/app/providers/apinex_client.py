@@ -92,6 +92,14 @@ def is_permanent_quota_exhausted(text: str) -> bool:
     return any(keyword in lower for keyword in EXHAUSTION_KEYWORDS)
 
 
+def _gateway_message(res: httpx.Response) -> str:
+    """The gateway's own sentence (OpenAI-style error body), else the start of the body."""
+    try:
+        return str(res.json()["error"]["message"])[:300]
+    except (ValueError, KeyError, TypeError):
+        return res.text[:300]
+
+
 @dataclass
 class ProviderHealth:
     ok: bool
@@ -306,6 +314,8 @@ class APInexClient:
                         continue
                     raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
 
+                if res.status_code == 402:  # e.g. "Daily check-in required to use free models"
+                    raise QuotaExceeded(f"APInex needs you (HTTP 402): {_gateway_message(res)}")
                 raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
 
         raise ScoringFailed(f"APInex request failed: {last_error}")
@@ -394,6 +404,8 @@ class APInexClient:
                         continue
                     raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
 
+                if res.status_code == 402:  # e.g. "Daily check-in required to use free models"
+                    raise QuotaExceeded(f"APInex needs you (HTTP 402): {_gateway_message(res)}")
                 raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
 
         raise ScoringFailed(f"APInex request failed: {last_error}")
