@@ -28,7 +28,7 @@ from app.schemas.today import (
     UpcomingInterview,
 )
 from app.schemas.tracking import ReminderOut
-from app.services import get_contact, linkedin_track, send_queue, tracking
+from app.services import cv_review, get_contact, linkedin_track, send_queue, tracking
 from app.services.views import job_items, pipeline_cards
 
 router = APIRouter(tags=["today"])
@@ -217,6 +217,7 @@ def nav_counts(session: SessionDep) -> NavCounts:
         ),
         ready_to_apply=len(tracking.ready_to_apply(session)),
         contacts_to_get=len(get_contact.queue(session)),
+        cvs_to_review=len(cv_review.rows(session)),
     )
 
 

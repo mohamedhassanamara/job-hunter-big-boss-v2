@@ -1025,6 +1025,7 @@ export interface NavCounts {
   queue_pending: number
   ready_to_apply: number
   contacts_to_get: number
+  cvs_to_review: number
 }
 
 // ---- Get contact (Phase 9) ---------------------------------------------------------------
@@ -2157,6 +2158,23 @@ export interface ConfirmationOut {
   created_at: string
   /** Your experience changed since this answer. */
   stale: boolean
+}
+
+export interface CVReviewRow {
+  application_id: number
+  job_id: number
+  cv_id: number
+  job_title: string
+  company_name: string
+  track: string | null
+  version: number
+  page_count: number | null
+  fill: number | null
+  error_count: number
+  summary_warnings: number
+  error: string | null
+  approvable: boolean
+  created_at: string
 }
 
 export interface UsageReport {

@@ -8,6 +8,7 @@ export const keys = {
   job: (id: number) => ['job', id] as const,
   applications: ['applications'] as const,
   cv: (appId: number) => ['cv', appId] as const,
+  cvReview: ['cv', 'review'] as const, // under 'cv': invalidateWork refreshes it
   letter: (appId: number) => ['letter', appId] as const,
   interview: (appId: number) => ['interview', appId] as const,
   answers: (appId: number) => ['answers', appId] as const,

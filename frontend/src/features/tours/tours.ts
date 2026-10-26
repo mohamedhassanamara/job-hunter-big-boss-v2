@@ -23,6 +23,7 @@ export type TourId =
   | 'job'
   | 'confirmation'
   | 'cv'
+  | 'review-cvs'
   | 'letter'
   | 'interview'
   | 'glossary'
@@ -158,6 +159,17 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'job-confirm', title: 'A second opinion, next to the score', body: 'Claude (on your subscription) scores this job again with the same prompt and tells you in plain words whether to apply: seniority, skills, location and visa, language. It is stored next to the main score and never replaces it; both show side by side.', placement: 'right' },
       { target: 'confirm-ask', title: 'Ask Claude', body: 'It takes about 20 to 60 seconds. If Claude is not available it falls back to Gemma through the Gemini API; if that fails too, you can copy the prompt into the Gemini Pro app and paste its answer back.', placement: 'left' },
+    ],
+  },
+  'review-cvs': {
+    id: 'review-cvs',
+    title: 'Review CVs',
+    description: 'Approve your CV drafts one after another',
+    resolveRoute: async () => '/review-cvs',
+    steps: [
+      { target: 'review-cvs-list', title: 'Every draft in one list', body: 'The CV drafts of your shortlisted jobs, written in the background after you shortlist. Each row shows the checks that matter for approval: one page, no bullet, skill, number or tool error, and how full the page is. J and K move.', placement: 'right' },
+      { target: 'cv-preview', title: 'The real PDF', body: 'The page you would send. The editor next to it works as in CV Studio: toggle or edit, and the page re-fits in code.', placement: 'left' },
+      { target: 'review-cvs-approve', title: 'A approves and moves on', body: 'A approves the selected CV (only when it passes the same checks as CV Studio) and selects the next one. R regenerates with feedback, E jumps into the summary, S skips. Nothing is approved for you.', placement: 'bottom' },
     ],
   },
   cv: {

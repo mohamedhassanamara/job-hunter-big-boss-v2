@@ -83,6 +83,7 @@ class NavCounts(BaseModel):
     queue_pending: int
     ready_to_apply: int
     contacts_to_get: int = 0
+    cvs_to_review: int = 0
 
 
 class SearchHit(BaseModel):

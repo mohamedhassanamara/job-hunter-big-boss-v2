@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, qs } from '@/lib/api'
 import type {
   CVApproveResult,
+  CVReviewRow,
   CVPatchInput,
   CVStudio,
   CVTemplateInfo,
@@ -145,7 +146,10 @@ export function usePatchCV() {
   return useMutation({
     mutationFn: ({ id, ...patch }: CVPatchInput & { id: number }) =>
       api.patch<CVVersion>(`/cv/${id}`, patch as Record<string, unknown>),
-    onSuccess: (version) => void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) }),
+    onSuccess: (version) => {
+      void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) })
+      void qc.invalidateQueries({ queryKey: keys.cvReview })
+    },
   })
 }
 
@@ -575,4 +579,9 @@ export function useGenerationStatus() {
     last.current = signature
   }, [signature, qc])
   return status
+}
+
+/** CV drafts of shortlisted jobs with the Approve gate evaluated (Review CVs). */
+export function useCVReview() {
+  return useQuery({ queryKey: keys.cvReview, queryFn: () => api.get<CVReviewRow[]>('/cv/review') })
 }

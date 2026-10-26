@@ -539,7 +539,7 @@ export default function TodayPage() {
           </Card>
 
           <div className="grid grid-cols-2 gap-4" data-tour="today-review">
-            <Card icon={FileText} title="CVs to review" count={data.cvs_to_review.length}>
+            <Card icon={FileText} title="CVs to review" count={data.cvs_to_review.length} href="/review-cvs" hrefLabel="Review in a list">
               {data.cvs_to_review.length === 0 ? (
                 <Nothing text="No CVs waiting" />
               ) : (
