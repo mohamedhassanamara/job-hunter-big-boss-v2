@@ -1,9 +1,13 @@
 """Diagnostic and verification script for Adzuna API ingestion.
 
-Run with: backend/.venv/bin/python backend/scripts/test_adzuna.py
+Run with: backend/.venv/bin/python backend/scripts/manual_adzuna.py --live
 """
 
 import sys
+
+if "--live" not in sys.argv:  # manual script: never run by accident (or as a test)
+    sys.exit("manual_adzuna.py makes real requests to the live Adzuna API. Re-run it with --live.")
+sys.argv.remove("--live")
 from pathlib import Path
 
 # Add backend to sys.path
@@ -26,8 +30,8 @@ def main() -> None:
     app_key = settings.adzuna_app_key
 
     print("Checking credentials:")
-    id_info = f"{app_id[:4]}... (length={len(app_id)})" if app_id else "NOT SET"
-    key_info = f"{app_key[:4]}... (length={len(app_key)})" if app_key else "NOT SET"
+    id_info = "set" if app_id else "NOT SET"
+    key_info = "set" if app_key else "NOT SET"
     print(f"  ADZUNA_APP_ID  : {id_info}")
     print(f"  ADZUNA_APP_KEY : {key_info}")
 

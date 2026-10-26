@@ -2,7 +2,7 @@
 
 **Date:** October 24, 2026
 
-**Status:** Completed, Verified in CI, and Validated Live on Production Applications
+**Status:** Implemented. The "154 / 154 passed" below was not true of the working tree: the review found failures that the fix commits resolved (see `docs/reports/branch-review-2026-10-26.md`)
 
 **Modules Affected:** `backend/app/prompts/outreach.md`, `backend/app/providers/base.py`, `backend/app/services/applied_check.py`, `backend/app/services/outreach.py`, `backend/app/services/outreach_check.py`
 

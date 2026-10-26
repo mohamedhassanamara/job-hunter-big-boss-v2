@@ -95,8 +95,10 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | posted_at | datetime? | |
 | discovered_at | datetime | First seen |
 | last_seen_at | datetime? | Updated every time a run sees the listing again (idempotent upsert) |
-| dedupe_key | str (indexed) | `normalized_company|normalized_title|country` |
-| duplicate_of_id | FK job? | Set when the same dedupe_key already exists from another source |
+| dedupe_key | str (indexed) | `normalized_company::normalized_title` today; Part 2 adds the country back (`company::title::country`) |
+| duplicate_of_id | FK job? | Rows that were duplicates before migration 0032; new cross-source duplicates are merged into the canonical row instead |
+| sources | JSON list[str] | Every source that listed this job (migration 0032) |
+| source_urls | JSON dict[str,str] | The listing URL per source |
 | description_level | enum `full \| summary \| snippet` | Set per source at ingest (WTTJ = summary, Adzuna = snippet). Becomes full after fetch/paste |
 | full_fetched_at | datetime? | Fetched/pasted full listing (never overwritten by the feed) |
 | user_label / labeled_at | enum `good \| maybe \| no`? | Your judgment for `make eval`, not a stage |
@@ -482,7 +484,7 @@ A single row in v2 (the global queue).
 ### app_setting
 | Column | Type | Notes |
 |---|---|---|
-| key | str unique | `sources`, `models`, `smtp`, `schedule`, `lookup` (`{daily_cap}`: the Apollo extension daily limit), `contacts` (`{role_ranking: [{label, keywords[]}], small_order, large_order, small_company_threshold, verify_days}`), `hunter_log` (Try Hunter uses), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
+| key | str unique | `sources`, `models` (`{scoring: {provider, model, fallback, cloud_concurrency, local_concurrency}, cv, email: {provider, model, thinking_level}, letter, interview, rewrite, confirm, verifier: {model}}`; APInex ids only in `scoring` and `cv`), `smtp`, `schedule`, `lookup` (`{daily_cap}`: the Apollo extension daily limit), `contacts` (`{role_ranking: [{label, keywords[]}], small_order, large_order, small_company_threshold, verify_days}`), `hunter_log` (Try Hunter uses), `contacts_last_match` (report), `tracking` (`{followup_days: [7, 14], ghost_after_days: 30}`), … |
 | value | JSON | Non-secret config only. Secrets (SMTP password, API keys) go in `.env` |
 
 

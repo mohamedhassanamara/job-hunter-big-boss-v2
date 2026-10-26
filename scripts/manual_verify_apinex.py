@@ -4,6 +4,10 @@
 import json
 import os
 import sys
+
+if "--live" not in sys.argv:  # manual script: never run by accident (or as a test)
+    sys.exit("manual_verify_apinex.py calls the live APInex gateway. Re-run it with --live.")
+sys.argv.remove("--live")
 from pathlib import Path
 
 # Add backend directory to sys.path
@@ -11,7 +15,7 @@ backend_dir = Path(__file__).resolve().parents[1] / "backend"
 sys.path.insert(0, str(backend_dir))
 
 from app.config import get_settings
-from app.providers.apinex_client import APInexClient, PRIMARY_MODEL, FALLBACK_MODEL
+from app.providers.apinex_client import DEFAULT_MODEL, APInexClient
 from app.providers.base import FitAssessment, JobSnapshot
 from app.services import fit
 from app.services.prompt import load_prompt
@@ -25,8 +29,7 @@ def main() -> None:
         sys.exit(1)
 
     print(f"Base URL: https://apinex.bond/v1")
-    print(f"Primary model: {PRIMARY_MODEL}")
-    print(f"Fallback model: {FALLBACK_MODEL}")
+    print(f"Model: {DEFAULT_MODEL} (the Ollama fallback comes from Settings → Models)")
 
     client = APInexClient(api_key=api_key)
     prompt = load_prompt("fit_score")

@@ -14,7 +14,7 @@ make setup     # first time: uv venv (Python 3.12) + pip deps, npm install, migr
 make dev       # API on :8000 (docs at /docs) + web on :5173, Ctrl-C stops both
 make seed      # rebuild the tour sandbox (data/demo.db); sample data lives ONLY there
 make reset     # ERASE the real workspace (keeps profile + settings defaults)
-make migrate   # alembic upgrade head
+make migrate   # alembic upgrade head (alembic/env.py first backs the DB up when a migration is pending)
 make test      # backend pytest (never calls a model or the network)
 make eval      # score your labeled jobs with the real model; report in data/eval/ (ARGS="--fresh")
 make lint      # ruff + tsc + oxlint + design-token guard
@@ -22,7 +22,7 @@ make build     # frontend production build
 ```
 Dev aids: `MOCK_LATENCY_MS=1500 make dev` slows every API response (check skeletons). Stopping only the
 backend shows error states. `JOB_SOURCES=mock` swaps every job source for the offline mock.
-Secrets and keys go in `.env` (see `.env.example`): `ADZUNA_APP_ID/KEY`, optional `WTTJ_ALGOLIA_KEY`.
+Scripts named `manual_*` touch the real DB or live APIs and refuse to run without `--live`. Secrets and keys go in `.env` (see `.env.example`): `ADZUNA_APP_ID/KEY`, optional `WTTJ_ALGOLIA_KEY`.
 
 ## Real data vs sample data (non-negotiable)
 
@@ -45,6 +45,7 @@ Secrets and keys go in `.env` (see `.env.example`): `ADZUNA_APP_ID/KEY`, optiona
   `discovery.prepare_source` via `settings_key`/`apply_settings`; one failing board is a warning, all failing fails
   the source) and `bayt.py` (public country search pages only, 3s spacing, 6h cooldown; robots.txt disallows
   `/en/jobs/…-jobs/` and `filters[`, never request those).
+- One listing per real job: `job.sources` / `job.source_urls` (migration 0032) hold every source and URL; `ingest` merges a job whose `dedupe_key` (or apply URL) already exists into the canonical row instead of adding one (`duplicate_of_id` stays for rows that were duplicates before; `GET /jobs` hides them by default); a LinkedIn import merges the same way. Adzuna: 401 stops the run with a warning, 429 keeps the batches fetched so far (`PoliteClient` errors carry the last HTTP status).
 - Orchestration lives in `services/discovery.py`: lock (one run), per-source isolation, cooldown, and a filter
   report into `source_run.details` plus `data/logs/discovery.log`. Pre-filter rules are in `services/prefilter.py`
   (never filter seniority by default), idempotent upsert and dedupe in `services/ingest.py`.
@@ -65,7 +66,7 @@ frontend (Vite/React/TS) ──/api──▶ FastAPI routers ──▶ services 
   Today aggregation (`today.py`).
 - **Providers** (`backend/app/providers/base.py`) are Protocols: `JobSource`, `FitScorer`, `CVGenerator`,
   `CVRenderer`, `EmailDrafter`, `Mailer`. `registry.py` returns implementations. Phase 0 uses `mock/` only.
-  FitScorer=Gemini/Ollama, CVGenerator=Gemini (`providers/gemini_generate.py`; Claude Code headless `providers/claude_cv.py` selectable); rendering is `services/cv_render.py`
+  FitScorer=APInex (`providers/apinex_client.py`, Ollama fallback), CVGenerator=APInex 2-pass (`providers/apinex_cv.py`; Gemini `providers/gemini_generate.py` or Claude Code headless `providers/claude_cv.py` selectable); rendering is `services/cv_render.py`
   (Jinja + latexmk + PyMuPDF). Planned: Mailer=Gmail SMTP.
 - **Migrations:** every model change needs a new Alembic revision (`alembic revision --autogenerate -m "..."`,
   then review it). SQLite needs `render_as_batch=True` (already configured).
@@ -118,16 +119,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Hard flags (the score cap) need a quote that states the requirement itself: `fit.requirement_stated` checks the quote's wording per flag type and downgrades the rest to soft with a `severity_note` (prompt v4). An office, a city, on-site/hybrid or perks never cap a score; `recompute` applies the same rule to stored flags.
 - Prompt v5 adds `core_requirements` (the role's primary language/stack or central skill, with a quote and `missing`). A missing one caps the score softly (`scoring.missing_core_cap`, default 60) only when `fit.evaluate_core` verifies its quote in the listing and the experience text doesn't name it; the lower of the hard (35) and soft caps wins; `recompute` reapplies the stored verdict. Listings go in whole up to 15,000 chars (`fit.truncate_description` drops boilerplate sections above that, never requirement/language sections); the Ollama scorer's `num_ctx` is 16,384.
 - Core-requirement verdicts are derived, not stored once: `fit.judge_core` (missing + verified quote + not named in the experience text + not generic tooling from `scoring.never_cap_on` unless the title names it) runs at scoring AND in `recompute_all`, so a rule, cap or list change never needs a rescore.
-- **Gemini is in single-key mode (accounts under review)** (startup `resume(start=False)` re-queues interrupted scoring but never starts it; `POST /scoring/start` does): `services/gemini_keys.KeyPool` uses only the first `gemini.max_keys` (default 1) keys of `.env`, one request at a time, 6/min, `gemini.daily_cap` (500) a day over every Gemini model with 50 kept for user-triggered work; 3 tries then give up, no rotation, no burst. NOTHING calls Google except real requests (no probe, health or startup check: `health` only reads config). ONE 403/refused key disables the key, sets `gemini.paused` (all traffic stops, scoring waits) and `model_choice.choice` returns Claude for CV and email until Resume (Settings → Models banner, `POST /scoring/gemini/pause`). Keys are shown by label + last 4 characters only. The old multi-key description follows and is superseded. Gemini bulk scoring: `providers/gemini.py` + `services/gemini_keys.KeyPool` (usage in `provider_usage`, Pacific day). Out of quota on every key = `QuotaWait`: the queue pauses and wakes by itself at the reset, it never falls back to another model on its own (`ScoringQueue.continue_with` is the user's explicit choice). Tests use `httpx.MockTransport`, never a real key (conftest blanks `GEMINI_API_KEY(S)`).
+- **APInex gateway** (`providers/apinex_client.py`, `providers/apinex_models.is_apinex`, `APINEX_API_KEY`): the scoring model (`models.scoring`, default `free/minimax-m3.1-flash`) and the CV model (`models.cv`) can be APInex; **nothing else may**. `is_apinex(model)` (`free/*`, `minimax*`, `apinex`) is the only routing check; email, letters, interview, rewrite, confirm, verifier and everything on `claude -p` reject it before any call (`apinex_models.reject`, `model_choice.check`, `ClaudeCVGenerator.__init__`). One process-wide 15 RPM rolling limiter, 429 backoff, `QuotaExceeded` → the Ollama fallback (`models.scoring.fallback`, default `qwen2.5:7b`). Fit prompt v7 asks for `dimensions` only: it does not ask for `flag_checks`/`core_requirements`, so the hard (35) and core (60) caps do not fire for APInex scores. A missing or invalid sub-score is never defaulted: one retry (`APInexFitScorer.assess`), then `ScoringFailed`. The experience pool and listing go to this third party; there is no `check_private` guard or daily cap on it yet.
+- **Gemini no longer scores** (`model_choice.check` rejects it); the single-key pool below serves CV and email only. **Gemini is in single-key mode (accounts under review)** (startup `resume(start=False)` re-queues interrupted scoring but never starts it; `POST /scoring/start` does): `services/gemini_keys.KeyPool` uses only the first `gemini.max_keys` (default 1) keys of `.env`, one request at a time, 6/min, `gemini.daily_cap` (500) a day over every Gemini model with 50 kept for user-triggered work; 3 tries then give up, no rotation, no burst. NOTHING calls Google except real requests (no probe, health or startup check: `health` only reads config). ONE 403/refused key disables the key, sets `gemini.paused` (all traffic stops, scoring waits) and `model_choice.choice` returns Claude for CV and email until Resume (Settings → Models banner, `POST /scoring/gemini/pause`). Keys are shown by label + last 4 characters only. The old multi-key description follows and is superseded. Gemini bulk scoring: `providers/gemini.py` + `services/gemini_keys.KeyPool` (usage in `provider_usage`, Pacific day). Out of quota on every key = `QuotaWait`: the queue pauses and wakes by itself at the reset, it never falls back to another model on its own (`ScoringQueue.continue_with` is the user's explicit choice). Tests use `httpx.MockTransport`, never a real key (conftest blanks `GEMINI_API_KEY(S)`).
 - Ask Claude (`services/confirmation.py`): the scoring prompt + `prompts/confirm_verdict.md`, answer schema = `FitAssessment` + `verdict` (`ConfirmationAnswer`). Chain `registry.confirmers`: `ClaudeConfirmer` (claude -p, subscription only, the CV generator's isolation) → `GeminiConfirmer` for `gemma-4-31b-it` (schema in the prompt; Gemma rejects the native schema) → the copy-paste flow. Stored in `fit_confirmation`, never in `fit_score`; `recompute_all` keeps both consistent. Tests fake the CLI and the Gemini transport.
 - The cache key includes the prompt version. **Any edit to `app/prompts/fit_score.md` needs a version bump** and a new hash in
   `prompts/versions.json` (`tests/test_prompt.py` tells you the hash).
+- `models.letter` / `interview` / `rewrite` / `confirm` / `verifier` are `claude-*` only (`model_choice.claude_model`, `check`): a CV or email model id never reaches `claude -p`.
 - Models (Settings → Models): `models.scoring = {model: gemma4:31b-cloud, fallback: gemma4:12b, cloud_concurrency:
   {min, start, max}, local_concurrency}`. Cloud: schema in the prompt + validation; local: native `format`, `think: false`.
 - The queue (`ScoringQueue`) is persistent (`scoring_run`/`scoring_task`, `resume()` at startup). Provider errors are typed
   (`ConcurrencyLimited`, `QuotaExceeded`, `TransientError`, `ScoringFailed`; `ollama.classify_error`): 429 concurrency →
   same job to the front + backoff + adaptive limit (`ConcurrencyController`), quota → fallback model for the rest of the
   run, others → 3 attempts + one end-of-run retry.
+- Rescore (`POST /scoring/rescore`, `RescoreModal`): scope (`all`, `stale`, `outdated`, `unscored`, `failed`, `jobs`) plus filters `track`, `since_days`, `limit`, `only_unscored`, `job_ids`; bulk scopes always end in `open_jobs.split_open` (so dismissed, closed, duplicate and hidden jobs are skipped and the `limit` counts open jobs only), `job_ids` only narrow a scope, and only `scope=jobs` (picked one by one) can rescore a non-open job. Rescore stale/outdated is reachable from Discover (`ScoringProgress`) and Today.
 - Bulk scoring only touches **open** jobs (`services/open_jobs.py`: not closed/dismissed, not a duplicate, not hidden by the location/remote filters, not past max age from a paused source). `enqueue(only_open=True)` filters, `_claim` re-checks per task, the per-job Rescore passes `only_open=False`; `recompute_all` covers every job.
 - Discovery is additive and only calls `enqueue_never_scored()`. Bulk rescore of existing scores requires `confirm: true`.
 - Roles live only in `search_profile.tracks`; `services/roles.py` is the language lexicon (variants, matching).
@@ -223,7 +227,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## CV and email generation on Gemini, background drafting (services/generation.py, providers/gemini_generate.py)
 
-- Settings → Models: `models.cv` / `models.email` = `{provider, model, thinking_level}`; default `gemini-3.5-flash-lite`,
+- Settings → Models: `models.cv` / `models.email` = `{provider, model, thinking_level}`; `cv` defaults to APInex (`free/minimax-m3.1-flash`, the 2-pass generator; Gemini and Claude stay selectable), `email` to `gemini-3.5-flash-lite`,
   `minimal` (= no thinking; `dynamic` = `thinkingBudget -1`; `thinkingBudget: 0` is rejected by 3.5). `services/model_choice.py`
   reads it; `registry.cv_generator/email_drafter(model, thinking_level, engine)` return the Gemini subclasses
   (`GeminiCVGenerator(ClaudeCVGenerator)`, same prompts/schemas/checks, only `_call` replaced). Claude stays the claim verifier,

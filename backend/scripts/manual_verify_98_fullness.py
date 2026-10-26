@@ -1,6 +1,10 @@
 """Verification script: Verify >= 98% page fullness and 1 page on Application 1621 and 1622."""
 
 import sys
+
+if "--live" not in sys.argv:  # manual script: never run by accident (or as a test)
+    sys.exit("manual_verify_98_fullness.py opens the REAL database (applications 1621, 1622), writes CV drafts and calls the live APInex gateway. Re-run it with --live.")
+sys.argv.remove("--live")
 from pathlib import Path
 
 # Add backend to path

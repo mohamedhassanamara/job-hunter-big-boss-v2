@@ -133,7 +133,7 @@ A live evaluation benchmark was executed across 11 free-tier models on the APIne
 * **Primary Model:** `free/minimax-m3.1-flash`.
 
 
-* **Fallback Model:** `free/deepseek-v4.1-flash`.
+* **Fallback Model:** none on the gateway; the failover target is the Ollama model in Settings → Models (`models.scoring.fallback`, default `qwen2.5:7b`).
 
 
 * Implemented automatic response sanitization (stripping `json ... ` fences) and JSON parse verification.
@@ -192,7 +192,7 @@ Updated the prompt to version 7 and refreshed the body hash in `versions.json`:
 
 ### Step 6: Frontend & UI State Synchronization
 
-* **Settings Page (`sections.tsx`):** Replaced free-form text inputs with curated `<Select>` dropdowns featuring APInex models (`free/minimax-m3.1-flash`, `free/deepseek-v4.1-flash`, `free/gpt-6-luna`, `free/glm-5.3-flash`, `free/mimo-v2.6-pro`) and Ollama models.
+* **Settings Page (`sections.tsx`):** Replaced free-form text inputs with curated `<Select>` dropdowns featuring APInex models (`free/minimax-m3.1-flash`, `free/gpt-6-luna`, `free/glm-5.3-flash`, `free/mimo-v2.6-pro`) and Ollama models.
 
 
 * **Scoring Card (`ScoringTodayCard.tsx`):** Completely removed the legacy Google Cloud quota alert card (`"Gemini: single key, accounts under review..."`). Replaced it with the APInex status badge: `APInex Gateway · 15 RPM throttle active · Ollama fallback ready`.
