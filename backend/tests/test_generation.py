@@ -12,7 +12,7 @@ from sqlmodel import Session, col, delete, select
 
 from app.db import engine
 from app.models import Application, CVVersion, GenerationTask, OutreachDraft
-from app.models.enums import CVStatus, DraftStatus, Stage
+from app.models.enums import ApplyMethod, CVStatus, DraftStatus, Stage
 from app.providers.base import CVGenerationFailed, SummaryDraft
 from app.providers.gemini_generate import (
     GeminiRunner,
@@ -23,7 +23,7 @@ from app.providers.gemini_generate import (
     private_terms,
     thinking_config,
 )
-from app.services import generation, model_choice, pipeline
+from app.services import generation, model_choice, pipeline, tracking
 from app.services.gemini_keys import KeyPool
 from tests.test_gemini import KEYS, MODEL, Clock, error, make_pool
 from tests.test_tracking import make_app
@@ -179,9 +179,12 @@ def test_model_choice_defaults_and_claude_is_a_one_shot_override(seeded: None) -
         assert model_choice.choice(s, "cv")["provider"] == "apinex"  # setting unchanged
     with pytest.raises(ValueError):
         model_choice.check({"cv": {"model": "gpt-9"}})
-    model_choice.check({"cv": {"model": "free/minimax-m3.1-flash"}})  # APInex: the CV only
+    model_choice.check({"cv": {"model": "free/minimax-m3.1-flash"}})  # APInex: the CV
+    model_choice.check({"letter": {"model": "free/minimax-m3.1-flash"}})  # ... and letters
+    with pytest.raises(ValueError):
+        model_choice.check({"letter": {"model": "gemini-3.5-flash-lite"}})
     for bad in ({"email": {"model": "free/minimax-m3.1-flash"}},
-                {"letter": {"model": "free/minimax-m3.1-flash"}},
+                {"linkedin": {"model": "free/minimax-m3.1-flash"}},
                 {"interview": {"model": "free/minimax-m3.1-flash"}},
                 {"rewrite": {"model": "free/minimax-m3.1-flash"}}):
         with pytest.raises(ValueError, match="APInex"):
@@ -307,29 +310,41 @@ def test_a_failed_generation_is_failed_not_switched_and_retries_once(
         assert generation.states(s, [app_id])[app_id]["cv"]["status"] == "failed"
 
 
-def test_email_is_queued_when_the_second_input_arrives_and_only_for_shortlisted_jobs(
+def test_email_is_queued_once_applied_and_the_contact_is_verified(
         clean_tasks: None, monkeypatch) -> None:  # noqa: ANN001
     ready = {"contact": False}
     monkeypatch.setattr("app.services.get_contact.state",
                         lambda _s, _a: "ready" if ready["contact"] else "verify")
     with Session(engine) as s:
         set_generation(s, auto_cv=False, auto_email=True)
-        app = make_app(s, stage=Stage.cv_ready, cv=CVStatus.approved)  # CV first
+        app = make_app(s, stage=Stage.cv_ready, cv=CVStatus.approved)
         s.flush()
-        assert generation.maybe_enqueue_email(s, app, "cv_approved") is None  # no contact yet
+        assert generation.maybe_enqueue_email(s, app, "contact_ready") is None  # not applied yet
+        tracking.mark_applied(s, app, applied_on=None, method=ApplyMethod.company_site)
+        assert s.exec(select(GenerationTask).where(
+            GenerationTask.application_id == app.id)).all() == []  # no contact yet
         ready["contact"] = True  # the contact comes last
         task = generation.maybe_enqueue_email(s, app, "contact_ready")
         assert task is not None and task.kind == "email"
         assert generation.maybe_enqueue_email(s, app, "contact_ready") is task  # never two
-        new = make_app(s, stage=Stage.new, cv=CVStatus.approved)  # not shortlisted
-        assert generation.maybe_enqueue_email(s, new, "contact_ready") is None
-        s.add(OutreachDraft(application_id=new.id, subject="s", body="b",
-                            status=DraftStatus.draft, model="m"))
+        # Applying by email isn't a portal application: no follow-up email.
+        by_email = make_app(s, stage=Stage.cv_ready, cv=CVStatus.approved)
+        tracking.mark_applied(s, by_email, applied_on=None, method=ApplyMethod.email)
+        assert generation.maybe_enqueue_email(s, by_email, "contact_ready") is None
+        # Marking applied itself queues the email when the contact is already verified.
+        fresh = make_app(s, stage=Stage.cv_ready, cv=CVStatus.approved)
+        tracking.mark_applied(s, fresh, applied_on=None, method=ApplyMethod.linkedin)
+        assert [x.kind for x in s.exec(select(GenerationTask).where(
+            GenerationTask.application_id == fresh.id)).all()] == ["email"]
+        tracking.undo_applied(s, fresh)  # undoing it cancels the queued email
+        assert [x.status for x in s.exec(select(GenerationTask).where(
+            GenerationTask.application_id == fresh.id)).all()] == ["cancelled"]
         done = make_app(s, stage=Stage.cv_ready, cv=CVStatus.approved)
+        tracking.mark_applied(s, done, applied_on=None, method=ApplyMethod.company_site)
         s.add(OutreachDraft(application_id=done.id, subject="s", body="b",
                             status=DraftStatus.draft, model="m"))
         s.flush()
-        assert generation.maybe_enqueue_email(s, done, "cv_approved") is None  # a draft exists
+        assert generation.maybe_enqueue_email(s, done, "applied") is None  # a draft exists
         s.rollback()
 
 

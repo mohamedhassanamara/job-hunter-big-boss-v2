@@ -289,6 +289,8 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
         raise HTTPException(409, "The contact has no email address")
     if reason := dnc.blocked_reason(session, contact):
         raise HTTPException(409, f"Do not contact: {reason}")
+    if reason := outreach.draft_gate(session, d):
+        raise HTTPException(409, reason)
     from app.services import contact_check
 
     if alerts := contact_check.active(session, contact.id):
@@ -353,7 +355,7 @@ def queue_draft(draft_id: int, session: SessionDep) -> DraftOut:
 @router.post("/outreach/drafts/{draft_id}/test-send", response_model=SendLogOut)
 def test_send_draft(draft_id: int, session: SessionDep, engine: EngineDep,
                     workspace: WorkspaceDep) -> SendLogOut:
-    """Send this exact email (CV attached) to your own address, subject "[TEST] …"."""
+    """Send this exact email (plain text) to your own address, subject "[TEST] …"."""
     get_or_404(session, OutreachDraft, draft_id, "Draft")
     try:
         m = _mailer(session, workspace)

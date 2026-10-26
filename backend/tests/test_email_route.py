@@ -9,7 +9,7 @@ from app.models import Application, Contact, CVVersion, OutreachDraft
 from app.models.base import utcnow
 from app.models.enums import DraftStatus, Stage
 from app.services import outreach, pipeline, tracks
-from tests.test_outreach import Script, good_plan, job_ready  # noqa: F401 (fixture)
+from tests.test_outreach import Script, good_plan, job_ready, unapply  # noqa: F401 (fixture)
 
 
 def test_tracks_are_derived_from_the_data() -> None:
@@ -43,6 +43,7 @@ def step(client, app_id: int) -> dict:  # noqa: ANN001
 
 
 def test_apply_then_email_on_the_same_job(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     app_id = job_ready["app"]
     card = app_json(client, app_id)
     assert card["tracks"]["application"] == "ready" and card["tracks"]["outreach"] == "contact"
@@ -81,6 +82,7 @@ def test_apply_then_email_on_the_same_job(job_ready: dict, client) -> None:  # n
 
 
 def test_email_then_apply_on_the_same_job(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     app_id = job_ready["app"]
     draft = outreach.generate(engine, app_id, Script(good_plan(job_ready)))
     client.post(f"/api/outreach/drafts/{draft.id}/approve")
@@ -147,6 +149,7 @@ def test_steps_before_a_draft_contact_then_cv(job_ready: dict, client) -> None: 
 
 
 def test_job_detail_carries_both_tracks(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     with Session(engine) as s:
         job_id = s.get(Application, job_ready["app"]).job_id
     detail = client.get(f"/api/jobs/{job_id}").json()

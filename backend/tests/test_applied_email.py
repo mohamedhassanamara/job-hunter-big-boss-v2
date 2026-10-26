@@ -93,10 +93,10 @@ def test_generate_writes_the_application_follow_up_without_researching(
     assert d.plan["format"] == "applied" and d.plan["mode"] == "applied"
     assert d.subject.startswith("Data Engineer application – ")
     parts = d.body.split("\n\n")
-    assert parts[0] == "Hi Ana," and "applying" in parts[1] and "Data Engineer" in parts[1]
+    assert parts[0] == "Hi Ana," and "applied" in parts[1] and "Data Engineer" in parts[1]
     assert parts[-1].endswith("call next week?")  # a natural ask, not a forced question
     assert not errors(d.violations), d.violations
-    assert d.plan["application"]["applied"] is False
+    assert d.plan["application"]["applied"] is True  # portal first: the gate needs it
     assert "snippet" in warnings(d.violations)  # the fixture's listing is one short line
 
 
@@ -322,7 +322,7 @@ def test_the_applied_verifier_gets_the_listing_your_situation_and_the_applicatio
     assert "listing" in spy.seen["sources"] and "email about a job application" \
         in spy.seen["kind"]
     facts = spy.seen["sources"]["facts"]
-    assert "Application: the candidate is applying" in facts
+    assert "Application: the candidate applied for this job on" in facts
 
 
 def test_approving_an_applied_email_records_an_applied_example(job_ready: dict, client) -> None:  # noqa: F811, ANN001

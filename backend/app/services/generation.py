@@ -98,23 +98,33 @@ def on_unshortlisted(s: Session, app: Application) -> None:
 
 
 def email_ready(s: Session, app: Application) -> bool:
-    """Both inputs exist for a job you shortlisted, and there is a posting to follow up."""
+    """The application went in through the portal (Mark applied: company site, job board or
+    LinkedIn), the contact is verified, and there is a posting to follow up."""
     from app.services import get_contact, outreach
 
-    if Stage(app.stage) not in (Stage.shortlisted, Stage.cv_ready):
-        return False
     job = s.get(Job, app.job_id)
     if job is None or outreach.email_mode(job) != "applied":
         return False
-    if outreach.approved_cv(s, app) is None or get_contact.state(s, app) != "ready":
+    if outreach.applied_gate(s, app, job) is not None or outreach.source_cv(s, app) is None:
+        return False
+    if get_contact.state(s, app) != "ready":
         return False
     return s.exec(select(OutreachDraft.id).where(
         OutreachDraft.application_id == app.id,
         OutreachDraft.status != DraftStatus.rejected)).first() is None
 
 
+def cancel_email(s: Session, app: Application) -> None:
+    """The application was un-marked: an email still queued for it no longer applies."""
+    for task in s.exec(select(GenerationTask).where(
+            GenerationTask.application_id == app.id, GenerationTask.kind == "email",
+            GenerationTask.status == "queued")).all():
+        task.status, task.finished_at = "cancelled", utcnow()
+        s.add(task)
+
+
 def maybe_enqueue_email(s: Session, app: Application, trigger: str) -> GenerationTask | None:
-    """Whichever of the verified contact and the approved CV comes last starts the draft."""
+    """Whichever of "marked applied" and the verified contact comes last starts the draft."""
     if not settings(s)["auto_email"] or not email_ready(s, app):
         return None
     return enqueue(s, app.id, "email", trigger)

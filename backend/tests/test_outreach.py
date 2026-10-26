@@ -23,7 +23,7 @@ from app.models import (
     SendQueueItem,
 )
 from app.models.base import utcnow
-from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, QueueStatus, Stage
+from app.models.enums import ApplyMethod, CVStatus, DraftStatus, QueueItemStatus, QueueStatus, Stage
 from app.providers.base import (
     CVPlan,
     DraftFailed,
@@ -161,7 +161,8 @@ def test_edited_text_is_rechecked_without_citations(ctx: oc.Context) -> None:
 
 @pytest.fixture
 def job_ready(seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
-    """A job with an approved CV (PDF faked), a contact with an email, in cv_ready."""
+    """A job with an approved CV (PDF faked), a contact with an email, in cv_ready, applied
+    through the company site today (the portal-first gate for the email)."""
     pdf = tmp_path / "cv.pdf"
     pdf.write_bytes(b"%PDF-1.4 approved")
     monkeypatch.setattr(cv_service, "ensure_pdf", lambda engine, v: pdf)
@@ -187,10 +188,24 @@ def job_ready(seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):  #
                        plan={"plan": CVPlan(summary="", summary_short="", roles=[
                            PlanEntry(item_id=role.id, relevance=9)]).model_dump()})
         s.add(cv)
+        s.flush()
+        # Applied through the company site today (Mark applied): the email follows that.
+        app.web_applied_at, app.web_method = utcnow(), ApplyMethod.company_site
+        app.applied_cv_version_id = cv.id
+        s.add(app)
         s.commit()
         return {"app": app.id, "cv": cv.id, "company": company.name, "role": role.id,
                 "fact": role.bullets[0], "org": role.org, "email": contact.email, "pdf": pdf,
                 "tag": role.tags[0] if role.tags else ""}
+
+
+def unapply(app_id: int) -> None:
+    """Back to a job that isn't marked applied yet (for tests that mark it themselves)."""
+    with Session(engine) as s:
+        app = s.get(Application, app_id)
+        app.web_applied_at = app.web_method = app.applied_cv_version_id = None
+        s.add(app)
+        s.commit()
 
 
 class Script:

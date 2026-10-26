@@ -38,7 +38,6 @@ from app.services import (
     cv_review,
     cv_service,
     cv_templates,
-    generation,
     model_choice,
     pipeline,
     verifier,
@@ -313,7 +312,6 @@ def approve_cv(cv_id: int, session: SessionDep, engine: EngineDep,
         pipeline.transition(session, app, Stage.cv_ready)
     session.add(app)
     session.flush()
-    generation.maybe_enqueue_email(session, app, "cv_approved")  # whichever comes last
     session.commit()
     session.refresh(v)
     # Fit before/after: the job scored against this CV, in the background (one model call).

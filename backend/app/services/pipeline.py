@@ -100,7 +100,6 @@ def _drafting_hooks(session: Session, app: Application, src: Stage, to: Stage) -
 
     if to == Stage.shortlisted:
         generation.on_shortlisted(session, app, src)
-        generation.maybe_enqueue_email(session, app, "shortlist")
     elif src == Stage.shortlisted and to in (Stage.new, Stage.closed):
         generation.on_unshortlisted(session, app)
 

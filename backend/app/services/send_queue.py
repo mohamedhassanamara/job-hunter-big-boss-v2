@@ -116,6 +116,8 @@ def enqueue(s: Session, draft: OutreachDraft) -> bool:
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if reason := dnc.blocked_reason(s, contact):
         raise QueueError(f"Do not contact: {reason}")
+    if reason := outreach.draft_gate(s, draft):
+        raise QueueError(reason)
     q = queue(s)
     if pending_count(s, q) >= q.max_items:
         return False
@@ -241,7 +243,7 @@ def legacy_reason(s: Session, draft: OutreachDraft) -> str | None:
         return "It was written for the old format (CV attached): emails are plain text now"
     if found := outreach_check.attachment_violations(outreach.full_body(s, draft)):
         return found[0]["message"]
-    return None
+    return outreach.draft_gate(s, draft)
 
 
 def pull_back_legacy(s: Session) -> list[dict[str, str | int | None]]:

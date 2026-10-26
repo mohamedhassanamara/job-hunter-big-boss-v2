@@ -25,7 +25,7 @@ from app.models import (
     SendLog,
 )
 from app.models.base import utcnow
-from app.models.enums import CVStatus, DraftStatus, EventKind, Route, Stage
+from app.models.enums import ApplyMethod, CVStatus, DraftStatus, EventKind, Route, Stage
 from app.providers.base import (
     CVPlan,
     DraftFailed,
@@ -140,6 +140,43 @@ def email_mode(job: Job, requested: str | None = None) -> str:
         return str(requested)
     return "applied" if (job.description or "").strip() or job.url or job.apply_url \
         else "speculative"
+
+
+PORTAL_METHODS = (ApplyMethod.company_site, ApplyMethod.job_board, ApplyMethod.linkedin)
+
+
+def applied_gate(s: Session, app: Application, job: Job | None = None) -> str | None:
+    """Portal first: an email about a job with a posting is drafted and approved only after the
+    application went in through the company site, a job board or LinkedIn (Mark applied). None
+    when it may go on; else the message to show. A job without a posting has no gate."""
+    job = job or s.get(Job, app.job_id)
+    if job is None or email_mode(job) != "applied":
+        return None
+    if app.web_applied_at is None:
+        return ("Apply through the portal first, then mark the job applied: the email follows "
+                "an application, it never replaces one")
+    if app.web_method not in PORTAL_METHODS:
+        return ("The email follows an application made on the company site, a job board or "
+                "LinkedIn: this one was not")
+    return None
+
+
+def draft_gate(s: Session, draft: OutreachDraft) -> str | None:
+    """`applied_gate` for a draft written in the applied format (speculative has none)."""
+    if (draft.plan or {}).get("format") != "applied":
+        return None
+    app = s.get(Application, draft.application_id)
+    return applied_gate(s, app) if app is not None else None
+
+
+def source_cv(s: Session, app: Application) -> CVVersion | None:
+    """The CV the proof sentences come from: the one the application was sent with, else the
+    newest approved one. It is never attached."""
+    if app.applied_cv_version_id:
+        cv = s.get(CVVersion, app.applied_cv_version_id)
+        if cv is not None:
+            return cv
+    return approved_cv(s, app)
 
 
 def application_mention(s: Session, app: Application) -> str | None:
@@ -537,6 +574,8 @@ def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[An
         raise OutreachError("The contact has no email address")
     if reason := dnc.blocked_reason(s, contact):
         raise OutreachError(f"Do not contact: {reason}")
+    if reason := draft_gate(s, draft):
+        raise OutreachError(reason)
     state = verifier.state(draft.verification, verifier.email_text(s, draft),
                            verifier.pool_stamp(s))
     ignored = [{"type": v.get("type"), "severity": v.get("severity"), "message": v.get("message")}
@@ -865,9 +904,12 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
             company = s.get(Company, job.company_id)
             if not contact.email:
                 raise OutreachError(f"{contact.full_name} has no email address")
-            cv = approved_cv(s, app)
+            if reason := applied_gate(s, app, job):
+                raise OutreachError(reason)
+            cv = source_cv(s, app)
             if cv is None:
-                raise OutreachError("Approve the CV first: the email is written from it")
+                raise OutreachError("No CV is recorded for this application: the email's proof "
+                                    "is written from it")
             choice = language_choice(s, job, app, language)
             language = choice.language
             pool = load_pool(s)

@@ -162,6 +162,9 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
                        form_letter_id=form_text.id if form_text else None,
                        applied_on=app.applied_at.date().isoformat(), notes=notes.strip(),
                        **before)
+    from app.services import generation
+
+    generation.maybe_enqueue_email(s, app, "applied")  # drafts only: nothing is approved
     return app
 
 
@@ -206,6 +209,9 @@ def undo_applied(s: Session, app: Application) -> Application:
     app.applied_cv_version_id = app.applied_cover_letter_id = None
     app.applied_notes = ""
     s.add(app)
+    from app.services import generation
+
+    generation.cancel_email(s, app)
     pipeline.log_event(s, app, EventKind.applied_undone, "Applied undone")
     return app
 

@@ -10,7 +10,7 @@ from app.db import engine
 from app.models import Application, Company, Job
 from app.models.enums import ApplyMethod
 from app.services import contacts, outreach, tracking
-from tests.test_outreach import Script, good_plan, job_ready  # noqa: F401 (fixture)
+from tests.test_outreach import Script, good_plan, job_ready, unapply  # noqa: F401 (fixture)
 
 
 def company(**kw) -> Company:  # noqa: ANN003
@@ -50,6 +50,7 @@ def applied_on_web(app_id: int, day: date = date(2026, 9, 29)) -> None:
 
 
 def test_the_email_mentions_the_web_application_once_applied(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     applied_on_web(job_ready["app"])
     draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
     sentence = "I have also applied through your careers page on 29 September."
@@ -65,6 +66,7 @@ def test_the_email_mentions_the_web_application_once_applied(job_ready: dict, cl
 
 
 def test_no_mention_before_applying(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
     assert "careers page" not in draft.body
     r = client.post(f"/api/outreach/drafts/{draft.id}/mention-application", json={"include": True})
@@ -82,6 +84,7 @@ def test_the_step_suggests_who_to_contact_without_a_contact(job_ready: dict, cli
 
 
 def test_stats_count_both_routes_and_rates_per_route(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     applied_on_web(job_ready["app"])
     draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
     client.post(f"/api/outreach/drafts/{draft.id}/approve")
@@ -94,6 +97,7 @@ def test_stats_count_both_routes_and_rates_per_route(job_ready: dict, client) ->
 
 
 def test_today_lists_applied_jobs_nobody_was_emailed_about(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    unapply(job_ready["app"])
     with Session(engine) as s:
         app = s.get(Application, job_ready["app"])
         app.contact_id = None
