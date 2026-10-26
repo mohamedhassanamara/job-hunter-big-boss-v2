@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { CompanyDomains, ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
+import type { CompanyDomains, ContactBatchPreview, ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
 
 /** Contacts to get: jobs past New that need a contact or a verification, best fit first. */
@@ -124,5 +124,16 @@ export function useSetEmailDomain() {
     mutationFn: ({ companyId, emailDomain }: { companyId: number; emailDomain: string | null }) =>
       api.put<CompanyDomains>(`/companies/${companyId}/domains`, { email_domain: emailDomain }),
     onSuccess: (data) => qc.setQueryData(keys.companyDomains(data.company_id), data),
+  })
+}
+
+/** Find contacts for this batch, step 1: the shortlisted jobs without a contact and the most the
+ * waterfall could spend on them (read-only; nothing is queried). */
+export function useBatchPreview(enabled = true) {
+  return useQuery({
+    queryKey: ['contact-batch-preview'],
+    queryFn: () => api.get<ContactBatchPreview>('/contacts/batch-preview'),
+    enabled,
+    staleTime: 0,
   })
 }

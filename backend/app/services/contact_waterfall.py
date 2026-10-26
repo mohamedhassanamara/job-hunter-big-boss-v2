@@ -489,3 +489,35 @@ def _finish(s: Session, out: Outcome, picks: list[tuple[Candidate | None, Contac
     out.candidates = rows[:3]
     s.flush()
     contacts_svc.resolve_company(s, company.id)
+
+
+# ------------------------------------------------------------------------------ batch preview
+
+
+def estimate_batch(s: Session, company_ids: list[int]) -> dict[str, dict[str, float | str | int]]:
+    """The most a batch could spend, per provider, before anything runs (an upper bound: the
+    waterfall stops at the first verified email, and a company looked up within
+    `providers.max_age_days` costs nothing). Read-only: it never calls a provider."""
+    cfg = provider_quota.settings(s)
+    reveals = cfg["max_reveals"]
+    per_company = {  # worst case for one company with nothing cached
+        "hunter": NEED["hunter"] + 0.5 * PATTERN_TRIES,  # search + pattern verifications
+        "prospeo": NEED["prospeo"] + reveals * REVEAL_NEED["prospeo"],
+        "apollo": reveals * REVEAL_NEED["apollo"],  # the search itself is free
+        "apify": NEED["apify"],
+    }
+    fresh = {p: 0 for p in WATERFALL}
+    for company_id in set(company_ids):
+        for provider in WATERFALL:
+            if _fresh_run(s, company_id, provider, cfg["max_age_days"]) is None:
+                fresh[provider] += 1  # this provider would be asked for this company
+    out: dict[str, dict[str, float | str | int]] = {}
+    for provider in WATERFALL:
+        keys = provider_quota.keys_for(provider)
+        left = sum(provider_quota.remaining(s, provider, label) for label, _ in keys
+                   if provider_quota.usable(s, provider, label, 0.0))
+        out[provider] = {"companies": fresh[provider],
+                         "worst_case": round(fresh[provider] * per_company[provider], 2),
+                         "remaining": round(left, 2), "unit": provider_quota.UNITS[provider],
+                         "keys": len(keys)}
+    return out

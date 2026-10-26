@@ -95,4 +95,4 @@ def test_ensure_defaults_restores_a_deleted_key_when_models_exists(client: TestC
     ensure_defaults(engine)
     with Session(engine) as s:  # a fresh session: the row must be committed, not just added
         row = s.exec(select(AppSetting).where(AppSetting.key == "generation")).one()
-    assert row.value == {"auto_cv": True, "auto_email": False}
+    assert row.value == {"auto_cv": True, "auto_email": True}

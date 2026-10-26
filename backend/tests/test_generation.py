@@ -333,9 +333,9 @@ def test_email_is_queued_when_the_second_input_arrives_and_only_for_shortlisted_
         s.rollback()
 
 
-def test_the_email_setting_starts_off(seeded: None) -> None:
+def test_the_email_setting_starts_on(seeded: None) -> None:
     with Session(engine) as s:
-        assert generation.settings(s) == {"auto_cv": True, "auto_email": False}
+        assert generation.settings(s) == {"auto_cv": True, "auto_email": True}
 
 
 def test_a_garbled_sentence_is_a_warning_and_never_blocks_approval() -> None:

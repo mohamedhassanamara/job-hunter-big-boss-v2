@@ -35,7 +35,7 @@ KINDS = ("cv", "email")
 TICK_SECONDS = 3.0
 RETRY_DELAY = timedelta(minutes=3)
 MAX_ATTEMPTS = 2  # task-level, after the generator's own backoff
-DEFAULTS = {"auto_cv": True, "auto_email": False}
+DEFAULTS = {"auto_cv": True, "auto_email": True}
 
 
 def settings(s: Session) -> dict[str, bool]:

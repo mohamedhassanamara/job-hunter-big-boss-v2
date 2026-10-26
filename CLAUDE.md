@@ -198,6 +198,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   (`services/provider_quota.py`: monthly counters, real balances synced before a paid call, a refused key is disabled and never
   retried). Keys come from `.env` (`*_API_KEYS` comma-separated, `APIFY_TOKEN`); tests blank them. Never call a finder from
   discovery or the scheduler. Company domain/size: `services/company_resolve.py` (typed → PDL via DuckDB → listing).
+- **Find contacts for this batch** (`GET /contacts/batch-preview`, `contact_waterfall.estimate_batch`, `components/app/contact/FindBatch.tsx`): the page lists the shortlisted jobs with no contact (not `never`, not nobody-found), shows the worst case per provider (companies looked up within `providers.max_age_days` cost nothing), and after one confirmation calls the existing one-click `POST /applications/{id}/contact/find` for each job, one after another, with Stop. It never picks a contact ("Use" stays yours) and the waterfall guard test is unchanged: no new caller of `contact_waterfall.run`.
 - Matching runs after discovery (`discovery.after_discovery`), after each import, and via `POST /contacts/match`.
 - Import dedupe: email (case-folded) → company (`normalize_company`) + folded name → create. Fill-only updates.
   The DB is backed up before imports (`contacts_import.backup_db`, sqlite online backup; never `cp` a WAL DB).
@@ -245,7 +246,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   `on_unshortlisted` (cancel queued; a running one finishes and its draft stays). The email is queued by
   `maybe_enqueue_email` after CV approval, a contact becoming verified, or a shortlist: needs `generation.auto_email`, a job in
   shortlisted/cv_ready with a posting, an approved CV, a ready contact, no live draft. Settings `generation = {auto_cv: true,
-  auto_email: false}`. Drafts only: nothing is approved, no toasts; `Tracks.cv` / `Tracks.generation` feed the badges
+  auto_email: true}` (both on by default; a value already stored in the DB wins). Drafts only: nothing is approved, no toasts; `Tracks.cv` / `Tracks.generation` feed the badges
   ("CV ready to review", "Email ready to review"), `GET /generation/status` drives the refresh.
 - Email prompt v14 (applied mode): experience = a short first-person summary of 1-2 things, not the bullets. Copy check
   `applied_check.copy_run` (8+ consecutive words with a pool bullet or a `style_reference` example) → one automatic regeneration
