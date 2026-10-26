@@ -217,6 +217,9 @@ const GENERATOR_MODELS = [
   { value: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
 ]
 
+/** The CV is the only generator that can use the APInex gateway (email and letters never do). */
+const CV_MODELS = [{ value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex, 2-pass)' }, ...GENERATOR_MODELS]
+
 const SCORING_MODELS = [
   { value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex - Recommended)' },
   { value: 'free/gpt-6-luna', label: 'GPT-6 Luna (APInex)' },
@@ -242,21 +245,25 @@ const THINKING_LEVELS = [
   { value: 'dynamic', label: 'Dynamic (the model decides)' },
 ]
 
-function generatorOf(m: GeneratorValue | undefined): GeneratorValue {
-  const model = m?.model && !m.model.startsWith('claude-haiku') ? m.model : 'gemini-3.5-flash-lite'
-  return { provider: model.startsWith('gemini-') ? 'gemini' : 'anthropic', model, thinking_level: m?.thinking_level ?? 'minimal' }
+function providerOf(model: string): string {
+  return model.startsWith('gemini-') ? 'gemini' : model.startsWith('free/') ? 'apinex' : 'anthropic'
 }
 
-function GeneratorField({ label, hint, value, onChange }: { label: string; hint: string; value: GeneratorValue | undefined; onChange: (v: GeneratorValue) => void }) {
-  const g = generatorOf(value)
+function generatorOf(m: GeneratorValue | undefined, fallback = 'gemini-3.5-flash-lite'): GeneratorValue {
+  const model = m?.model && !m.model.startsWith('claude-haiku') ? m.model : fallback
+  return { provider: providerOf(model), model, thinking_level: m?.thinking_level ?? 'minimal' }
+}
+
+function GeneratorField({ label, hint, value, onChange, models = GENERATOR_MODELS, fallback }: { label: string; hint: string; value: GeneratorValue | undefined; onChange: (v: GeneratorValue) => void; models?: typeof GENERATOR_MODELS; fallback?: string }) {
+  const g = generatorOf(value, fallback)
   const gemini = g.model.startsWith('gemini-')
   return (
     <Field label={label} hint={hint}>
       <div className="flex flex-wrap items-center gap-2">
         <Select
           value={g.model}
-          onValueChange={(model) => onChange({ ...g, model, provider: model.startsWith('gemini-') ? 'gemini' : 'anthropic' })}
-          options={GENERATOR_MODELS}
+          onValueChange={(model) => onChange({ ...g, model, provider: providerOf(model) })}
+          options={models}
           className="w-64"
           aria-label={`${label} model`}
         />
@@ -375,6 +382,8 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
         hint="Writes the CV plan; checks, the one-page fit and the claim verifier stay as they are. Failures never switch model: you get Retry and Generate with Claude."
         value={m.cv}
         onChange={(cv) => draft.setValue({ ...m, cv })}
+        models={CV_MODELS}
+        fallback="free/minimax-m3.1-flash"
       />
       <GeneratorField
         label="Email generation"

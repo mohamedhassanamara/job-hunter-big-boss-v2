@@ -168,14 +168,24 @@ def test_background_yields_to_user_work_and_keeps_a_reserve(clean: None) -> None
 # ----------------------------------------------------------------------------- model choice
 
 
-def test_model_choice_defaults_to_gemini_and_claude_is_a_one_shot_override(seeded: None) -> None:
-    with Session(engine) as s:
+def test_model_choice_defaults_and_claude_is_a_one_shot_override(seeded: None) -> None:
+    with Session(engine) as s:  # the CV is APInex, the email Gemini
         assert model_choice.choice(s, "cv") == {
+            "provider": "apinex", "model": "free/minimax-m3.1-flash", "thinking_level": None}
+        assert model_choice.choice(s, "email") == {
             "provider": "gemini", "model": "gemini-3.5-flash-lite", "thinking_level": "minimal"}
         assert model_choice.choice(s, "email", "claude")["provider"] == "anthropic"
-        assert model_choice.choice(s, "cv")["provider"] == "gemini"  # setting unchanged
+        assert model_choice.choice(s, "cv", "claude")["provider"] == "anthropic"
+        assert model_choice.choice(s, "cv")["provider"] == "apinex"  # setting unchanged
     with pytest.raises(ValueError):
         model_choice.check({"cv": {"model": "gpt-9"}})
+    model_choice.check({"cv": {"model": "free/minimax-m3.1-flash"}})  # APInex: the CV only
+    for bad in ({"email": {"model": "free/minimax-m3.1-flash"}},
+                {"letter": {"model": "free/minimax-m3.1-flash"}},
+                {"interview": {"model": "free/minimax-m3.1-flash"}},
+                {"rewrite": {"model": "free/minimax-m3.1-flash"}}):
+        with pytest.raises(ValueError, match="APInex"):
+            model_choice.check(bad)
     with pytest.raises(ValueError):
         model_choice.check({"email": {"model": "gemini-3.5-flash-lite", "thinking_level": "x"}})
 

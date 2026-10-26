@@ -12,6 +12,7 @@ from app.db import engine_for
 from app.models import Company, FitScore, Job
 from app.models.base import utcnow
 from app.models.enums import DescriptionLevel, Source
+from app.providers.apinex_models import is_apinex
 from app.providers.ollama import OllamaFitScorer
 from app.schemas.jobs import JobListItem
 from app.schemas.scoring import (
@@ -79,11 +80,7 @@ def scoring_health(
     if workspace == "demo" or get_settings().job_sources == "mock":
         return ScoringHealth(reachable=True, model="mock-scorer", model_present=True,
                              message="Sample data uses a mock scorer", models=[], pull_command="")
-    if (
-        model.startswith("free/")
-        or "minimax" in model
-        or model == "apinex"
-    ):
+    if is_apinex(model):
         from app.providers.apinex_client import APInexClient
 
         h = APInexClient(model=model).health()
@@ -233,11 +230,7 @@ def scoring_quota(session: SessionDep, workspace: WorkspaceDep,
     no quota."""
     ctx = scoring.load_context(session)
     model = model or ctx.model
-    if (
-        model.startswith("free/")
-        or "minimax" in model
-        or model == "apinex"
-    ):
+    if is_apinex(model):
         return {
             "provider": "apinex",
             "model": model,

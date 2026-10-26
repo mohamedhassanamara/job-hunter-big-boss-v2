@@ -6,6 +6,7 @@ from typing import Any
 
 from app.config import get_settings
 from app.models.enums import Source
+from app.providers.apinex_models import is_apinex, reject
 from app.providers.base import (
     CVGenerator,
     EmailDrafter,
@@ -54,11 +55,7 @@ def fit_scorer(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flas
         return MockFitScorer()
     if model.startswith("gemini-"):
         raise ValueError("Gemini is deprecated for scoring")
-    if (
-        model.startswith("free/")
-        or "minimax" in model
-        or model == "apinex"
-    ):
+    if is_apinex(model):
         from app.providers.apinex_client import APInexFitScorer
 
         return APInexFitScorer(model=model)
@@ -69,6 +66,7 @@ def fit_scorer(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flas
 
 @lru_cache
 def _claude_cv(model: str) -> CVGenerator:
+    reject(model, "Claude Code")
     from app.providers.claude_cv import ClaudeCVGenerator
 
     return ClaudeCVGenerator(model)
@@ -81,12 +79,7 @@ def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5",
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
     if use_mock:
         return MockCVGenerator()
-    if (
-        model.startswith("free/")
-        or "minimax" in model
-        or "deepseek" in model
-        or model == "apinex"
-    ):
+    if is_apinex(model):
         from app.providers.apinex_cv import APInexCVGenerator
 
         return APInexCVGenerator(model=model)
@@ -103,6 +96,7 @@ def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5",
     """Real workspace: Gemini for `gemini-*` models, else Claude Code headless (subscription
     only). Tests and the sandbox: mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    reject(model, "the email")
     if use_mock:
         return MockEmailDrafter()
     if model.startswith("gemini-"):
@@ -119,6 +113,7 @@ def letter_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") 
     """Cover letters and application answers. Real workspace: Claude Code headless (subscription
     only). Tests and the sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    reject(model, "cover letters")
     if use_mock:
         return MockLetterDrafter()
     from app.providers.claude_letter import ClaudeLetterDrafter

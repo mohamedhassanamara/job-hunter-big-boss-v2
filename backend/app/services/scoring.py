@@ -36,6 +36,7 @@ from app.models import (
 )
 from app.models.base import utcnow
 from app.models.enums import FitStatus, ScoringTaskStatus, Stage
+from app.providers.apinex_models import is_apinex
 from app.providers.base import (
     ConcurrencyLimited,
     FitScorer,
@@ -405,11 +406,7 @@ def estimate_seconds(s: Session, ctx: ScoringContext, n: int) -> int | None:
     dialog). Uses recent real durations for that model; ~20s per call when there is no history."""
     if n <= 0:
         return 0
-    if (
-        ctx.model.startswith("free/")
-        or "minimax" in ctx.model
-        or ctx.model == "apinex"
-    ):
+    if is_apinex(ctx.model):
         return round(n * 4.0)  # 15 RPM gateway throttle = ~4s per job
     recent = s.exec(
         select(FitScore.duration_ms)
@@ -507,9 +504,7 @@ def is_cloud(model: str) -> bool:
     return (
         model.endswith(("-cloud", ":cloud"))
         or model.startswith("gemini-")
-        or model.startswith("free/")
-        or "minimax" in model
-        or model == "apinex"
+        or is_apinex(model)
     )
 
 
