@@ -96,6 +96,25 @@ def short_form(statement: str) -> tuple[str, str] | None:
     return f"{m.group(1)} years of experience", field
 
 
+def dedupe_years(text: str, statement: str | None) -> str:
+    """The code fix for a summary that says the field and then the full years statement ("Software
+    engineer with 3 years of software engineering experience"): that sentence gets the short form
+    ("…with 3 years of experience"), which the years rule allows next to the field. Nothing else is
+    touched, and no regeneration is needed."""
+    short = short_form(statement) if statement else None
+    if not short:
+        return text
+    out, changed = [], False
+    for sentence in _SENTENCES.split(text):
+        rest = re.sub(re.escape(statement), " ", sentence, flags=re.I)
+        if re.search(re.escape(statement), sentence, re.I) and re.search(
+                rf"\b{re.escape(short[1])}\b(?!ing)", rest, re.I):
+            sentence = re.sub(re.escape(statement), short[0], sentence, flags=re.I)
+            changed = True
+        out.append(sentence)
+    return " ".join(out) if changed else text
+
+
 def strip_statement(text: str, statement: str) -> str:
     """The text without its allowed years wording: the exact statement anywhere, and the short
     form in a sentence that already says the field ("Software engineer with 3 years of

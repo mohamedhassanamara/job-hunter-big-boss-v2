@@ -371,16 +371,11 @@ def _content_words(text: str) -> list[str]:
     return [w for w in re.findall(r"[a-z0-9][a-z0-9+#.-]*", text.lower()) if w not in _STOP]
 
 
-def opening(text: str, n: int = 4) -> str:
-    return " ".join(re.findall(r"[a-z0-9]+", text.lower())[:n])
-
-
 def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str],
                      certifications: list[ExperienceItem], internships: list[ExperienceItem],
                      tools: set[str], max_sentences: int | None = None,
                      max_words: int | None = None, banned_phrases: list[str] | None = None,
                      cited_texts: list[str] | None = None,
-                     other_openings: list[str] | None = None,
                      years_statement: str | None = None) -> list[str]:
     """Why a summary breaks the guide (empty = fine). Checked in code; the summary is
     regenerated once with these reasons."""
@@ -445,8 +440,6 @@ def summary_problems(text: str, *, rules: dict[str, Any], bullet_texts: list[str
         if not any(" ".join(words[i:i + 2]) in pairs for i in range(len(words) - 1)):
             out.append("names nothing concrete you built (use a project or system from the "
                        "cited items)")
-    if other_openings and opening(text) in set(other_openings):
-        out.append(f"opens like another CV (“{' '.join(text.split()[:4])}…”): vary the opening")
     for sentence in sentences(text):
         listed = tool_list(sentence, tools)
         if listed:

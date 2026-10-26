@@ -30,7 +30,7 @@ from app.services.cv_check import (
     summary_support,
     verbatim_skills,
 )
-from app.services.cv_claims import exact_statement
+from app.services.cv_claims import dedupe_years, exact_statement
 from app.services.cv_pool import (
     Pool,
     cv_profile,
@@ -165,7 +165,7 @@ def fit_layout(s: Session, plan: CVPlan, pool: Pool, track: str = "") -> Layout:
 def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
                   items: list[SummarySentence], short: bool = False,
                   banned: list[str] | None = None,
-                  other_openings: list[str] | None = None, track: str = "",
+                  track: str = "",
                   statement: str | None = None, honesty_rules: Any = None) -> list[str]:
     """The guide's summary rules, checked in code (see cv_rules.summary_problems), plus the
     honesty rule about years (services/honesty.py)."""
@@ -189,27 +189,11 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
         max_words=max(15, int(rules["summary_max_words"]) // 2) if short else None,
         banned_phrases=banned if banned is not None else cv_rules.DEFAULT_CV_BANNED,
         cited_texts=None if short or not cited_texts else cited_texts,
-        other_openings=None if short else other_openings,
         years_statement=statement)
 
 
 def _data_ai(track: str) -> bool:
     return bool(re.search(r"\b(data|ai|ml|machine learning|analytics)\b", track))
-
-
-def other_openings(s: Session, app_id: int) -> list[str]:
-    """How the latest CV of every other job opens (a summary must not open the same way)."""
-    out = []
-    latest: dict[int, CVVersion] = {}
-    for v in s.exec(select(CVVersion).where(CVVersion.application_id != app_id)
-                    .order_by(col(CVVersion.version))).all():
-        if v.status != CVStatus.superseded:
-            latest[v.application_id] = v
-    for v in latest.values():
-        summary = ((v.plan or {}).get("plan") or {}).get("summary") or ""
-        if summary:
-            out.append(cv_rules.opening(summary))
-    return out
 
 
 def _tracks(s: Session) -> list[dict[str, Any]]:
@@ -265,7 +249,6 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
         rules = {**cv_rules.structure(cv_settings(s)),
                  "_qualifiers": cv_rules.qualifiers(cv_settings(s))}  # runtime only
         banned = cv_rules.banned(cv_settings(s))
-        openings = other_openings(s, app_id)
     try:
         plan = generator.generate(request)
         plan = verbatim_skills(canonicalize(plan, pool), pool)
@@ -275,7 +258,7 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
         plan, plan_issues = check_plan(plan, pool)
         issues += plan_issues
         plan, summary_issues, grounding = ground_summary(
-            plan, pool, request, generator, rules, banned=banned, openings=openings)
+            plan, pool, request, generator, rules, banned=banned)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
     plan = bullet_tailor.pin_originals(verbatim_skills(canonicalize(plan, pool), pool), pool)
@@ -330,7 +313,7 @@ def _style_warnings(problems: list[str], prefix: str = "") -> list[dict[str, Any
 
 def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGenerator,
                    rules: dict[str, Any] | None = None, *, banned: list[str] | None = None,
-                   openings: list[str] | None = None, user_feedback: str = "",
+                   user_feedback: str = "",
                    ) -> tuple[CVPlan, list[dict[str, Any]], dict[str, Any]]:
     """Every summary sentence must cite pool items and say only what they say, and the summary
     must follow the writing guide (length, no repeated numbers, certifications, internships or
@@ -349,10 +332,15 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
     def join(items: list[SummarySentence]) -> str:
         return " ".join(s.text.strip() for s in items)
 
+    def fixed(items: list[SummarySentence]) -> list[SummarySentence]:
+        """The wording fix in code (repeated field + years statement): no retry for it."""
+        return [s.model_copy(update={"text": dedupe_years(s.text, statement)}) for s in items]
+
     def evaluate(sentences: list[SummarySentence], short: list[SummarySentence]):  # noqa: ANN202
+        sentences, short = fixed(sentences), fixed(short)
         good, bad = ground_sentences(sentences, pool, allowed, statement)
         short_good, short_bad = ground_sentences(short, pool, allowed, statement)
-        style = summary_style(plan, pool, rules, sentences, False, banned, openings, track,
+        style = summary_style(plan, pool, rules, sentences, False, banned, track,
                               statement, hr)
         short_style = summary_style(plan, pool, rules, short, True, banned,
                                     statement=statement, honesty_rules=hr)
@@ -444,7 +432,7 @@ def summary_warnings(s: Session, app: Application, pool: Pool, plan: CVPlan,
         return []
     out = _style_warnings(summary_style(
         plan, pool, rules, [SummarySentence(text=text, citations=[])], False,
-        cv_rules.banned(settings), other_openings(s, app.id), track, statement, hr))
+        cv_rules.banned(settings), track, statement, hr))
     seen = {w["message"] for w in out}
     for v in edit_violations(plan, pool, {"text": {"summary": text}}, allowed, statement):
         message = v["message"].removeprefix("Edited text: ")
@@ -519,7 +507,6 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator,
         rules, banned = ({**cv_rules.structure(settings),
                           "_qualifiers": cv_rules.qualifiers(settings)},
                          cv_rules.banned(settings))
-        openings = other_openings(s, app.id)
         shown = CVDocument.model_validate(v.content or {}).summary or plan.summary
         typed = bool(((v.overrides or {}).get("text") or {}).get("summary"))
         prior_feedback = (v.plan or {}).get("summary_feedback")
@@ -535,7 +522,7 @@ def regenerate_summary(engine: Engine, cv_id: int, generator: CVGenerator,
             "summary": " ".join(x.text for x in draft.summary_sentences),
             "summary_short": " ".join(x.text for x in draft.summary_short_sentences)})
         plan, summary_issues, report = ground_summary(
-            plan, pool, request, generator, rules, banned=banned, openings=openings,
+            plan, pool, request, generator, rules, banned=banned,
             user_feedback=feedback)
     except CVGenerationFailed as exc:
         raise CVError(str(exc)) from exc
