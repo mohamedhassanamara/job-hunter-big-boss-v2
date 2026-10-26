@@ -629,3 +629,18 @@ def test_apinex_scorer_fails_after_one_retry_and_never_stores_a_default() -> Non
     with pytest.raises(ScoringFailed):
         APInexFitScorer(client=client).assess("sys", "user", _job())  # type: ignore[arg-type]
     assert len(client.prompts) == 2
+
+
+def test_apinex_402_is_a_quota_problem_so_scoring_fails_over_and_the_message_is_kept() -> None:
+    import httpx
+
+    from app.providers.apinex_client import APInexClient, RollingRateLimiter
+    from app.providers.base import QuotaExceeded
+
+    body = {"error": {"message": "Daily check-in required to use free models."}}
+    client = APInexClient(
+        api_key="test-key", sleep_fn=lambda s: None,
+        limiter=RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None),
+        transport=httpx.MockTransport(lambda request: httpx.Response(402, json=body)))
+    with pytest.raises(QuotaExceeded, match="Daily check-in required"):
+        client.complete_sync("system", "user")
