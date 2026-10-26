@@ -17,6 +17,16 @@ import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+/** The claim check, done in the background after the draft is written: Approve doesn't wait. */
+function VerifyChip({ state, errors }: { state: string; errors: boolean }) {
+  if (errors) return <ToneBadge tone="amber">Fix the checks first</ToneBadge>
+  if (state === 'passed') return <ToneBadge tone="green">Verified</ToneBadge>
+  if (state === 'failed') return <ToneBadge tone="red">Claims failed</ToneBadge>
+  if (state === 'stale') return <ToneBadge tone="amber">Re-checking</ToneBadge>
+  if (state === 'error') return <ToneBadge tone="gray">Check didn't run</ToneBadge>
+  return <ToneBadge tone="gray">Not verified yet</ToneBadge>
+}
+
 export function ReviewTab() {
   const url = useSearchParamState()
   const status = url.get('status') ?? 'draft'
@@ -134,11 +144,10 @@ export function ReviewTab() {
                   {d.company_name} · {d.job_title}
                 </p>
                 <p className="mt-1 truncate text-xs text-fg-subtle">{d.subject}</p>
-                {status !== 'draft' && (
-                  <ToneBadge tone={DRAFT_STATUS[d.status].tone} className="mt-1.5">
-                    {DRAFT_STATUS[d.status].label}
-                  </ToneBadge>
-                )}
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  {status !== 'draft' && <ToneBadge tone={DRAFT_STATUS[d.status].tone}>{DRAFT_STATUS[d.status].label}</ToneBadge>}
+                  {d.status === 'draft' && <VerifyChip state={d.verification_state} errors={d.violations.some((v) => v.severity === 'error')} />}
+                </div>
               </button>
             ))
           )}

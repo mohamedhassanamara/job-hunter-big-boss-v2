@@ -176,7 +176,7 @@ def tick(engine: Engine, *, mock: bool, workspace: str = "real") -> bool:
         if kind == "cv":
             result_id, model, details = _run_cv(engine, app_id, use, mock, workspace)
         else:
-            result_id, model, details = _run_email(engine, app_id, use, mock)
+            result_id, model, details = _run_email(engine, app_id, use, mock, workspace)
     except Exception as exc:  # noqa: BLE001 (stored on the task, shown on the job)
         _failed(engine, task_id, exc)
         return True
@@ -218,8 +218,8 @@ def _run_cv(engine: Engine, app_id: int, use: str | None, mock: bool,
     return version.id, generator.model, _details(generator)
 
 
-def _run_email(engine: Engine, app_id: int, use: str | None,
-               mock: bool) -> tuple[int, str, dict[str, Any]]:
+def _run_email(engine: Engine, app_id: int, use: str | None, mock: bool,
+               workspace: str = "real") -> tuple[int, str, dict[str, Any]]:
     from app.providers.registry import email_drafter
     from app.services import model_choice, outreach
 
@@ -228,7 +228,11 @@ def _run_email(engine: Engine, app_id: int, use: str | None,
     drafter = email_drafter(mock=mock, model=pick["model"], engine=engine,
                             thinking_level=pick["thinking_level"])
     draft = outreach.generate_applied(engine, app_id, drafter)
-    return draft.id, drafter.model, _details(drafter)
+    from app.services import auto_verify
+
+    draft_id, verified = auto_verify.verify_after_draft(engine, draft.id, drafter=drafter,
+                                                        workspace=workspace)
+    return draft_id, drafter.model, {**_details(drafter), **verified}
 
 
 def _details(generator: Any) -> dict[str, Any]:
@@ -281,6 +285,10 @@ def start_worker(engine: Engine) -> None:
             try:
                 while tick(engine, mock=mock) and not _stop.is_set():
                     pass
+                if not _stop.is_set():  # idle: verify a draft you edited or whose sources
+                    from app.services import auto_verify  # changed (one per tick)
+
+                    auto_verify.stale_tick(engine)
             except Exception:  # noqa: BLE001
                 log.exception("generation worker tick failed")
 

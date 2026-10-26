@@ -114,6 +114,7 @@ def _hook_check_out(check: dict[str, Any] | None) -> dict[str, Any] | None:
 def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]:
     if not drafts:
         return []
+    stamp = verifier.pool_stamp(session)
     apps = {
         a.id: a
         for a in session.exec(
@@ -201,7 +202,7 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 **contact_alert_fields(session, app, c),
                 verification=d.verification or {},
                 verification_state=verifier.state(d.verification,
-                                                  verifier.email_text(session, d)),
+                                                  verifier.email_text(session, d), stamp),
                 mode=(d.plan or {}).get("mode"),
                 language=(d.plan or {}).get("language"),
                 language_detected=((d.plan or {}).get("language_choice") or {}).get("detected"),

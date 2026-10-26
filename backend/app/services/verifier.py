@@ -85,19 +85,40 @@ def file_hash(path: str | None) -> str | None:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def pool_stamp(s: Session) -> str:
+    """A fingerprint of your experience pool and candidate profile: it changes when either is
+    edited, which makes an earlier verification stale (its sources are no longer these)."""
+    from sqlalchemy import func
+
+    from app.models import AppSetting, ExperienceItem
+
+    newest, count = s.exec(select(func.max(ExperienceItem.updated_at), func.count()).where(
+        col(ExperienceItem.is_active).is_(True))).one()
+    profile = s.exec(select(AppSetting.updated_at).where(AppSetting.key == "profile")).first()
+    when = (newest.isoformat() if newest else "", profile.isoformat() if profile else "")
+    return f"{when[0]}|{count}|{when[1]}"
+
+
+def _same_pool(record: dict[str, Any], stamp: str | None) -> bool:
+    """Old records carry no stamp: they are never made stale by it."""
+    return stamp is None or not record.get("pool_stamp") or record["pool_stamp"] == stamp
+
+
 def is_current(record: dict[str, Any] | None, text: str,
-               attachment_sha256: str | None = None) -> bool:
-    """A passed verification of exactly this text (and attachment, when there is one)."""
+               attachment_sha256: str | None = None, stamp: str | None = None) -> bool:
+    """A passed verification of exactly this text (and attachment, when there is one), made
+    against the pool as it is now (when `stamp` is given)."""
     return bool(record) and record.get("status") == "passed" \
         and record.get("hash") == text_hash(text) \
-        and (attachment_sha256 is None or record.get("attachment_sha256") == attachment_sha256)
+        and (attachment_sha256 is None or record.get("attachment_sha256") == attachment_sha256) \
+        and _same_pool(record, stamp)
 
 
-def state(record: dict[str, Any] | None, text: str) -> str:
-    """passed | failed | error | stale (verified, then the text changed) | none."""
+def state(record: dict[str, Any] | None, text: str, stamp: str | None = None) -> str:
+    """passed | failed | error | stale (verified, then the text or your pool changed) | none."""
     if not record:
         return "none"
-    if record.get("hash") != text_hash(text):
+    if record.get("hash") != text_hash(text) or not _same_pool(record, stamp):
         return "stale"
     return str(record.get("status") or "none")
 
@@ -329,7 +350,8 @@ def prepare_email(s: Session, draft: OutreachDraft) -> Prepared:
 
 
 def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, Any]:
-    record = prepare_email(s, draft).run(verifier)
+    stamp = pool_stamp(s)  # taken before the call: an edit during it makes the record stale
+    record = {**prepare_email(s, draft).run(verifier), "pool_stamp": stamp}
     draft.verification = record
     s.add(draft)
     return record
@@ -338,7 +360,7 @@ def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, A
 def require_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, Any]:
     """Approval: reuse a passed verification of this exact text and CV, else verify now."""
     record = draft.verification
-    if is_current(record, email_text(s, draft), email_attachment(s, draft)):
+    if is_current(record, email_text(s, draft), email_attachment(s, draft), pool_stamp(s)):
         return record
     record = verify_email(s, draft, verifier)
     if record["status"] != "passed":

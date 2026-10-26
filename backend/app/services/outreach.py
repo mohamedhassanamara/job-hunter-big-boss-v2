@@ -538,7 +538,8 @@ def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[An
     cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
     if cv is None or cv.status != CVStatus.approved:
         raise OutreachError("The CV this email was written from is no longer approved")
-    state = verifier.state(draft.verification, verifier.email_text(s, draft))
+    state = verifier.state(draft.verification, verifier.email_text(s, draft),
+                           verifier.pool_stamp(s))
     ignored = [{"type": v.get("type"), "severity": v.get("severity"), "message": v.get("message")}
                for v in draft.violations or []]
     if state != "passed":

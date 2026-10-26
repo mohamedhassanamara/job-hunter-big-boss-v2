@@ -169,6 +169,8 @@ One row per change of an item's text, written only by `services/experience_write
 | note | str? | e.g. "not in the master document" |
 Undo restores `before` (and is itself a row).
 
+`outreach_draft.verification` now also carries `pool_stamp` (fingerprint of the pool and profile when it was verified); the generation task `details` carry `verify`, `verify_attempts` and `regenerated_from`.
+
 ### queue_event / send_queue.paused_reason (migration 0035)
 `queue_event(at, from_status, to_status, reason, actor)`: one row per real queue state change (`reason` resume | added | empty | manual | fatal; `actor` user | worker | auto_on_add), written only by `send_queue.set_status`. `send_queue.paused_reason` (manual | fatal) says why a paused queue is paused; an idle queue starts itself on `enqueue`, a paused one does not.
 

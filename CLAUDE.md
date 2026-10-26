@@ -378,6 +378,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Claim verifier (services/verifier.py, providers/claude_verify.py, prompts/verify.md)
 
+- **Background verification** (`services/auto_verify.py`, run by the generation worker after each email draft): code checks first (errors skip it), then the verifier; on failed claims ONE regeneration with the failing claims as feedback (the first draft becomes `rejected`, the new one has `parent_id`), verified once, then stop. A verifier that couldn't run (`status: error`) never triggers a rewrite. A draft still in review is verified again only when its text changed (after a quiet minute) or its sources did (`verifier.pool_stamp`: your pool + profile, stored in the verification record as `pool_stamp`; `state()`/`is_current()` call it stale). Approve reuses a current passed record, so it doesn't wait. The bypass button is unchanged: `unverified_approval` is `{}` by default and only `approve_unverified` fills it.
+
 - Zero tolerance, Claude (`claude -p`, Opus by default, same isolation and subscription check, never an API key),
   a separate call that gets only the final text and its sources (pool items, approved CV, facts, signals, and the
   listing for letters/answers/LinkedIn, plus the recipient). It splits every sentence into claims; unsupported,
