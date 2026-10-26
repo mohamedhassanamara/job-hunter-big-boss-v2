@@ -382,11 +382,24 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   line (title, email, LinkedIn; phone off by default) and an optional last line, both off by default), "Where each sentence comes from" (hover for the
   cited CV items), **Approve** (primary; the job becomes Ready to send), then **Add to send queue** on approved
   drafts (a separate step), Send test to me, Regenerate, Reject. Keys: j/k, a, r. The same editor is on the Job page.
-- **Send test to me:** the exact email, CV attached, to your own address with "[TEST]" in the subject; no stage
+- **Send test to me:** the exact email (plain text, nothing attached), to your own address with "[TEST]" in the subject; no stage
   change. **The queue can't start before one successful test send.**
+- **Portal first (prompt v17):** a job with a posting gets its email only after you applied through the company
+  site, a job board or LinkedIn (Mark applied; applying by email doesn't count). Drafting, approving and queueing
+  are blocked before that with a clear message, and marking a job applied queues the draft when its contact is
+  verified. Code builds the subject ("<Role> application - <name>"), the greeting, the opening ("I applied for
+  the <Role> position via <your careers page | LinkedIn | a job board> <earlier today | yesterday | on <date>>
+  and wanted to introduce myself directly.", from the application record, three wordings rotating), the ask (a
+  brief 10-minute technical chat; a call for HR or recruiters) and the signature (sign-off, name, then
+  `portfolio · github · linkedin` from Settings → Candidate links, then the opt-out line from Settings → Email if
+  you set one). The model writes only the 1-2 proof sentences. Errors: a URL or domain in the body, attachment
+  wording, apology or defensive wording, asking whether they hire or hinting at going around the portal, visa,
+  location. Warning: more than 110 words. Without a posting the email stays manual ("Quick intro | <Role> at
+  <Company>"), also plain text.
 - **Queue tab:** Running / Paused / Idle, next send countdown and time, estimated finish (at the average gap), the gap range, max 20 per queue. The worker
-  sends one email at a time through Gmail SMTP, a random gap apart (uniform between Settings → Email's minimum and maximum, default 4 and 7 minutes, drawn fresh after every send and stored as `next_send_at` so a restart keeps the schedule) (`SMTP_APP_PASSWORD` in `.env`), attaching the approved CV and
-  locking that version. Failures are shown with Retry; a login/config failure pauses the queue. An email caught
+  sends one email at a time through Gmail SMTP, a random gap apart (uniform between Settings → Email's minimum and maximum, default 4 and 7 minutes, drawn fresh after every send and stored as `next_send_at` so a restart keeps the schedule) (`SMTP_APP_PASSWORD` in `.env`), as `text/plain` with no attachment, no HTML part and no image (the send gate
+  checks the text hash, the recipient and that the message has zero attachments; an email written under the old
+  rules, or one that breaks the current ones, goes back to review with the reason and is listed for you). Failures are shown with Retry; a login/config failure pauses the queue. An email caught
   mid-send by a restart becomes "Check Gmail" (never resent blindly): Retry or "I found it in Sent". Every attempt
   is in `send_log`. A sent email moves the job to **Sent** (`done`, method email) and feeds follow-ups, replies
   and stats (Applications).

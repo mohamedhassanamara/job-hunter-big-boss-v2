@@ -206,11 +206,31 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Outreach (services/outreach.py, outreach_check.py, send_queue.py)
 
+- **v17 (portal-first, plain text; supersedes older wording below where they differ):** every outbound email is `text/plain`
+  only: no attachment, no HTML part, no image, no tracking (`smtp_mailer.plain_message` is the one builder;
+  `smtp_mailer.email_problem` is part of the send gate with `verifier.send_gate` (text hash + recipient) and
+  `send_queue.legacy_reason`). Drafts carry `plan.delivery == "text"`; a queued/approved draft without it, or whose text
+  has attachment wording, or that fails the portal gate, goes back to review with the reason (`send_queue.pull_back_legacy`,
+  sends nothing; also used by `tick`). Sending never locks a CV (Mark applied does). A job with a posting gets its email only
+  after Mark applied through company_site / job_board / linkedin (`outreach.applied_gate`, `draft_gate`: drafting, approval,
+  unverified approval, queueing, copy-for-another-AI); `generation.email_ready` = that gate + a ready contact + no live draft,
+  triggered from `tracking.mark_applied` (undo cancels it) and a contact becoming ready. The proof is written from
+  `outreach.source_cv` (the CV the application was sent with), never attached. Code builds everything but the proof
+  (`outreach.complete_applied`, `applied_check.opening_line / cta_line / subject_line / speculative_subject`): the opening says
+  how and when from the application record (a board is never named: only "a job board"; "earlier today" only if it was
+  today; three wordings rotate per draft count), the ask is a 10-minute technical chat (a call for recruiters/HR,
+  `is_recruiter`), the signature is sign-off, name, `portfolio · github · linkedin` (`outreach.candidate_links`, from Settings →
+  Candidate links: data, never code), then the optional Settings → Email opt-out. Blocking: URL/domain in the body,
+  attachment wording (`outreach_check.attachment_violations`, every mode), apology/defensive wording, asking whether they
+  hire / bypass wording, visa/location, `projects_track` (a projects track's proof cites projects, the graduation project or an
+  internship, never a job). Warning: > 110 words (greeting to ask). Copy/duplicate checks run on the proof only. Prompt
+  `outreach.md` v17 (applied: the model returns only `experience`), `verify.md` v8 (the opening's role/method/date are checked
+  against the `Application` facts line). `scripts/manual_outreach_v17.py` holds the data steps and test drafts (`--live`).
 - Drafts: one job at a time (a lock), from the **approved** CV's items only; Claude via `providers/claude_email.py`
   (subclass of the CV generator: same isolation, `apiKeySource == "none"`). Prompt `app/prompts/outreach.md` is
   versioned like the others. Checks reuse `cv_check.sentence_problems`; one retry with feedback; errors block approval.
-- Code builds the subject ("Software engineer interested in joining {Company}", `intro_check.subject_line`),
-  the greeting and the intro line. The signature ends with the sign-off and your name (contact line opt-in);
+- Code builds the subject (speculative: "Quick intro | {Role} at {Company}", `applied_check.speculative_subject`),
+  the greeting and the intro line. The signature ends with the sign-off, your name and your links line (title/email/phone opt-in);
   no last line by default. The hook is checked against its cited signals by gemma
   (`services/hook_check.py`, `OllamaStructured` shared with research; `MockHookChecker` in tests/sandbox), per
   attempt and again on approve if the hook was edited. Any outreach prompt edit needs `make eval-emails` recorded
@@ -248,8 +268,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   (`generation.start_worker`, real workspace only, `GENERATION_WORKER_ENABLED`; tests/sandbox never start it, the sandbox never
   enqueues). `pipeline.transition` → `on_shortlisted` (queue a CV draft unless a CV exists / setting off / came from cv_ready) and
   `on_unshortlisted` (cancel queued; a running one finishes and its draft stays). The email is queued by
-  `maybe_enqueue_email` after CV approval, a contact becoming verified, or a shortlist: needs `generation.auto_email`, a job in
-  shortlisted/cv_ready with a posting, an approved CV, a ready contact, no live draft. Settings `generation = {auto_cv: true,
+  `maybe_enqueue_email` after Mark applied or a contact becoming verified (v17: the application must be marked applied through the
+  portal; no approved CV to attach is needed): needs `generation.auto_email`, a job with a posting, a ready contact, no live draft. Settings `generation = {auto_cv: true,
   auto_email: true}` (both on by default; a value already stored in the DB wins). Drafts only: nothing is approved, no toasts; `Tracks.cv` / `Tracks.generation` feed the badges
   ("CV ready to review", "Email ready to review"), `GET /generation/status` drives the refresh.
 - Email prompt v14 (applied mode): experience = a short first-person summary of 1-2 things, not the bullets. Copy check
@@ -307,8 +327,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   draft + feedback) in the request; prompt sections `revise` (outreach v13, linkedin v5, cover_letter v8). Drafts are kept
   (`parent_id`, `feedback`, `draft_history`); LinkedIn keeps `history` in the message JSON; letters keep versions.
 - Approval without verification (`outreach.approve_unverified`, `verifier.send_gate`): this draft only, records
-  `unverified_approval` (ignored issues + hashes); the send gate still checks text/attachment hash, contact and CV
-  version; a send-back clears it; it is never recorded in the regression set.
+  `unverified_approval` (ignored issues + hashes); the send gate still checks the text hash and the contact (no attachment or
+  CV version since v17); a send-back clears it; it is never recorded in the regression set.
 - Copy for another AI (`services/external_ai.py`, prompt sections `external*`): prompt = listing + recipient + only the
   relevant experience + rules + language + an approved example; never phone/email/other contacts. A pasted draft is
   checked (code + Claude verifier) before it can be saved as a draft.
