@@ -856,6 +856,7 @@ def applied_context(s: Session, app: Application, job: Job, company: Company, co
                         exclude_draft=exclude_draft)
     ctx.min_words, ctx.max_words = ac.MIN_WORDS, ac.MAX_WORDS
     ctx.candidate_name = (pool.profile.get("full_name") or "").strip()
+    ctx.track = job.matched_track or ""
     ctx.examples = []  # the intro examples don't apply here
     ctx.references = applied_references(s)  # the follow-up's style references (copy check)
     return ctx
@@ -915,7 +916,7 @@ def complete_applied(plan: Any, app: Application, job: Job, request: EmailReques
     plan.role = ac.plain_role(job.title)
     plan.greeting = ic.greeting_line(request.contact["first_name"], language)
     plan.opening = ac.opening_line(
-        plan.role, facts["method"], job.source,
+        plan.role, facts["method"],
         app.web_applied_at.date() if app.web_applied_at else None,
         datetime.now().astimezone().date(), language, variant)
     plan.ask = ac.cta_line(language, recruiter)

@@ -118,8 +118,6 @@ def speculative_subject(role: str, company: str, language: str) -> str:
 
 # ---------------------------------------------------------------- the opening and the ask (code)
 
-_BOARDS = {"adzuna": "Adzuna", "wttj": "Welcome to the Jungle", "bayt": "Bayt",
-           "remotive": "Remotive", "arbeitnow": "Arbeitnow", "linkedin": "LinkedIn"}
 _RECRUITER = re.compile(
     r"recruit|talent|\bhr\b|human resources|\bpeople\b|ressources humaines|\brh\b|"
     r"acquisition|sourc(?:er|ing)|personal|rekrut", re.I)
@@ -131,14 +129,14 @@ _MONTHS = {
 VARIANTS = 3
 
 
-def method_phrase(method: str | None, source: str | None, language: str) -> str:
+def method_phrase(method: str | None, language: str) -> str:
     """Where the application went in, in the words that fit: never "careers page" for a board
-    or LinkedIn."""
+    or LinkedIn. A board is never named: the record says "job board", not which one (the
+    listing's source is where it was found, not where you applied)."""
     if method == "linkedin":
         return "LinkedIn"
     if method == "job_board":
-        board = _BOARDS.get((source or "").lower())
-        return board or ("une plateforme d'emploi" if language == "fr" else "a job board")
+        return "une plateforme d'emploi" if language == "fr" else "a job board"
     return "votre site carrières" if language == "fr" else "your careers page"
 
 
@@ -156,11 +154,11 @@ def when_phrase(applied: date | None, today: date, language: str) -> str:
     return f"le {applied.day} {month}{year}" if fr else f"on {applied.day} {month}{year}"
 
 
-def opening_line(role: str, method: str | None, source: str | None, applied: date | None,
-                 today: date, language: str, variant: int = 0) -> str:
+def opening_line(role: str, method: str | None, applied: date | None, today: date,
+                 language: str, variant: int = 0) -> str:
     """"I applied for the <Role> position via <where> <when> and wanted to introduce myself
     directly." Everything comes from the application record; three equivalent wordings rotate."""
-    role, via = plain_role(role), method_phrase(method, source, language)
+    role, via = plain_role(role), method_phrase(method, language)
     when = when_phrase(applied, today, language)
     v = variant % VARIANTS
     if language == "fr":
@@ -407,6 +405,30 @@ def copies(found: list[dict[str, str]]) -> bool:
     return any(v["type"] == "cv_copy" for v in found)
 
 
+_INTERNSHIP = re.compile(r"intern|stage|stagiaire|praktik|trainee|apprenti|alternan|thesis|pfe",
+                         re.I)
+
+
+def projects_track_problems(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
+    """On a projects track (Settings → Profile: experience "projects") the proof describes
+    projects, the graduation project or an internship: never a job, which would read as
+    professional experience."""
+    if not ctx.honesty or ctx.track not in {t.name for t in ctx.honesty.projects}:
+        return []
+    out = []
+    for i, sentence in enumerate(plan.experience, 1):
+        for item_id in sentence.citations:
+            item = ctx.pool.items.get(item_id)
+            if item is not None and str(item.kind) == "job" and not _INTERNSHIP.search(
+                    f"{item.title} {item.org or ''}"):
+                out.append(violation(
+                    "projects_track", f"{ctx.track} is a projects track: “{sentence.text}” cites "
+                    f"“{item.title}”, a job. Describe the work as a project, the graduation "
+                    "project or the internship", f"experience {i}", "error"))
+                break
+    return out
+
+
 def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     """The proof is the only model-written part: grounded, in plain first person, in pool
     wording. The greeting, opening and ask are code; the whole body gets the v17 rules."""
@@ -450,6 +472,7 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
     if run >= 7 or _overlap(part, ctx.job_text) >= RESTATE_THRESHOLD:
         out.append(violation("restates", f"The proof restates the listing ({run} words in a "
                              "row): say it in your own words", "experience"))
+    out += projects_track_problems(plan, ctx)
     subject = subject_line(plan.role, ctx.candidate_name, ctx.language)
     return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False, v17=True)
 

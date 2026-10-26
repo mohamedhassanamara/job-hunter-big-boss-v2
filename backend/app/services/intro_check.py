@@ -87,6 +87,7 @@ class Context:
     candidate_name: str = ""  # your full name (the applied email's subject)
     honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
     references: list[str] = field(default_factory=list)  # style references (never copied)
+    track: str = ""  # the job's matched track (a projects track's proof can't be a job)
 
 
 def intro_line(first_name: str, focus: str, language: str, statement: str | None,

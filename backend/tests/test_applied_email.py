@@ -51,7 +51,7 @@ def ctx_for(job_ready: dict, job_text: str = "Data Engineer\nWe build data pipel
 def plan(job_ready: dict, **kw) -> AppliedEmailPlan:  # noqa: F811, ANN003
     base = dict(
         role="Data Engineer", greeting="Hi Ana,",
-        opening=ac.opening_line("Data Engineer", "company_site", "adzuna", date(2026, 10, 20),
+        opening=ac.opening_line("Data Engineer", "company_site", date(2026, 10, 20),
                                 date(2026, 10, 26), "en"),
         experience=[
             EmailSentence(text=f"At {job_ready['org']}, I built data pipelines with "
@@ -464,31 +464,30 @@ TODAY = date(2026, 10, 26)
 
 
 def test_the_opening_says_how_and_when_from_the_application_record() -> None:
-    today = ac.opening_line("Mobile Engineer", "company_site", "adzuna", TODAY, TODAY, "en")
+    today = ac.opening_line("Mobile Engineer", "company_site", TODAY, TODAY, "en")
     assert today == ("I applied for the Mobile Engineer position via your careers page earlier "
                      "today and wanted to introduce myself directly.")
-    assert "yesterday" in ac.opening_line("X", "linkedin", None, date(2026, 10, 25), TODAY, "en")
-    assert "on 12 October" in ac.opening_line("X", "company_site", None, date(2026, 10, 12),
-                                              TODAY, "en")
-    assert "earlier today" not in ac.opening_line("X", "company_site", None,
-                                                  date(2026, 10, 25), TODAY, "en")
+    assert "yesterday" in ac.opening_line("X", "linkedin", date(2026, 10, 25), TODAY, "en")
+    assert "on 12 October" in ac.opening_line("X", "company_site", date(2026, 10, 12), TODAY,
+                                              "en")
+    assert "earlier today" not in ac.opening_line("X", "company_site", date(2026, 10, 25),
+                                                  TODAY, "en")
 
 
 @pytest.mark.parametrize("variant", range(ac.VARIANTS))
 def test_a_linkedin_or_board_application_never_says_careers_page(variant: int) -> None:
-    linkedin = ac.opening_line("Engineer", "linkedin", "adzuna", TODAY, TODAY, "en", variant)
-    board = ac.opening_line("Engineer", "job_board", "wttj", TODAY, TODAY, "en", variant)
+    linkedin = ac.opening_line("Engineer", "linkedin", TODAY, TODAY, "en", variant)
+    board = ac.opening_line("Engineer", "job_board", TODAY, TODAY, "en", variant)
     assert "LinkedIn" in linkedin and "careers" not in linkedin
-    assert "Welcome to the Jungle" in board and "careers" not in board
-    assert "a job board" in ac.opening_line("E", "job_board", "boards", TODAY, TODAY, "en", variant)
+    assert "via a job board" in board and "careers" not in board  # no board is ever named
     assert "Engineer" in board and board.endswith("introduce myself directly.")
 
 
 def test_the_wordings_rotate_and_french_is_built_too() -> None:
-    lines = {ac.opening_line("E", "company_site", None, TODAY, TODAY, "en", v)
+    lines = {ac.opening_line("E", "company_site", TODAY, TODAY, "en", v)
              for v in range(ac.VARIANTS)}
     assert len(lines) == ac.VARIANTS
-    fr = ac.opening_line("Ingénieur", "company_site", None, date(2026, 10, 25), TODAY, "fr")
+    fr = ac.opening_line("Ingénieur", "company_site", date(2026, 10, 25), TODAY, "fr")
     assert fr.startswith("J'ai postulé au poste de Ingénieur via votre site carrières hier")
 
 
@@ -563,3 +562,23 @@ def test_a_generated_email_is_built_from_the_record_with_links_in_the_signature(
             row.value = {**row.value, "links": []}
             s.add(row)
             s.commit()
+
+
+def test_a_projects_track_proof_cannot_cite_a_job(job_ready: dict) -> None:  # noqa: F811
+    from app.services import honesty
+
+    rules = honesty.Rules(projects=[honesty.Track("Data/AI", ["data"], ["data engineer"],
+                                                  "personal projects")])
+    ctx = ctx_for(job_ready, track="Data/AI", honesty=rules)
+    found = ac.check_plan(plan(job_ready), ctx)  # cites the fixture's job
+    assert "projects_track" in errors(found), found
+    # the same proof on a professional track is fine
+    assert "projects_track" not in errors(ac.check_plan(plan(job_ready), ctx_for(job_ready)))
+    # an internship is allowed on a projects track
+    with Session(engine) as s:
+        pool = load_pool(s)
+        item = pool.items[job_ready["role"]]
+        item.title = "Data Engineering Intern"
+    ok = ac.check_plan(plan(job_ready), ctx_for(job_ready, pool=pool, track="Data/AI",
+                                                honesty=rules))
+    assert "projects_track" not in errors(ok)

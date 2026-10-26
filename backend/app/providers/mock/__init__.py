@@ -246,7 +246,16 @@ class MockEmailDrafter:
         fr = request.rules.get("language") == "fr"
         role = next((r for r in request.pool.get("roles", []) if r.get("tags")), None)
         experience = []
-        if role:
+        project = next((r for r in request.pool.get("projects", []) if r.get("tags")), None)
+        if (request.candidate or {}).get("track_experience") == "projects" and project:
+            tag = project["tags"][0]
+            experience.append(EmailSentence(
+                text=(f"Dans mon projet {project.get('title')}, j'ai construit une solution "
+                      f"avec {tag} de bout en bout." if fr else
+                      f"In my personal project {project.get('title')}, I built an end-to-end "
+                      f"solution with {tag}."),
+                citations=[project["id"]]))
+        elif role:
             tag = role["tags"][0]
             experience.append(EmailSentence(
                 text=(f"Chez {role.get('org')}, j'ai construit des systèmes avec {tag}, de la "
