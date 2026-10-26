@@ -228,10 +228,10 @@ def test_a_summary_with_a_subject_has_no_hard_problem() -> None:
                 if isinstance(p, cv_rules.HardProblem)]
 
 
-def v5(text: str, cited: list[str] | None = None, openings: list[str] | None = None):  # noqa: ANN201
+def v5(text: str, cited: list[str] | None = None):  # noqa: ANN201
     return cv_rules.summary_problems(
         text, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set(),
-        banned_phrases=cv_rules.DEFAULT_CV_BANNED, cited_texts=cited, other_openings=openings)
+        banned_phrases=cv_rules.DEFAULT_CV_BANNED, cited_texts=cited)
 
 
 @pytest.mark.parametrize(("text", "expected"), [
@@ -271,13 +271,6 @@ def test_data_ai_summaries_may_frame_a_move() -> None:
     moving = "Software engineer moving into data engineering. It works."
     assert not any("career change" in p for p in cv_rules.summary_problems(
         moving, rules=RULES, bullet_texts=[], certifications=[], internships=[], tools=set()))
-
-
-def test_summary_openings_must_vary_between_cvs() -> None:
-    text = "Software engineer transitioning into data engineering. It works."
-    assert any("opens like another CV" in p
-               for p in v5(text, openings=[cv_rules.opening(text)]))
-    assert not any("opens like" in p for p in v5(text, openings=["something else entirely"]))
 
 
 class SummaryScript:
@@ -456,3 +449,36 @@ def test_repeating_software_engineer_with_the_full_statement_is_flagged() -> Non
                                      bullet_texts=[], certifications=[], internships=[],
                                      tools=set(), years_statement=statement)
     assert not any("repeating" in p for p in fine)
+
+
+# ------------------------------------------------ the repeated years wording is fixed in code
+
+STATEMENT = "3 years of software engineering experience"
+
+
+def test_dedupe_years_shortens_only_the_sentence_that_repeats_the_field() -> None:
+    from app.services.cv_claims import dedupe_years
+
+    text = f"Software engineer with {STATEMENT} in mobile. Mobile engineer with {STATEMENT}."
+    assert dedupe_years(text, STATEMENT) == (
+        "Software engineer with 3 years of experience in mobile. "
+        f"Mobile engineer with {STATEMENT}.")  # the second names no field: left as written
+    assert dedupe_years("Nothing to fix here.", STATEMENT) == "Nothing to fix here."
+    assert dedupe_years(text, None) == text
+
+
+def test_the_repeat_is_fixed_in_code_and_never_costs_a_regeneration(
+        monkeypatch) -> None:  # noqa: ANN001
+    pool = make_pool()
+    said = f"Software engineer with {STATEMENT}, building Software Engineer fact 0."
+    plan = make_plan(summary_sentences=[SummarySentence(text=said, citations=[1])],
+                     summary_short_sentences=[SummarySentence(text=said, citations=[1])])
+    monkeypatch.setattr(cv_service, "ground_sentences",
+                        lambda sentences, pool, allowed, *a: (list(sentences), []))
+    request = CVRequest(job={}, pool={}, facts={"years": [
+        {"label": "Software", "years": 3, "exact": True, "wording": STATEMENT}]})
+    gen = SummaryScript("unused")
+    out, issues, report = cv_service.ground_summary(plan, pool, request, gen, RULES)
+    assert gen.feedback == [] and report["attempts"] == 1  # no second model call for it
+    assert out.summary.startswith("Software engineer with 3 years of experience")
+    assert not any("instead of repeating" in v["message"] for v in issues)

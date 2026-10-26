@@ -357,6 +357,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   the contact ranking (`Ranking.order_for(company, job)`: pass the job when you have it). `company.agency_override`
   (employer | agency) always wins over the signals; `agency.detected` is the rule alone.
 - CV approval blocks on errors (as letters and emails). Mark problems the checker fixes itself as warnings.
+- The "opens like another CV" check is gone (prompt `cv_generate` v12 dropped its sentence). The repeated years wording ("software engineer … 3 years of software engineering experience") is fixed in code, not by a retry: `cv_claims.dedupe_years` rewrites that sentence to the short form at the top of `ground_summary` (and on the retry result); the `cv_rules` rule stays as the live check on text you type.
 - Summary checks (`cv_rules.summary_problems`, grounding, honesty, `cv_service.summary_warnings`) are warnings only, with
   `phrase` + `rule`, live via `POST /cv/{id}/summary/check`; they never block approval and never swap in a fallback. Approval
   records them (`approved_summary_warnings`). "New summary" takes optional feedback (prompt `cv_generate` v11 `revise`) on the
