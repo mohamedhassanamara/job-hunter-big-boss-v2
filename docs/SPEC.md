@@ -591,6 +591,7 @@ Sections in a left sub-nav:
 - **Models:** scoring provider/model (Ollama, model name), CV generation (Claude, model name), and email drafting.
 - **Email (SMTP):** Gmail address, from name, and the gap between sends (a minimum and maximum in minutes, minimum ≥ 1 and ≤ maximum) and the cap (read-only). The app password is set in `.env` and shown as "configured / not configured".
 - **Data:** DB path, plus "Reset demo data" and "Start with an empty workspace" (dev only, with a confirmation dialog).
+- **Cold emails** (Email section) also has "Approve adds to the send queue" (default on): approving a draft in Outreach → Review queues it, and the toast offers Remove from queue. The Approved tab has "Add all approved".
 - **Usage log** (in Data): on by default; records route changes, key actions (shortlist, approve, generate, open listing, mark applied, queue add), time on each screen, requests over 500 ms and 5-minute idle gaps, in the local DB only (route patterns, action names, job ids, durations: no page content). Shows the latest session, with "Clear usage log". Full report per session: `make usage-report`.
 - Each section saves independently, with a toast.
 

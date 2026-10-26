@@ -585,3 +585,39 @@ export function useGenerationStatus() {
 export function useCVReview() {
   return useQuery({ queryKey: keys.cvReview, queryFn: () => api.get<CVReviewRow[]>('/cv/review') })
 }
+
+/** Take a queued email out of the send queue by its draft (it stays approved). */
+export function useDequeueDraft() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (draftId: number) => {
+      const queue = await api.get<Queue>('/queue')
+      const item = queue.items.find((i) => i.draft_id === draftId && i.status === 'pending')
+      if (!item) throw new Error('That email is no longer waiting in the queue')
+      return api.del<Queue>(`/queue/items/${item.id}`)
+    },
+    onSettled: () => invalidateWork(qc),
+  })
+}
+
+/** "Add all approved": one after another, stopping when the queue is full. */
+export function useQueueAll() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (draftIds: number[]) => {
+      let added = 0
+      let stoppedBy: string | null = null
+      for (const id of draftIds) {
+        try {
+          await api.post<Draft>(`/outreach/drafts/${id}/queue`)
+          added += 1
+        } catch (e) {
+          stoppedBy = (e as Error).message
+          break
+        }
+      }
+      return { added, left: draftIds.length - added, stoppedBy }
+    },
+    onSettled: () => invalidateWork(qc),
+  })
+}

@@ -214,6 +214,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   (`services/hook_check.py`, `OllamaStructured` shared with research; `MockHookChecker` in tests/sandbox), per
   attempt and again on approve if the hook was edited. Any outreach prompt edit needs `make eval-emails` recorded
   in `app/prompts/eval_log.json`.
+- Email review as a list (`features/outreach/ReviewTab.tsx`): A approves (same conditions as the button) and, with `outreach.approve_adds_to_queue` (default true, Settings → Email), adds the email to the queue and moves to the next draft; the toast's Remove from queue (`useDequeueDraft`, `DELETE /queue/items/{id}`) leaves it approved. The Approved tab and Today's card have "Add all approved" (`useQueueAll`: sequential `POST …/queue`, stops when the queue is full). Rows show the background verification state.
 - Sending: `send_queue.tick` (worker thread in the real workspace, `SEND_WORKER_ENABLED`), Gmail SMTP
   (`providers/smtp_mailer.py`, `SMTP_APP_PASSWORD` via `get_settings()`). Tests and the sandbox use `MockMailer`;
   never send real email from tests. A test send must succeed before `resume`. Queue states change only through `send_queue.set_status` (each change is a `queue_event` row: idle/running/paused, reason, actor): an emptied (idle) queue restarts itself when an approved email is added (`enqueue`, needs a test send), a paused one never does (`paused_reason` manual or fatal).
