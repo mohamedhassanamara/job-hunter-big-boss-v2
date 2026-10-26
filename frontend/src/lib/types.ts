@@ -2285,3 +2285,31 @@ export interface DncAddResult {
   flagged_contacts: number
   not_understood: string[]
 }
+
+/** An unsent CV whose header differs from today's Candidate profile and links ("Refresh headers"). */
+export interface HeaderPreviewRow {
+  id: number
+  application_id: number
+  version: number
+  status: string
+  company: string
+  title: string
+  pages: number | null
+  fill: number | null
+  changed_lines: number
+  diff: string[]
+}
+
+export interface HeaderResult {
+  id: number
+  application_id: number
+  version: number
+  status: string
+  /** refreshed | unchanged | skipped | not_saved | failed */
+  outcome: string
+  reason: string | null
+  pages_before: number | null
+  pages_after: number | null
+  fill_before: number | null
+  fill_after: number | null
+}

@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { api, qs } from '@/lib/api'
 import type {
+  HeaderPreviewRow,
+  HeaderResult,
   CVLeftOut,
   CVRegenEstimate,
   CVRegenMode,
@@ -614,6 +617,45 @@ export function useRetryRegen() {
       invalidateWork(qc)
       void qc.invalidateQueries({ queryKey: ['generation-status'] })
     },
+  })
+}
+
+/** The unsent CVs whose header would change (nothing is written). */
+export function useHeaderPreview(enabled: boolean) {
+  return useQuery({
+    queryKey: ['cv', 'header-preview'],
+    queryFn: () => api.get<HeaderPreviewRow[]>('/cv/refresh-header/preview'),
+    enabled,
+    staleTime: 0,
+  })
+}
+
+function invalidateCVs(qc: ReturnType<typeof useQueryClient>) {
+  invalidateWork(qc)
+  void qc.invalidateQueries({ queryKey: ['cv'] })
+}
+
+/** Re-render one CV's header from the current profile and links (local, no model call). */
+export function useRefreshHeader() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.post<HeaderResult>(`/cv/${id}/refresh-header`, {}),
+    onSuccess: (r) => {
+      if (r.outcome === 'refreshed') toast.success('Header refreshed', { description: `${r.pages_after} page · ${Math.round((r.fill_after ?? 0) * 100)}% full` })
+      else toast.message(r.outcome === 'unchanged' ? 'Header already up to date' : (r.reason ?? r.outcome))
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => invalidateCVs(qc),
+  })
+}
+
+/** Refresh every listed header (or just `ids`). Returns one result per CV. */
+export function useRefreshHeaders() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: number[] | null) => api.post<HeaderResult[]>('/cv/refresh-header', { ids }),
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => invalidateCVs(qc),
   })
 }
 

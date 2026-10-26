@@ -181,3 +181,33 @@ class CVLeftOut(BaseModel):
     force_in: list[str]
     fill: float | None
     page_count: int | None
+
+
+class HeaderPreviewRow(BaseModel):
+    id: int
+    application_id: int
+    version: int
+    status: str
+    company: str
+    title: str
+    pages: int | None
+    fill: float | None
+    changed_lines: int
+    diff: list[str]
+
+
+class HeaderResult(BaseModel):
+    id: int
+    application_id: int
+    version: int
+    status: str
+    outcome: str  # refreshed | unchanged | skipped | not_saved | failed
+    reason: str | None = None
+    pages_before: int | None = None
+    pages_after: int | None = None
+    fill_before: float | None = None
+    fill_after: float | None = None
+
+
+class HeaderRefreshIn(BaseModel):
+    ids: list[int] | None = None  # None: every CV the preview lists

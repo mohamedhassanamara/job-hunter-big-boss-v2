@@ -25,6 +25,9 @@ from app.schemas.cv import (
     CVReviewRow,
     CVStudio,
     CVVersionOut,
+    HeaderPreviewRow,
+    HeaderRefreshIn,
+    HeaderResult,
     ReadinessItem,
     SummaryCheckIn,
     SummaryIn,
@@ -34,6 +37,7 @@ from app.schemas.cv import (
 )
 from app.services import (
     cv_fit,
+    cv_header,
     cv_regen,
     cv_review,
     cv_service,
@@ -73,6 +77,27 @@ def _templates(session: Session) -> list[TemplateOut]:
 def cv_review_list(session: SessionDep) -> list[CVReviewRow]:
     """The CV drafts of shortlisted jobs, with the Approve gate evaluated (Review CVs page)."""
     return cv_review.rows(session)
+
+
+@router.get("/cv/refresh-header/preview", response_model=list[HeaderPreviewRow])
+def header_preview(session: SessionDep) -> list[HeaderPreviewRow]:
+    """The unsent CVs (drafts and approved) whose header differs from the current Candidate
+    profile and links: what "Refresh headers" would change. Nothing is written."""
+    return [HeaderPreviewRow(**r) for r in cv_header.preview(session)]
+
+
+@router.post("/cv/refresh-header", response_model=list[HeaderResult])
+def header_refresh_all(body: HeaderRefreshIn, session: SessionDep,
+                       engine: EngineDep) -> list[HeaderResult]:
+    """Re-render the header of every listed CV (or of `ids`): no model call, bullets, skills,
+    summary and layout untouched, approved stays approved, sent CVs never."""
+    return [HeaderResult(**r) for r in cv_header.refresh_all(engine, body.ids)]
+
+
+@router.post("/cv/{cv_id}/refresh-header", response_model=HeaderResult)
+def header_refresh(cv_id: int, session: SessionDep, engine: EngineDep) -> HeaderResult:
+    get_or_404(session, CVVersion, cv_id, "CV version")
+    return HeaderResult(**cv_header.refresh(engine, cv_id))
 
 
 @router.get("/cv/regenerate-batch/estimate", response_model=CVRegenEstimate)

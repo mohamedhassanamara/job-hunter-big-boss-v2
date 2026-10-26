@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { FitBadge, Workspace } from '../cv-studio/CVWorkspace'
 import { approveGate } from '../cv-studio/cvGate'
 import { LeftOutPopover } from './LeftOutPopover'
+import { RefreshHeadersDialog } from './RefreshHeadersDialog'
 import { RegenerateSelectedDialog } from './RegenerateSelectedDialog'
 import { useRowSelection } from './useRowSelection'
 
@@ -65,6 +66,7 @@ export default function CVReviewPage() {
   const regenSummary = useRegenerateSummary()
   const [regenerating, setRegenerating] = useState(false)
   const [batchOpen, setBatchOpen] = useState(false)
+  const [headersOpen, setHeadersOpen] = useState(false)
   const [batchKey, setBatchKey] = useState(0) // a fresh dialog (empty feedback) after each batch
   const batch = useRegenerateBatch()
 
@@ -187,7 +189,15 @@ export default function CVReviewPage() {
       <PageHeader
         title="Review CVs"
         description="The CV drafts of your shortlisted jobs. Approve one after another; nothing is approved for you."
-        actions={<TourButton tour="review-cvs" />}
+        actions={
+          <>
+            <Button size="sm" variant="outline" onClick={() => setHeadersOpen(true)}>
+              <RefreshCw />
+              Refresh headers
+            </Button>
+            <TourButton tour="review-cvs" />
+          </>
+        }
       />
       <div className="flex min-h-0 flex-1">
         <div data-tour="review-cvs-list" className="flex w-[340px] shrink-0 flex-col border-r border-border bg-bg max-xl:w-[290px]">
@@ -317,6 +327,7 @@ export default function CVReviewPage() {
           )}
         </div>
       </div>
+      <RefreshHeadersDialog open={headersOpen} onClose={() => setHeadersOpen(false)} />
       <RegenerateSelectedDialog
         key={batchKey}
         open={batchOpen}

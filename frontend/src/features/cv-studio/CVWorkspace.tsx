@@ -1,4 +1,4 @@
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, RefreshCw } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
@@ -6,7 +6,8 @@ import { ErrorState } from '@/components/app/states'
 import { Tooltip } from '@/components/ui/tooltip'
 import { apiUrl } from '@/lib/api'
 import { keys } from '@/lib/queries/keys'
-import { usePatchCV } from '@/lib/queries/workflow'
+import { Button } from '@/components/ui/button'
+import { usePatchCV, useRefreshHeader } from '@/lib/queries/workflow'
 import type { CVPatchInput, CVStudio, CVVersion } from '@/lib/types'
 import { CVContentPanel } from './CVContentPanel'
 
@@ -31,6 +32,7 @@ export function FitBadge({ version }: { version: CVVersion }) {
 
 export function Workspace({ studio, version }: { studio: CVStudio; version: CVVersion }) {
   const patch = usePatchCV()
+  const header = useRefreshHeader()
   const qc = useQueryClient()
   const readOnly = version.status === 'superseded'
   const onPatch = (body: CVPatchInput) =>
@@ -48,6 +50,10 @@ export function Workspace({ studio, version }: { studio: CVStudio; version: CVVe
       <div data-tour="cv-editor" className="min-h-0 overflow-y-auto border-r border-border bg-bg">
         <div className="sticky top-0 z-10 flex h-10 items-center justify-between border-b border-border bg-bg px-5 text-xs">
           <span className="font-medium text-fg-muted">From your experience pool</span>
+          <Button size="xs" variant="ghost" disabled={readOnly || header.isPending} onClick={() => header.mutate(version.id)} title="Re-render the header from Settings → Candidate (name, contact, links); nothing else changes">
+            <RefreshCw className={header.isPending ? 'animate-spin' : undefined} />
+            Refresh header
+          </Button>
           <span className="text-fg-subtle">
             {patch.isPending ? 'Re-fitting the page…' : readOnly ? 'Superseded, read only' : version.status === 'approved' ? 'Changes create a new draft' : 'Toggle or edit: the page re-fits'}
           </span>
