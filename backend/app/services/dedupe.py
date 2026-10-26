@@ -1,10 +1,12 @@
 import re
 import unicodedata
 
+# Real legal forms only (and "group"): a descriptive word such as "solutions", "technologies" or
+# "holding" is part of a company's name, so "Acme Solutions" and "Acme Technologies" stay apart.
+# This is also what Company.normalized_name and the PDL name index are built with.
 _LEGAL_SUFFIXES = {
     "sl", "slu", "sa", "sas", "sarl", "spa", "srl", "lda", "gmbh", "ag", "bv", "ltd", "inc",
-    "llc", "plc", "corp", "corporation", "co", "llp", "limited", "holding", "holdings",
-    "group", "grupo", "technologies", "solutions", "kg", "ab", "oy",
+    "llc", "plc", "group", "grupo",
 }
 # Gender markers ((m/f/d), H/F, M/W/D, all genders…) and work-mode suffixes.
 _TITLE_NOISE = {
@@ -43,9 +45,11 @@ def normalize_title(title: str) -> str:
 
 
 def dedupe_fingerprint(company: str, title: str) -> str:
-    """Deterministic canonical fingerprint: norm_company::norm_title."""
+    """The company + title part of the key: `normalized_company::normalized_title`."""
     return f"{normalize_company(company)}::{normalize_title(title)}"
 
 
 def dedupe_key(company: str, title: str, country: str | None = None) -> str:
-    return dedupe_fingerprint(company, title)
+    """One real job = one company + title + country: the same title at the same company in two
+    countries is two jobs."""
+    return f"{dedupe_fingerprint(company, title)}::{(country or '').strip().lower()}"
