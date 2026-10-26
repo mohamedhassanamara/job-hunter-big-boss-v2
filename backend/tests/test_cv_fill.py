@@ -128,3 +128,51 @@ def test_check_extra_uses_the_pools_own_text() -> None:
     assert text == CURRENT.bullets[2] and why is None
     assert cv_check.check_extra(pool, "role", CURRENT.id, 40)[1] == "not a fact of that item"
     assert cv_check.check_extra(pool, "project", CURRENT.id, 0)[1] == "unknown item"
+
+
+# ------------------------------------------------------------- order and the project gate
+
+
+def test_roles_come_before_projects_and_the_current_role_first() -> None:
+    lay = layout(essentials(), make_pool(), RULES, today=TODAY)
+    extras = [PlanExtra(kind="project", item_id=P1.id, source_index=2, relevance=10),
+              PlanExtra(kind="role", item_id=MOBILE.id, source_index=2, relevance=9),
+              PlanExtra(kind="role", item_id=CURRENT.id, source_index=3, relevance=5)]
+    order = cv_build.fill_order(extras, make_pool(), lay)
+    assert [(e.kind, e.item_id) for e in order] == [
+        ("role", CURRENT.id), ("role", MOBILE.id), ("project", P1.id)]
+
+
+def test_a_project_needs_the_threshold_and_no_role_bullet_left_out() -> None:
+    lay = layout(essentials(), make_pool(), RULES, today=TODAY)
+    pool = make_pool()
+    weak = PlanExtra(kind="project", item_id=P1.id, source_index=2, relevance=6)
+    good = PlanExtra(kind="project", item_id=P1.id, source_index=2, relevance=8)
+    assert cv_build.project_gate(weak, pool, lay, -1) == "below_project_threshold"
+    assert cv_build.project_gate(good, pool, lay, -1) is None
+    assert cv_build.project_gate(good, pool, lay, 8) == "role_bullet_left_out"  # same relevance
+    assert cv_build.project_gate(good, pool, lay, 7) is None  # the role bullet was weaker
+
+
+def test_a_project_for_other_tracks_needs_nine() -> None:
+    pool = make_pool()
+    lay = layout(essentials(), pool, RULES, today=TODAY)
+    lay.track = "Data/AI"
+    P1.tracks = ["Mobile"]
+    try:
+        eight = PlanExtra(kind="project", item_id=P1.id, source_index=2, relevance=8)
+        nine = PlanExtra(kind="project", item_id=P1.id, source_index=2, relevance=9)
+        assert cv_build.project_gate(eight, pool, lay, -1) == "other_track"
+        assert cv_build.project_gate(nine, pool, lay, -1) is None
+        lay.track = "mobile"
+        assert cv_build.project_gate(eight, pool, lay, -1) is None  # its own track
+    finally:
+        P1.tracks = []
+
+
+def test_a_weak_project_is_left_off_and_the_page_stays_emptier(monkeypatch, tmp_path) -> None:  # noqa: ANN001
+    plan = essentials(extras=[PlanExtra(kind="project", item_id=P1.id, relevance=5)])
+    result, _ = run(plan, 4000, monkeypatch, tmp_path)
+    assert plan.projects == [] and result.document.projects == []
+    assert plan.fill_log[0]["reason"] == "below_project_threshold"
+    assert [e.relevance for e in plan.extras_rated] == [5]  # kept for Left out

@@ -278,6 +278,13 @@ export function ExperienceSheet({
             {/* Skills and stacks appear on the CV as typed: keep their casing ("PostgreSQL"). */}
             <TagInput tags={form.tags} onChange={(tags) => set({ tags })} lowercase={k !== 'skill' && k !== 'project'} />
           </div>
+          {k === 'project' && (
+            <div className="space-y-1.5">
+              <Label>Tracks</Label>
+              <TagInput tags={form.tracks ?? []} onChange={(tracks) => set({ tracks })} placeholder="track name (Enter); empty = every track" />
+              <p className="text-2xs text-fg-subtle">When set, a CV for another track only adds this project to fill the page at relevance 9 or more.</p>
+            </div>
+          )}
         </form>
         {item && <History itemId={item.id} />}
       </SheetContent>
@@ -287,7 +294,7 @@ export function ExperienceSheet({
 
 const FIELD_LABEL: Record<string, string> = {
   title: 'Title', org: 'Organisation', location: 'Location', start_date: 'Start', end_date: 'End', date_label: 'Dates as written',
-  summary: 'Summary', bullets: 'Bullets', tags: 'Tags', url: 'Link', credential_id: 'Credential ID', is_active: 'In use', kind: 'Type',
+  summary: 'Summary', bullets: 'Bullets', tags: 'Tags', tracks: 'Tracks', url: 'Link', credential_id: 'Credential ID', is_active: 'In use', kind: 'Type',
 }
 
 /** What changed in this item's text, newest first. Every change can be undone; Undo is itself recorded. */

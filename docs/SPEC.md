@@ -140,8 +140,11 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
     short roles 1-3 by relevance (2+ when highly relevant), internships at most 2; at most 2 projects with 2-3
     bullets each (never a 1-bullet project); inside each entry, the most relevant bullets first, generic ones last;
   - page fill target 98%: entries start at their minimum and only grow within the allowances; then, still under
-    target, the model's rated leftovers (other bullets, projects) are added one at a time by relevance, each
-    checked; a CV that can't reach it stays shorter (never filler);
+    target, the model's rated leftovers are added one at a time, each checked, in this order: the current role up
+    to its allowance, the other roles (newest first), then projects. A project bullet needs relevance ≥ the
+    setting (Settings → CV, default 7), never while a role bullet of the same or higher relevance is left out for
+    lack of room, and 9+ when the project's `tracks` tag (Experience → project → Tracks) excludes the job's track.
+    A CV that can't reach the target stays shorter (never filler);
   - skills: at most 4 groups of ~8, most relevant first, known pairs merged ("LLMs (Mistral, Ollama)",
     "LocalStack (S3)", "Linux/Bash"), nothing repeated across groups, tools spelled as usual;
   - summary: at most 2 sentences, ~45 words, no numbers from the bullets, no certifications, no internships, no

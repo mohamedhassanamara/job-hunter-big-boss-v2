@@ -313,6 +313,7 @@ class CVPlan(BaseModel):
     education_ids: list[int] = []
     volunteering: list[PlanEntry] = []
     extras: list[PlanExtra] = []  # not yet on the page; consumed by fill_by_relevance
+    extras_rated: list[PlanExtra] = []  # every rated leftover, kept after the fill (Left out)
     fill_log: list[dict[str, Any]] = []  # what fill_by_relevance added or skipped, and why
 
 

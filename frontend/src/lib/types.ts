@@ -712,6 +712,8 @@ export interface ExperienceInput {
   summary: string | null
   bullets: string[]
   tags: string[]
+  /** Projects: track names it is meant for; empty = every track. */
+  tracks?: string[]
   is_active: boolean
   url?: string | null
   credential_id?: string | null

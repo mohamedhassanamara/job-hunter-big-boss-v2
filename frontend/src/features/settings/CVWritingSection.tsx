@@ -16,6 +16,8 @@ interface Structure {
   graduation: Range
   internship: Range
   projects_max: number
+  project_min_relevance: number
+  project_other_track_relevance: number
   project_bullets: Range
   volunteering_max: number
   skill_groups_max: number
@@ -119,6 +121,11 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
       </Field>
       <Field label="Projects">
         <span className="inline-flex items-center gap-1.5 text-sm">at most {num('projects_max', 'Projects max', { min: 0, max: 4 })} projects</span>
+      </Field>
+      <Field label="Projects added to fill the page" hint="Roles fill first (current role, then the others by recency). A project bullet is added only at this relevance (out of 10), and never while a role bullet of the same relevance is left out. A project tagged only for other tracks needs the second number.">
+        <span className="inline-flex items-center gap-1.5 text-sm">
+          relevance {num('project_min_relevance', 'Project minimum relevance', { min: 0, max: 10 })}+, {num('project_other_track_relevance', 'Other-track project relevance', { min: 0, max: 10 })}+ for other tracks
+        </span>
       </Field>
       <Field label="Skills">
         <span className="inline-flex items-center gap-1.5 text-sm">

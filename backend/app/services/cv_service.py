@@ -159,6 +159,7 @@ def fit_layout(s: Session, plan: CVPlan, pool: Pool, track: str = "") -> Layout:
                  display=cv_rules.skill_display(settings, track),
                  keep=cv_rules.skill_keep(settings, track))
     lay.honesty = honesty.rules_from(_tracks(s))  # the fill-by-relevance checks use it
+    lay.track = track
     return lay
 
 

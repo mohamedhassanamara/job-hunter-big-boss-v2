@@ -15,6 +15,7 @@ summary → drop volunteering → below the minimums (roles keep one bullet, pro
 
 import math
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -73,6 +74,7 @@ class Layout:
     display: dict[str, str] = field(default_factory=dict)  # skill category → shown name (track)
     keep: dict[str, list[str]] = field(default_factory=dict)  # skill group → pinned skills (track)
     honesty: Any = None  # services/honesty.Rules, for the checks on bullets added to fill
+    track: str = ""  # the job's matched track (project track tags in the fill)
 
 
 def layout(plan: CVPlan, pool: Pool | None, rules: dict[str, Any] | None = None,
@@ -430,6 +432,41 @@ def _add_extra(plan: CVPlan, pool: Pool, state: FitState, lay: Layout, ex: PlanE
     return undo, None
 
 
+def fill_order(extras: list[PlanExtra], pool: Pool, lay: Layout) -> list[PlanExtra]:
+    """The current role up to its allowance first, then the other roles (newest first), then
+    projects; best relevance first inside each group, the model's own order on a tie."""
+    def group(ex: PlanExtra) -> tuple[int, float]:
+        if ex.kind == "project":
+            return 2, 0.0
+        item = pool.get(ex.item_id)
+        if item is None:
+            return 1, 0.0
+        if cv_rules.role_type(item, lay.rules) == "current":
+            return 0, 0.0
+        return 1, -(item.end_date or item.start_date or date.min).toordinal()
+    return sorted(extras, key=lambda e: (*group(e), -e.relevance))
+
+
+def project_gate(ex: PlanExtra, pool: Pool, lay: Layout, page_full_for: int) -> str | None:
+    """Why a project leftover may not go on yet (None = it may): it must be relevant enough
+    (more when the project is tagged only for other tracks), and no role bullet of the same or
+    higher relevance may be left out for lack of room."""
+    if ex.kind != "project":
+        return None
+    item = pool.get(ex.item_id)
+    need = int(lay.rules["project_min_relevance"])
+    tracks = [t.casefold() for t in (item.tracks if item else []) or []]
+    if tracks and lay.track and lay.track.casefold() not in tracks:
+        if ex.relevance < int(lay.rules["project_other_track_relevance"]):
+            return "other_track"
+        need = max(need, int(lay.rules["project_other_track_relevance"]))
+    if ex.relevance < need:
+        return "below_project_threshold"
+    if page_full_for >= ex.relevance:
+        return "role_bullet_left_out"
+    return None
+
+
 def fill_by_relevance(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTemplate,
                       out_dir: Path, base: "FitResult", lay: Layout, overrides: dict[str, Any],
                       max_stack: int, target: float) -> "FitResult":
@@ -442,15 +479,22 @@ def fill_by_relevance(plan: CVPlan, pool: Pool, profile: CVProfile, template: CV
     overrides = overrides or {}
     state = FitState.from_dict(base.state.to_dict())
     best = base
-    pending = sorted(plan.extras, key=lambda e: -e.relevance)
+    pending = fill_order(plan.extras, pool, lay)
+    if not plan.extras_rated:
+        plan.extras_rated = list(plan.extras)
     plan.extras = []
     compiles, dirty = 0, False
+    page_full_for = -1  # best relevance of a role bullet that was left out because the page is full
     for n, ex in enumerate(pending):
         entry = {"kind": ex.kind, "item_id": ex.item_id, "source_index": ex.source_index,
                  "relevance": ex.relevance}
         if best.compiled.fill >= target or compiles >= MAX_FILL_COMPILES:
             plan.fill_log.append({"result": "not_needed", "count": len(pending) - n})
             break
+        gate = project_gate(ex, pool, lay, page_full_for)
+        if gate:
+            plan.fill_log.append({**entry, "result": "skipped", "reason": gate})
+            continue
         undo, why = _add_extra(plan, pool, state, lay, ex, overrides)
         if undo is None:
             plan.fill_log.append({**entry, "result": "skipped", "reason": why})
@@ -469,9 +513,10 @@ def fill_by_relevance(plan: CVPlan, pool: Pool, profile: CVProfile, template: CV
         else:
             undo()
             dirty = True
-            plan.fill_log.append({**entry, "result": "skipped",
-                                  "reason": "did not fit one page" if result.pages != 1
-                                  else "no gain"})
+            reason = "did not fit one page" if result.pages != 1 else "no gain"
+            if ex.kind == "role":
+                page_full_for = max(page_full_for, ex.relevance)
+            plan.fill_log.append({**entry, "result": "skipped", "reason": reason})
     if dirty:  # the files on disk are from a rejected try: put the best one back
         best.compiled = compile_tex(best.tex, out_dir, "cv")
     return best

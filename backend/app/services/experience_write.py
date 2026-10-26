@@ -26,7 +26,7 @@ from app.models import ExperienceHistory, ExperienceItem
 # Everything the CV/letters/emails can quote or rely on. Position and the placeholder flag are
 # layout/bookkeeping and stay free (reordering is not a text edit).
 TEXT_FIELDS = ("kind", "title", "org", "location", "start_date", "end_date", "date_label",
-               "summary", "bullets", "tags", "url", "credential_id", "is_active")
+               "summary", "bullets", "tags", "tracks", "url", "credential_id", "is_active")
 
 _allowed: ContextVar[bool] = ContextVar("pool_write_allowed", default=False)
 
