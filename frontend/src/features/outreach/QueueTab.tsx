@@ -6,6 +6,7 @@ import { ToneBadge, type Tone } from '@/components/app/badges'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useHotkeys } from '@/hooks/useHotkeys'
 import { useNow } from '@/hooks/useNow'
 import { absoluteDate, clockTime, relativeTime } from '@/lib/format'
 import { useQueue, useQueueControl, useQueueItemAction, useRemoveQueueItem } from '@/lib/queries/workflow'
@@ -36,14 +37,19 @@ export function QueueTab() {
   const running = queue?.status === 'running'
   const now = useNow(1000, running)
 
-  if (isPending) return <SkeletonRows rows={6} className="mx-6 my-5" />
-  if (error) return <ErrorState error={error} onRetry={() => refetch()} />
-
   const toggle = () =>
     control.mutate(running ? 'pause' : 'resume', {
       onSuccess: (q) => toast.success(q.status === 'running' ? 'Queue resumed' : 'Queue paused'),
       onError: (e) => toast.error(e.message),
     })
+  // S starts and P pauses, never the other way round: a key can't undo what you meant.
+  useHotkeys({
+    s: () => queue && !running && toggle(),
+    p: () => queue && running && toggle(),
+  })
+
+  if (isPending) return <SkeletonRows rows={6} className="mx-6 my-5" />
+  if (error) return <ErrorState error={error} onRetry={() => refetch()} />
 
   return (
     <div data-tour="outreach-queue" className="mx-auto max-w-5xl space-y-4 px-6 py-5">

@@ -39,6 +39,7 @@ import { LogReplyDialog, MarkAppliedDialog, type TrackTarget } from '@/component
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
+import { BatchCard } from './BatchCard'
 import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
 import { useMotivation } from '@/lib/queries/motivation'
@@ -509,6 +510,8 @@ export default function TodayPage() {
 
       <SourceAlerts />
       <TestDataBanner showLink />
+
+      {data.last_runs.length > 0 && <BatchCard queue={data.queue} />}
 
       {data.last_runs.length === 0 ? (
         <Onboarding />
