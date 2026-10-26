@@ -17,6 +17,7 @@ from app.models.base import utcnow
 from app.models.enums import ContactSource, ContactTier, DescriptionLevel, EventKind
 from app.providers.base import RawJob
 from app.services.dedupe import dedupe_key, normalize_company
+from app.services.listing_merge import mark_score_stale, should_take_description
 
 SOURCE_NAMES = {
     "adzuna": "Adzuna",
@@ -99,11 +100,15 @@ def ingest(
             if raw.apply_url and not original.apply_url:
                 original.apply_url = raw.apply_url
 
-            if len(raw.description or "") > len(original.description or ""):
+            # The main listing keeps its own text unless it is a snippet and this one is the
+            # full listing; a changed text makes its score stale (never rescored here).
+            if should_take_description(original.description, raw.description):
                 original.description = raw.description
                 original.description_level = raw.description_level
                 if raw.description_level == DescriptionLevel.full:
                     original.full_fetched_at = now
+                session.flush()
+                mark_score_stale(session.connection(), original.id)
 
             original.last_seen_at = now
             session.add(original)
