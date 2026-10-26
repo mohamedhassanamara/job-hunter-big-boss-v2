@@ -568,6 +568,9 @@ redirects to Outreach → Contacts to get).
 - "Dates as written" prints exactly on the CV (e.g. "Sep 2020 – June 2025").
 - *Empty:* "Add your experience. Every tailored CV is built from it", with "Add first item".
 
+### 3.8a Today's batch card
+Under the greeting: "This batch" with the three passes and their counts (CVs to review → `/review-cvs`, emails to review → `/outreach`, jobs to apply → `/applications?tab=ready`), the send queue's state and next send time, and the "Find contacts for this batch" button (confirmation with the job count and worst-case credits). Hidden when nothing is open. The `?` dialog lists every key that exists (go-to keys are generated from the sidebar list): Review CVs J K A R E S, CV Studio A, Outreach A R, Queue S (start) P (pause), Applications Ready O A Enter, Contacts to get V L E P N X.
+
 ### 3.8b Review CVs (`/review-cvs`)
 The CV drafts of shortlisted jobs as one list (sidebar entry with a count, `g r`, Today's "CVs to review" card links here). Left: job, company, track, a check chip (Ready to approve / N pages / N errors / LaTeX error) and fill %. Right: the PDF and the editable content (same panes as CV Studio, which stays as is). Keys: `J`/`K` move, `A` approves the selected CV (only if the CV Studio rules pass: one page, no bullet, skill, number or tool error) and selects the next, `R` regenerates (with feedback the summary is rewritten toward it; without, a whole new CV), `E` focuses the summary, `S` skips. Empty state: "No CVs waiting for review" with Open Discover and a tour.
 

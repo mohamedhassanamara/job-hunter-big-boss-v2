@@ -1,5 +1,9 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Kbd } from '@/components/ui/kbd'
+import { ALL_NAV } from './nav'
+
+/** Go-to keys come from the sidebar's own list, so this dialog can't drift from the real keys. */
+const GO_TO: [string[], string][] = ALL_NAV.map((item) => [['G', item.shortcut.toUpperCase()], item.label])
 
 const GROUPS: { title: string; items: [string[], string][] }[] = [
   {
@@ -11,35 +15,66 @@ const GROUPS: { title: string; items: [string[], string][] }[] = [
       [['Esc'], 'Close panel or dialog'],
     ],
   },
+  { title: 'Go to', items: GO_TO },
   {
-    title: 'Go to',
-    items: [
-      [['G', 'T'], 'Today'],
-      [['G', 'D'], 'Discover'],
-      [['G', 'P'], 'Pipeline'],
-      [['G', 'O'], 'Outreach'],
-      [['G', 'C'], 'Contacts'],
-      [['G', 'E'], 'Experience'],
-      [['G', 'S'], 'Settings'],
-    ],
-  },
-  {
-    title: 'Lists',
+    title: 'Lists (Discover, Pipeline table)',
     items: [
       [['J'], 'Next item'],
       [['K'], 'Previous item'],
       [['Enter'], 'Open'],
       [['S'], 'Shortlist'],
       [['D'], 'Dismiss (undo in toast)'],
+      [['1', '2', '3'], 'Label good / maybe / no (Discover)'],
     ],
   },
   {
-    title: 'Outreach review',
+    title: 'Review CVs',
     items: [
-      [['A'], 'Approve draft'],
+      [['J', 'K'], 'Move'],
+      [['A'], 'Approve, then the next CV'],
+      [['R'], 'Regenerate (feedback optional)'],
+      [['E'], 'Edit the summary'],
+      [['S'], 'Skip'],
+    ],
+  },
+  {
+    title: 'CV Studio',
+    items: [[['A'], 'Approve (when the checks pass)']],
+  },
+  {
+    title: 'Outreach: review emails',
+    items: [
+      [['A'], 'Approve (and add to the queue)'],
       [['R'], 'Reject draft'],
     ],
   },
+  {
+    title: 'Outreach: queue',
+    items: [
+      [['S'], 'Start sending'],
+      [['P'], 'Pause'],
+    ],
+  },
+  {
+    title: 'Applications: ready to apply',
+    items: [
+      [['O'], 'Open listing + CV (+ letter)'],
+      [['A'], 'Mark applied'],
+      [['Enter'], 'Confirm (opens the next listing)'],
+    ],
+  },
+  {
+    title: 'Contacts to get',
+    items: [
+      [['V'], 'Still there'],
+      [['L'], 'Left'],
+      [['E'], 'Edit'],
+      [['P'], 'Paste box'],
+      [['N'], 'Nobody found'],
+      [['X'], 'Never look up'],
+    ],
+  },
+  { title: 'Job page', items: [[['C'], 'Ask Copilot about this job']] },
 ]
 
 export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -50,7 +85,7 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
           <h2 className="text-md font-semibold tracking-tight">Keyboard shortcuts</h2>
           <p className="text-sm text-fg-muted">Shortcuts are paused while you type in a field.</p>
         </div>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-5 px-5 py-4">
+        <div className="grid max-h-[70vh] grid-cols-2 gap-x-8 gap-y-5 overflow-y-auto px-5 py-4">
           {GROUPS.map((g) => (
             <div key={g.title}>
               <h3 className="mb-2 text-xs font-medium text-fg-subtle">{g.title}</h3>

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useHotkeys } from '@/hooks/useHotkeys'
 import { ApiError, apiUrl } from '@/lib/api'
 import { relativeTime } from '@/lib/format'
 import { useJob } from '@/lib/queries/jobs'
@@ -124,6 +125,15 @@ export default function CVStudioPage() {
   const error = job.error ?? studio.error
   const loading = job.isPending || (Number.isFinite(appId) && studio.isPending)
   const { onePage, errors } = approveGate(version)
+  // A approves, under the same rules as the button.
+  useHotkeys({
+    a: () => {
+      if (version?.status !== 'draft' || approve.isPending) return
+      if (!onePage) toast.error('The CV must be exactly one page to approve')
+      else if (errors.length > 0) toast.error(`Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first: ${errors[0].message}`)
+      else onApprove()
+    },
+  })
 
   return (
     <div className="flex h-full flex-col">
