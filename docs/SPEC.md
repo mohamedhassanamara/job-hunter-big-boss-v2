@@ -580,6 +580,12 @@ Under the greeting: "This batch" with the three passes and their counts (CVs to 
 ### 3.8b Review CVs (`/review-cvs`)
 The CV drafts of shortlisted jobs as one list (sidebar entry with a count, `g r`, Today's "CVs to review" card links here). Left: job, company, track, a check chip (Ready to approve / N pages / N errors / LaTeX error) and fill %. Right: the PDF and the editable content (same panes as CV Studio, which stays as is). Keys: `J`/`K` move, `A` approves the selected CV (only if the CV Studio rules pass: one page, no bullet, skill, number or tool error) and selects the next, `R` regenerates (with feedback the summary is rewritten toward it; without, a whole new CV), `E` focuses the summary, `S` skips. Empty state: "No CVs waiting for review" with Open Discover and a tour.
 
+Left out (n): each row has a popover listing the pool bullets and projects the draft leaves out (`GET /cv/{id}/left-out`),
+with the relevance the model rated them for that job (`plan.extras_rated`, `plan.fill_log`; "not rated" when the model never
+rated it) and why they are out. A switch forces one in or out (`PATCH /cv/{id}` force_in): it is re-fitted and re-rendered
+in code with the fill's checks (`cv_check.check_extra`; one that fails is refused with the reason), no model call. A bullet
+outside the plan joins the render only (`cv_service.with_forced_bullets`), the stored plan stays as generated.
+
 ### 3.9 Settings (`/settings`)
 Sections in a left sub-nav:
 - **Search profile:** roles, keywords, excluded keywords, countries (searchable picker over every country the location parser knows, grouped Europe / Middle East & North Africa / Other), remote policy, remote scope (remote anywhere = worldwide or EMEA / remote Europe / remote in target countries only; US-only remote is never eligible; remote tied to one non-target country is filtered), and min fit score.

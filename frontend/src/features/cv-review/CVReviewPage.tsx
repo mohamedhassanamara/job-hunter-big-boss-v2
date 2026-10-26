@@ -18,6 +18,7 @@ import type { CVReviewRow } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { FitBadge, Workspace } from '../cv-studio/CVWorkspace'
 import { approveGate } from '../cv-studio/cvGate'
+import { LeftOutPopover } from './LeftOutPopover'
 
 function CheckChip({ row }: { row: CVReviewRow }) {
   if (row.error) return <ToneBadge tone="red">LaTeX error</ToneBadge>
@@ -155,27 +156,31 @@ export default function CVReviewPage() {
               />
             ) : (
               rows.map((r) => (
-                <button
+                <div
                   key={r.application_id}
                   data-row-id={r.application_id}
-                  onClick={() => select(r.application_id)}
                   className={cn(
-                    'relative block w-full border-b border-border px-4 py-3 text-left transition-colors duration-120',
+                    'relative border-b border-border transition-colors duration-120',
                     selected?.application_id === r.application_id ? 'bg-surface-selected' : 'hover:bg-surface-hover',
                   )}
                 >
                   {selected?.application_id === r.application_id && <span className="absolute inset-y-0 left-0 w-0.5 bg-primary" />}
-                  <p className="truncate text-sm font-medium">{r.job_title}</p>
-                  <p className="truncate text-xs text-fg-muted">
-                    {r.company_name}
-                    {r.track ? ` · ${r.track}` : ''}
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <CheckChip row={r} />
-                    {r.fill != null && r.page_count === 1 && <span className="text-2xs text-fg-subtle tabular-nums">{Math.round(r.fill * 100)}% full</span>}
-                    {r.summary_warnings > 0 && <ToneBadge tone="amber">{r.summary_warnings} summary note{r.summary_warnings === 1 ? '' : 's'}</ToneBadge>}
+                  <button onClick={() => select(r.application_id)} className="block w-full px-4 pb-1 pt-3 text-left">
+                    <p className="truncate text-sm font-medium">{r.job_title}</p>
+                    <p className="truncate text-xs text-fg-muted">
+                      {r.company_name}
+                      {r.track ? ` · ${r.track}` : ''}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      <CheckChip row={r} />
+                      {r.fill != null && r.page_count === 1 && <span className="text-2xs text-fg-subtle tabular-nums">{Math.round(r.fill * 100)}% full</span>}
+                      {r.summary_warnings > 0 && <ToneBadge tone="amber">{r.summary_warnings} summary note{r.summary_warnings === 1 ? '' : 's'}</ToneBadge>}
+                    </div>
+                  </button>
+                  <div className="px-4 pb-2.5">
+                    <LeftOutPopover row={r} />
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>

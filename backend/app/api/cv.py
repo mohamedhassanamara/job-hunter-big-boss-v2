@@ -15,6 +15,7 @@ from app.providers.registry import cv_generator
 from app.schemas.cv import (
     CVApproveResult,
     CVGenerateIn,
+    CVLeftOut,
     CVPatch,
     CVReviewRow,
     CVStudio,
@@ -67,6 +68,15 @@ def _templates(session: Session) -> list[TemplateOut]:
 def cv_review_list(session: SessionDep) -> list[CVReviewRow]:
     """The CV drafts of shortlisted jobs, with the Approve gate evaluated (Review CVs page)."""
     return cv_review.rows(session)
+
+
+@router.get("/cv/{cv_id}/left-out", response_model=CVLeftOut)
+def cv_left_out(cv_id: int, session: SessionDep) -> CVLeftOut:
+    """Pool bullets and projects this CV leaves out, with the model's relevance for this job."""
+    v = get_or_404(session, CVVersion, cv_id, "CV version")
+    return CVLeftOut(items=cv_service.left_out(v, load_pool(session)),
+                     force_in=list((v.overrides or {}).get("force_in") or []), fill=v.fill,
+                     page_count=v.page_count)
 
 
 @router.get("/applications/{app_id}/cv", response_model=CVStudio)

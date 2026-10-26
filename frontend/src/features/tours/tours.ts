@@ -169,6 +169,7 @@ export const TOURS: Record<TourId, Tour> = {
     resolveRoute: async () => '/review-cvs',
     steps: [
       { target: 'review-cvs-list', title: 'Every draft in one list', body: 'The CV drafts of your shortlisted jobs, written in the background after you shortlist. Each row shows the checks that matter for approval: one page, no bullet, skill, number or tool error, and how full the page is. J and K move.', placement: 'right' },
+      { target: 'review-cvs-left-out', title: 'What the CV left out', body: 'Left out (n) lists the bullets and projects of your experience that are not on this CV, each with the relevance the model gave it for the job and why it is out. A switch adds one (or takes it out again): the page is re-fitted in code with the same checks, no model call.', placement: 'right' },
       { target: 'cv-preview', title: 'The real PDF', body: 'The page you would send. The editor next to it works as in CV Studio: toggle or edit, and the page re-fits in code.', placement: 'left' },
       { target: 'review-cvs-approve', title: 'A approves and moves on', body: 'A approves the selected CV (only when it passes the same checks as CV Studio) and selects the next one. R regenerates with feedback, E jumps into the summary, S skips. Nothing is approved for you.', placement: 'bottom' },
     ],

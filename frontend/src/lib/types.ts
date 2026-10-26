@@ -2180,6 +2180,29 @@ export interface CVReviewRow {
   error: string | null
   approvable: boolean
   created_at: string
+  /** Pool bullets and projects this CV leaves out. */
+  left_out_count: number
+}
+
+export interface CVLeftOutItem {
+  /** The CV Studio override key. */
+  key: string
+  kind: 'bullet' | 'project'
+  title: string
+  org: string | null
+  text: string | null
+  /** 0-10 as the model rated it for this job; null = not rated. */
+  relevance: number | null
+  why: string
+  /** You forced it in. */
+  included: boolean
+}
+
+export interface CVLeftOut {
+  items: CVLeftOutItem[]
+  force_in: string[]
+  fill: number | null
+  page_count: number | null
 }
 
 export interface UsageReport {

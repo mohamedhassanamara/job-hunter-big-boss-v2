@@ -9,6 +9,7 @@ export const keys = {
   applications: ['applications'] as const,
   cv: (appId: number) => ['cv', appId] as const,
   cvReview: ['cv', 'review'] as const, // under 'cv': invalidateWork refreshes it
+  cvLeftOut: (cvId: number) => ['cv', 'left-out', cvId] as const,
   letter: (appId: number) => ['letter', appId] as const,
   interview: (appId: number) => ['interview', appId] as const,
   answers: (appId: number) => ['answers', appId] as const,
