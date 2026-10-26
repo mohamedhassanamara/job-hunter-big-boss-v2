@@ -135,7 +135,7 @@ All-time numbers (n=32 past Shortlisted; skewed by old jobs): shortlist to CV ap
 | Email drafts | 46 total: 14 sent, 2 approved, 30 "rejected" (superseded by a regeneration) | mostly 10-21 tool development; on 10-22 batch 4 rejected drafts across 14 |
 | Drafts with code-check violations | 35 of 46 | |
 | Claude verifier results | 14 passed, 8 failed, 24 not run | failed cost a regenerate or edit |
-| Drafts with `unverified_approval` recorded | 25 of 46 (13 sent, 2 approved, 10 later rejected) | the "approve without verification" path was used or recorded on most approved/sent drafts |
+| Approved with the "Approve without verification" button | 6 of the 14 sent drafts (ids 27, 34, 35, 39, 41, 45; 4 never verified, 1 stale, 1 failed; each ignored 2 to 6 warnings) | the field defaults to `{}`, which is not a bypass; counting `IS NOT NULL` (as an earlier version of this report did) overstates it. Corrected 2026-10-26 |
 | Edited before approval/send | 8 of the 16 approved/sent drafts (7 sent, 1 approved); 5 rejected ones were edited too | edit time not stored |
 | Drafts per job | 1 draft: 6 jobs; 2: 5; 3: 1; 4: 2; 8: 1; 11: 1 | |
 | Failed generations (429/503/402) | not stored | see section 3 |
