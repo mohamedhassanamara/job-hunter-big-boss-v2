@@ -401,6 +401,12 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Uploads: `files.check` (extension + magic bytes, size limit), stored under data/motivation/<workspace>/, served
   by name only (uuid names). Undo for "Mark applied" is `tracking.undo_applied` (+ `pipeline.revert`).
 
+## Usage log (services/usage.py, api/usage.py, frontend lib/usage.ts, lib/usagePatterns.ts)
+
+- Local-only measurement of a real batch: table `usage_event` (migration 0034) holds route patterns, action names, a job id and durations (screen active/wall time, slow requests, idle gaps). Never page content, query text, drafts or CV text: `usage.record` validates every name against a strict pattern and drops the rest. The tour sandbox and `setting usage_log.enabled = false` store nothing.
+- The frontend tracker is fed by `AppShell` (route changes) and `lib/api.ts` (every request: key actions from `usagePatterns.ACTIONS`, requests over 500 ms as waits). Add a new key action in `ACTIONS`, not in components. The active clock stops after 5 minutes without input.
+- Settings → Data → Usage log: on by default, "Clear usage log". Report: `make usage-report` (`scripts/usage_report.py`, read-only) or `GET /api/usage/report`.
+
 ## Conventions
 
 - Python: 3.12, type hints everywhere, ruff (line length 100). Datetimes are UTC-aware, and `app.models.base.utcnow()`.

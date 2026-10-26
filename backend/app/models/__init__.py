@@ -48,6 +48,7 @@ from app.models.research import (
 from app.models.scoring import ScoringRun, ScoringTask
 from app.models.settings import AppSetting
 from app.models.tracking import ApplicationResponse, Interview, ReminderAction
+from app.models.usage import UsageEvent
 
 __all__ = [
     "InterviewPrep",
@@ -102,4 +103,5 @@ __all__ = [
     "SendQueue",
     "SendQueueItem",
     "SourceRun",
+    "UsageEvent",
 ]

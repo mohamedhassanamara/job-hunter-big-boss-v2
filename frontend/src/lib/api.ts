@@ -1,3 +1,5 @@
+import { setUsageDemo, trackRequest } from './usage'
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) {
@@ -17,6 +19,7 @@ let workspace: Workspace = 'real'
 
 export function setWorkspace(next: Workspace) {
   workspace = next
+  setUsageDemo(next === 'demo')
 }
 
 export function getWorkspace(): Workspace {
@@ -26,6 +29,7 @@ export function getWorkspace(): Workspace {
 async function request<T>(method: string, path: string, body?: Json | FormData): Promise<T> {
   const isForm = body instanceof FormData
   let res: Response
+  const started = performance.now()
   try {
     const headers: Record<string, string> = {}
     if (body && !isForm) headers['Content-Type'] = 'application/json'
@@ -38,6 +42,7 @@ async function request<T>(method: string, path: string, body?: Json | FormData):
   } catch {
     throw new ApiError(0, "Can't reach the API. Is the backend running?")
   }
+  trackRequest(method, path, performance.now() - started, res.ok)
   if (!res.ok) {
     let message = `Request failed (${res.status})`
     try {

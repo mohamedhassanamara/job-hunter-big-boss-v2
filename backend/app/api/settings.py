@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
-    "motivation", "providers", "generation", "gemini",
+    "motivation", "providers", "generation", "gemini", "usage_log",
 }
 
 
@@ -75,6 +75,9 @@ def get_settings_view(session: SessionDep) -> SettingsOut:
     from app.services import generation
 
     values["generation"] = generation.settings(session)
+    from app.services import usage
+
+    values["usage_log"] = usage.settings(session)
     from app.services import gemini_keys
 
     values["gemini"] = gemini_keys.config(session)
@@ -250,6 +253,10 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 raise HTTPException(422, f"{name} must be true or false")
         body.value = {"auto_cv": bool(body.value.get("auto_cv", True)),
                       "auto_email": bool(body.value.get("auto_email", False))}
+    if key == "usage_log":
+        if not isinstance(body.value.get("enabled", True), bool):
+            raise HTTPException(422, "enabled must be true or false")
+        body.value = {"enabled": bool(body.value.get("enabled", True))}
     if key == "gemini":
         for name, lo, hi in (("max_keys", 1, 5), ("daily_cap", 10, 1000)):
             v = body.value.get(name)

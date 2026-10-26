@@ -1,3 +1,4 @@
+import { trackAction } from './usage'
 import type { ApplyMethod, CloseReason, InterviewOutcome, InterviewType, ResponseKind, Stage } from './types'
 
 export const METHOD_LABELS: Record<ApplyMethod, string> = {
@@ -83,7 +84,13 @@ function download(url: string): void {
 
 /** "Open listing + CV (+ cover letter)": the listing in a new tab and the approved PDFs
  * downloaded, in one click. Downloads are spaced so the browser doesn't drop the second one. */
-export function openListingAndCv(listingUrl: string, pdfUrl: string, letterUrl?: string | null): void {
+export function openListingAndCv(
+  listingUrl: string,
+  pdfUrl: string,
+  letterUrl?: string | null,
+  ref?: { kind: 'job' | 'app'; id: number },
+): void {
+  trackAction('open_listing', ref)
   window.open(listingUrl, '_blank', 'noopener,noreferrer')
   download(pdfUrl)
   if (letterUrl) window.setTimeout(() => download(letterUrl), 400)
