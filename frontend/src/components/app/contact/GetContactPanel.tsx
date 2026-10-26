@@ -1,8 +1,9 @@
-import { Building2, ChevronDown, CircleCheck, ExternalLink, Globe, Pencil, Search, Undo2, UserRoundCheck, UserRoundX, Users } from 'lucide-react'
+import { Ban, Building2, ChevronDown, CircleCheck, ExternalLink, Globe, Pencil, Search, Undo2, UserRoundCheck, UserRoundX, Users } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ContactAlertBanner } from '@/components/app/ContactAlertBanner'
 import { ContactForm } from '@/components/app/contact/ContactForm'
+import { DoNotContactDialog } from '@/components/app/contact/DoNotContactDialog'
 import { FindContactCard } from '@/components/app/contact/FindContactCard'
 import { ErrorState } from '@/components/app/states'
 import { Button } from '@/components/ui/button'
@@ -51,6 +52,7 @@ function VerifyFirst({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: boole
   const edit = useEditContact()
   const [editing, setEditing] = useState(false)
   const [menu, setMenu] = useState(false)
+  const [dncOpen, setDncOpen] = useState(false)
   const c = v.contact!
   const act = (action: 'still_there' | 'left' | 'wrong_person') =>
     verify.mutate(
@@ -120,6 +122,7 @@ function VerifyFirst({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: boole
             <DropdownMenuContent align="start">
               <DropdownMenuItem onSelect={() => act('left')}>Left the company: find a replacement</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => act('wrong_person')}>Wrong person: find someone else</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setDncOpen(true)}>Asked not to be contacted…</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
@@ -129,6 +132,7 @@ function VerifyFirst({ v, hotkeys, onDone }: { v: GetContactView; hotkeys: boole
           </Button>
         </div>
       )}
+      <DoNotContactDialog contact={c} open={dncOpen} onOpenChange={setDncOpen} />
       {!editing && (
         <div className="space-y-2 border-t border-border pt-3" data-tour="find-replacement">
           <p className="text-xs font-medium text-fg-subtle">Or look for someone else, without marking {c.full_name} as left</p>
@@ -296,6 +300,14 @@ export function GetContactPanel({ appId, hotkeys = false, onDone, className }: {
         <VerifyFirst v={v} hotkeys={hotkeys} onDone={onDone} />
       ) : v.state === 'get' ? (
         <WhoToLookFor v={v} hotkeys={hotkeys} onDone={onDone} />
+      ) : v.state === 'blocked' ? (
+        <div className="space-y-3">
+          <p className="flex items-start gap-2 rounded-lg border border-border bg-danger-bg px-3.5 py-3 text-sm text-danger-fg">
+            <Ban className="mt-0.5 size-4 shrink-0" />
+            <span>Do not contact: {v.blocked ?? 'this contact asked not to be contacted'}. Nothing is drafted or sent for them: find someone else.</span>
+          </p>
+          <WhoToLookFor v={v} hotkeys={hotkeys} onDone={onDone} />
+        </div>
       ) : v.state === 'never' ? (
         <div className="flex flex-wrap items-center gap-2 text-sm text-fg-muted">
           {v.company.name} is never looked up (a job board or aggregator): apply on the web.

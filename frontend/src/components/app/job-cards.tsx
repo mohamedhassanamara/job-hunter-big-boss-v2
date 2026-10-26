@@ -1,4 +1,5 @@
 import {
+  Ban,
   ChevronDown,
   Copy,
   ExternalLink,
@@ -25,6 +26,7 @@ import { relativeTime } from '@/lib/format'
 import { useClearJobContact, useCompany, useSetJobContact } from '@/lib/queries/library'
 import type { JobDetail, JobListItem, ListingFlag } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { DoNotContactDialog } from './contact/DoNotContactDialog'
 import { ContactAlertBanner } from './ContactAlertBanner'
 import { ContactTierBadge, ToneBadge } from './badges'
 import { NewContactDialog } from './NewContactDialog'
@@ -99,12 +101,14 @@ const STATE_BADGE = {
   verify: { tone: 'amber', label: 'Verify first' },
   ready: { tone: 'green', label: 'Verified' },
   never: { tone: 'gray', label: 'Never looked up' },
+  blocked: { tone: 'red', label: 'Do not contact' },
 } as const
 
 export function ContactCard({ job, className }: { job: JobDetail; className?: string }) {
   const contact = job.contact
   const open = job.application.stage !== 'new' && job.application.stage !== 'closed'
   const state = STATE_BADGE[job.contact_state]
+  const [dncOpen, setDncOpen] = useState(false)
   const getContact = `/outreach?tab=contacts&app=${job.application.id}`
 
   const copy = (text: string) => {
@@ -168,6 +172,20 @@ export function ContactCard({ job, className }: { job: JobDetail; className?: st
             className="text-xs"
           />
           <ChangeContact job={job} />
+          {contact.do_not_contact ? (
+            <p className="flex items-center gap-1.5 text-xs text-danger-fg">
+              <Ban className="size-3.5" />
+              Do not contact{contact.dnc_reason ? `: ${contact.dnc_reason}` : ''}
+            </p>
+          ) : (
+            <>
+              <Button size="xs" variant="ghost" className="-ml-2" onClick={() => setDncOpen(true)}>
+                <Ban />
+                Asked not to be contacted
+              </Button>
+              <DoNotContactDialog contact={contact} open={dncOpen} onOpenChange={setDncOpen} />
+            </>
+          )}
           <p className="text-xs text-fg-subtle">
             {job.company_contacts > 1 ? `${job.company_contacts - 1} more at ${job.company.name} · ` : ''}
             <Link to={`/contacts?company=${job.company.id}`} className="text-primary hover:underline">

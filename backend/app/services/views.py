@@ -244,6 +244,8 @@ def contact_out(c: Contact, ranking: list[dict[str, Any]] | None = None) -> Cont
         source=c.source,
         role_rank=c.role_rank,
         role_label=label,
+        do_not_contact=c.do_not_contact,
+        dnc_reason=c.dnc_reason,
     )
 
 

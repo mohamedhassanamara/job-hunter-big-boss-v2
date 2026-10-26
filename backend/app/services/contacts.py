@@ -27,7 +27,7 @@ from app.models import (
 )
 from app.models.base import utcnow
 from app.models.enums import ContactSearch, ContactSource, ContactTier, EventKind, Stage
-from app.services import pipeline
+from app.services import dnc, pipeline
 from app.services.dedupe import _ascii_words
 
 # Ordered: the first group is the most relevant person to write to. Editable in Settings.
@@ -285,7 +285,7 @@ def resolve(s: Session, app: Application, *, contacts: list[Contact] | None = No
         return Resolution(changed, ContactTier.none, None)
     ranking = ranking or ranking_settings(s)
     # People added only to message on LinkedIn (no email) never become the email's contact.
-    usable = [c for c in contacts if c.left_at is None
+    usable = [c for c in contacts if c.left_at is None and not c.do_not_contact
               and not (c.source == ContactSource.linkedin and not c.email)]
     best = best_contact(usable, ranking.order_for(company, job))
     if best is not None:
@@ -432,6 +432,8 @@ def add_contact(s: Session, company_id: int, *, full_name: str, title: str | Non
         existing = s.exec(select(Contact).where(Contact.email_normalized == email_n)).first()
         if existing is not None:
             raise ContactError(f"{email_n} is already a contact ({existing.full_name})")
+        if reason := dnc.blocked_reason(s, None, email_n):
+            raise ContactError(f"Do not contact: {reason}")
     parts = name.split(" ", 1)
     entered = source != ContactSource.apollo_dump
     contact = Contact(company_id=company_id, full_name=name, first_name=parts[0],
@@ -468,6 +470,8 @@ def set_contact_search(s: Session, company_id: int, status: ContactSearch,
 
 def set_contact(s: Session, app: Application, contact: Contact) -> Application:
     """Your choice for this job; matching never replaces it."""
+    if reason := dnc.blocked_reason(s, contact):
+        raise ContactError(f"Do not contact: {reason}")
     tier = tier_for(contact)
     app.contact_id, app.contact_tier = contact.id, tier
     s.add(app)

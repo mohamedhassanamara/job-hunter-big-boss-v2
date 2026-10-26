@@ -24,6 +24,7 @@ export const keys = {
   companies: (q: string) => ['companies', q] as const,
   company: (id: number) => ['company', id] as const,
   toGet: ['to-get'] as const,
+  dnc: ['dnc'] as const,
   getContact: (appId: number) => ['get-contact', appId] as const,
   hunterCredits: ['hunter-credits'] as const,
   companyDomains: (id: number) => ['company-domains', id] as const,

@@ -41,7 +41,7 @@ export type ContactTier = 'imported' | 'found' | 'to_get' | 'none'
 /** The company's Get contact state: nobody found with the extension, or never looked up. */
 export type ContactSearch = 'none' | 'not_found' | 'never'
 /** This job's Get contact state (services/get_contact.py). */
-export type ContactState = 'get' | 'verify' | 'ready' | 'never'
+export type ContactState = 'get' | 'verify' | 'ready' | 'never' | 'blocked'
 export type Source = 'adzuna' | 'remotive' | 'arbeitnow' | 'wttj' | 'boards' | 'bayt' | 'linkedin'
 
 export interface CompanyBoard {
@@ -60,7 +60,7 @@ export type CloseReason =
   | 'offer_declined'
   | 'offer' // legacy, shown as "Offer"
 export type ApplyMethod = 'company_site' | 'job_board' | 'email' | 'linkedin' | 'other'
-export type ResponseKind = 'positive' | 'rejection' | 'other'
+export type ResponseKind = 'positive' | 'rejection' | 'other' | 'do_not_contact'
 export type InterviewType = 'hr' | 'technical' | 'take_home' | 'final' | 'other'
 export type InterviewOutcome = 'pending' | 'passed' | 'failed' | 'cancelled'
 export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering' | 'summary'
@@ -191,6 +191,8 @@ export interface Contact {
   source: 'apollo_dump' | 'found' | 'manual' | 'hunter'
   role_rank: number // position in Settings → Contacts ranking (999 = unranked)
   role_label: string | null
+  do_not_contact: boolean // asked not to be contacted: nothing is drafted, approved, queued or sent
+  dnc_reason: string | null
 }
 
 export interface TimelineEvent {
@@ -1057,6 +1059,7 @@ export interface GetContactView {
   job_id: number
   job_title: string
   state: ContactState
+  blocked: string | null // why, when the state is blocked
   company: { id: number; name: string; domain: string | null; contact_search: ContactSearch; contact_search_notes: string; aggregator: string[] }
   contact: Contact | null
   provenance: { kind: string; label: string; at: string | null } | null
@@ -2203,4 +2206,23 @@ export interface ContactBatchPreview {
   jobs: { application_id: number; job_title: string; company_id: number; company_name: string }[]
   companies: number
   spend: Record<string, { companies: number; worst_case: number; remaining: number; unit: 'credits' | 'usd'; keys: number }>
+}
+
+/** Settings → Contacts → Do not contact: an email or a whole domain nobody may write to. */
+export interface DncRule {
+  id: number
+  kind: 'email' | 'domain'
+  value: string
+  reason: string
+  created_at: string
+}
+export interface DncList {
+  rules: DncRule[]
+  flagged_contacts: number
+}
+export interface DncAddResult {
+  added: number
+  already_listed: number
+  flagged_contacts: number
+  not_understood: string[]
 }

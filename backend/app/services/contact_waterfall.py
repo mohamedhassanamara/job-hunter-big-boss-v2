@@ -36,6 +36,7 @@ from app.providers.contact_finders import (
 from app.services import (
     company_resolve,
     contact_check,
+    dnc,
     dns_check,
     domains,
     email_pattern,
@@ -181,6 +182,8 @@ def _persist(s: Session, company: Company, c: Candidate, source: ContactSource,
     existing = s.exec(select(Contact).where(Contact.email_normalized == email_n)).first()
     if existing is not None and existing.company_id != company.id:
         return None  # that address belongs to another company's contact
+    if dnc.blocked_reason(s, existing, email_n):
+        return None  # asked not to be contacted (flag, address or domain): never saved or used
     if existing is None:
         name = " ".join(c.full_name.split())
         parts = name.split(" ", 1)
@@ -244,7 +247,8 @@ def run(s: Session, app: Application, *, requery: bool = False, domain: str | No
     if not requery:
         cached = [c for c in s.exec(select(Contact).where(
             Contact.company_id == company.id, col(Contact.email).is_not(None),
-            col(Contact.left_at).is_(None), Contact.verification_status == ACCEPTED)).all()
+            col(Contact.left_at).is_(None), col(Contact.do_not_contact).is_(False),
+            Contact.verification_status == ACCEPTED)).all()
             if _position(c.title, ranking, order)[0] != UNRANKED]
         if cached:
             cached.sort(key=lambda c: (_position(c.title, ranking, order)[0], c.id or 0))

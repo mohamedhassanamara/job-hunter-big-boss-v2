@@ -102,6 +102,21 @@ class Contact(TableBase, table=True):
     found_by_actor: str | None = None  # the Apify Actor
     found_at: datetime | None = dt_field()
     verification_status: str | None = None  # valid | accept_all | unknown | invalid
+    # Asked not to be contacted (a reply you logged, the card, or a Settings → Contacts rule).
+    # Imports, drafting, approval, LinkedIn notes and the send gate all refuse such a contact.
+    do_not_contact: bool = Field(default=False, index=True)
+    dnc_reason: str | None = None
+    dnc_at: datetime | None = dt_field()
+
+
+class DoNotContactRule(TableBase, table=True):
+    """An email address or a whole domain nobody may write to (Settings → Contacts)."""
+
+    __tablename__ = "do_not_contact_rule"
+
+    kind: str  # email | domain
+    value: str = Field(unique=True, index=True)  # lowercased
+    reason: str = ""
 
 
 class ContactImport(TableBase, table=True):

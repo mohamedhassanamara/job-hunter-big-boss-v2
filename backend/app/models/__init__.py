@@ -14,6 +14,7 @@ from app.models.company import (
     CompanyMergeDecision,
     Contact,
     ContactImport,
+    DoNotContactRule,
 )
 from app.models.copilot import CopilotMessage, CopilotThread
 from app.models.experience import ExperienceHistory, ExperienceItem
@@ -80,6 +81,7 @@ __all__ = [
     "CompanySignal",
     "ContactAlert",
     "Contact",
+    "DoNotContactRule",
     "CoverLetter",
     "ContactImport",
     "CopilotMessage",

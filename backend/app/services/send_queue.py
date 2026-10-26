@@ -46,7 +46,7 @@ from app.models.enums import (
     Stage,
 )
 from app.providers.base import Mailer, SendFailed
-from app.services import outreach, pipeline, tracking, verifier
+from app.services import dnc, outreach, pipeline, tracking, verifier
 from app.services.cv_check import violation
 
 log = logging.getLogger("send_queue")
@@ -111,6 +111,9 @@ def pending_count(s: Session, q: SendQueue) -> int:
 
 def enqueue(s: Session, draft: OutreachDraft) -> bool:
     """Add an approved draft; False when the queue already holds `max_items` pending."""
+    contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
+    if reason := dnc.blocked_reason(s, contact):
+        raise QueueError(f"Do not contact: {reason}")
     q = queue(s)
     if pending_count(s, q) >= q.max_items:
         return False
@@ -292,6 +295,11 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
             email = outreach.outgoing(s, engine, draft)
             entry.to, entry.subject, entry.attachment = email.to, email.subject, \
                 email.attachment_name
+            # Asked not to be contacted (flag, address or domain): pulled back with the reason.
+            contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
+            if reason := dnc.blocked_reason(s, contact, email.to):
+                _back_to_review(s, item, draft, entry, f"do not contact: {reason}", now)
+                return "blocked"
             # The final gate: exactly the text and CV that were approved and verified.
             if reason := verifier.send_gate(draft, email.subject, email.body,
                                             email.attachment_path, email.to):

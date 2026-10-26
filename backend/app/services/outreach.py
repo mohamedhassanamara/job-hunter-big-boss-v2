@@ -38,7 +38,7 @@ from app.providers.base import (
     SendFailed,
 )
 from app.services import applied_check as ac
-from app.services import get_contact, pipeline
+from app.services import dnc, get_contact, pipeline
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
 from app.services.contacts import ranking_settings
@@ -537,6 +537,8 @@ def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[An
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if contact is None or not contact.email:
         raise OutreachError("The contact has no email address")
+    if reason := dnc.blocked_reason(s, contact):
+        raise OutreachError(f"Do not contact: {reason}")
     cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
     if cv is None or cv.status != CVStatus.approved:
         raise OutreachError("The CV this email was written from is no longer approved")

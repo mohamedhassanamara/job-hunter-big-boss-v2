@@ -21,7 +21,7 @@ import {
 import type { InterviewOutcome, ResponseKind, Stage, TrackedApplication } from '@/lib/types'
 import { LogInterviewDialog, LogReplyDialog, type TrackTarget } from './TrackingDialogs'
 
-const REPLY_TONE: Record<ResponseKind, Tone> = { positive: 'green', rejection: 'red', other: 'gray' }
+const REPLY_TONE: Record<ResponseKind, Tone> = { positive: 'green', rejection: 'red', other: 'gray', do_not_contact: 'red' }
 const OUTCOME_TONE: Record<InterviewOutcome, Tone> = { pending: 'amber', passed: 'green', failed: 'red', cancelled: 'gray' }
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {

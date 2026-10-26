@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { CompanyDomains, ContactBatchPreview, ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
+import type { CompanyDomains, ContactBatchPreview, DncAddResult, DncList, ContactFields, ContactSearch, FindContactResult, GetContactView, HunterCredits, HunterFound, HunterVerified, PasteParsed, ToGetQueue } from '@/lib/types'
 import { invalidateWork, keys } from './keys'
 
 /** Contacts to get: jobs past New that need a contact or a verification, best fit first. */
@@ -135,5 +135,42 @@ export function useBatchPreview(enabled = true) {
     queryFn: () => api.get<ContactBatchPreview>('/contacts/batch-preview'),
     enabled,
     staleTime: 0,
+  })
+}
+
+/** The do-not-contact list (Settings → Contacts). */
+export function useDncList() {
+  return useQuery({ queryKey: keys.dnc, queryFn: () => api.get<DncList>('/contacts/do-not-contact') })
+}
+
+export function useAddDnc() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { text: string; reason: string }) => api.post<DncAddResult>('/contacts/do-not-contact', body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.dnc })
+      invalidateWork(qc)
+    },
+  })
+}
+
+export function useRemoveDnc() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.del<void>(`/contacts/do-not-contact/${id}`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.dnc }),
+  })
+}
+
+/** Mark or clear one contact (the card, Get contact). Marking moves their jobs to the next contact. */
+export function useSetContactDnc() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ contactId, flag, reason }: { contactId: number; flag: boolean; reason?: string }) =>
+      api.patch<{ do_not_contact: boolean }>(`/contacts/${contactId}/do-not-contact`, { do_not_contact: flag, reason: reason ?? null }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.dnc })
+      invalidateWork(qc)
+    },
   })
 }

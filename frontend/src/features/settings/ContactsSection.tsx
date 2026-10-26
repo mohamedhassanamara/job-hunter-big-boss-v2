@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useSaveSetting } from '@/lib/queries/library'
 import type { RoleGroup, SettingsView } from '@/lib/types'
+import { DoNotContactCard } from './DoNotContactCard'
 import { ProvidersCard } from './ProvidersCard'
 import { Card, Field, SaveBar } from './sections'
 
@@ -189,6 +190,7 @@ export function ContactsSection({ settings }: { settings: SettingsView }) {
         </div>
       </Field>
     </Card>
+    <DoNotContactCard />
     <ProvidersCard settings={settings} />
     </div>
   )

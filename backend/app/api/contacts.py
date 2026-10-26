@@ -15,6 +15,7 @@ from app.models import (
     Company,
     Contact,
     ContactImport,
+    DoNotContactRule,
     Job,
 )
 from app.models.enums import ContactSource, Stage
@@ -24,6 +25,11 @@ from app.schemas.contacts import (
     CompanyList,
     CompanyListItem,
     CompanySize,
+    DncAddIn,
+    DncAddOut,
+    DncContactIn,
+    DncList,
+    DncRuleOut,
     FilePreview,
     ImportRunOut,
     MatchReport,
@@ -34,7 +40,7 @@ from app.schemas.contacts import (
     NewContact,
 )
 from app.schemas.jobs import JobDetail
-from app.services import company_merge, contacts, contacts_import
+from app.services import company_merge, contacts, contacts_import, dnc, get_contact
 from app.services.pipeline import stage_label
 from app.services.views import contact_out, fit_brief, job_detail, latest_fits
 
@@ -363,3 +369,48 @@ def clear_job_contact(app_id: int, session: SessionDep) -> JobDetail:
     contacts.clear_contact(session, app)
     session.commit()
     return job_detail(session, get_or_404(session, Job, app.job_id))
+
+
+# ----------------------------------------------------------------------------- do not contact
+
+
+def _dnc_list(s: Session) -> DncList:
+    flagged = s.exec(select(func.count()).select_from(Contact)
+                     .where(col(Contact.do_not_contact).is_(True))).one()
+    return DncList(rules=[DncRuleOut.model_validate(r, from_attributes=True) for r in dnc.rules(s)],
+                   flagged_contacts=flagged)
+
+
+@router.get("/contacts/do-not-contact", response_model=DncList)
+def list_dnc(session: SessionDep) -> DncList:
+    return _dnc_list(session)
+
+
+@router.post("/contacts/do-not-contact", response_model=DncAddOut, status_code=201)
+def add_dnc(body: DncAddIn, session: SessionDep) -> DncAddOut:
+    """Paste several emails or domains. Contacts they cover are flagged at once."""
+    try:
+        out = dnc.add_rules(session, body.text, body.reason)
+    except dnc.DncError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.commit()
+    return DncAddOut(**out)  # type: ignore[arg-type]
+
+
+@router.delete("/contacts/do-not-contact/{rule_id}", status_code=204)
+def remove_dnc(rule_id: int, session: SessionDep) -> None:
+    """Removes the rule only: contacts already flagged stay flagged until you clear them."""
+    dnc.remove_rule(session, get_or_404(session, DoNotContactRule, rule_id, "Rule"))
+    session.commit()
+
+
+@router.patch("/contacts/{contact_id}/do-not-contact")
+def set_contact_dnc(contact_id: int, body: DncContactIn, session: SessionDep) -> dict[str, bool]:
+    """Mark (with a reason) or clear a contact. Marking moves their jobs to the next contact."""
+    contact = get_or_404(session, Contact, contact_id, "Contact")
+    if body.do_not_contact:
+        get_contact.do_not_contact(session, contact, body.reason)
+    else:
+        dnc.clear(session, contact)
+    session.commit()
+    return {"do_not_contact": contact.do_not_contact}

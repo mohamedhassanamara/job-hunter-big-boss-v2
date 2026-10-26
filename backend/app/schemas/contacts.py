@@ -125,3 +125,33 @@ class MergeIn(BaseModel):
 class MergeReject(BaseModel):
     a_id: int
     b_id: int
+
+
+class DncRuleOut(BaseModel):
+    id: int
+    kind: str  # email | domain
+    value: str
+    reason: str
+    created_at: datetime
+
+
+class DncList(BaseModel):
+    rules: list[DncRuleOut]
+    flagged_contacts: int  # contacts marked do not contact (a rule, a reply, or the card)
+
+
+class DncAddIn(BaseModel):
+    text: str  # pasted emails and/or domains
+    reason: str = ""
+
+
+class DncAddOut(BaseModel):
+    added: int
+    already_listed: int
+    flagged_contacts: int
+    not_understood: list[str]
+
+
+class DncContactIn(BaseModel):
+    do_not_contact: bool
+    reason: str | None = None

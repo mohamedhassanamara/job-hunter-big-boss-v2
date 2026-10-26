@@ -13,6 +13,7 @@ export const RESPONSE_LABELS: Record<ResponseKind, string> = {
   positive: 'Positive reply',
   rejection: 'Rejection',
   other: 'Other reply',
+  do_not_contact: 'Asked not to be contacted',
 }
 
 export const INTERVIEW_TYPE_LABELS: Record<InterviewType, string> = {
