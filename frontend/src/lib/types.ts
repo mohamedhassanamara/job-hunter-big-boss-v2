@@ -1302,6 +1302,14 @@ export interface ScoringQuota {
   sample?: boolean
 }
 
+/** APInex asked for its daily check-in (HTTP 402); cleared by the next good answer or "I checked in". */
+export interface ApinexStatus {
+  needs_checkin: boolean
+  seen_at: string | null
+  message: string | null
+  url: string
+}
+
 export interface ScoringStatus {
   running: boolean
   blocked: string | null

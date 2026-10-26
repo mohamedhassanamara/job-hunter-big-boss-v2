@@ -24,6 +24,7 @@ import type {
   RescorePreview,
   ScoringHealth,
   ScoringQuota,
+  ApinexStatus,
   ScoringStatus,
   SearchHit,
   SendLogEntry,
@@ -103,8 +104,8 @@ export function useCVStudio(appId: number) {
 export function useRegenerateSummary() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ cvId, feedback }: { cvId: number; feedback?: string }) =>
-      api.post<CVVersion>(`/cv/${cvId}/summary`, { feedback: feedback?.trim() || null }),
+    mutationFn: ({ cvId, feedback, use }: { cvId: number; feedback?: string; use?: 'claude' | 'gemini' }) =>
+      api.post<CVVersion>(`/cv/${cvId}/summary`, { feedback: feedback?.trim() || null, use: use ?? null }),
     onSettled: () => invalidateWork(qc),
   })
 }
@@ -132,7 +133,7 @@ export function useSummaryCheck(cvId: number, text: string, enabled: boolean) {
 export function useGenerateCV() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ appId, template, use }: { appId: number; template?: string; use?: 'claude' }) =>
+    mutationFn: ({ appId, template, use }: { appId: number; template?: string; use?: 'claude' | 'gemini' }) =>
       api.post<CVVersion>(`/applications/${appId}/cv/generate`, { template: template ?? null, use: use ?? null }),
     onSettled: () => invalidateWork(qc),
   })
@@ -336,6 +337,23 @@ export function useScoringStatus() {
     refetchInterval: (query) => (query.state.data?.running ? 2000 : 20_000),
     refetchIntervalInBackground: true,
     retry: false,
+  })
+}
+
+export function useApinexStatus() {
+  return useQuery({
+    queryKey: ['apinex-status'],
+    queryFn: () => api.get<ApinexStatus>('/scoring/apinex'),
+    refetchInterval: 60_000,
+    retry: false,
+  })
+}
+
+export function useApinexCheckedIn() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<ApinexStatus>('/scoring/apinex/checked-in'),
+    onSuccess: (data) => qc.setQueryData(['apinex-status'], data),
   })
 }
 

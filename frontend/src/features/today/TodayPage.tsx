@@ -31,6 +31,7 @@ import { ChestSummary, StreakSummary } from '@/components/app/motivation/Motivat
 import { ScoringFallbackNotice } from '@/components/app/ScoringFallbackNotice'
 import { ScoringProgress } from '@/components/app/ScoringProgress'
 import { ScoringTodayCard } from '@/components/app/ScoringTodayCard'
+import { ApinexCheckinBanner } from '@/components/app/ApinexCheckinBanner'
 import { EmptyState, ErrorState } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { TestDataBanner } from '@/components/app/TestDataBanner'
@@ -483,6 +484,7 @@ export default function TodayPage() {
           )}
         </p>
       </header>
+      <ApinexCheckinBanner className="rounded-lg" />
       <ScoringFallbackNotice className="rounded-lg border px-4" />
       <ScoringProgress className="rounded-lg border px-4" />
       <ScoringTodayCard />
