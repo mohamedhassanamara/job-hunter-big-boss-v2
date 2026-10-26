@@ -27,7 +27,7 @@ export function RescoreModal({
   const profile = useSearchProfile()
   const [track, setTrack] = useState<string>('all')
   const [sinceDays, setSinceDays] = useState<string>('all')
-  const [limit, setLimit] = useState<string>('50')
+  const [limit, setLimit] = useState<string>(scope === 'all' ? 'all' : '50') // "every job" means every job
   const [onlyUnscored, setOnlyUnscored] = useState<boolean>(false)
 
   const preview = useRescorePreview(
