@@ -221,6 +221,8 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Tracking after the CV (services/tracking.py, api/tracking.py)
 
+- Applications → Ready is a chain: `a` opens Mark applied, **Enter confirms** (document key handler in `MarkAppliedDialog`, ignored in the notes box and on buttons/menus), the next job is selected and, with `tracking.open_next_listing` (default on), its listing opens in a new tab with its CV and letter downloaded. That open runs synchronously in `onConfirm` (inside the key press: a pop-up needs the gesture), before the request. The selected row has Copy letter / Copy form text / Copy answers (answers only when verified); the hint line shows "n left".
+
 - No model calls. Mark applied (from `cv_ready`/`ready`) locks the CV version sent (`locked_at`, `pdf_sha256`); locked
   versions are never re-rendered, re-approved or superseded. `PATCH stage` refuses `done` (web apply) and `interview`.
 - Replies, interview rounds and reminder actions are their own tables; reminders are computed from `app_setting.tracking`.

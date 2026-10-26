@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -68,6 +68,7 @@ export function MarkAppliedDialog({
   defaultMethod = 'company_site',
   onOpenChange,
   onDone,
+  onConfirm,
 }: {
   target: TrackTarget | null
   cvVersion: number | null
@@ -75,6 +76,9 @@ export function MarkAppliedDialog({
   defaultMethod?: ApplyMethod
   onOpenChange: (open: boolean) => void
   onDone?: () => void
+  /** Runs synchronously on the confirm click or Enter, before the request: the one place a new
+   * browser tab may still be opened (a pop-up needs the user's gesture). */
+  onConfirm?: () => void
 }) {
   const [date, setDate] = useState(todayIso())
   const [method, setMethod] = useState<ApplyMethod>(defaultMethod)
@@ -89,7 +93,8 @@ export function MarkAppliedDialog({
   const sendLetter = withLetter && !!letter
   const sendForm = withForm && !!formText
   const submit = () => {
-    if (!target) return
+    if (!target || !date || mark.isPending) return
+    onConfirm?.()
     mark.mutate(
       { appId: target.appId, applied_on: date, method, cv_version_id: cvVersionId, cover_letter_id: sendLetter ? letter.id : null, form_letter_id: sendForm ? formText.id : null, notes },
       {
@@ -111,6 +116,23 @@ export function MarkAppliedDialog({
       },
     )
   }
+  // Enter confirms (not inside the notes box, a menu or on another button).
+  const submitRef = useRef(submit)
+  useEffect(() => {
+    submitRef.current = submit
+  })
+  useEffect(() => {
+    if (!target) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return
+      const el = e.target instanceof HTMLElement ? e.target : null
+      if (el?.closest('textarea, button, a, select, [role=combobox], [role=listbox], [role=option], [role=menuitem], [role=checkbox]')) return
+      e.preventDefault()
+      submitRef.current()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [target])
   return (
     <Shell
       open={!!target}
