@@ -3,7 +3,7 @@ generator go on one at a time, best first, each checked, only while the page is 
 
 from pathlib import Path
 
-from app.providers.base import CVPlan, PlanBullet, PlanEntry, PlanExtra, PlanProject
+from app.providers.base import CVPlan, PlanBullet, PlanEntry, PlanExtra
 from app.services import cv_build, cv_check, honesty
 from app.services.cv_build import fit_to_page, layout
 from app.services.cv_render import CVProfile, load_template
@@ -18,8 +18,10 @@ def bullets(it, indices):  # noqa: ANN001, ANN201
 
 def essentials(**kw) -> CVPlan:  # noqa: ANN003
     return CVPlan(summary="Engineer.", summary_short="Engineer.",
-                  roles=[PlanEntry(item_id=CURRENT.id, relevance=8, bullets=bullets(CURRENT, [0, 1, 2])),
-                         PlanEntry(item_id=MOBILE.id, relevance=5, bullets=bullets(MOBILE, [0, 1]))],
+                  roles=[PlanEntry(item_id=CURRENT.id, relevance=8,
+                                   bullets=bullets(CURRENT, [0, 1, 2])),
+                         PlanEntry(item_id=MOBILE.id, relevance=5,
+                                   bullets=bullets(MOBILE, [0, 1]))],
                   **kw)
 
 
@@ -67,7 +69,8 @@ def test_nothing_is_added_when_the_page_is_already_full(monkeypatch, tmp_path) -
     assert plan.fill_log == [] and len(plan.extras) == 2  # untouched: a later re-fit may use them
 
 
-def test_an_item_that_fails_the_checks_is_skipped_and_the_next_one_used(monkeypatch, tmp_path) -> None:  # noqa: ANN001
+def test_an_item_that_fails_the_checks_is_skipped_and_the_next_one_used(  # noqa: ANN001
+        monkeypatch, tmp_path) -> None:
     rules = honesty.rules_from([{"name": "Data/AI", "experience": "projects",
                                  "roles": [{"title": "Data Engineer"}]}])
     pool = make_pool()

@@ -241,8 +241,8 @@ def _save_render(s: Session, v: CVVersion, plan: CVPlan, pool: Pool, template_na
 
 def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
              template: str | None = None, verifier: Any = None) -> CVVersion:
-    """One generator call (or 2-pass APInex) → tailoring checks (+ the claim verifier on each adapted bullet) → plan
-    checks → fit loop → a new draft version. The pool is only read."""
+    """One generator call (or 2-pass APInex) → tailoring checks (+ the claim verifier on each
+    adapted bullet) → plan checks → fit loop → a new draft version. The pool is only read."""
     if generator is None:  # the CV model from Settings → Models, like every CV path
         from app.providers.registry import cv_generator
         from app.services import model_choice

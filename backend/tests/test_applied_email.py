@@ -137,11 +137,13 @@ def test_what_the_old_rules_blocked_is_now_allowed(job_ready: dict) -> None:  # 
 
 
 def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dict) -> None:  # noqa: F811
-    say = plan(job_ready, opening="I've just applied for Data Engineer at Voxa, though I would need visa sponsorship.")
+    say = plan(job_ready, opening="I've just applied for Data Engineer at Voxa, though I "
+                                  "would need visa sponsorship.")
     found = ac.check_plan(say, ctx_for(job_ready))
     assert "visa_disclaimer_banned" in errors(found)
 
-    say_exp = plan(job_ready, experience=[EmailSentence(text="I built systems and need sponsorship.", citations=[job_ready["role"]])])
+    say_exp = plan(job_ready, experience=[EmailSentence(
+        text="I built systems and need sponsorship.", citations=[job_ready["role"]])])
     found_exp = ac.check_plan(say_exp, ctx_for(job_ready))
     assert "visa_disclaimer_banned" in errors(found_exp)
 
@@ -382,7 +384,8 @@ def test_a_language_requirement_does_not_allow_mentioning_your_visa(
         job_ready: dict) -> None:  # noqa: F811
     only_language = ctx_for(job_ready, job_text="Data Engineer\nBusiness fluent in English "
                             "required. We are based in Berlin.")
-    say = plan(job_ready, opening="I applied for Data Engineer at Voxa and would need visa sponsorship.")
+    say = plan(job_ready, opening="I applied for Data Engineer at Voxa and would need visa "
+                                  "sponsorship.")
     found = ac.check_plan(say, only_language)
     assert "visa_disclaimer_banned" in errors(found)
 

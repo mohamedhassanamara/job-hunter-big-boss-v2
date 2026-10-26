@@ -21,7 +21,7 @@ from app.providers.base import (
 from app.services import scoring
 from app.services.scoring import ConcurrencyController, ScoringQueue
 
-CLOUD, LOCAL = "gemma4:31b-cloud", "gemma4:12b"
+CLOUD, LOCAL = "free/minimax-m3.1-flash", "qwen2.5:7b"  # the scoring defaults (APInex, then Ollama)
 
 
 def ok() -> FitAssessment:

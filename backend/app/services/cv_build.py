@@ -573,7 +573,8 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
                                    max_stack, target)
         last = chosen
     if chosen is not last:  # re-render the best one-page state so files on disk match it
-        tex = render_tex(chosen.document, profile, template, micro_spacing=chosen.state.micro_spacing)
+        tex = render_tex(chosen.document, profile, template,
+                         micro_spacing=chosen.state.micro_spacing)
         chosen.compiled = compile_tex(tex, out_dir, "cv")
         chosen.tex = tex
     chosen.passes = len(history) - 1

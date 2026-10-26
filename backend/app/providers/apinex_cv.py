@@ -17,8 +17,8 @@ from app.providers.base import (
     CVPlanDraft,
     CVRequest,
     PlanBullet,
-    PlanExtra,
     PlanEntry,
+    PlanExtra,
     PlanProject,
     PlanSkillGroup,
     SummaryDraft,
@@ -62,13 +62,24 @@ class APInexCVGenerator:
         """Pass 1: Fast structural selection of roles, projects, and skills."""
         system_prompt = (
             "You are an expert CV structure and selection planner.\n"
-            "Select the best roles, projects, and skills for the target job from the candidate's pool.\n\n"
+            "Select the best roles, projects, and skills for the target job from the candidate's "
+            "pool.\n\n"
             "CRITICAL RULES:\n"
-            "1. \"selected_roles\": Include EVERY professional role from the pool (never drop a role: timeline continuity is mandatory). "
-            "For each role, list the \"fact_indices\" (zero-based integers corresponding to the role's facts in the pool) of the ESSENTIAL facts only, ordered by relevance to the job: at most 5 for the current role, 4 for a role over a year, 3 for any other.\n"
-            "2. \"selected_projects\": Select the 1 to 3 most relevant projects from the pool (if the pool contains projects, select at least 1). For each, list 2 to 4 \"fact_indices\".\n"
-            "3. \"selected_skills\": Select up to 4 skill groups from the pool that best match the job. Under each group, select up to 8 skills copied VERBATIM from the pool's skills list.\n"
-            "4. \"ratings\": rate how relevant to THIS job every OTHER item is, 0 (irrelevant) to 10 (as relevant as an essential): every role fact you did not list in fact_indices, every project you did not select (\"fact_index\": null) and every fact of a selected project you did not list. Rate honestly; a rating never changes the text.\n\n"
+            "1. \"selected_roles\": Include EVERY professional role from the pool (never drop a "
+            "role: timeline continuity is mandatory). "
+            "For each role, list the \"fact_indices\" (zero-based integers corresponding to the "
+            "role's facts in the pool) of the ESSENTIAL facts only, ordered by relevance to the "
+            "job: at most 5 for the current role, 4 for a role over a year, 3 for any other.\n"
+            "2. \"selected_projects\": Select the 1 to 3 most relevant projects from the pool (if "
+            "the pool contains projects, select at least 1). For each, list 2 to 4 "
+            "\"fact_indices\".\n"
+            "3. \"selected_skills\": Select up to 4 skill groups from the pool that best match "
+            "the job. Under each group, select up to 8 skills copied VERBATIM from the pool's "
+            "skills list.\n"
+            "4. \"ratings\": rate how relevant to THIS job every OTHER item is, 0 (irrelevant) to "
+            "10 (as relevant as an essential): every role fact you did not list in fact_indices, "
+            "every project you did not select (\"fact_index\": null) and every fact of a selected "
+            "project you did not list. Rate honestly; a rating never changes the text.\n\n"
             "Return valid JSON matching this exact structure:\n"
             "{\n"
             "  \"selected_roles\": [\n"
@@ -81,7 +92,8 @@ class APInexCVGenerator:
             "    {\"category\": \"<group_title>\", \"skills\": [\"<skill1>\", \"<skill2>\"]}\n"
             "  ],\n"
             "  \"ratings\": [\n"
-            "    {\"kind\": \"role\" or \"project\", \"id\": <item_id>, \"fact_index\": <int or null>, \"relevance\": 0-10}\n"
+            "    {\"kind\": \"role\" or \"project\", \"id\": <item_id>, \"fact_index\": <int or "
+            "null>, \"relevance\": 0-10}\n"
             "  ]\n"
             "}"
         )
@@ -111,7 +123,9 @@ class APInexCVGenerator:
             max_idx = len(facts)
             indices = []
             if rid in role_map and isinstance(role_map[rid].get("fact_indices"), list):
-                indices = [int(i) for i in role_map[rid]["fact_indices"] if isinstance(i, (int, str)) and str(i).isdigit() and int(i) < max_idx]
+                indices = [int(i) for i in role_map[rid]["fact_indices"]
+                           if isinstance(i, (int, str)) and str(i).isdigit()
+                           and int(i) < max_idx]
             indices = list(dict.fromkeys(indices))
             if not indices and max_idx:  # a role is never empty: its first fact
                 indices = [0]
@@ -126,7 +140,9 @@ class APInexCVGenerator:
             pid = p.get("id")
             if pid in proj_pool_map:
                 facts = proj_pool_map[pid].get("facts", {})
-                indices = [int(i) for i in p.get("fact_indices", []) if isinstance(i, (int, str)) and str(i).isdigit() and int(i) < len(facts)]
+                indices = [int(i) for i in p.get("fact_indices", [])
+                           if isinstance(i, (int, str)) and str(i).isdigit()
+                           and int(i) < len(facts)]
                 if len(indices) >= 2:
                     normalized_projects.append({"id": pid, "fact_indices": indices[:4]})
         normalized_projects = normalized_projects[:3]
@@ -140,8 +156,10 @@ class APInexCVGenerator:
             cat = sg.get("category", "")
             match = skill_pool_map.get(cat.lower())
             if match:
-                valid_items = [item for item in sg.get("skills", []) if item in match.get("skills", [])]
-                normalized_skills.append({"id": match["id"], "category": match["category"], "skills": valid_items[:8]})
+                valid_items = [item for item in sg.get("skills", [])
+                               if item in match.get("skills", [])]
+                normalized_skills.append({"id": match["id"], "category": match["category"],
+                                         "skills": valid_items[:8]})
 
         return {
             "selected_roles": normalized_roles,
@@ -223,30 +241,42 @@ class APInexCVGenerator:
 
         system_prompt = (
             "You are an expert CV copywriter and polisher.\n"
-            "Produce the final JSON content for the tailored CV adhering strictly to these rules:\n\n"
+            "Produce the final JSON content for the tailored CV adhering strictly to these "
+            "rules:\n\n"
             "1. SUMMARY (summary_sentences):\n"
             "   - Exactly 2 complete sentences, totaling ~45-48 words.\n"
-            "   - Sentence 1: state who the candidate is, aligned to the target job track, with total professional years ONLY from FACTS (e.g. \"3 years of software engineering experience\").\n"
-            "   - Sentence 2: describe concrete systems built from the pool items. Must have a grammatical subject without \"I\" (e.g. \"Recent work includes...\", \"Projects include...\"). Never start with bare verbs like \"Built...\" or \"Delivered...\".\n"
+            "   - Sentence 1: state who the candidate is, aligned to the target job track, with "
+            "total professional years ONLY from FACTS (e.g. \"3 years of software engineering "
+            "experience\").\n"
+            "   - Sentence 2: describe concrete systems built from the pool items. Must have a "
+            "grammatical subject without \"I\" (e.g. \"Recent work includes...\", \"Projects "
+            "include...\"). Never start with bare verbs like \"Built...\" or \"Delivered...\".\n"
             f"   - ZERO use of banned phrases: {banned_str}.\n"
             "   - No numbers repeated from the bullets, no certifications, no tool enumerations.\n"
             "   - Each sentence must cite the pool item IDs it is based on in \"citations\".\n"
             "   - Provide \"summary_short_sentences\": 1 sentence, ~20 words, also cited.\n\n"
             "2. BULLETS (roles & projects):\n"
-            "   - Lightly adapt each bullet for the target job: strong action verbs, impact-driven, concise phrasing.\n"
-            "   - HARD GROUNDING: Length must stay within ±15% of the original fact. Keep ALL numbers, tools, and named products from the original fact. Never invent tools or numbers.\n"
-            "   - Each bullet must include: source_index (int), text (str), priority (int, 1 = most relevant), strength (int, 1-5; 5=impact/metrics, 3=built system, 1=generic).\n"
+            "   - Lightly adapt each bullet for the target job: strong action verbs, "
+            "impact-driven, concise phrasing.\n"
+            "   - HARD GROUNDING: Length must stay within ±15% of the original fact. Keep ALL "
+            "numbers, tools, and named products from the original fact. Never invent tools or "
+            "numbers.\n"
+            "   - Each bullet must include: source_index (int), text (str), priority (int, 1 = "
+            "most relevant), strength (int, 1-5; 5=impact/metrics, 3=built system, 1=generic).\n"
             "   - \"relevance\" (int 1-10) for every role and project.\n"
             "   - \"stack\": up to 5 relevant tags for each project.\n\n"
             "Return valid JSON matching this schema:\n"
             "{\n"
-            "  \"summary_sentences\": [{\"text\": \"...\", \"citations\": [...]}, {\"text\": \"...\", \"citations\": [...]}],\n"
+            "  \"summary_sentences\": [{\"text\": \"...\", \"citations\": [...]}, {\"text\": "
+            "\"...\", \"citations\": [...]}],\n"
             "  \"summary_short_sentences\": [{\"text\": \"...\", \"citations\": [...]}],\n"
             "  \"roles\": [\n"
-            "    {\"item_id\": <id>, \"relevance\": 10, \"bullets\": [{\"source_index\": 0, \"text\": \"...\", \"priority\": 1, \"strength\": 5}]}\n"
+            "    {\"item_id\": <id>, \"relevance\": 10, \"bullets\": [{\"source_index\": 0, "
+            "\"text\": \"...\", \"priority\": 1, \"strength\": 5}]}\n"
             "  ],\n"
             "  \"projects\": [\n"
-            "    {\"item_id\": <id>, \"relevance\": 8, \"stack\": [...], \"bullets\": [{\"source_index\": 0, \"text\": \"...\", \"priority\": 1, \"strength\": 5}]}\n"
+            "    {\"item_id\": <id>, \"relevance\": 8, \"stack\": [...], \"bullets\": "
+            "[{\"source_index\": 0, \"text\": \"...\", \"priority\": 1, \"strength\": 5}]}\n"
             "  ],\n"
             "  \"skills\": [{\"item_id\": <id>, \"items\": [...]}]\n"
             "}"
@@ -256,7 +286,8 @@ class APInexCVGenerator:
             f"TARGET JOB:\n{json.dumps(request.job, ensure_ascii=False, indent=1)}\n\n"
             f"FACTS (allowed years claims):\n{json.dumps(request.facts, ensure_ascii=False)}\n\n"
             f"WRITING GUIDE:\n{request.guide}\n\n"
-            f"SELECTED EXPERIENCE TO POLISH:\n{json.dumps(polisher_input, ensure_ascii=False, indent=1)}\n"
+            "SELECTED EXPERIENCE TO POLISH:\n"
+            f"{json.dumps(polisher_input, ensure_ascii=False, indent=1)}\n"
         )
 
         res = self.client.complete_sync(system_prompt, user_prompt, model=self.model)
@@ -341,7 +372,8 @@ class APInexCVGenerator:
                         priority=len(bullets_out) + 1,
                         strength=5,
                     ))
-            projects_out.append(PlanProject(item_id=pid, relevance=relevance, stack=stack, bullets=bullets_out))
+            projects_out.append(PlanProject(item_id=pid, relevance=relevance, stack=stack,
+                                            bullets=bullets_out))
 
         skills_out = []
         for sg in planner["selected_skills"]:
@@ -370,12 +402,16 @@ class APInexCVGenerator:
         system_prompt = (
             "Rewrite ONLY the CV summary for the target job adhering to these rules:\n"
             "1. Exactly 2 complete sentences, totaling ~45-48 words.\n"
-            "2. Sentence 1: professional role + professional track years strictly using allowed years from FACTS.\n"
-            "3. Sentence 2: concrete systems built from the cited pool items. Must have a grammatical subject without \"I\" (e.g. \"Recent work includes...\"). Never start with bare verbs like \"Built...\".\n"
+            "2. Sentence 1: professional role + professional track years strictly using allowed "
+            "years from FACTS.\n"
+            "3. Sentence 2: concrete systems built from the cited pool items. Must have a "
+            "grammatical subject without \"I\" (e.g. \"Recent work includes...\"). Never start "
+            "with bare verbs like \"Built...\".\n"
             f"4. Zero banned phrases: {'; '.join(banned_phrases)}.\n"
             "5. Cite the pool item IDs in \"citations\".\n"
             "6. Provide \"summary_short_sentences\" (1 sentence, ~20 words, cited).\n\n"
-            "Return JSON matching: {\"summary_sentences\": [{\"text\": \"...\", \"citations\": [...]}], \"summary_short_sentences\": [{\"text\": \"...\", \"citations\": [...]}]}"
+            "Return JSON matching: {\"summary_sentences\": [{\"text\": \"...\", \"citations\": "
+            "[...]}], \"summary_short_sentences\": [{\"text\": \"...\", \"citations\": [...]}]}"
         )
         user_prompt = (
             (f"CURRENT SUMMARY:\n{current}\n\n" if current else "")

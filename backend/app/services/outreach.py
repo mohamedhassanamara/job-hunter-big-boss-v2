@@ -829,8 +829,9 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
              "jargon": request.rules.get("jargon"), "signals": signals,
              "style": "a concise, professional peer-to-peer follow-up: say you applied (or are "
                       "applying) and wanted to reach out directly; 1-2 high-impact technical proof "
-                      "points from your experience pool adapted to the recipient's domain and title; "
-                      "a low-friction technical conversation ask. Never mention visa, sponsorship or relocation.",
+                      "points from your experience pool adapted to the recipient's domain and "
+                      "title; a low-friction technical conversation ask. Never mention visa, "
+                      "sponsorship or relocation.",
              "style_reference": applied_references(s)}
     return EmailRequest(job=request.job, contact=request.contact, candidate=candidate,
                         pool=request.pool, rules=rules)
