@@ -207,7 +207,7 @@ def test_generate_with_gemini_is_a_one_shot_choice_and_never_automatic(seeded: N
 
 
 def test_the_cv_endpoints_accept_only_known_one_shot_choices(client) -> None:  # noqa: ANN001
-    app_id = client.get("/api/applications").json()[0]["id"]
+    app_id = client.get("/api/jobs?stage=all").json()["items"][0]["application"]["id"]
     assert client.post(f"/api/applications/{app_id}/cv/generate",
                        json={"use": "gpt"}).status_code == 422
     cv_id = client.get("/api/jobs?stage=all").json()["items"][0]["id"]  # any id: validated first
