@@ -132,19 +132,23 @@ def test_emails_and_linkedin_requests_count_only_when_enabled(seeded: None) -> N
 
 def test_a_sent_email_alone_does_not_move_the_streak_by_default(seeded: None) -> None:
     """The reported case: an email goes out (the job reaches Done), nothing is marked Applied.
-    By default only "Mark applied" counts, so today stays 0/goal; with `count_emails` it is 1."""
+    By default only "Mark applied" counts; with `count_emails` the email counts as one. Compared
+    against the counts before this email is added, so the sandbox's own sent drafts (dated
+    relative to the clock) never matter."""
     # 23:30 UTC on the 20th is already the 21st in Tunis: the day boundary must not hide it
     sent = datetime(2026, 10, 20, 23, 30, tzinfo=UTC)
-    today = date(2026, 10, 21)
+    today, utc_day = date(2026, 10, 21), date(2026, 10, 20)
+    emails = {**CFG, "count_emails": True}
     with Session(engine) as s:
         app = make_app(s)
+        off_before, on_before = activity.per_day(s, CFG), activity.per_day(s, emails)
         s.add(OutreachDraft(application_id=app.id, subject="s", body="b",
                             status=DraftStatus.sent, sent_at=sent))
         s.flush()
-        off = activity.per_day(s, CFG)
-        on = activity.per_day(s, {**CFG, "count_emails": True})
-        assert on[today] == off[today] + 1  # on the Tunis day, not the UTC day
-        assert on[date(2026, 10, 20)] == off[date(2026, 10, 20)]
+        off, on = activity.per_day(s, CFG), activity.per_day(s, emails)
+        assert off == off_before  # by default the sent email moves nothing
+        assert on[today] == on_before[today] + 1  # counted on the Tunis day...
+        assert on[utc_day] == on_before[utc_day]  # ...not on the UTC day
         st = compute(on, today, CFG["daily_goal"])
         assert st.today_count == on[today] and st.today_state == "in_progress"
         s.rollback()
