@@ -418,7 +418,8 @@ class AppliedEmailPlan(BaseModel):
         "company and wanted to reach out directly. The role and the listing may be named"))
     experience: list[EmailSentence] = Field(description=(
         "One or two sentences (at most two proofs, one sentence each) from the EXPERIENCE POOL "
-        "on the experience that best answers the recipient's domain and the listing's core requirements, "
+        "on the experience that best answers the recipient's domain and the listing's core "
+        "requirements, "
         "plain language, each citing pool ids"))
     signal: HookSentence = Field(default_factory=lambda: HookSentence(text=""), description=(
         "Optional: one company fact from SIGNALS that genuinely adds something, with its id. "

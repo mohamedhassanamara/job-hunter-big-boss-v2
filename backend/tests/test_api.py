@@ -34,12 +34,15 @@ def _job_by_title(client: TestClient, title: str, stage: str = "all") -> dict:
 
 
 def test_seed_shape(client: TestClient) -> None:
-    jobs = client.get("/api/jobs?stage=all").json()
+    jobs = client.get("/api/jobs?stage=all&hide_duplicates=false").json()
     assert 15 <= jobs["total"] <= 20
     assert {i["source"] for i in jobs["items"]} == {"adzuna", "remotive", "arbeitnow", "wttj"}
     stages = {c["stage"] for c in client.get("/api/applications").json()}
     assert stages == {"new", "shortlisted", "cv_ready", "ready", "done", "interview", "closed"}
     assert sum(1 for i in jobs["items"] if i["duplicate_of_id"]) == 2
+    default = client.get("/api/jobs?stage=all").json()  # duplicates are hidden unless asked for
+    assert all(i["duplicate_of_id"] is None for i in default["items"])
+    assert default["total"] == jobs["total"] - 2
 
 
 def test_job_filters_and_sort(client: TestClient) -> None:

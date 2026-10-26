@@ -92,11 +92,13 @@ def test_import_scores_only_that_job_dedupes_and_saves_the_hiring_team(seeded: N
     r = client.post("/api/linkedin/import", json=CAPTURE)
     assert r.status_code == 200, r.text
     out = r.json()
-    assert out["created"] and out["duplicate_of"]["id"] == other_id
+    # one listing per real job: the capture merges into the adzuna row instead of a second one
+    assert not out["created"] and out["duplicate_of"]["id"] == other_id
+    assert out["job_id"] == other_id
     with Session(engine) as s:
         job = s.get(Job, out["job_id"])
-        assert (job.source, job.linkedin_job_id, job.remote_type) == ("linkedin", "4012345678",
-                                                                      "hybrid")
+        assert (job.source, job.linkedin_job_id) == ("adzuna", "4012345678")
+        assert job.sources == ["linkedin"] and "linkedin" in job.source_urls
         assert job.capture["description"] == "json-ld"
         assert s.get(Company, job.company_id).linkedin_url == \
             "https://www.linkedin.com/company/exemplo-labs/"

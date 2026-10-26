@@ -185,7 +185,9 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
                                  "body", "error"))
     from app.services.dedupe import normalize_company
     norm_comp = normalize_company(ctx.company) if ctx.company else ""
-    if ctx.company and oc.fold(ctx.company) not in oc.fold(everything) and (not norm_comp or oc.fold(norm_comp) not in oc.fold(everything)):
+    named = oc.fold(ctx.company) in oc.fold(everything) or (
+        norm_comp and oc.fold(norm_comp) in oc.fold(everything))
+    if ctx.company and not named:
         out.append(violation("company", f"The company name “{ctx.company}” isn't mentioned",
                              "body"))
     for claim in bad_years(_facts_without_statement(text, ctx), ctx.allowed_years,

@@ -103,7 +103,8 @@ def test_initial_state_minimums_two_projects_never_one_bullet() -> None:
     c = state.counts
     assert (c["role:1"], c["role:3"], c["role:4"], c["role:2"]) == (3, 2, 1, 2)
     shown = [k for k in c if k.startswith("project:") and c[k]]
-    assert shown == ["project:6", "project:7", "project:9"] and c["project:8"] == 0  # "Tiny" has 1 fact
+    assert shown == ["project:6", "project:7", "project:9"]
+    assert c["project:8"] == 0  # "Tiny" has 1 fact
     doc = build_document(plan, make_pool(), state, lay=layout(plan, make_pool(), RULES,
                                                               today=TODAY))
     assert all(len(p.bullets) >= 2 for p in doc.projects)

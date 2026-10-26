@@ -913,7 +913,8 @@ def ensure_defaults(engine: Engine) -> None:
             ):
                 scoring_cfg["model"] = "free/minimax-m3.1-flash"
                 scoring_cfg["provider"] = "apinex"
-                if not scoring_cfg.get("fallback") or scoring_cfg.get("fallback", "").startswith("gemini-"):
+                fallback = scoring_cfg.get("fallback") or ""
+                if not fallback or fallback.startswith("gemini-"):
                     scoring_cfg["fallback"] = "qwen2.5:7b"
                 val["scoring"] = scoring_cfg
                 models_row.value = val

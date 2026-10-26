@@ -15,7 +15,7 @@ from typing import Any
 from urllib.parse import quote, urlsplit
 
 from sqlalchemy import Engine
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.models import Application, Company, Contact, Job, LinkedInLinkOpen, LinkedInOutreach
 from app.models.enums import ContactSource, LinkedInGroup, RemoteType, Source
@@ -327,9 +327,17 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
                      matched_role=matched[1] if matched else None)
         stats = ingest(s, [raw], source_run_id=None, profile_id=profile_id)
         job = s.exec(select(Job).where(Job.source == Source.linkedin,
-                                       Job.external_id == raw.external_id)).one()
-        created = stats.new + stats.duplicates > 0
-        if not created:  # captured again: refresh what the page now shows
+                                       Job.external_id == raw.external_id)).first()
+        merged = None
+        if job is None:  # the same job is already listed from another source: ingest merged
+            from app.services.dedupe import dedupe_key  # this capture into it (one listing)
+            from app.services.ingest import _company
+
+            key = dedupe_key(_company(s, raw.company).name, raw.title, raw.country)
+            job = merged = s.exec(select(Job).where(
+                Job.dedupe_key == key, col(Job.duplicate_of_id).is_(None))).one()
+        created = stats.new > 0
+        if not created:  # captured again, or merged: refresh what the page now shows
             job.title, job.location, job.description = c.title, c.location, c.description
             job.remote_type = raw.remote_type
             if matched:
@@ -345,7 +353,9 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
             add_person(s, app, full_name=c.poster["name"], title=c.poster.get("title"),
                        linkedin_url=c.poster.get("url"), hiring_team=True)
         duplicate = None
-        if job.duplicate_of_id:
+        if merged is not None:
+            duplicate = {"id": merged.id, "title": merged.title, "source": merged.source}
+        elif job.duplicate_of_id:
             orig = s.get(Job, job.duplicate_of_id)
             duplicate = {"id": orig.id, "title": orig.title, "source": orig.source}
         s.commit()

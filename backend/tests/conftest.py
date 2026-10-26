@@ -12,6 +12,7 @@ os.environ["SCHEDULER_ENABLED"] = "false"
 os.environ["SEND_WORKER_ENABLED"] = "false"
 os.environ["GENERATION_WORKER_ENABLED"] = "false"
 os.environ["SMTP_APP_PASSWORD"] = ""
+os.environ["APINEX_API_KEY"] = ""  # no gateway key in tests
 os.environ["HUNTER_API_KEY"] = ""  # .env may hold a real key: tests never use it
 for _name in ("HUNTER_API_KEYS", "PROSPEO_API_KEYS", "APOLLO_API_KEYS", "APIFY_TOKEN",
               "GEMINI_API_KEYS", "GEMINI_API_KEY"):
