@@ -118,7 +118,7 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
             { value: 'remote_ok', label: 'Remote or hybrid preferred' },
             { value: 'remote_only', label: 'Remote only' },
           ]}
-          className="w-72"
+          className="w-80"
         />
       </Field>
       <Field label="Remote scope" hint="Which remote jobs count. US-only (or any Americas / Asia-only) remote is never eligible.">
@@ -130,7 +130,7 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
             { value: 'europe', label: 'Remote Europe' },
             { value: 'targets', label: 'Remote in my target countries only' },
           ]}
-          className="w-72"
+          className="w-80"
         />
       </Field>
       <Field label="Max job age" hint="Skip listings posted longer ago than this">
@@ -218,10 +218,10 @@ const GENERATOR_MODELS = [
 ]
 
 /** The CV is the only generator that can use the APInex gateway (email and letters never do). */
-const CV_MODELS = [{ value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex, 2-pass)' }, ...GENERATOR_MODELS]
+const CV_MODELS = [{ value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex)' }, ...GENERATOR_MODELS]
 
 const SCORING_MODELS = [
-  { value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex - Recommended)' },
+  { value: 'free/minimax-m3.1-flash', label: 'MiniMax M3.1 Flash (APInex)' },
   { value: 'free/gpt-6-luna', label: 'GPT-6 Luna (APInex)' },
   { value: 'free/glm-5.3-flash', label: 'GLM 5.3 Flash (APInex)' },
   { value: 'free/mimo-v2.6-pro', label: 'Mimo V2.6 Pro (APInex)' },
@@ -264,7 +264,7 @@ function GeneratorField({ label, hint, value, onChange, models = GENERATOR_MODEL
           value={g.model}
           onValueChange={(model) => onChange({ ...g, model, provider: providerOf(model) })}
           options={models}
-          className="w-64"
+          className="w-72"
           aria-label={`${label} model`}
         />
         {gemini && <Select value={g.thinking_level ?? 'minimal'} onValueChange={(thinking_level) => onChange({ ...g, thinking_level })} options={THINKING_LEVELS} className="w-52" aria-label={`${label} thinking`} />}
@@ -308,7 +308,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
     >
       <div className="flex items-center gap-2 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ToneBadge tone="green">Live</ToneBadge>
-        Scoring runs through the APInex Gateway (15 RPM) with automatic Ollama fallback. CV and email generation share the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude.
+        Scoring runs through the APInex Gateway (15 RPM) with automatic Ollama fallback. The CV is written through the APInex Gateway too (2-pass) unless you pick Gemini or Claude below; email generation shares the free Gemini keys (one pooled quota; what you trigger goes first). Claude stays the claim verifier, Critique and Ask Claude.
       </div>
       <Field label="Fit scoring" hint="Primary scoring model. APInex gateway models run with strict 15 RPM rolling throttle.">
         <Select
