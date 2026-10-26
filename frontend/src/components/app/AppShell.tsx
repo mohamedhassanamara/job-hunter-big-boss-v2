@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { useHotkeys } from '@/hooks/useHotkeys'
+import { startUsageTracking, trackScreen } from '@/lib/usage'
 import { CommandPalette } from './CommandPalette'
 import { DiscoveryWatcher } from './DiscoveryWatcher'
 import { GenerationWatcher } from './GenerationWatcher'
@@ -40,6 +41,9 @@ function useSidebarCollapsed() {
 
 export function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
+  useEffect(startUsageTracking, [])
+  useEffect(() => trackScreen(location.pathname, location.search), [location.pathname, location.search])
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const { collapsed, toggle } = useSidebarCollapsed()

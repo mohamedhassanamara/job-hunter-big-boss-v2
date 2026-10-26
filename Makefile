@@ -43,6 +43,9 @@ eval-emails: ## Write the email regression set again with the current prompt; si
 eval-verifier: ## Run the claim verifier (Claude, Opus) on the must-pass and must-fail examples; report in data/eval/verifier/ (ARGS="--mock", "--case 5")
 	cd $(BACKEND) && .venv/bin/python -m app.eval.verifier $(ARGS)
 
+usage-report: ## Usage log report per session: time per screen, route changes, longest waits, idle gaps (ARGS="--last 3", "--json")
+	cd $(BACKEND) && .venv/bin/python scripts/usage_report.py $(ARGS)
+
 lint:
 	cd $(BACKEND) && .venv/bin/ruff check app tests
 	cd $(FRONTEND) && npx tsc -b && npm run lint

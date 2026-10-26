@@ -129,7 +129,7 @@ export function ApplicationSection({ job, onApplied }: { job: JobDetail; onAppli
               email someone there too (Outreach below).
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => openListingAndCv(job.url, pdf, letterPdf)}>
+              <Button size="sm" onClick={() => openListingAndCv(job.url, pdf, letterPdf, { kind: 'job', id: job.id })}>
                 {job.source === 'linkedin' ? (letter ? 'Open on LinkedIn + CV + cover letter' : 'Open on LinkedIn + CV') : letter ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
                 <ArrowRight />
               </Button>

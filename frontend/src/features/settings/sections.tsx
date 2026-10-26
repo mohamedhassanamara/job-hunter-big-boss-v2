@@ -15,6 +15,7 @@ import { useEraseWorkspace, useSaveSearchProfile, useSaveSetting } from '@/lib/q
 import type { RemoteScope, SearchProfile, SettingsView } from '@/lib/types'
 import { CountryPicker } from './CountryPicker'
 import { TracksEditor } from './TracksEditor'
+import { UsageLogCard } from './UsageLogCard'
 import { OllamaStatus } from './ScoringSections'
 
 export function Card({
@@ -505,6 +506,7 @@ export function DataSection({ settings }: { settings: SettingsView }) {
     setTyped('')
   }
   return (
+    <>
     <Card title="Data" description="Local SQLite database. Everything stays on this machine.">
       <Field label="Database">
         <p className="flex items-center gap-2 pt-1.5 font-mono text-xs text-fg-muted">
@@ -563,6 +565,8 @@ export function DataSection({ settings }: { settings: SettingsView }) {
         </DialogContent>
       </Dialog>
     </Card>
+    <UsageLogCard settings={settings} />
+    </>
   )
 }
 

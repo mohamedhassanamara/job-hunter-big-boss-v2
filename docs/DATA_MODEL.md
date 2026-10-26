@@ -169,6 +169,9 @@ One row per change of an item's text, written only by `services/experience_write
 | note | str? | e.g. "not in the master document" |
 Undo restores `before` (and is itself a row).
 
+### usage_event (local usage log, migration 0034)
+`at`, `kind` (screen | action | wait | idle), `name` (a route pattern such as `/jobs/:id/cv`, an action name such as `approve_cv`, or `POST /outreach/drafts/:id/queue` for a wait), `screen` (where it happened), `job_id`, `duration_ms` (screen: time you were active; wait/idle: its length), `wall_ms` (screen: enter to leave). No text from pages, drafts or CVs. Written only in the real workspace and only while `app_setting.usage_log.enabled` (default true) is on; "Clear usage log" deletes every row. Sessions are not stored: the report splits on a silence over 90 minutes.
+
 ### generation_task (background CV / email drafts, migration 0031)
 | Column | Type | Notes |
 |---|---|---|

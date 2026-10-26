@@ -2158,3 +2158,25 @@ export interface ConfirmationOut {
   /** Your experience changed since this answer. */
   stale: boolean
 }
+
+export interface UsageReport {
+  start: string
+  end: string
+  wall_minutes: number
+  active_minutes: number
+  screen_visits: number
+  screen_switches: number
+  per_screen: { screen: string; visits: number; active_s: number; wall_s: number }[]
+  per_job: { job_id: number; screens: number; distinct: number; active_s: number }[]
+  actions: Record<string, number>
+  waits_total_s: number
+  longest_waits: { name: string; seconds: number; screen: string | null; job_id: number | null; at: string }[]
+  waits_by_name: { name: string; count: number; total_s: number }[]
+  idle_gaps: { minutes: number; at: string }[]
+  action_gaps_over_5_min: { from: string; to: string; minutes: number; at: string }[]
+}
+
+export interface UsageReportView {
+  enabled: boolean
+  sessions: UsageReport[]
+}

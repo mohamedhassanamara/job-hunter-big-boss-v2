@@ -31,7 +31,7 @@ export function ReadyTab() {
     actions: {
       o: (id) => {
         const r = byId(id)
-        if (r) openListingAndCv(r.url, pdfUrl(r), letterUrl(r))
+        if (r) openListingAndCv(r.url, pdfUrl(r), letterUrl(r), { kind: 'app', id: r.application_id })
       },
       a: (id) => setApplying(byId(id) ?? null),
     },
@@ -96,7 +96,7 @@ export function ReadyTab() {
             <Button
               size="sm"
               variant={(selected ?? items[0].application_id) === r.application_id ? 'default' : 'secondary'}
-              data-tour="applications-open" onClick={() => openListingAndCv(r.url, pdfUrl(r), letterUrl(r))}>
+              data-tour="applications-open" onClick={() => openListingAndCv(r.url, pdfUrl(r), letterUrl(r), { kind: 'app', id: r.application_id })}>
               {r.letter_status === 'approved' ? 'Open listing + CV + cover letter' : 'Open listing + CV'}
               <ArrowUpRight />
             </Button>
