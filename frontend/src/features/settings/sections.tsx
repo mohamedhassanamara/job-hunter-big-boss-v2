@@ -411,7 +411,7 @@ export function ModelsSection({ settings }: { settings: SettingsView }) {
 
 /** Background drafting (services/generation.py): drafts only, never approves, no toasts. */
 function AutomationCard({ settings }: { settings: SettingsView }) {
-  const initial = (settings.values.generation as unknown as GenerationValue | undefined) ?? { auto_cv: true, auto_email: false }
+  const initial = (settings.values.generation as unknown as GenerationValue | undefined) ?? { auto_cv: true, auto_email: true }
   const draft = useDraft(initial)
   const save = useSaveSetting()
   const g = draft.value
@@ -427,7 +427,7 @@ function AutomationCard({ settings }: { settings: SettingsView }) {
         <Field label="Draft the CV when I shortlist a job" hint="Queued in the background as a draft. Skipped when the job already has a CV or your experience is incomplete (a warning shows on the job). Un-shortlisting cancels it if it hasn't started.">
           <Switch checked={g.auto_cv} onCheckedChange={(v) => draft.setValue({ ...g, auto_cv: v })} aria-label="Auto-generate the CV" />
         </Field>
-        <Field label="Draft the email when the contact and the CV are both ready" hint="Needs a verified contact AND an approved CV on a job you shortlisted, and only for jobs with a posting (the application follow-up). Off until you have compared the Gemini and Claude emails.">
+        <Field label="Draft the email when the contact and the CV are both ready" hint="Needs a verified contact AND an approved CV on a job you shortlisted, and only for jobs with a posting (the application follow-up). On by default: the draft is then verified in the background, so it shows verified (or why not) when you open it. Nothing is approved or sent for you.">
           <Switch checked={g.auto_email} onCheckedChange={(v) => draft.setValue({ ...g, auto_email: v })} aria-label="Auto-generate the email" />
         </Field>
       </div>

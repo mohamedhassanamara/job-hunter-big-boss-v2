@@ -2,6 +2,7 @@ import { ExternalLink, UserRoundCheck, UserRoundSearch } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router'
 import { FitBadge, ToneBadge } from '@/components/app/badges'
+import { FindBatchButton } from '@/components/app/contact/FindBatch'
 import { FoundCounter } from '@/components/app/contact/FoundCounter'
 import { GetContactPanel } from '@/components/app/contact/GetContactPanel'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
@@ -40,6 +41,7 @@ export function ContactsTab() {
       <div data-tour="contacts-to-get" className="flex w-[360px] shrink-0 flex-col border-r border-border bg-bg max-xl:w-[300px]">
         <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
           {data ? <FoundCounter found={data.found_today} limit={data.daily_limit} /> : <span className="h-5" />}
+          <FindBatchButton className="ml-auto" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {isPending ? (

@@ -2198,3 +2198,9 @@ export interface UsageReportView {
   enabled: boolean
   sessions: UsageReport[]
 }
+
+export interface ContactBatchPreview {
+  jobs: { application_id: number; job_title: string; company_id: number; company_name: string }[]
+  companies: number
+  spend: Record<string, { companies: number; worst_case: number; remaining: number; unit: 'credits' | 'usd'; keys: number }>
+}

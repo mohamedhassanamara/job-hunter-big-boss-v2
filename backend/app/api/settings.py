@@ -252,7 +252,7 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
             if not isinstance(body.value.get(name, False), bool):
                 raise HTTPException(422, f"{name} must be true or false")
         body.value = {"auto_cv": bool(body.value.get("auto_cv", True)),
-                      "auto_email": bool(body.value.get("auto_email", False))}
+                      "auto_email": bool(body.value.get("auto_email", True))}
     if key == "usage_log":
         if not isinstance(body.value.get("enabled", True), bool):
             raise HTTPException(422, "enabled must be true or false")

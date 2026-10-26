@@ -59,6 +59,27 @@ class ToGetItem(BaseModel):
     stale: bool
 
 
+class BatchJob(BaseModel):
+    application_id: int
+    job_title: str
+    company_id: int
+    company_name: str
+
+
+class BatchSpend(BaseModel):
+    companies: int  # companies this provider would be asked about (not looked up recently)
+    worst_case: float
+    remaining: float
+    unit: str  # credits | usd
+    keys: int
+
+
+class ContactBatchPreview(BaseModel):
+    jobs: list[BatchJob]
+    companies: int
+    spend: dict[str, BatchSpend]
+
+
 class ToGetQueue(BaseModel):
     items: list[ToGetItem]
     total: int

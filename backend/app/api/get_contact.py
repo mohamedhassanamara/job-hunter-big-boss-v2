@@ -10,10 +10,12 @@ from sqlmodel import Session, select
 from app.api.deps import SessionDep, WorkspaceDep, get_or_404
 from app.models import Application, AppSetting, Company, Contact, Job
 from app.models.base import utcnow
-from app.models.enums import ContactSearch, ContactSource
+from app.models.enums import ContactSearch, ContactSource, Stage
 from app.providers.registry import hunter as hunter_provider
 from app.schemas.get_contact import (
+    BatchJob,
     CompanyDomains,
+    ContactBatchPreview,
     ContactEdit,
     ContactSearchIn,
     DomainOut,
@@ -70,6 +72,21 @@ def queue_out(session: Session, limit: int | None = None) -> ToGetQueue:
 def to_get(session: SessionDep) -> ToGetQueue:
     """Contacts to get: jobs past New that need a contact or a verification, best fit first."""
     return queue_out(session)
+
+
+@router.get("/contacts/batch-preview", response_model=ContactBatchPreview)
+def batch_preview(session: SessionDep) -> ContactBatchPreview:
+    """Find contacts for this batch, step 1: the shortlisted jobs with no contact (where you
+    haven't already found nobody) and the most the waterfall could spend on them. Read-only; the
+    page then runs the one-click waterfall for each job, one after another."""
+    rows = [r for r in get_contact.queue(session)
+            if r.state == "get" and r.contact is None and not r.nobody_found
+            and r.app.stage == Stage.shortlisted]
+    return ContactBatchPreview(
+        jobs=[BatchJob(application_id=r.app.id, job_title=r.job.title, company_id=r.company.id,
+                       company_name=r.company.name) for r in rows],
+        companies=len({r.company.id for r in rows}),
+        spend=contact_waterfall.estimate_batch(session, [r.company.id for r in rows]))
 
 
 @router.get("/applications/{app_id}/get-contact", response_model=GetContactView)
