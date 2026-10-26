@@ -95,8 +95,8 @@ One execution of one source within a discovery run. Powers Settings → Sources,
 | posted_at | datetime? | |
 | discovered_at | datetime | First seen |
 | last_seen_at | datetime? | Updated every time a run sees the listing again (idempotent upsert) |
-| dedupe_key | str (indexed) | `normalized_company::normalized_title` today; Part 2 adds the country back (`company::title::country`) |
-| duplicate_of_id | FK job? | Rows that were duplicates before migration 0032; new cross-source duplicates are merged into the canonical row instead |
+| dedupe_key | str (indexed) | `normalized_company::normalized_title::country` (migration 0033 recomputed every row; the same title at the same company in two countries is two jobs). Only real legal forms are stripped from company names (`dedupe._LEGAL_SUFFIXES`) |
+| duplicate_of_id | FK job? | Rows that were duplicates before migration 0032 (kept, hidden, with their own text and `sources`); new cross-source duplicates are merged into the canonical row instead |
 | sources | JSON list[str] | Every source that listed this job (migration 0032) |
 | source_urls | JSON dict[str,str] | The listing URL per source |
 | description_level | enum `full \| summary \| snippet` | Set per source at ingest (WTTJ = summary, Adzuna = snippet). Becomes full after fetch/paste |
