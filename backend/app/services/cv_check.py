@@ -162,6 +162,34 @@ def check_plan(plan: CVPlan, pool: Pool) -> tuple[CVPlan, list[dict[str, Any]]]:
     return repaired, issues
 
 
+def check_extra(pool: Pool, kind: str, item_id: int, index: int,
+                honesty_rules: Any = None) -> tuple[str | None, str | None]:
+    """A bullet added to fill the page: (its text, None) when it passes the same checks as the
+    rest of the CV, else (None, the reason). The text is always the pool's own fact, so the
+    verbatim, number, tool and years checks run against that exact text."""
+    item = pool.get(item_id, "job" if kind == "role" else "project")
+    if item is None:
+        return None, "unknown item"
+    facts = pool.facts(item)
+    if not 0 <= index < len(facts):
+        return None, "not a fact of that item"
+    text = facts[index]
+    bullet = PlanBullet(source_index=index, text=text, priority=index + 1, adapted=False)
+    where = f"{item.title}: bullet {index}"
+    if found := check_bullet(bullet, facts[index], where):
+        return None, found[0]["message"]
+    if tools := new_tools(text, pool_vocabulary(pool)):
+        return None, f"tool not in your experience: {', '.join(tools)}"
+    if claims := [c for c, _ in years_claims(text) if c not in facts[index]]:
+        return None, f"years claim: {claims[0]}"
+    if honesty_rules:
+        from app.services import honesty
+
+        if problems := honesty.problems(text, honesty_rules):
+            return None, problems[0][2]
+    return text, None
+
+
 # ------------------------------------------------------------------------------ summary
 
 

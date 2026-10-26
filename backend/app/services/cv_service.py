@@ -152,10 +152,14 @@ def track_of(s: Session, app_id: int) -> str:
 
 
 def fit_layout(s: Session, plan: CVPlan, pool: Pool, track: str = "") -> Layout:
+    from app.services import honesty
+
     settings = cv_settings(s)
-    return layout(plan, pool, cv_rules.structure(settings), cv_rules.merges(settings),
-                  display=cv_rules.skill_display(settings, track),
-                  keep=cv_rules.skill_keep(settings, track))
+    lay = layout(plan, pool, cv_rules.structure(settings), cv_rules.merges(settings),
+                 display=cv_rules.skill_display(settings, track),
+                 keep=cv_rules.skill_keep(settings, track))
+    lay.honesty = honesty.rules_from(_tracks(s))  # the fill-by-relevance checks use it
+    return lay
 
 
 def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
@@ -239,9 +243,14 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
              template: str | None = None, verifier: Any = None) -> CVVersion:
     """One generator call (or 2-pass APInex) → tailoring checks (+ the claim verifier on each adapted bullet) → plan
     checks → fit loop → a new draft version. The pool is only read."""
-    if generator is None:
-        from app.providers.apinex_cv import APInexCVGenerator
-        generator = APInexCVGenerator()
+    if generator is None:  # the CV model from Settings → Models, like every CV path
+        from app.providers.registry import cv_generator
+        from app.services import model_choice
+
+        with Session(engine) as s:
+            pick = model_choice.choice(s, "cv")
+        generator = cv_generator(model=pick["model"], thinking_level=pick["thinking_level"],
+                                 engine=engine)
     started = time.monotonic()
     with Session(engine) as s:
         app = s.get(Application, app_id)
@@ -354,7 +363,18 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
         return (len(r["bad"]) + len(r["short_bad"]), len(r["style"]) + len(r["short_style"]))
 
     best = evaluate(plan.summary_sentences, plan.summary_short_sentences)
-    if any(count(best)):
+    if not best["sentences"]:  # the model wrote no summary: ask once more, never substitute one
+        retry = generator.generate_summary(request, "- The summary is missing: write it.",
+                                           **({"user_feedback": user_feedback}
+                                              if user_feedback else {}))
+        report["attempts"] = 2
+        best = evaluate(retry.summary_sentences, retry.summary_short_sentences)
+        if not best["sentences"]:
+            from app.providers.gemini_generate import GenerationFailed
+
+            raise GenerationFailed("The model returned no summary after a retry. Retry, or "
+                                   "generate with Claude.")
+    elif any(count(best)):
         report["rejected"].append([{"text": s.text, "citations": s.citations, "reasons": r}
                                    for s, r in best["bad"] + best["short_bad"]])
         report["style"].append({"summary": best["style"], "short": best["short_style"]})
@@ -376,14 +396,6 @@ def ground_summary(plan: CVPlan, pool: Pool, request: CVRequest, generator: CVGe
             best = second
     sentences, short = best["sentences"], best["short"] or best["sentences"][:1]
     issues: list[dict[str, Any]] = []
-    if not sentences:  # the model returned nothing at all: your own snippet, said so
-        snippets = pool.of("summary")
-        if snippets and (snippets[0].summary or "").strip():
-            sentences = short = [SummarySentence(text=snippets[0].summary.strip(),
-                                                 citations=[snippets[0].id])]
-            report["fallback"] = f"snippet {snippets[0].id}"
-            issues.append(summary_warning("summary_fallback", "The model returned no summary: "
-                                          "showing your summary snippet as written"))
     for sentence, reasons in best["bad"] + best["short_bad"]:
         issues += [summary_warning("summary_grounding", reason, sentence.text)
                    for reason in reasons]

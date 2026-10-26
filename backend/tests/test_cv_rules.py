@@ -1,4 +1,4 @@
-"""CV structure rules: role types and bullet allowances, the fill loop (88% target, never
+"""CV structure rules: role types and bullet allowances, the fill loop (98% target, never
 filler, never a 1-bullet project), generic bullets last, skill shaping, summary checks and the
 retry, and the guide/exemplar/layout sent to the model."""
 

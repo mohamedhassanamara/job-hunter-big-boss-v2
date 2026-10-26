@@ -10,12 +10,14 @@ import time
 from typing import Any
 
 from app.providers.apinex_client import DEFAULT_MODEL, APInexClient
+from app.providers.apinex_models import reject_non_apinex
 from app.providers.base import (
     CVGenerationFailed,
     CVPlan,
     CVPlanDraft,
     CVRequest,
     PlanBullet,
+    PlanExtra,
     PlanEntry,
     PlanProject,
     PlanSkillGroup,
@@ -23,6 +25,7 @@ from app.providers.base import (
     SummarySentence,
     plan_from_draft,
 )
+from app.providers.gemini_generate import GenerationFailed
 from app.services import cv_rules
 
 log = logging.getLogger("jobhunter.apinex_cv")
@@ -34,6 +37,7 @@ class APInexCVGenerator:
         model: str = DEFAULT_MODEL,
         client: APInexClient | None = None,
     ):
+        reject_non_apinex(model)
         self.model = model
         self.client = client or APInexClient(model=model)
         self.prompt_version = "cv_generate_2pass/v1"
@@ -52,7 +56,7 @@ class APInexCVGenerator:
             if isinstance(exc, CVGenerationFailed):
                 raise
             log.exception("APInex 2-pass CV generation failed: %s", exc)
-            raise CVGenerationFailed(f"CV generation failed on {self.model}: {exc}") from exc
+            raise GenerationFailed(f"CV generation failed on {self.model}: {exc}") from exc
 
     def _run_pass1_planner(self, request: CVRequest) -> dict[str, Any]:
         """Pass 1: Fast structural selection of roles, projects, and skills."""
@@ -61,9 +65,10 @@ class APInexCVGenerator:
             "Select the best roles, projects, and skills for the target job from the candidate's pool.\n\n"
             "CRITICAL RULES:\n"
             "1. \"selected_roles\": Include EVERY professional role from the pool (never drop a role: timeline continuity is mandatory). "
-            "For each role, list the \"fact_indices\" (zero-based integers corresponding to the role's facts in the pool) ordered by relevance to the job.\n"
-            "2. \"selected_projects\": Select 1 to 3 most relevant projects from the pool (if the pool contains projects, select at least 1). For each, list 2 to 4 \"fact_indices\".\n"
-            "3. \"selected_skills\": Select up to 4 skill groups from the pool that best match the job. Under each group, select up to 8 skills copied VERBATIM from the pool's skills list.\n\n"
+            "For each role, list the \"fact_indices\" (zero-based integers corresponding to the role's facts in the pool) of the ESSENTIAL facts only, ordered by relevance to the job: at most 5 for the current role, 4 for a role over a year, 3 for any other.\n"
+            "2. \"selected_projects\": Select the 1 to 3 most relevant projects from the pool (if the pool contains projects, select at least 1). For each, list 2 to 4 \"fact_indices\".\n"
+            "3. \"selected_skills\": Select up to 4 skill groups from the pool that best match the job. Under each group, select up to 8 skills copied VERBATIM from the pool's skills list.\n"
+            "4. \"ratings\": rate how relevant to THIS job every OTHER item is, 0 (irrelevant) to 10 (as relevant as an essential): every role fact you did not list in fact_indices, every project you did not select (\"fact_index\": null) and every fact of a selected project you did not list. Rate honestly; a rating never changes the text.\n\n"
             "Return valid JSON matching this exact structure:\n"
             "{\n"
             "  \"selected_roles\": [\n"
@@ -74,6 +79,9 @@ class APInexCVGenerator:
             "  ],\n"
             "  \"selected_skills\": [\n"
             "    {\"category\": \"<group_title>\", \"skills\": [\"<skill1>\", \"<skill2>\"]}\n"
+            "  ],\n"
+            "  \"ratings\": [\n"
+            "    {\"kind\": \"role\" or \"project\", \"id\": <item_id>, \"fact_index\": <int or null>, \"relevance\": 0-10}\n"
             "  ]\n"
             "}"
         )
@@ -104,10 +112,9 @@ class APInexCVGenerator:
             indices = []
             if rid in role_map and isinstance(role_map[rid].get("fact_indices"), list):
                 indices = [int(i) for i in role_map[rid]["fact_indices"] if isinstance(i, (int, str)) and str(i).isdigit() and int(i) < max_idx]
-            # Ensure all facts are represented if model selected none
-            for idx in range(max_idx):
-                if idx not in indices:
-                    indices.append(idx)
+            indices = list(dict.fromkeys(indices))
+            if not indices and max_idx:  # a role is never empty: its first fact
+                indices = [0]
             normalized_roles.append({"id": rid, "fact_indices": indices})
 
         selected_projects = res.get("selected_projects") or []
@@ -123,13 +130,6 @@ class APInexCVGenerator:
                 if len(indices) >= 2:
                     normalized_projects.append({"id": pid, "fact_indices": indices[:4]})
         normalized_projects = normalized_projects[:3]
-        if not normalized_projects and pool_projects:
-            for p in pool_projects:
-                facts = p.get("facts", {})
-                if len(facts) >= 2:
-                    indices = [int(k) for k in facts.keys() if str(k).isdigit()]
-                    normalized_projects.append({"id": p["id"], "fact_indices": sorted(indices)[:4]})
-                    break
 
         selected_skills = res.get("selected_skills") or []
         skill_pool_map = {s.get("category", "").lower(): s for s in pool_skills}
@@ -147,7 +147,43 @@ class APInexCVGenerator:
             "selected_roles": normalized_roles,
             "selected_projects": normalized_projects,
             "selected_skills": normalized_skills[:4],
+            "extras": self._extras(res.get("ratings"), pool_roles, pool_projects,
+                                   normalized_roles, normalized_projects),
         }
+
+    @staticmethod
+    def _extras(ratings: Any, pool_roles: list[dict[str, Any]],
+                pool_projects: list[dict[str, Any]], roles: list[dict[str, Any]],
+                projects: list[dict[str, Any]]) -> list[PlanExtra]:
+        """Every pool bullet and project the plan does not use, with the model's 0-10 rating
+        (0 when it didn't rate one: it is tried last). Only real ids and fact indices."""
+        rated: dict[tuple[str, int, int | None], int] = {}
+        for r in ratings if isinstance(ratings, list) else []:
+            try:
+                kind, rid = str(r["kind"]), int(r["id"])
+                idx = None if r.get("fact_index") is None else int(r["fact_index"])
+                rated[(kind, rid, idx)] = max(0, min(10, int(round(float(r["relevance"])))))
+            except (KeyError, TypeError, ValueError):
+                continue
+        used_roles = {r["id"]: set(r["fact_indices"]) for r in roles}
+        used_projects = {p["id"]: set(p["fact_indices"]) for p in projects}
+        extras: list[PlanExtra] = []
+        for role in pool_roles:
+            for k in sorted(int(k) for k in role.get("facts", {}) if str(k).isdigit()):
+                if k not in used_roles.get(role["id"], set()):
+                    extras.append(PlanExtra(kind="role", item_id=role["id"], source_index=k,
+                                            relevance=rated.get(("role", role["id"], k), 0)))
+        for proj in pool_projects:
+            pid = proj["id"]
+            if pid not in used_projects:
+                extras.append(PlanExtra(kind="project", item_id=pid, source_index=None,
+                                        relevance=rated.get(("project", pid, None), 0)))
+                continue
+            for k in sorted(int(k) for k in proj.get("facts", {}) if str(k).isdigit()):
+                if k not in used_projects[pid]:
+                    extras.append(PlanExtra(kind="project", item_id=pid, source_index=k,
+                                            relevance=rated.get(("project", pid, k), 0)))
+        return extras
 
     def _run_pass2_polisher(self, request: CVRequest, planner: dict[str, Any]) -> CVPlanDraft:
         """Pass 2: Generate polished summary and lightly adapt bullet points."""
@@ -234,11 +270,8 @@ class APInexCVGenerator:
             SummarySentence(text=s.get("text", "").strip(), citations=s.get("citations", []))
             for s in res.get("summary_short_sentences", []) if isinstance(s, dict) and s.get("text")
         ]
-        if not summary_sentences:
-            snippets = request.pool.get("summary_snippets", [])
-            fb_text = snippets[0]["text"] if snippets else "Software engineer."
-            fb_id = snippets[0]["id"] if snippets else 1
-            summary_sentences = [SummarySentence(text=fb_text, citations=[fb_id])]
+        # No summary is left empty-handed here and never replaced by a snippet: the caller
+        # (cv_service.ground_summary) asks once more, then fails with a message and Retry.
         if not short_sentences:
             short_sentences = summary_sentences[:1]
 
@@ -249,7 +282,7 @@ class APInexCVGenerator:
             orig_role = pool_roles.get(rid, {})
             orig_facts = orig_role.get("facts", {})
             r_entry = res_roles_map.get(rid, {})
-            relevance = int(r_entry.get("relevance", 9))
+            relevance = max(1, min(10, int(r_entry.get("relevance", 9))))
             bullets_out = []
             seen_indices = set()
             for b in r_entry.get("bullets", []):
@@ -283,7 +316,7 @@ class APInexCVGenerator:
             orig_proj = pool_projects.get(pid, {})
             orig_facts = orig_proj.get("facts", {})
             p_entry = res_proj_map.get(pid, {})
-            relevance = int(p_entry.get("relevance", 8))
+            relevance = max(1, min(10, int(p_entry.get("relevance", 8))))
             stack = p_entry.get("stack") or orig_proj.get("tags", [])[:5]
             bullets_out = []
             seen_indices = set()
@@ -326,6 +359,7 @@ class APInexCVGenerator:
             certification_ids=cert_ids,
             education_ids=edu_ids,
             volunteering=[],
+            extras=planner.get("extras", []),
         )
 
     def generate_summary(
@@ -351,7 +385,10 @@ class APInexCVGenerator:
             f"FACTS:\n{json.dumps(request.facts, ensure_ascii=False)}\n\n"
             f"WRITING GUIDE:\n{request.guide}\n"
         )
-        res = self.client.complete_sync(system_prompt, user_prompt, model=self.model)
+        try:
+            res = self.client.complete_sync(system_prompt, user_prompt, model=self.model)
+        except Exception as exc:
+            raise GenerationFailed(f"Summary generation failed on {self.model}: {exc}") from exc
         sentences = [
             SummarySentence(text=s.get("text", "").strip(), citations=s.get("citations", []))
             for s in res.get("summary_sentences", []) if isinstance(s, dict) and s.get("text")
@@ -361,10 +398,8 @@ class APInexCVGenerator:
             for s in res.get("summary_short_sentences", []) if isinstance(s, dict) and s.get("text")
         ]
         if not sentences:
-            snippets = request.pool.get("summary_snippets", [])
-            fb_text = snippets[0]["text"] if snippets else "Software engineer."
-            fb_id = snippets[0]["id"] if snippets else 1
-            sentences = [SummarySentence(text=fb_text, citations=[fb_id])]
+            raise GenerationFailed(
+                f"{self.model} returned no summary. Retry, or generate with Claude.")
         if not short:
             short = sentences[:1]
         return SummaryDraft(summary_sentences=sentences, summary_short_sentences=short)
