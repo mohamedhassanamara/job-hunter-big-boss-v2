@@ -56,6 +56,7 @@ from app.schemas.outreach import (
 from app.services import applied_check as ac
 from app.services import contacts as contacts_svc
 from app.services import (
+    dnc,
     external_ai,
     get_contact,
     model_choice,
@@ -286,6 +287,8 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     contact = session.get(Contact, d.contact_id) if d.contact_id else None
     if contact is None or not contact.email:
         raise HTTPException(409, "The contact has no email address")
+    if reason := dnc.blocked_reason(session, contact):
+        raise HTTPException(409, f"Do not contact: {reason}")
     from app.services import contact_check
 
     if alerts := contact_check.active(session, contact.id):
@@ -332,7 +335,11 @@ def queue_draft(draft_id: int, session: SessionDep) -> DraftOut:
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.approved:
         raise HTTPException(409, "Only an approved email can be added to the queue")
-    if not send_queue.enqueue(session, d):
+    try:
+        queued = send_queue.enqueue(session, d)
+    except send_queue.QueueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if not queued:
         raise HTTPException(409, "The queue is full (20 waiting): add it when some have gone out")
     app = get_or_404(session, Application, d.application_id)
     position, _ = send_queue.position_and_eta(session, d.id)

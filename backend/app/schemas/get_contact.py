@@ -27,7 +27,8 @@ class GetContactView(BaseModel):
     application_id: int
     job_id: int
     job_title: str
-    state: str  # get | verify | ready | never
+    state: str  # get | verify | ready | never | blocked
+    blocked: str | None = None  # why, when state is blocked (do not contact)
     company: GetContactCompany
     contact: ContactOut | None
     provenance: Provenance | None

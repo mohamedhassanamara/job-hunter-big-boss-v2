@@ -126,8 +126,13 @@ contact state
 | verified_at / verified_how | datetime? / str? | Get contact: `entered` (you entered them), `still_there`, `hunter`; stale after `contacts.verify_days` |
 | left_at / left_reason | datetime? / str? | `left \| wrong_person`: never picked again by matching or ranking |
 | imported_batch | str? | `contact_import.id` |
+| do_not_contact / dnc_reason / dnc_at | bool / str? / datetime? | Asked not to be contacted (migration 0036): set from the card, a logged reply (`response.kind = do_not_contact`) or a `do_not_contact_rule`. `services/dnc.blocked_reason` is the one check: imports skip, drafting/approval (`get_contact.require_ready`), LinkedIn notes, the queue and the send gate (`send_queue.tick`) refuse, matching skips like `left`. Only you lift it |
 | role_rank | int | Position in `app_setting.contacts.role_ranking` (999 = unranked); re-derived when the ranking changes |
 | notes | text | |
+
+### do_not_contact_rule
+
+`kind` (`email \| domain`), `value` (lowercased, unique), `reason`. A domain covers its subdomains. Adding a rule flags the existing contacts it covers; removing it leaves their flag.
 
 ### contact_import
 One Apollo CSV import run (background, batches of 500).

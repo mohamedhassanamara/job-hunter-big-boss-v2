@@ -114,7 +114,7 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
 - **Application questions** (approved CV): paste the form's questions with optional character limits; "Answer with AI" answers the batch in one Claude call (grounded like the letter, in its language). A limit is a hard check: over it → one retry → still over → kept with "412/300 characters" (never cut). Answers are saved on the job, editable (re-checked), with Copy and an undoable delete.
 - Once applied, an **Application** section: applied on, method, CV sent (locked version, download), notes, replies, interview rounds (outcome editable), with Log reply / Log interview / Close…. CV versions sent show a "Sent" badge.
 - **Main column:** Listing (description, Open original ↗), Fit breakdown, CV versions (list with status + "Open in CV Studio"), Email draft (preview + "Edit in Outreach"), Notes (autosaving textarea).
-- **Right column:** Contact (Get contact state: Get contact / Verify first / Verified / Never looked up, person, email, "Get contact" when nobody), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
+- **Right column:** Contact (Get contact state: Get contact / Verify first / Verified / Never looked up / Do not contact, person, email, "Get contact" when nobody), Company (contacted flag, other jobs at this company), and the Timeline (stage changes and events, newest first).
 - *Not found:* "This job doesn't exist or was removed", with "Back to Discover".
 
 ### 3.4b Applications (`/applications`)

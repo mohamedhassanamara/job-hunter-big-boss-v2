@@ -44,7 +44,7 @@ from app.models.enums import (
     Stage,
 )
 from app.providers.base import DraftFailed, LinkedInRequest
-from app.services import linkedin
+from app.services import dnc, linkedin
 from app.services import linkedin_check as lc
 from app.services.contacts import local_midnight
 from app.services.cv_pool import Pool, load_pool, prompt_pool
@@ -280,6 +280,8 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id)
     person = s.get(Contact, row.contact_id)
+    if reason := dnc.blocked_reason(s, person):
+        raise LinkedInError(f"Do not contact: {reason}")
     pool = load_pool(s)
     facts, english, french = _statements(s, pool)
     short, full = school(pool)

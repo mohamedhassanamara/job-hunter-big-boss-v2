@@ -168,6 +168,7 @@ class ResponseKind(StrEnum):
     positive = "positive"
     rejection = "rejection"
     other = "other"
+    do_not_contact = "do_not_contact"  # asked not to be contacted
 
 
 class InterviewType(StrEnum):

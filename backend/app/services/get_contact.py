@@ -31,6 +31,7 @@ from app.models import (
 from app.models.base import utcnow
 from app.models.enums import ContactSearch, ContactSource, DraftStatus, Stage
 from app.services import contacts as contacts_svc
+from app.services import dnc
 
 DEFAULT_VERIFY_DAYS = 30
 # Past New and not closed: the jobs whose Outreach track is open.
@@ -60,6 +61,8 @@ def state_of(contact: Contact | None, company: Company | None, days: int) -> str
         if company is not None and company.contact_search == ContactSearch.never:
             return "never"
         return "get"
+    if contact.do_not_contact:
+        return "blocked"
     if not contact.email or not is_current(contact, days):
         return "verify"
     return "ready"
@@ -69,7 +72,10 @@ def state(s: Session, app: Application) -> str:
     contact = s.get(Contact, app.contact_id) if app.contact_id else None
     job = s.get(Job, app.job_id)
     company = s.get(Company, job.company_id) if job else None
-    return state_of(contact, company, verify_days(s))
+    st = state_of(contact, company, verify_days(s))
+    if st in ("verify", "ready") and dnc.blocked_reason(s, contact):
+        return "blocked"  # an address or domain on the do-not-contact list
+    return st
 
 
 def require_ready(s: Session, app: Application) -> Contact:
@@ -82,6 +88,8 @@ def require_ready(s: Session, app: Application) -> Contact:
     if st == "get":
         raise GetContactError("Get the contact first (Outreach → Contacts to get)")
     contact = s.get(Contact, app.contact_id)
+    if st == "blocked":
+        raise GetContactError(f"Do not contact: {dnc.blocked_reason(s, contact)}")
     if not contact.email:
         raise GetContactError(f"{contact.full_name} has no email yet: add it in Get contact")
     raise GetContactError(f"Verify {contact.full_name} first: still at the company? "
@@ -154,6 +162,22 @@ def verify(s: Session, app: Application, action: str) -> Application:
     return app
 
 
+def do_not_contact(s: Session, contact: Contact, reason: str | None) -> Contact:
+    """Never write to this person again: flagged, and every job that had them moves on to the next
+    contact by the ranking (or back to Get contact). Nothing is deleted."""
+    from app.models.enums import EventKind
+    from app.services import pipeline
+
+    dnc.flag(s, contact, reason)
+    s.flush()
+    for other in s.exec(select(Application).where(Application.contact_id == contact.id)).all():
+        pipeline.log_event(s, other, EventKind.contact_resolved,
+                           f"{contact.full_name} is marked do not contact", contact_id=contact.id,
+                           do_not_contact=True)
+        contacts_svc.clear_contact(s, other)
+    return contact
+
+
 def found(s: Session, app: Application, *, full_name: str, title: str | None,
           email: str | None, linkedin_url: str | None,
           source: ContactSource = ContactSource.found) -> Contact:
@@ -164,6 +188,8 @@ def found(s: Session, app: Application, *, full_name: str, title: str | None,
     if not email_n:
         raise GetContactError("An email is needed to write to them")
     existing = s.exec(select(Contact).where(Contact.email_normalized == email_n)).first()
+    if reason := dnc.blocked_reason(s, existing, email_n):
+        raise GetContactError(f"Do not contact: {reason}")
     if existing is not None and existing.company_id != job.company_id:
         raise GetContactError(f"{email_n} is already a contact at another company "
                               f"({existing.full_name})")
@@ -203,6 +229,8 @@ def edit(s: Session, contact: Contact, **fields: Any) -> Contact:
     if email is not None and (email or "").strip().lower() != (contact.email_normalized or ""):
         email_n = email.strip().lower() or None
         if email_n:
+            if reason := dnc.blocked_reason(s, None, email_n):
+                raise GetContactError(f"Do not contact: {reason}")
             other = s.exec(select(Contact).where(Contact.email_normalized == email_n,
                                                  Contact.id != contact.id)).first()
             if other is not None:
@@ -327,11 +355,13 @@ def view(s: Session, app: Application) -> dict[str, Any]:
     ranking = contacts_svc.ranking_settings(s)
     people = contacts_svc.ranked(
         [c for c in s.exec(select(Contact).where(Contact.company_id == company.id)).all()
-         if c.left_at is None and c.id != app.contact_id], ranking.order_for(company, job))
+         if c.left_at is None and not c.do_not_contact and c.id != app.contact_id],
+        ranking.order_for(company, job))
     alerts = contact_check.active(s, contact.id) if contact else []
     jobs = list(s.exec(select(Job).where(Job.company_id == company.id)).all())
     return {
         "application_id": app.id, "job_id": job.id, "job_title": job.title, "state": st,
+        "blocked": dnc.blocked_reason(s, contact) if st == "blocked" else None,
         "company": {"id": company.id, "name": company.name, "domain": company.domain,
                     "contact_search": company.contact_search,
                     "contact_search_notes": company.contact_search_notes,

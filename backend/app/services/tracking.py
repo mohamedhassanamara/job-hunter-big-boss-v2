@@ -20,6 +20,7 @@ from app.models import (
     ApplicationResponse,
     AppSetting,
     Company,
+    Contact,
     CVVersion,
     Interview,
     Job,
@@ -38,7 +39,7 @@ from app.models.enums import (
     ResponseKind,
     Stage,
 )
-from app.services import pipeline
+from app.services import dnc, pipeline
 
 DEFAULT_TRACKING = {"followup_days": [7, 14], "ghost_after_days": 30}
 AFTER_APPLY_REASONS = {CloseReason.rejected, CloseReason.no_response, CloseReason.withdrawn,
@@ -223,9 +224,17 @@ def log_response(s: Session, app: Application, *, kind: ResponseKind,
     response = ApplicationResponse(application_id=app.id, kind=kind,
                                    received_at=_at(received_on), notes=notes.strip())
     s.add(response)
-    label = {"positive": "Positive reply", "rejection": "Rejection", "other": "Reply"}[kind]
+    label = {"positive": "Positive reply", "rejection": "Rejection", "other": "Reply",
+             "do_not_contact": "Asked not to be contacted"}[kind]
     pipeline.log_event(s, app, EventKind.response, f"{label} received", response_kind=kind,
                        received_on=response.received_at.date().isoformat(), notes=notes.strip())
+    if kind == ResponseKind.do_not_contact:
+        contact = s.get(Contact, app.contact_id) if app.contact_id else None
+        if contact is not None:
+            dnc.flag(s, contact, f"asked not to be contacted, reply of "
+                                 f"{response.received_at.date().isoformat()}")
+            pipeline.log_event(s, app, EventKind.note,
+                               f"{contact.full_name} is marked do not contact")
     return response
 
 

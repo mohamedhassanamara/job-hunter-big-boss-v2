@@ -21,6 +21,7 @@ from sqlmodel import Session, select
 from app.models import Company, CompanyAlias, Contact, ContactImport
 from app.models.base import utcnow
 from app.models.enums import ContactSource, ImportStatus
+from app.services import dnc
 from app.services.contacts import normalize_person, rank, role_ranking
 from app.services.dedupe import normalize_company
 
@@ -166,6 +167,7 @@ def run_import(engine: Engine, import_id: int, rows: list[dict[str, str]],
                     if c.email_normalized}
         by_name = {(c.company_id, c.normalized_name): c.id for c in s.exec(select(Contact)).all()
                    if c.normalized_name}
+        dnc_rules = dnc.rules(s)
     seen: set[tuple[Any, ...]] = set()
     counts = {"created": 0, "updated": 0, "skipped": 0, "companies_created": 0}
     reasons: dict[str, int] = {}
@@ -181,6 +183,9 @@ def run_import(engine: Engine, import_id: int, rows: list[dict[str, str]],
                     r = map_row(raw, mapping)
                     if isinstance(r, str):
                         skip(r)
+                        continue
+                    if r.email and dnc.rule_for(r.email, dnc_rules):
+                        skip("do_not_contact")  # on the do-not-contact list: never imported
                         continue
                     norm_company = normalize_company(r.company)
                     norm_name = normalize_person(r.full_name)
@@ -201,6 +206,12 @@ def run_import(engine: Engine, import_id: int, rows: list[dict[str, str]],
                         by_name.get((company_id, norm_name))
                     if existing_id is not None:
                         contact = s.get(Contact, existing_id)
+                        if contact is not None and contact.do_not_contact:
+                            skip("do_not_contact")  # never touched, never revived
+                            continue
+                        if contact is not None and contact.left_at is not None:
+                            skip("left")
+                            continue
                         free = bool(r.email) and r.email not in by_email
                         if contact is not None and _fill(contact, r, free):
                             contact.role_rank = rank(contact.title, ranking)[0]

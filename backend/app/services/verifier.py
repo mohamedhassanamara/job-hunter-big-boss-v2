@@ -28,6 +28,7 @@ from app.models import (
     Application,
     ApplicationAnswer,
     CompanySignal,
+    Contact,
     CoverLetter,
     CVVersion,
     Job,
@@ -37,7 +38,7 @@ from app.models import (
 from app.models.base import utcnow
 from app.models.enums import CVStatus
 from app.providers.base import DraftFailed, VerifyClaim
-from app.services import glossary
+from app.services import dnc, glossary
 from app.services.cv_pool import Pool, load_pool
 
 BLOCKING = {"unsupported", "exaggerated", "merged", "causal"}
@@ -402,6 +403,8 @@ def prepare_linkedin(s: Session, row: LinkedInOutreach, kind: str) -> Prepared:
     message = dict({"note": row.note, "followup": row.followup, "inmail": row.inmail}[kind] or {})
     if not message.get("text"):
         raise VerifyError("Draft the message first")
+    if reason := dnc.blocked_reason(s, s.get(Contact, row.contact_id)):
+        raise VerifyError(f"Do not contact: {reason}")
     app = s.get(Application, row.application_id)
     job = s.get(Job, app.job_id)
     ids = [int(i) for i in message.get("signal_ids") or []]

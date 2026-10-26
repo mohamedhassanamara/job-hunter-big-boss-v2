@@ -57,10 +57,10 @@ def application_status(app: Application, has_approved_cv: bool) -> str:
 
 def outreach_status(app: Application, draft: OutreachDraft | None,
                     contact_state: str | None = None) -> str:
-    """`contact_state` is get_contact's state (get | verify | ready | never) for the job."""
+    """`contact_state` is get_contact's state (get | verify | ready | never | blocked)."""
     if draft is not None:
         return _OUTREACH[DraftStatus(draft.status)]
-    if not app.contact_id or contact_state in ("get", "never"):
+    if not app.contact_id or contact_state in ("get", "never", "blocked"):
         return "no_contact"
     return "contact" if contact_state in (None, "ready") else "verify"
 

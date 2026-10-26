@@ -117,6 +117,8 @@ class ContactOut(BaseModel):
     source: str
     role_rank: int = 999
     role_label: str | None = None  # the Settings → Contacts group the title matched
+    do_not_contact: bool = False
+    dnc_reason: str | None = None
 
 
 class ContactAlertOut(BaseModel):
