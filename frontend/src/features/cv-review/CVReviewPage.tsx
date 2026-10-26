@@ -196,15 +196,15 @@ export default function CVReviewPage() {
                 {version && <FitBadge version={version} />}
                 <Button size="sm" variant="ghost" onClick={focusSummary}>
                   <SquarePen />
-                  Edit summary <Kbd>E</Kbd>
+                  <span className="max-xl:hidden">Edit summary</span> <Kbd>E</Kbd>
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setRegenerating(true)} disabled={busy}>
                   <RefreshCw className={busy ? 'animate-spin' : undefined} />
-                  Regenerate <Kbd>R</Kbd>
+                  <span className="max-xl:hidden">Regenerate</span> <Kbd>R</Kbd>
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => onSkip(selected.application_id)}>
                   <SkipForward />
-                  Skip <Kbd>S</Kbd>
+                  <span className="max-xl:hidden">Skip</span> <Kbd>S</Kbd>
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to={`/jobs/${selected.job_id}/cv`}>CV Studio</Link>
