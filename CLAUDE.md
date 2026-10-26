@@ -147,7 +147,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   adaptation of it: see Experience pool below), never LaTeX, titles, companies or dates. `cv_check` validates it; `cv_build.fit_to_page` fits one page in code (no model call).
 - Structure is decided in code (`services/cv_rules.py`, Settings → CV): bullet allowances by role type (current,
   roles over a year, graduation/short by relevance, internships ≤ 2, ≤ 2 projects of 2-3 bullets, never 1), entries
-  start at their minimum and grow only within allowances while under the fill target (88%): never filler. Skills
+  start at their minimum and grow only within allowances while under the fill target (98%): never filler. With the APInex 2-pass generator, pass 1 also rates every other pool bullet and project (`plan.extras`); when the main CV is still under target, `cv_build.fill_by_relevance` adds them one at a time in relevance order (each through `cv_check.check_extra`: the pool's own text, numbers, tools, years, honesty; within the allowances and `projects_max`), skips what fails or doesn't fit, logs it in `plan.fill_log`, and accepts a slightly emptier page. Nothing is injected anymore, and a missing summary is retried once, then fails with Retry (never a snippet). Skills
   are capped and deduplicated but never merged or respelled (categories and items are the pool's, Claude only
   selects and orders: `cv_check.verbatim_skills`); the summary is checked against the writing guide and regenerated once. The
   writing guide and a style exemplar (plain text from `templates/reference/cv.tex`) go to the model.

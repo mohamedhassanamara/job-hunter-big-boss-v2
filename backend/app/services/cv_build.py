@@ -5,8 +5,10 @@ Every entry gets a bullet allowance by role type (services/cv_rules.py: the curr
 roles over a year 2-3, graduation/short roles 1-3 by relevance, internships at most 2, at most 2
 projects with 2-3 bullets each). Each entry starts at its minimum; inside an entry the job's most
 relevant bullets come first and generic ones last.
-Underfill (below the fill target, 88%): add the next strongest bullet within the allowances, never
-beyond them; a CV that can't reach the target stays shorter rather than padded.
+Underfill (below the fill target, 98%): add the next strongest bullet within the allowances, never
+beyond them; then, still under target, the rated leftovers (`plan.extras`) one at a time in
+relevance order, each checked first (`fill_by_relevance`); a CV that can't reach the target stays
+shorter rather than padded.
 Overflow, in order: trim entries back to their minimum → drop the weaker project → the short
 summary → drop volunteering → below the minimums (roles keep one bullet, projects never one).
 """
@@ -16,8 +18,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from app.providers.base import CVPlan, PlanBullet, PlanEntry, PlanProject
-from app.services import bullet_tailor, cv_rules
+from app.providers.base import CVPlan, PlanBullet, PlanEntry, PlanExtra, PlanProject
+from app.services import bullet_tailor, cv_check, cv_rules
 from app.services.cv_pool import Pool, span
 from app.services.cv_render import (
     CompileResult,
@@ -34,6 +36,7 @@ from app.services.cv_render import (
 )
 
 MAX_PASSES = 4
+MAX_FILL_COMPILES = 12  # candidates tried by fill_by_relevance after the main fit
 LINES_PER_PAGE = 55  # rough line capacity of a 10pt letter page with these margins
 LINES_PER_BULLET = 1.7
 
@@ -69,6 +72,7 @@ class Layout:
     merges: list[str]
     display: dict[str, str] = field(default_factory=dict)  # skill category → shown name (track)
     keep: dict[str, list[str]] = field(default_factory=dict)  # skill group → pinned skills (track)
+    honesty: Any = None  # services/honesty.Rules, for the checks on bullets added to fill
 
 
 def layout(plan: CVPlan, pool: Pool | None, rules: dict[str, Any] | None = None,
@@ -351,26 +355,134 @@ class FitResult:
     history: list[dict[str, Any]]
 
 
+def _add_extra(plan: CVPlan, pool: Pool, state: FitState, lay: Layout, ex: PlanExtra,
+               overrides: dict[str, Any]) -> tuple[Any, str | None]:
+    """Put one rated leftover on the plan: (undo, None) or (None, why it can't go on)."""
+    honesty_rules = lay.honesty
+    if ex.source_index is None:  # a whole project
+        if any(p.item_id == ex.item_id for p in plan.projects):
+            return None, "project already in the plan"
+        shown = sum(1 for p in plan.projects if state.counts.get(_key("project", p), 0))
+        if shown >= int(lay.rules["projects_max"]):
+            return None, "projects_max reached"
+        item = pool.get(ex.item_id, "project")
+        if item is None:
+            return None, "unknown project"
+        good: list[PlanBullet] = []
+        for idx in range(len(pool.facts(item))):
+            text, why = cv_check.check_extra(pool, "project", item.id, idx, honesty_rules)
+            if text:
+                good.append(PlanBullet(source_index=idx, text=text, priority=len(good) + 1,
+                                       strength=3, adapted=False))
+        if len(good) < 2:
+            return None, "fewer than 2 bullets pass the checks"
+        project = PlanProject(item_id=item.id, relevance=max(1, ex.relevance), bullets=good,
+                              stack=list(item.tags)[:6])
+        key = _key("project", project)
+        lo, hi = cv_rules.allowance("project", item, project.relevance, lay.rules, len(good))
+        plan.projects.append(project)
+        lay.bounds[key] = (lo, hi)
+        state.counts[key] = max(2, lo)
+
+        def undo() -> None:
+            plan.projects.remove(project)
+            lay.bounds.pop(key, None)
+            state.counts.pop(key, None)
+        return undo, None
+    entries = plan.roles if ex.kind == "role" else plan.projects
+    entry = next((e for e in entries if e.item_id == ex.item_id), None)
+    if entry is None:
+        return None, "its entry is not on the CV"
+    key = _key(ex.kind, entry)
+    count = state.counts.get(key, 0)
+    if ex.kind == "project" and count == 0:
+        return None, "its project is not shown"
+    if any(b.source_index == ex.source_index for b in entry.bullets):
+        return None, "already in the plan"
+    text, why = cv_check.check_extra(pool, ex.kind, ex.item_id, ex.source_index, honesty_rules)
+    if text is None:
+        return None, why
+    item = pool.get(ex.item_id)
+    kind = "job" if ex.kind == "role" else "project"
+    old_bounds = lay.bounds.get(key)
+    _lo, hi = cv_rules.allowance(kind, item, entry.relevance, lay.rules, len(entry.bullets) + 1)
+    if count >= hi:
+        return None, "entry allowance reached"
+    entry.bullets.append(PlanBullet(
+        source_index=ex.source_index, text=text, priority=len(entry.bullets) + 1,
+        strength=1 if cv_rules.is_generic(text) else 3, adapted=False))
+    shown_keys = [k for k, _ in _visible(entry, key, count + 1, overrides,
+                                         keep_one=ex.kind == "role", pool=pool)]
+
+    def undo() -> None:
+        entry.bullets.pop()
+        state.counts[key] = count
+        if old_bounds is None:
+            lay.bounds.pop(key, None)
+        else:
+            lay.bounds[key] = old_bounds
+    if f"{key}:{ex.source_index}" not in shown_keys:
+        undo()
+        return None, "ranks below the bullets already shown"
+    lay.bounds[key] = cv_rules.allowance(kind, item, entry.relevance, lay.rules,
+                                         len(entry.bullets))
+    state.counts[key] = count + 1
+    return undo, None
+
+
+def fill_by_relevance(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTemplate,
+                      out_dir: Path, base: "FitResult", lay: Layout, overrides: dict[str, Any],
+                      max_stack: int, target: float) -> "FitResult":
+    """The page is under the fill target and the plan's own bullets are used up: add the rated
+    leftovers (`plan.extras`) one at a time, best first. Every one passes the same checks as the
+    rest of the CV (`cv_check.check_extra`: the pool's own text, numbers, tools, years, honesty),
+    stays inside the allowances (and `projects_max`) and must still fit one page, or it is
+    skipped. Stops when the page is full or nothing checkable is left: a slightly emptier page
+    is accepted. What happened to each one goes into `plan.fill_log`."""
+    overrides = overrides or {}
+    state = FitState.from_dict(base.state.to_dict())
+    best = base
+    pending = sorted(plan.extras, key=lambda e: -e.relevance)
+    plan.extras = []
+    compiles, dirty = 0, False
+    for n, ex in enumerate(pending):
+        entry = {"kind": ex.kind, "item_id": ex.item_id, "source_index": ex.source_index,
+                 "relevance": ex.relevance}
+        if best.compiled.fill >= target or compiles >= MAX_FILL_COMPILES:
+            plan.fill_log.append({"result": "not_needed", "count": len(pending) - n})
+            break
+        undo, why = _add_extra(plan, pool, state, lay, ex, overrides)
+        if undo is None:
+            plan.fill_log.append({**entry, "result": "skipped", "reason": why})
+            continue
+        doc = build_document(plan, pool, state, overrides, max_stack, lay)
+        tex = render_tex(doc, profile, template, micro_spacing=state.micro_spacing)
+        result = compile_tex(tex, out_dir, "cv")
+        compiles += 1
+        best.history.append({"pass": f"fill-{compiles}", "pages": result.pages,
+                             "fill": round(result.fill, 3), "ok": result.ok})
+        if result.ok and result.pages == 1 and result.fill > best.compiled.fill:
+            best = FitResult(doc, FitState.from_dict(state.to_dict()), result, tex,
+                             best.passes, best.history)
+            dirty = False
+            plan.fill_log.append({**entry, "result": "added", "fill": round(result.fill, 3)})
+        else:
+            undo()
+            dirty = True
+            plan.fill_log.append({**entry, "result": "skipped",
+                                  "reason": "did not fit one page" if result.pages != 1
+                                  else "no gain"})
+    if dirty:  # the files on disk are from a rejected try: put the best one back
+        best.compiled = compile_tex(best.tex, out_dir, "cv")
+    return best
+
+
 def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTemplate,
                 out_dir: Path, *, state: FitState | None = None,
                 overrides: dict[str, Any] | None = None, lay: Layout | None = None) -> FitResult:
     """Compile, measure, adjust, up to MAX_PASSES adjustments. Grows only while under the fill
     target and within the allowances; keeps the best one-page result seen; if none fit, returns
     the last (with its page count, flagged by the caller)."""
-    was_empty_projects = not plan.projects
-    if was_empty_projects and pool:
-        for p in pool.of("project"):
-            facts = pool.facts(p)
-            if len(facts) >= 2:
-                plan.projects.append(PlanProject(
-                    item_id=p.id,
-                    relevance=6,
-                    bullets=[
-                        PlanBullet(source_index=idx, text=f, priority=idx + 1, strength=3, adapted=False)
-                        for idx, f in enumerate(facts)
-                    ],
-                    stack=list(p.tags)[:6] if p.tags else [],
-                ))
     if lay is None:
         lay = layout(plan, pool)
     else:
@@ -382,9 +494,6 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
                     "project", item, p.relevance, lay.rules, len(p.bullets)
                 )
     state = clamp(plan, state, lay) if state is not None else initial_state(plan, lay)
-    if was_empty_projects:
-        for p in plan.projects:
-            state.counts[_key("project", p)] = 0
     target = max(0.98, float(lay.rules.get("fill_min") or template.min_fill))
     max_stack = int(template.config.get("max_stack_items") or 6)
     best: FitResult | None = None
@@ -458,6 +567,11 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
                 break  # the allowances are used up: shorter beats padded
     chosen = best or last
     assert chosen is not None
+    if (chosen is best and plan.extras and chosen.compiled.ok and chosen.compiled.pages == 1
+            and chosen.compiled.fill < target):
+        chosen = fill_by_relevance(plan, pool, profile, template, out_dir, chosen, lay, overrides,
+                                   max_stack, target)
+        last = chosen
     if chosen is not last:  # re-render the best one-page state so files on disk match it
         tex = render_tex(chosen.document, profile, template, micro_spacing=chosen.state.micro_spacing)
         chosen.compiled = compile_tex(tex, out_dir, "cv")

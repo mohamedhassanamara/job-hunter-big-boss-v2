@@ -63,7 +63,7 @@ Implemented `APInexCVGenerator` utilizing `free/minimax-m3.1-flash`:
 
 ### Step 2: Allowance Ceilings & Fullness Target Tuning (`cv_rules.py`)
 
-* **Retargeted Minimum Fill:** Raised `fill_min` from `0.88` to **`0.96`** across `DEFAULT_STRUCTURE` and `templates/default/cv.config.yaml`.
+* **Retargeted Minimum Fill:** Raised `fill_min` from `0.88` to **`0.98`** across `DEFAULT_STRUCTURE` and `templates/default/cv.config.yaml`.
 * **Summary Ceiling:** Increased `summary_max_words` from `45` to `48` to allow natural sentence structure without truncation.
 * **Expanded Section Allowances (`hi` Headroom):**
 * `current`: Expanded to `[3, 5]` bullets (previously `[3, 4]`).
@@ -76,7 +76,7 @@ Implemented `APInexCVGenerator` utilizing `free/minimax-m3.1-flash`:
 
 ### Step 3: Fitting Loop Refinement (`cv_build.py`)
 
-* **Target Enforcement:** Updated `fit_to_page()` to resolve `target = max(0.96, float(lay.rules.get("fill_min") or template.min_fill))`.
+* **Target Enforcement:** Updated `fit_to_page()` to resolve `target = max(0.98, float(lay.rules.get("fill_min") or template.min_fill))`.
 * **Graduated `shrink()` Progression:**
 * Minor overflows ($< 3.0$ lines) no longer drop projects immediately.
 * The engine first attempts switching to `short_summary` (~2 lines saved) and pruning single bullets from lower-priority roles.

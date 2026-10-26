@@ -272,6 +272,18 @@ class SummaryDraft(BaseModel):
         description="About half the length, each cited (used when the page is tight)")
 
 
+class PlanExtra(BaseModel):
+    """A pool bullet (or a whole project) the model did not pick as essential, rated for this job.
+    Code adds them in relevance order only while the page is under the fill target, after
+    checking each one (services/cv_build.py `fill_by_relevance`)."""
+
+    kind: Literal["role", "project"]
+    item_id: int
+    source_index: int | None = Field(
+        default=None, description="Fact index, or None for a whole project")
+    relevance: int = Field(ge=0, le=10)
+
+
 class CVPlanDraft(SummaryDraft):
     """What the model returns: selection, order and rewording, referencing pool ids. Never
     titles, companies, dates or locations (those come from the pool rows)."""
@@ -282,6 +294,7 @@ class CVPlanDraft(SummaryDraft):
     certification_ids: list[int] = []
     education_ids: list[int] = []
     volunteering: list[PlanEntry] = []
+    extras: SkipJsonSchema[list[PlanExtra]] = []  # rated leftovers (the 2-pass generator)
 
 
 class CVPlan(BaseModel):
@@ -299,6 +312,8 @@ class CVPlan(BaseModel):
     certification_ids: list[int] = []
     education_ids: list[int] = []
     volunteering: list[PlanEntry] = []
+    extras: list[PlanExtra] = []  # not yet on the page; consumed by fill_by_relevance
+    fill_log: list[dict[str, Any]] = []  # what fill_by_relevance added or skipped, and why
 
 
 def plan_from_draft(draft: "CVPlanDraft") -> "CVPlan":
