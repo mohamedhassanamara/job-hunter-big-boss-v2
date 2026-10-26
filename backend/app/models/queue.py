@@ -13,6 +13,21 @@ class SendQueue(TableBase, table=True):
     interval_minutes: int = 15
     max_items: int = 20
     next_send_at: datetime | None = dt_field()
+    # Why it is paused: "manual" (you pressed Pause) or "fatal" (a send failed for good). An
+    # idle queue restarts itself when an email is added; a paused one never does.
+    paused_reason: str | None = None
+
+
+class QueueEvent(TableBase, table=True):
+    """Every queue state change (idle, running, paused), so restarts and stalls can be counted."""
+
+    __tablename__ = "queue_event"
+
+    at: datetime = dt_field(default_factory=utcnow, index=True)
+    from_status: str
+    to_status: str
+    reason: str | None = None  # manual | fatal | empty | resume | added
+    actor: str  # user | worker | auto_on_add
 
 
 class SendQueueItem(TableBase, table=True):

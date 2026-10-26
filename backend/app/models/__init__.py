@@ -37,7 +37,7 @@ from app.models.provider import (
     ProviderKeyState,
     ProviderUsage,
 )
-from app.models.queue import SendLog, SendQueue, SendQueueItem
+from app.models.queue import QueueEvent, SendLog, SendQueue, SendQueueItem
 from app.models.research import (
     CompanyPage,
     CompanySignal,
@@ -99,6 +99,7 @@ __all__ = [
     "GenerationTask",
     "ScoringRun",
     "ScoringTask",
+    "QueueEvent",
     "SendLog",
     "SendQueue",
     "SendQueueItem",
