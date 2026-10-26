@@ -21,6 +21,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from app.providers.apinex_models import reject
 from app.providers.base import (
     CVGenerationFailed,
     CVPlan,
@@ -100,6 +101,7 @@ def user_message(request: CVRequest, feedback: str = "", current: str = "",
 class ClaudeCVGenerator:
     def __init__(self, model: str = "claude-sonnet-5", *, binary: str | None = None,
                  runner: Any = subprocess.run, timeout: int = TIMEOUT):
+        reject(model, "anything that runs through claude -p")
         self.model = model
         self.binary = binary or shutil.which("claude") or "claude"
         self.runner = runner

@@ -222,6 +222,11 @@ def test_one_403_disables_the_key_pauses_gemini_and_moves_cv_and_email_to_claude
     with Session(engine) as db:  # CV and email now go to Claude, whatever the setting says
         from app.services import model_choice
 
+        row = db.exec(select(AppSetting).where(AppSetting.key == "models")).one()
+        row.value = {**row.value, "cv": {"provider": "gemini", "model": MODEL,
+                                         "thinking_level": "minimal"}}
+        db.add(row)
+        db.commit()
         for task in ("cv", "email"):
             assert model_choice.choice(db, task)["provider"] == "anthropic"
 
@@ -321,14 +326,12 @@ def gemini_model(client: TestClient, monkeypatch: pytest.MonkeyPatch, clean: Non
 
     monkeypatch.setattr(gemini_keys, "configured_keys", lambda n=None: KEYS[: n or 1])
     monkeypatch.setattr(scoring_api, "workspace_is_real", lambda workspace: True)
-    models = client.get("/api/settings").json()["values"]["models"]
-    client.put("/api/settings/models", json={"value": {
-        **models, "scoring": {**models["scoring"], "model": MODEL, "fallback": None}}})
+    # Gemini no longer scores (settings reject it); its quota is still real for CV and email.
 
 
 def test_quota_endpoint_single_key_cap_and_rescore_preview_in_days(
         client: TestClient, gemini_model: None) -> None:
-    quota = client.get("/api/scoring/quota").json()
+    quota = client.get("/api/scoring/quota", params={"model": MODEL}).json()
     assert quota["provider"] == "gemini"
     assert [k["label"] for k in quota["keys"]] == ["key 1"]  # key 2 is listed but never used
     assert quota["remaining_today"] == 500 and quota["limits"] == {
@@ -336,13 +339,13 @@ def test_quota_endpoint_single_key_cap_and_rescore_preview_in_days(
     assert quota["reserve"] == 50 and quota["paused"] is False
     assert "k1-secret" not in json.dumps(quota) and quota["keys"][0]["last4"] == "cret"
     preview = client.get("/api/scoring/rescore-preview", params={"scope": "outdated"}).json()
-    assert preview["model"] == MODEL and preview["daily_capacity"] == 450  # 500 minus your 50
-    assert preview["days"] == 1 and preview["count"] > 0
+    assert preview["model"] == "free/minimax-m3.1-flash"  # scoring is APInex: no daily quota
+    assert preview["days"] is None and preview["daily_capacity"] is None
     with Session(engine) as s:  # the day's cap used up 
         s.add(ProviderUsage(provider=MODEL, key_label="key 1", period=pacific_day(), calls=500))
         s.commit()
-    assert client.get("/api/scoring/quota").json()["keys"][0]["state"] == "exhausted"
-    assert client.get("/api/scoring/quota").json()["remaining_today"] == 0
+    quota = client.get("/api/scoring/quota", params={"model": MODEL}).json()
+    assert quota["keys"][0]["state"] == "exhausted" and quota["remaining_today"] == 0
 
 
 def test_the_cap_counts_every_gemini_model_and_background_keeps_the_reserve(
@@ -396,7 +399,9 @@ def test_the_outdated_scope_is_best_first_and_skips_duplicates(
 
 
 def test_the_quota_endpoint_has_nothing_to_say_for_other_models(client: TestClient) -> None:
-    assert client.get("/api/scoring/quota").json()["provider"] == "other"
+    assert client.get("/api/scoring/quota", params={"model": "gemma4:12b"}).json()[
+        "provider"] == "other"
+    assert client.get("/api/scoring/quota").json()["provider"] == "apinex"  # the scoring model
 
 
 def test_auto_score_after_discovery_can_be_turned_off(client: TestClient) -> None:
@@ -425,9 +430,10 @@ def test_continue_with_and_key_enable_endpoints(client: TestClient, gemini_model
     assert client.post("/api/scoring/keys/key%201/enable").status_code == 404  # nothing disabled
     pool = make_pool(Clock(datetime(2026, 10, 20, 18, 0, tzinfo=UTC)), keys=KEYS[:1])
     pool.disable(pool.acquire(), "HTTP 403: permission denied")
-    assert client.get("/api/scoring/quota").json()["paused"] is True
+    gemini = {"model": MODEL}
+    assert client.get("/api/scoring/quota", params=gemini).json()["paused"] is True
     assert client.post("/api/scoring/keys/key%201/enable").status_code == 200
-    assert client.get("/api/scoring/quota").json()["paused"] is False
+    assert client.get("/api/scoring/quota", params=gemini).json()["paused"] is False
     from app.services.gemini_keys import pool_for
 
     assert pool_for(engine, MODEL).snapshot()["keys"][0]["state"] in ("ok", "exhausted")

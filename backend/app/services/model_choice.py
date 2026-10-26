@@ -14,12 +14,14 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.models import AppSetting
+from app.providers.apinex_models import is_apinex
 
 DEFAULT_GEMINI = "gemini-3.5-flash-lite"
 DEFAULT_APINEX = "free/minimax-m3.1-flash"
 DEFAULT_CLAUDE = "claude-sonnet-5"
 DEFAULT_THINKING = "minimal"
 TASKS = ("cv", "email")
+CLAUDE_ONLY = ("letter", "interview", "rewrite", "confirm", "verifier")
 USES = (None, "claude")
 
 
@@ -34,7 +36,9 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
     if use == "claude":
         claude = model if model.startswith("claude-") else DEFAULT_CLAUDE
         return {"provider": "anthropic", "model": claude, "thinking_level": None}
-    if model.startswith("free/") or "minimax" in model or "deepseek" in model or model == "apinex":
+    if is_apinex(model):
+        if task != "cv":
+            raise ValueError(f"{model} is an APInex model: it can write the CV, not the {task}")
         return {"provider": "apinex", "model": model, "thinking_level": None}
     if model.startswith("gemini-"):
         from app.services.gemini_keys import is_paused
@@ -66,16 +70,26 @@ def check(value: dict[str, Any]) -> None:
         if scoring_model.startswith("gemini-"):
             raise ValueError("Gemini is deprecated for scoring")
 
-    letter = ((value or {}).get("letter") or {}).get("model")
-    if letter and not str(letter).startswith("claude-"):
-        raise ValueError("models.letter.model must be a claude-* model (it runs through claude -p)")
+    # Everything that runs through `claude -p` takes a claude-* model, never an APInex or Gemini id.
+    for key in CLAUDE_ONLY:
+        model = str((((value or {}).get(key)) or {}).get("model") or "")
+        if model and not model.startswith("claude-"):
+            raise ValueError(f"models.{key}.model must be a claude-* model (it runs through "
+                             "claude -p)" + (" — APInex is for scoring and the CV only"
+                                              if is_apinex(model) else ""))
     for task in TASKS:
         cfg = (value or {}).get(task)
         if cfg is None:
             continue
         model = str(cfg.get("model") or "")
+        if task == "cv" and is_apinex(model):
+            continue
         if not model.startswith(("gemini-", "claude-")):
-            raise ValueError(f"models.{task}.model must be a gemini-* or claude-* model")
+            allowed = ("a gemini-*, claude-* or APInex (free/*)" if task == "cv"
+                       else "a gemini-* or claude-*")
+            raise ValueError(f"models.{task}.model must be {allowed} model"
+                             + (" (APInex is for scoring and the CV only)"
+                                if is_apinex(model) else ""))
         level = cfg.get("thinking_level")
         if level is not None and level not in THINKING_LEVELS:
             raise ValueError(f"models.{task}.thinking_level must be one of "

@@ -533,8 +533,9 @@ SETTINGS: dict[str, dict] = {
         "scoring": {"provider": "apinex", "model": "free/minimax-m3.1-flash", "fallback": "qwen2.5:7b",
                     "cloud_concurrency": {"min": 1, "start": 4, "max": 4},
                     "local_concurrency": 2},
-        # Generators: Gemini on the shared free keys; Claude stays selectable per task.
-        "cv": {"provider": "gemini", "model": "gemini-3.5-flash-lite", "thinking_level": "minimal"},
+        # CV: the APInex 2-pass generator. Email: Gemini on the shared free keys. Claude stays
+        # selectable per task (the email never takes an APInex model).
+        "cv": {"provider": "apinex", "model": "free/minimax-m3.1-flash"},
         "email": {"provider": "gemini", "model": "gemini-3.5-flash-lite",
                   "thinking_level": "minimal"},
         # Cover letters, form text and application answers: Claude Code only, never the CV/email model.
