@@ -4,12 +4,12 @@ The gate is the one in `api/cv.py:approve_cv`: exactly one page and no bullet/sk
 error (summary findings are information only).
 """
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, func, select
 
 from app.models import Application, Company, CVVersion, Job
 from app.models.enums import CVStatus, Stage
 from app.schemas.cv import CVReviewRow
-from app.services import cv_service
+from app.services import cv_regen, cv_service
 from app.services.cv_pool import Pool, load_pool
 
 
@@ -48,6 +48,12 @@ def rows(s: Session) -> list[CVReviewRow]:
         latest[v.application_id] = v  # the highest non-superseded version wins
     out = []
     pool = load_pool(s)
+    regen = cv_regen.states(s, list(latest))
+    approved = set(s.exec(select(CVVersion.application_id).where(
+        col(CVVersion.application_id).in_(list(by_app)),
+        CVVersion.status == CVStatus.approved)).all())
+    first = dict(s.exec(select(CVVersion.application_id, func.min(CVVersion.created_at)).where(
+        col(CVVersion.application_id).in_(list(by_app))).group_by(CVVersion.application_id)).all())
     for app_id, v in latest.items():
         if v.status != CVStatus.draft:
             continue
@@ -60,5 +66,8 @@ def rows(s: Session) -> list[CVReviewRow]:
             summary_warnings=sum(1 for x in v.violations or [] if x.get("where") == "summary"
                                  and x.get("severity") != "error"),
             error=v.error, approvable=approvable(v), created_at=v.created_at,
-            left_out_count=_left_out_count(v, pool)))
-    return sorted(out, key=lambda r: r.created_at)
+            left_out_count=_left_out_count(v, pool), has_approved=app_id in approved,
+            regen=regen.get(app_id)))
+    # The order of the first draft of each job: a regenerated CV keeps its place in the list.
+    return sorted(out, key=lambda r: (first.get(r.application_id) or r.created_at,
+                                      r.application_id))

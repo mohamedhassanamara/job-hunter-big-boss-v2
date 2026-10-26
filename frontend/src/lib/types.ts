@@ -2182,6 +2182,40 @@ export interface CVReviewRow {
   created_at: string
   /** Pool bullets and projects this CV leaves out. */
   left_out_count: number
+  /** An approved version exists: regenerating leaves it approved. */
+  has_approved: boolean
+  /** The latest "Regenerate selected" task for this job. */
+  regen: CVRegenState | null
+}
+
+export interface CVRegenState {
+  status: 'queued' | 'running' | 'done' | 'failed' | 'skipped'
+  error: string | null
+  warning: string | null
+  retryable: boolean
+  model: string | null
+}
+
+export type CVRegenMode = 'whole' | 'summary'
+
+export interface CVRegenEstimate {
+  count: number
+  per_cv: number
+  requests: number
+  provider: string
+  model: string
+  remaining_gemini: number | null
+  gemini_cap: number | null
+  exceeds_remaining: boolean
+  needs_confirmation: boolean
+  confirm_above: number
+}
+
+export interface CVRegenResult {
+  queued: number
+  already_queued: number
+  skipped: { application_id: number; reason: string }[]
+  batch_id: string
 }
 
 export interface CVLeftOutItem {
