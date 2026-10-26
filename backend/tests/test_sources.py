@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 
+import pytest
+
 from app.models.enums import RemoteType, Source
 from app.providers.base import RawJob
 
@@ -124,3 +126,73 @@ def test_adzuna_queries_every_supported_target_and_reports_the_rest() -> None:
         "Not supported by Adzuna (no endpoint), skipped: PT, AE, QA, BH, KW, JO"
     ]
     assert AdzunaSource.unsupported_countries(["DE", "PT"]) == ["PT"]
+
+
+# ------------------------------------------------------------- Adzuna: errors and skipped items
+
+
+def _adzuna_with(monkeypatch: pytest.MonkeyPatch, handler):  # noqa: ANN001, ANN202
+    """An AdzunaSource with keys whose HTTP goes to `handler` (no sleeping, no network)."""
+    import httpx
+
+    from app.providers.http import PoliteClient
+    from app.providers.sources import adzuna
+
+    def client(name: str, **kw):  # noqa: ANN003, ANN202
+        return PoliteClient(name, min_interval=0, retries=1, backoff=0, sleep=lambda _s: None,
+                            transport=httpx.MockTransport(handler))
+
+    monkeypatch.setattr(adzuna, "PoliteClient", client)
+    source = adzuna.AdzunaSource()
+    source.app_id, source.app_key = "id", "key"
+    return source
+
+
+def _spec():  # noqa: ANN202
+    from app.providers.base import ProfileSpec
+
+    return ProfileSpec(locations=["DE", "FR"], roles=["Data Engineer"], max_age_days=14)
+
+
+def test_adzuna_401_stops_at_once_with_a_clear_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        return httpx.Response(401, json={"error": "bad credentials"})
+
+    source = _adzuna_with(monkeypatch, handler)
+    assert source.fetch_payloads(_spec()) == []
+    assert len(seen) == 1  # no second country, no retries
+    assert any("401" in w and "ADZUNA_APP_ID" in w for w in source.warnings)
+
+
+def test_adzuna_429_keeps_what_was_fetched_and_stops(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if "/de/" in str(request.url):
+            return httpx.Response(200, json={"results": []})
+        return httpx.Response(429, json={"error": "slow down"})
+
+    source = _adzuna_with(monkeypatch, handler)
+    out = source.fetch_payloads(_spec())
+    assert [country for country, _ in out] == ["DE"]  # FR hit the limit: stop with DE's batch
+    assert any("429" in w and "rate limit" in w.lower() for w in source.warnings)
+
+
+def test_adzuna_skips_items_without_an_id_or_a_url() -> None:
+    from app.providers.sources.adzuna import parse_adzuna
+
+    good = {"id": "1", "title": "Data Engineer", "redirect_url": "https://www.adzuna.de/x/1",
+            "company": {"display_name": "Acme"}, "location": {"display_name": "Berlin"},
+            "description": "d", "created": "2026-10-20T10:00:00Z"}
+    payload = {"results": [good, {**good, "id": None}, {**good, "id": "2", "redirect_url": ""},
+                           {k: v for k, v in good.items() if k != "id"}]}
+    jobs = parse_adzuna(payload, "DE")
+    assert [j.external_id for j in jobs] == ["1"]

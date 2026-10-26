@@ -2,9 +2,9 @@
 
 **Date:** October 25, 2026
 
-**Status:** Specification & Architecture Staged
+**Status:** Implemented (committed in `ce069d3`; reviewed and corrected in `docs/reports/branch-review-2026-10-26.md` and the fix commits after it)
 
-**Modules Affected:** `backend/app/api/scoring.py`, `backend/app/services/scoring.py`, `backend/app/services/job_sources/`, `backend/app/services/dedup.py`, `backend/app/models/job.py`, `frontend/src/features/scoring/`, `frontend/src/features/job/`
+**Modules Affected:** `backend/app/api/scoring.py`, `backend/app/services/scoring.py`, `backend/app/providers/sources/adzuna.py`, `backend/app/services/dedupe.py`, `backend/app/services/ingest.py`, `backend/app/models/job.py`, `frontend/src/components/app/RescoreModal.tsx`, `frontend/src/features/job/`
 
 ---
 
@@ -68,12 +68,12 @@ class RescoreFilterRequest(BaseModel):
 
 * **Query Builder**:
 * Constructs dynamic SQL queries filtering `Job` rows where `status != 'dismissed'`.
-* Applies indexed criteria on `job.track`, `job.created_at >= (now() - interval 'N days')`, and joins against `fit_assessment` to identify unassessed or outdated records.
+* Applies the criteria on `job.matched_track`, `job.created_at >= (now() - interval 'N days')`, and the latest `FitScore` row to identify unscored or outdated jobs. Bulk scopes then keep only open jobs (`services/open_jobs.py`); only jobs you pick one by one (`scope=jobs`) bypass that.
 * Enqueues only qualifying IDs directly into `ScoringQueue`, preventing non-target tracks (such as dismissed Java backend listings) from occupying rate-limited gateway slots.
 
 
 
-#### B. Frontend Rescore Controls (`frontend/src/features/scoring/RescoreModal.tsx`)
+#### B. Frontend Rescore Controls (`frontend/src/components/app/RescoreModal.tsx`)
 
 * Replaced the generic "Rescore outdated jobs" button with an interactive modal:
 * **Track Dropdown**: Filter by specific tracks (*"Mobile / Flutter"*, *"Backend"*, *"All Tracks"*).
@@ -87,7 +87,7 @@ class RescoreFilterRequest(BaseModel):
 
 ### Step 2: Adzuna Job Source Diagnostic & Repair
 
-#### A. Country-Specific Route & Authentication Validation (`backend/app/services/job_sources/adzuna.py`)
+#### A. Country-Specific Route & Authentication Validation (`backend/app/providers/sources/adzuna.py`)
 
 * **Endpoint Architecture**:
 * Adzuna requires localized endpoints based on job country:
@@ -105,7 +105,7 @@ class RescoreFilterRequest(BaseModel):
 
 
 * **Error Handling & Resilience**:
-* Wrapped HTTP calls in `httpx.AsyncClient` with explicit status inspection:
+* HTTP goes through `providers/http.PoliteClient` (sync, retries, honest User-Agent) with explicit status inspection:
 * `HTTP 401 / 403`: Logs authentication errors and halts the Adzuna worker.
 * `HTTP 400`: Logs exact validation response (e.g., malformed parameter, unsupported country code).
 * `HTTP 429`: Implements exponential backoff before retrying.
@@ -118,7 +118,7 @@ class RescoreFilterRequest(BaseModel):
 
 ### Step 3: Cross-Source Job Deduplication & Grouping
 
-#### A. Deterministic Normalization & Fingerprinting (`backend/app/services/dedup.py`)
+#### A. Deterministic Normalization & Fingerprinting (`backend/app/services/dedupe.py`)
 
 Implemented a two-stage normalization algorithm to identify identical listings across different scraping channels:
 
@@ -148,7 +148,7 @@ $$\text{fingerprint} = \text{SHA256}(\text{norm\_company} \mathbin{\Vert} \text{
 * Added source aggregation metadata to the `Job` model:
 * `sources: list[str]` (stores unique providers, e.g., `["adzuna", "linkedin"]`).
 * `source_urls: dict[str, str]` (maps provider names to their respective application/portal URLs).
-* `canonical_job_id: int | None` (optional foreign key for multi-record clustering).
+* No `canonical_job_id`: the existing `duplicate_of_id` is kept for rows that were duplicates before this change.
 
 
 * **Ingestion Merge Logic**:

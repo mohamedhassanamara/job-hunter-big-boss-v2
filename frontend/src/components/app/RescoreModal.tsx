@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Select } from '@/components/ui/select'
@@ -174,7 +175,10 @@ export function RescoreModal({
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-border px-6 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-border px-6 py-3">
+          <span className="mr-auto">
+            <TourButton tour="rescore" onStart={() => onOpenChange(false)} />
+          </span>
           <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

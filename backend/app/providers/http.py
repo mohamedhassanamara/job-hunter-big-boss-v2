@@ -80,7 +80,7 @@ class PoliteClient:
         return self.backoff * (2**attempt) + random.uniform(0, 0.5)
 
     def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
-        last_error = "unknown error"
+        last_error, last_status = "unknown error", None
         for attempt in range(self.retries + 1):
             self._wait_turn()
             self.requests += 1
@@ -98,9 +98,11 @@ class PoliteClient:
                         f"{self.name}: HTTP {response.status_code} {snippet}", response.status_code
                     )
                 last_error = f"HTTP {response.status_code} {snippet}"
+                last_status = response.status_code
             if attempt < self.retries:
                 self._sleep(self._delay(attempt, response))
-        raise SourceError(f"{self.name}: gave up after {self.retries + 1} attempts ({last_error})")
+        raise SourceError(f"{self.name}: gave up after {self.retries + 1} attempts ({last_error})",
+                          last_status)
 
     def get_json(self, url: str, **kwargs: Any) -> Any:
         return self._parse(self.request("GET", url, **kwargs))

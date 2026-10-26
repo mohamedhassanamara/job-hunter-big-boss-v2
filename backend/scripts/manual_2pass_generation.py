@@ -1,6 +1,10 @@
 """Test script: End-to-end 2-pass CV generation using APInex (free/minimax-m3.1-flash)."""
 
 import sys
+
+if "--live" not in sys.argv:  # manual script: never run by accident (or as a test)
+    sys.exit("manual_2pass_generation.py opens the REAL database (application 1622), writes a CV draft and calls the live APInex gateway. Re-run it with --live.")
+sys.argv.remove("--live")
 from pathlib import Path
 
 # Add backend to path
@@ -44,8 +48,8 @@ def main() -> None:
             print(f"  Physical Page Count: {pages}")
             print(f"  Physical Text Fill: {round(measured_fill * 100, 2)}%")
             assert pages == 1, f"Expected 1 page, got {pages}"
-            assert measured_fill >= 0.96, f"Expected fill >= 0.96, got {measured_fill}"
-            print("SUCCESS: Resulting CV is exactly 1 page and fills >= 96% of the page!")
+            assert measured_fill >= 0.98, f"Expected fill >= 0.98, got {measured_fill}"
+            print("SUCCESS: Resulting CV is exactly 1 page and fills >= 98% of the page!")
 
 
 if __name__ == "__main__":

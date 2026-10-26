@@ -17,6 +17,7 @@ export interface TourStep {
 export type TourId =
   | 'today'
   | 'discover'
+  | 'rescore'
   | 'pipeline'
   | 'applications'
   | 'job'
@@ -89,6 +90,17 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'discover-label', title: 'Label to train the scorer', body: 'Mark jobs Good, Maybe or No with 1 / 2 / 3. Labels are separate from the pipeline, and `make eval` measures how well scores agree with them.', placement: 'left' },
       { target: 'discover-hide-scores', title: 'Label blind', body: 'Hide scores while you label so the scorer\'s opinion doesn\'t sway yours. The list switches to newest first and fit filters turn off.', placement: 'bottom' },
       { target: 'discover-actions', title: 'Shortlist or dismiss', body: 'S shortlists, D dismisses, and both can be undone from the toast. Shortlisted jobs move to your Pipeline.', placement: 'left' },
+    ],
+  },
+  rescore: {
+    id: 'rescore',
+    title: 'Rescoring',
+    description: 'Rescore only the jobs that matter',
+    resolveRoute: async () => '/discover',
+    steps: [
+      { target: 'discover-list', title: 'Scores can go stale', body: 'A score is stale when your experience, the scoring prompt or the model changed since it was made. Nothing is rescored automatically: the notice above the list (and Settings → Models) opens the rescore window when you decide.', placement: 'right' },
+      { target: 'discover-list', title: 'Pick what to rescore', body: 'In the window, narrow the batch by track, how recently the job was added and a batch cap, or only jobs never scored. It shows how many jobs match, the model and a time estimate before you queue anything.', placement: 'right' },
+      { target: 'discover-list', title: 'Only open jobs', body: 'Bulk rescoring skips dismissed, closed and duplicate jobs, and jobs hidden by your location filters. To rescore one of those anyway, open the job and use its own Rescore button.', placement: 'right' },
     ],
   },
   pipeline: {
