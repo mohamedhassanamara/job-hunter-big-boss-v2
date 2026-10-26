@@ -165,6 +165,7 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     out: list[dict[str, str]] = []
     folded = oc.fold(text)
     everything = f"{subject}\n{text}"
+    out += oc.attachment_violations(everything)
     # --- blocking: names, years, honesty, facts without a citation
     if not subject.strip():
         out.append(violation("subject", "The subject is empty", "subject", "error"))

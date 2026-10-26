@@ -102,7 +102,7 @@ export function QueueTab() {
       <div className="flex items-center gap-2 rounded-md border border-border bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
         <ShieldCheck className="size-3.5 text-fg-subtle" />
         {queue.test_sent
-          ? `Real emails go out through your Gmail, with the approved CV attached. Every attempt is logged; a failure stops only that email (a login problem pauses the queue).`
+          ? `Real emails go out through your Gmail, as plain text, nothing attached. Every attempt is logged; a failure stops only that email (a login problem pauses the queue).`
           : `Nothing is sent until one test email reaches ${queue.own_address || 'your own address'}: open a draft and use “Send test to me”.`}
       </div>
 

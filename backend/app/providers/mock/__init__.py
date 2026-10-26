@@ -264,8 +264,8 @@ class MockEmailDrafter:
         return AppliedEmailPlan(
             role=str(title), greeting=f"Hi {request.contact.get('first_name')},",
             opening=opening, experience=experience,
-            ask="Pourriez-vous regarder mon CV, joint à ce message ?" if fr
-            else "Would you take a look at my CV? It's attached.")
+            ask="Seriez-vous disponible pour un court échange la semaine prochaine ?" if fr
+            else "Would you be open to a brief call next week?")
 
     @staticmethod
     def sample(title: str, company: str, first_name: str) -> tuple[str, str]:

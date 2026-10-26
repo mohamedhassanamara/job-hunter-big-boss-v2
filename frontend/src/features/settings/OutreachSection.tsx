@@ -73,7 +73,7 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
           />
         </div>
       </Field>
-      <Field label="Contact line" hint="Off by default: the email ends with the sign-off and your name. The attached CV carries your contacts.">
+      <Field label="Contact line" hint="Off by default: the email ends with the sign-off and your name. Nothing is attached.">
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={showContacts} onCheckedChange={(v) => sig('show_contacts', v)} aria-label="Show a contact line under your name" />
           {showContacts ? 'Title, email and LinkedIn under your name' : 'Ends with your name'}

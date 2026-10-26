@@ -158,7 +158,7 @@ def applied_plan(info: dict, **kw) -> AppliedEmailPlan:  # noqa: ANN003
         experience=[EmailSentence(
             text=f"At {info['org']}, I built data pipelines with {info['tag']}, from the first "
                  "design to production, for a small team.", citations=[info["role"]])],
-        ask="Would you take a look at my CV? It's attached.")
+        ask="Would you be open to a brief call next week?")
     return AppliedEmailPlan(**{**base, **kw})
 
 
@@ -326,8 +326,8 @@ def test_the_send_gate_lets_an_unverified_approval_go_when_nothing_changed(
     assert mailer.sent and mailer.sent[0].to == job_ready["email"]
 
 
-@pytest.mark.parametrize("change", ["text", "attachment", "contact", "cv_version"])
-def test_the_send_gate_still_holds_text_attachment_contact_and_cv_version(
+@pytest.mark.parametrize("change", ["text", "contact"])
+def test_the_send_gate_still_holds_text_and_contact(
         job_ready: dict, client, fresh_queue: None, change: str) -> None:  # noqa: ANN001, F811
     draft_id = sent_gate_setup(job_ready, client)
     with Session(engine) as s:
@@ -335,12 +335,8 @@ def test_the_send_gate_still_holds_text_attachment_contact_and_cv_version(
         approval = dict(d.unverified_approval)
         if change == "text":
             d.body += " I also mentored ten developers."
-        elif change == "attachment":
-            approval["attachment_sha256"] = "0" * 64
-        elif change == "contact":
-            approval["recipient"] = "someone.else@outco.test"
         else:
-            approval["cv_version_id"] = (d.cv_version_id or 0) + 999
+            approval["recipient"] = "someone.else@outco.test"
         d.unverified_approval = approval
         s.add(d)
         s.commit()
@@ -487,7 +483,7 @@ def test_a_checked_draft_can_be_saved_as_a_normal_draft_and_discarding_stores_no
     pasted = ("Subject: Data Engineer application – Alex Sample\n\nHi Ana,\n\n"
               "I'm applying for the Data Engineer role at Outco.\n\n"
               f"At {job_ready['org']}, I built data pipelines with {job_ready['tag']}.\n\n"
-              "Would you take a look at my CV? It's attached.")
+              "Would you be open to a brief call next week?")
     with Session(engine) as s:
         before = len(s.exec(select(OutreachDraft)).all())
     r = client.post(f"/api/applications/{job_ready['app']}/external-draft/check",

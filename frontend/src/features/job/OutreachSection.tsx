@@ -218,7 +218,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
         {data.step === 'cv' && (
           <div className="flex items-center gap-3 p-4 text-sm">
             <FileText className="size-4 text-fg-subtle" />
-            <span className="flex-1 text-fg-muted">The email is written from your approved CV and attaches it. Approve the CV first.</span>
+            <span className="flex-1 text-fg-muted">The email is written from your approved CV. Approve the CV first.</span>
             <Button size="sm" asChild>
               <Link to={`/jobs/${job.id}/cv`}>Open CV Studio</Link>
             </Button>

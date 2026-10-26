@@ -260,8 +260,7 @@ def mark_verified(s: Session, d: OutreachDraft) -> None:
     from app.services import verifier
 
     d.verification = {"status": "passed", "claims": [],
-                      "hash": verifier.text_hash(verifier.email_text(s, d)),
-                      "attachment_sha256": verifier.email_attachment(s, d)}
+                      "hash": verifier.text_hash(verifier.email_text(s, d))}
     s.add(d)
 
 
@@ -296,11 +295,12 @@ def test_the_send_gate_returns_changed_or_unverified_emails_to_review(
         assert send_queue.queue(s).next_send_at == NOW  # the next email isn't held up
 
 
-def test_the_send_gate_checks_the_attached_cv(job_ready: dict, fresh_queue: None) -> None:
+def test_a_draft_written_for_the_old_attached_format_goes_back_to_review(
+        job_ready: dict, fresh_queue: None) -> None:
     draft_id = approved(job_ready)
     with Session(engine) as s:
         d = s.get(OutreachDraft, draft_id)
-        d.verification = {**d.verification, "attachment_sha256": "0" * 64}
+        d.plan = {k: v for k, v in d.plan.items() if k != "delivery"}  # an old draft
         s.add(d)
         send_queue.resume(s, NOW)
         s.commit()
@@ -308,7 +308,7 @@ def test_the_send_gate_checks_the_attached_cv(job_ready: dict, fresh_queue: None
     assert send_queue.tick(engine, lambda s: mailer, NOW) == "blocked" and mailer.sent == []
     with Session(engine) as s:
         item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft_id)).one()
-        assert "attached CV changed" in item.error
+        assert "old format" in item.error
 
 
 @pytest.fixture
@@ -322,7 +322,7 @@ def fresh_queue(seeded: None) -> None:
         s.commit()
 
 
-def test_test_send_goes_to_you_with_the_cv_and_changes_nothing(job_ready: dict) -> None:
+def test_test_send_goes_to_you_as_plain_text_and_changes_nothing(job_ready: dict) -> None:
     draft_id = approved(job_ready)
     mailer = MockMailer()
     with Session(engine) as s:
@@ -330,7 +330,11 @@ def test_test_send_goes_to_you_with_the_cv_and_changes_nothing(job_ready: dict) 
     log = outreach.test_send(engine, draft_id, mailer)
     email = mailer.sent[0]
     assert log.status == "sent" and email.subject.startswith("[TEST] ")
-    assert email.to != job_ready["email"] and email.attachment_path == str(job_ready["pdf"])
+    assert email.to != job_ready["email"]
+    from app.providers import smtp_mailer
+    msg = smtp_mailer.plain_message(email, "me@example.test")
+    assert not list(msg.iter_attachments()) and msg.get_content_type() == "text/plain"
+    assert smtp_mailer.email_problem(email) is None
     assert "Best regards," in email.body
     with Session(engine) as s:
         assert s.get(Application, job_ready["app"]).stage == Stage.cv_ready  # not sent
@@ -347,8 +351,8 @@ def test_the_queue_needs_a_test_send_first(seeded: None) -> None:
         s.rollback()
 
 
-def test_one_send_per_interval_then_tracking_and_cv_lock(job_ready: dict,
-                                                         fresh_queue: None) -> None:
+def test_one_send_per_interval_then_tracking_without_a_cv_lock(job_ready: dict,
+                                                              fresh_queue: None) -> None:
     draft_id = approved(job_ready)
     mailer = MockMailer()
     with Session(engine) as s:
@@ -361,13 +365,30 @@ def test_one_send_per_interval_then_tracking_and_cv_lock(job_ready: dict,
     with Session(engine) as s:
         app = s.get(Application, job_ready["app"])
         assert (app.stage, app.applied_method) == (Stage.done, "email")
-        assert app.applied_cv_version_id == job_ready["cv"]
-        assert s.get(CVVersion, job_ready["cv"]).locked_at is not None
+        assert s.get(CVVersion, job_ready["cv"]).locked_at is None  # nothing was attached
         assert s.get(OutreachDraft, draft_id).status == DraftStatus.sent
         assert s.exec(select(SendLog).where(SendLog.draft_id == draft_id,
                                             SendLog.kind == "real")).one().status == "sent"
         gap = send_queue.queue(s).next_send_at - NOW  # a random gap, 4-7 minutes by default
         assert timedelta(minutes=4) <= gap <= timedelta(minutes=7)
+
+
+def test_pull_back_legacy_returns_old_format_emails_to_review_and_sends_nothing(
+        job_ready: dict, fresh_queue: None) -> None:
+    draft_id = approved(job_ready)
+    with Session(engine) as s:
+        d = s.get(OutreachDraft, draft_id)
+        d.plan = {k: v for k, v in d.plan.items() if k != "delivery"}
+        s.add(d)
+        s.commit()
+        pulled = send_queue.pull_back_legacy(s)
+    mine = [p for p in pulled if p["draft_id"] == draft_id]
+    assert len(mine) == 1 and "old format" in mine[0]["reason"]
+    with Session(engine) as s:
+        d = s.get(OutreachDraft, draft_id)
+        item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft_id)).one()
+        assert d.status == DraftStatus.draft and item.status == QueueItemStatus.cancelled
+        assert draft_id not in [p["draft_id"] for p in send_queue.pull_back_legacy(s)]
 
 
 def test_the_queue_holds_at_most_max_items(job_ready: dict, fresh_queue: None) -> None:

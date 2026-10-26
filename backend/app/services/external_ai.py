@@ -44,7 +44,7 @@ def _terms(text: str) -> set[str]:
 
 
 def relevant_items(s: Session, app: Application, pool: Pool, listing: str) -> list[Any]:
-    """The items the email may use: the approved CV's (what the email attaches), else the roles
+    """The items the email may use: the approved CV's, else the roles
     and projects whose words overlap the listing most (never the whole pool)."""
     cv = ou.approved_cv(s, app)
     if cv is not None:
@@ -240,8 +240,7 @@ def _verify(s: Session, app: Application, job: Job, draft: OutreachDraft, verifi
         sources["listing"] = f"{job.title}\n{job.description or ''}"
         sources["facts"] += verifier.application_line(app)
         kind = "email about a job application, to the person at the company (with its subject)"
-    return verifier.run(verifier_, kind, verifier.email_text(s, draft), sources,
-                        verifier.email_attachment(s, draft) if draft.cv_version_id else None)
+    return verifier.run(verifier_, kind, verifier.email_text(s, draft), sources, None)
 
 
 def save_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifier_: Any,
@@ -253,7 +252,7 @@ def save_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifie
     job, company, contact = _contact_for(s, app)
     cv = ou.approved_cv(s, app)
     if cv is None:
-        raise ExternalError("Approve the CV first: the email attaches it")
+        raise ExternalError("Approve the CV first: the email is written from it")
     if not contact.email:
         raise ExternalError(f"{contact.full_name} has no email address")
     checked = check_pasted(s, app_id, text, mode=mode, verifier_=verifier_, language=language)

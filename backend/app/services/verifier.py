@@ -304,17 +304,6 @@ def email_text(s: Session, draft: OutreachDraft) -> str:
     return f"Subject: {draft.subject}\n\n{full_body(s, draft)}"
 
 
-def email_attachment(s: Session, draft: OutreachDraft) -> str | None:
-    """The hash of the exact file sending attaches (the same `ensure_pdf` the send uses)."""
-    from app.services import cv_service
-
-    cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
-    if cv is None:
-        return None
-    pdf = cv_service.ensure_pdf(s.get_bind(), cv)
-    return file_hash(str(pdf)) if pdf else None
-
-
 class Prepared:
     """One document ready for the verifier: what it says, its sources, and the fixer."""
 
@@ -346,7 +335,7 @@ def prepare_email(s: Session, draft: OutreachDraft) -> Prepared:
         sources["listing"] = f"{job.title}\n{job.description or ''}"
         sources["facts"] += application_line(app)
         kind = "email about a job application, to the person at the company (with its subject)"
-    return Prepared(s, app, kind, email_text(s, draft), sources, email_attachment(s, draft),
+    return Prepared(s, app, kind, email_text(s, draft), sources, None,
                     plan.get("language") or "en")
 
 
@@ -361,7 +350,7 @@ def verify_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, A
 def require_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, Any]:
     """Approval: reuse a passed verification of this exact text and CV, else verify now."""
     record = draft.verification
-    if is_current(record, email_text(s, draft), email_attachment(s, draft), pool_stamp(s)):
+    if is_current(record, email_text(s, draft), None, pool_stamp(s)):
         return record
     record = verify_email(s, draft, verifier)
     if record["status"] != "passed":
@@ -369,33 +358,28 @@ def require_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, 
     return record
 
 
-def send_gate(draft: OutreachDraft, subject: str, body: str, attachment_path: str | None,
+def send_gate(draft: OutreachDraft, subject: str, body: str,
               recipient: str | None = None) -> str | None:
-    """Right before a queued email goes out: the exact text and attachment must be the ones
-    approved and verified. Returns why not, or None when it may go.
+    """Right before a queued email goes out: the exact text must be the one approved and
+    verified. Returns why not, or None when it may go. (The message itself is checked for
+    attachments and non-text parts by `smtp_mailer.email_problem`, called by the queue.)
 
     An email you approved without verification (`unverified_approval`) skips only the claim
-    verification: the text, the attachment, the contact (and their address) and the CV version
-    must still be exactly what you approved."""
+    verification: the text and the contact (and their address) must still be exactly what you
+    approved."""
     if draft.unverified_approval:
         a = draft.unverified_approval
         if a.get("hash") != text_hash(f"Subject: {subject}\n\n{body}"):
             return "Its text changed since you approved it without verification"
-        if a.get("attachment_sha256") != file_hash(attachment_path):
-            return "The attached CV changed since you approved the email"
         if a.get("contact_id") != draft.contact_id or (
                 recipient and a.get("recipient") and recipient != a["recipient"]):
             return "The contact or their address changed since you approved the email"
-        if a.get("cv_version_id") != draft.cv_version_id:
-            return "The CV version changed since you approved the email"
         return None
     record = draft.verification
     if not record or record.get("status") != "passed":
         return "It has no passed claim verification"
     if record.get("hash") != text_hash(f"Subject: {subject}\n\n{body}"):
         return "Its text changed since it was verified (the email, the subject or the signature)"
-    if record.get("attachment_sha256") != file_hash(attachment_path):
-        return "The attached CV changed since the email was verified"
     return None
 
 

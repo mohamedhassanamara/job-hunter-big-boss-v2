@@ -426,7 +426,7 @@ class AppliedEmailPlan(BaseModel):
         "Optional: one company fact from SIGNALS that genuinely adds something, with its id. "
         "Empty text when none"))
     ask: str = Field(description=(
-        "A simple, natural ask (look at the attached CV, a short call); a statement or a "
+        "A simple, natural ask (a short call or technical chat); a statement or a "
         "question"))
 
     @property
@@ -675,11 +675,7 @@ class SendFailed(RuntimeError):
 class OutgoingEmail(BaseModel):
     to: str
     subject: str
-    body: str  # plain text
-    html: str | None = None  # optional alternative (signature photo)
-    attachment_path: str | None = None
-    attachment_name: str | None = None
-    inline_images: dict[str, str] = Field(default_factory=dict)  # cid -> file path
+    body: str  # text/plain only: no HTML part, no image, no attachment
 
 
 class Mailer(Protocol):

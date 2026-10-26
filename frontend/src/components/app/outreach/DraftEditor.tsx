@@ -236,7 +236,7 @@ export function DraftEditor({
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-subtle px-2 py-1 hover:border-border-strong"
             >
               <FileText className="size-3.5" />
-              CV v{draft.cv_version} attached
+              Written from CV v{draft.cv_version}
             </Link>
           )}
           <Tooltip
@@ -418,7 +418,7 @@ export function DraftEditor({
                 data-tour="outreach-test-send"
                 onClick={() =>
                   testSend.mutate(draft.id, {
-                    onSuccess: (log) => toast.success('Test email sent', { description: `To ${log.to}, with the CV attached. Check your inbox.` }),
+                    onSuccess: (log) => toast.success('Test email sent', { description: `To ${log.to}, as plain text. Check your inbox.` }),
                     onError: (e) => toast.error(e.message),
                   })
                 }

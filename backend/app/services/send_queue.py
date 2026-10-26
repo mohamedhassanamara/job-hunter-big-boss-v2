@@ -11,8 +11,10 @@ Safety rules:
   (check Gmail's Sent folder, then mark it sent or retry it).
 - Every attempt is written to `send_log`. A failure is visible and retryable; an auth/config
   failure also pauses the queue.
-- A sent email locks the CV version it attached and moves the job to Sent (done) with
-  method = email, so follow-ups, replies and stats work as for web applications.
+- Every message is text/plain with no attachment (`smtp_mailer.email_problem`); a draft written
+  under the old rules (CV attached) or that breaks the current ones goes back to review.
+- A sent email moves a job that wasn't applied yet to Sent (done) with method = email, so
+  follow-ups, replies and stats work as for web applications. It never locks a CV.
 """
 
 import logging
@@ -28,7 +30,6 @@ from app.models import (
     Application,
     Company,
     Contact,
-    CVVersion,
     Job,
     OutreachDraft,
     QueueEvent,
@@ -45,8 +46,9 @@ from app.models.enums import (
     QueueStatus,
     Stage,
 )
+from app.providers import smtp_mailer
 from app.providers.base import Mailer, SendFailed
-from app.services import dnc, outreach, pipeline, tracking, verifier
+from app.services import dnc, outreach, outreach_check, pipeline, verifier
 from app.services.cv_check import violation
 
 log = logging.getLogger("send_queue")
@@ -212,10 +214,6 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
     s.add(item)
     s.add(draft)
     app = s.get(Application, draft.application_id)
-    cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
-    if cv is not None:
-        tracking.lock_cv(cv)
-        s.add(cv)
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     if app is not None:
         first = app.applied_at  # a web application may already be in (both routes)
@@ -225,16 +223,54 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
             pipeline.transition(s, app, Stage.done, message="Emailed")
         app.applied_at = min(first, at) if first else at  # the first time you reached out
         app.applied_method = app.applied_method if first else ApplyMethod.email
-        app.applied_cv_version_id = cv.id if cv else app.applied_cv_version_id
         s.add(app)
         pipeline.log_event(s, app, EventKind.sent,
                            f"Email sent to {contact.email if contact else '?'}",
-                           message_id=message_id, cv_version=cv.version if cv else None)
+                           message_id=message_id)
         job = s.get(Job, app.job_id)
         company = s.get(Company, job.company_id) if job else None
         if company is not None and company.contacted_at is None:
             company.contacted_at = at
             s.add(company)
+
+
+def legacy_reason(s: Session, draft: OutreachDraft) -> str | None:
+    """Why a queued or approved draft may no longer go out: written for the old format (the CV
+    attached), or its text breaks a current rule. None when it still follows the rules."""
+    if (draft.plan or {}).get("delivery") != "text":
+        return "It was written for the old format (CV attached): emails are plain text now"
+    if found := outreach_check.attachment_violations(outreach.full_body(s, draft)):
+        return found[0]["message"]
+    return None
+
+
+def pull_back_legacy(s: Session) -> list[dict[str, str | int | None]]:
+    """Send nothing: every pending queue item and every approved draft that fails
+    `legacy_reason` goes back to review with the reason. Returns them for the user."""
+    now = utcnow()
+    pulled: list[dict[str, str | int | None]] = []
+    for draft in s.exec(select(OutreachDraft).where(
+            col(OutreachDraft.status).in_([DraftStatus.queued, DraftStatus.approved]))).all():
+        if not (reason := legacy_reason(s, draft)):
+            continue
+        item = s.exec(select(SendQueueItem).where(
+            SendQueueItem.draft_id == draft.id,
+            col(SendQueueItem.status).in_([QueueItemStatus.pending]))).first()
+        entry = SendLog(draft_id=draft.id, kind="real", to="", subject=draft.subject,
+                        status="failed")
+        if item is not None:
+            _back_to_review(s, item, draft, entry, reason, now)
+        else:
+            draft.status = DraftStatus.draft
+            draft.unverified_approval = {}
+            draft.violations = [v for v in draft.violations or []
+                                if v.get("type") != "send_gate"] \
+                + [violation("send_gate", f"Not sent: {reason}", "body")]
+            s.add(draft)
+            s.commit()
+        pulled.append({"draft_id": draft.id, "application_id": draft.application_id,
+                       "subject": draft.subject, "reason": reason})
+    return pulled
 
 
 def _back_to_review(s: Session, item: SendQueueItem, draft: OutreachDraft, entry: SendLog,
@@ -293,16 +329,16 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
                         status="failed")
         try:
             email = outreach.outgoing(s, engine, draft)
-            entry.to, entry.subject, entry.attachment = email.to, email.subject, \
-                email.attachment_name
+            entry.to, entry.subject = email.to, email.subject
             # Asked not to be contacted (flag, address or domain): pulled back with the reason.
             contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
             if reason := dnc.blocked_reason(s, contact, email.to):
                 _back_to_review(s, item, draft, entry, f"do not contact: {reason}", now)
                 return "blocked"
-            # The final gate: exactly the text and CV that were approved and verified.
-            if reason := verifier.send_gate(draft, email.subject, email.body,
-                                            email.attachment_path, email.to):
+            # The final gate: exactly the text that was approved and verified, as a plain-text
+            # message with no attachment, and a draft that still follows the current rules.
+            if reason := (legacy_reason(s, draft) or smtp_mailer.email_problem(email)
+                          or verifier.send_gate(draft, email.subject, email.body, email.to)):
                 _back_to_review(s, item, draft, entry, reason, now)
                 return "blocked"
             message_id = mailer_for(s).send(email)

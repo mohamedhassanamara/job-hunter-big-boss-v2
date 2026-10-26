@@ -55,7 +55,7 @@ def plan(job_ready: dict, **kw) -> AppliedEmailPlan:  # noqa: F811, ANN003
                                "a small team.", citations=[job_ready["role"]]),
             EmailSentence(text="I like keeping them reliable as the volume grows.",
                           citations=[job_ready["role"]])],
-        ask="Would you take a look at my CV? It's attached.")
+        ask="Would you be open to a brief call next week?")
     return AppliedEmailPlan(**{**base, **kw})
 
 
@@ -94,7 +94,7 @@ def test_generate_writes_the_application_follow_up_without_researching(
     assert d.subject.startswith("Data Engineer application – ")
     parts = d.body.split("\n\n")
     assert parts[0] == "Hi Ana," and "applying" in parts[1] and "Data Engineer" in parts[1]
-    assert parts[-1].endswith("CV? It's attached.")  # a natural ask, not a forced question
+    assert parts[-1].endswith("call next week?")  # a natural ask, not a forced question
     assert not errors(d.violations), d.violations
     assert d.plan["application"]["applied"] is False
     assert "snippet" in warnings(d.violations)  # the fixture's listing is one short line
@@ -130,10 +130,17 @@ def test_what_the_old_rules_blocked_is_now_allowed(job_ready: dict) -> None:  # 
     """The listing, the role, a closing that isn't a question and a short email: none of them
     is an error any more."""
     found = ac.check_plan(
-        plan(job_ready, ask="I've attached my CV."),
+        plan(job_ready, ask="Would you be open to a quick call?"),
         ctx_for(job_ready, job_text=f"Data Engineer\n{RESIDENCY} We build data pipelines."))
     assert errors(found) == set(), found
     assert "length" in warnings(found)  # the 90-170 range is a warning, never a block
+
+
+@pytest.mark.parametrize("ask", ["I've attached my CV.", "Please find my CV attached.",
+                                 "I have attached my resume.", "Mon CV est ci-joint."])
+def test_attachment_wording_is_a_blocking_error(job_ready: dict, ask: str) -> None:  # noqa: F811
+    found = ac.check_plan(plan(job_ready, ask=ask), ctx_for(job_ready))
+    assert "attachment" in errors(found), found
 
 
 def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dict) -> None:  # noqa: F811
@@ -476,5 +483,5 @@ def test_a_signal_or_company_fact_may_use_the_words(job_ready: dict) -> None:  #
     # an edited email: the paragraph that carries the company fact is left alone, the rest is not
     text = ac.body(say)
     assert "visa_disclaimer_banned" not in {v["type"] for v in ac.check_text("Role", text, ctx)}
-    edited = text.replace("It's attached.", "It's attached. I need a visa.")
+    edited = text.replace("next week?", "next week? I need a visa.")
     assert "visa_disclaimer_banned" in errors(ac.check_text("Role", edited, ctx))

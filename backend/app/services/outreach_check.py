@@ -32,6 +32,22 @@ DEFAULT_MAX_WORDS = 150
 DUPLICATE_THRESHOLD = 0.5  # 3-word shingle overlap with a draft to someone else
 
 
+# Emails go out as plain text with nothing attached: wording that points at a file is an error.
+_ATTACHMENT = re.compile(
+    r"\b(?:attach(?:ed|ing|es|ment|ments)?|enclosed|(?:please )?find (?:my|the) (?:cv|resume|"
+    r"r[ée]sum[ée])|ci-joint\w*|en pi[èe]ce jointe|pi[èe]ces? jointes?|im anhang|anbei|"
+    r"angeh[äa]ngt)\b", re.I)
+
+
+def attachment_violations(text: str) -> list[dict[str, str]]:
+    """Blocking: any mention of an attached CV or file (the message has no attachment)."""
+    match = _ATTACHMENT.search(text or "")
+    if not match:
+        return []
+    return [violation("attachment", f"“{match.group(0)}”: the email is plain text with no "
+                      "attachment, so it can't point at one", "body", "error")]
+
+
 def words(text: str) -> list[str]:
     return re.findall(r"[\wÀ-ÿ'’-]+", text)
 
@@ -118,6 +134,7 @@ def lint(subject: str, greeting: str, body_parts: list[str], ask: str | None,
     out: list[dict[str, str]] = []
     everything = " ".join([subject, greeting, *body_parts, ask or ""])
     folded = fold(everything)
+    out += attachment_violations(everything)
     n_words = len(words(" ".join([greeting, *body_parts, ask or ""]))) + ctx.extra_words
     if n_words > ctx.max_words:
         out.append(violation("length", f"{n_words} words (limit {ctx.max_words})", "body",

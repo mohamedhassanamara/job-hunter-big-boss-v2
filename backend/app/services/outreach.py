@@ -9,7 +9,6 @@ signature and the opt-out line come from Settings → Email and are added at pre
 import re
 import threading
 import time
-from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Engine
@@ -48,7 +47,7 @@ from app.services.cv_pool import Pool, load_pool, prompt_pool, years_facts
 
 DEFAULT_OUTREACH: dict[str, Any] = {
     # The signature ends with your name; the contact line (title, email, LinkedIn) is opt-in:
-    # the attached CV already carries your contacts.
+    # nothing is attached, so the signature carries your links.
     "signature": {"name": "", "title": "", "email": "", "phone": "", "photo_path": "",
                   "linkedin": "", "show_phone": False, "show_contacts": False},
     "sign_off": "Best regards,",
@@ -107,7 +106,7 @@ def approved_cv(s: Session, app: Application) -> CVVersion | None:
 
 
 def cv_pool_subset(pool: Pool, cv: CVVersion) -> dict[str, Any]:
-    """The experience items that are on the CV being attached (what the email may cite)."""
+    """The experience items that are on the CV the email is written from (what it may cite)."""
     plan = CVPlan.model_validate((cv.plan or {}).get("plan") or {})
     ids = {e.item_id for e in [*plan.roles, *plan.projects, *plan.volunteering]}
     ids |= {g.item_id for g in plan.skills} | set(plan.certification_ids) | set(plan.education_ids)
@@ -345,8 +344,7 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
                 raise OutreachError(f"{contact.full_name} has no email address")
             cv = approved_cv(s, app)
             if cv is None:
-                raise OutreachError("Approve the CV first: the email is written from it and "
-                                    "attaches it")
+                raise OutreachError("Approve the CV first: the email is written from it")
             pool = load_pool(s)
             request = build_request(s, app, job, company, contact, cv, pool)
             ctx = _context(s, app, job, company, contact, pool)
@@ -379,7 +377,7 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
                 body=body, model=drafter.model, cv_version_id=cv.id,
-                plan={"plan": plan.model_dump(), "attempts": attempts,
+                plan={"delivery": "text", "plan": plan.model_dump(), "attempts": attempts,
                       "application_mention": mention,
                       "language": request.rules.get("language"),
                       "via": getattr(drafter, "via", "mock"),
@@ -428,8 +426,7 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
                 raise OutreachError(f"{contact.full_name} has no email address")
             cv = approved_cv(s, app)
             if cv is None:
-                raise OutreachError("Approve the CV first: the email is written from it and "
-                                    "attaches it")
+                raise OutreachError("Approve the CV first: the email is written from it")
             choice = language_choice(s, job, app, language)
             language = choice.language
             company_id = company.id
@@ -491,7 +488,8 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
                 body=ic.body(plan, intro), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
-                plan={"format": "intro", "mode": "speculative", "plan": plan.model_dump(),
+                plan={"delivery": "text", "format": "intro", "mode": "speculative",
+                      "plan": plan.model_dump(),
                       "attempts": attempts, "intro_line": intro, "language": language,
                       "language_choice": choice.as_dict(),
                       "signal_ids": plan.hook.signal_ids, "signals": signals,
@@ -539,9 +537,6 @@ def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[An
         raise OutreachError("The contact has no email address")
     if reason := dnc.blocked_reason(s, contact):
         raise OutreachError(f"Do not contact: {reason}")
-    cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
-    if cv is None or cv.status != CVStatus.approved:
-        raise OutreachError("The CV this email was written from is no longer approved")
     state = verifier.state(draft.verification, verifier.email_text(s, draft),
                            verifier.pool_stamp(s))
     ignored = [{"type": v.get("type"), "severity": v.get("severity"), "message": v.get("message")}
@@ -556,8 +551,7 @@ def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[An
     draft.unverified_approval = {
         "at": utcnow().isoformat(), "ignored": ignored,
         "hash": verifier.text_hash(verifier.email_text(s, draft)),
-        "attachment_sha256": verifier.email_attachment(s, draft),
-        "contact_id": contact.id, "recipient": contact.email, "cv_version_id": cv.id,
+        "contact_id": contact.id, "recipient": contact.email,
         "verification_state": state}
     draft.status = DraftStatus.approved
     s.add(draft)
@@ -873,8 +867,7 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 raise OutreachError(f"{contact.full_name} has no email address")
             cv = approved_cv(s, app)
             if cv is None:
-                raise OutreachError("Approve the CV first: the email is written from it and "
-                                    "attaches it")
+                raise OutreachError("Approve the CV first: the email is written from it")
             choice = language_choice(s, job, app, language)
             language = choice.language
             pool = load_pool(s)
@@ -920,7 +913,8 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 subject=ac.subject_line(plan.role, ctx.candidate_name, language),
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
-                plan={"format": "applied", "mode": "applied", "plan": plan.model_dump(),
+                plan={"delivery": "text", "format": "applied", "mode": "applied",
+                      "plan": plan.model_dump(),
                       "attempts": attempts, "language": language,
                       "language_choice": choice.as_dict(),
                       "signal_ids": plan.signal.signal_ids,
@@ -954,35 +948,13 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
 
 def outgoing(s: Session, engine: Engine, draft: OutreachDraft, *, to: str | None = None,
              test: bool = False) -> OutgoingEmail:
-    """The email exactly as it will go out, with the approved CV attached."""
-    from app.services.cv_service import download_name, ensure_pdf
-
-    cv = s.get(CVVersion, draft.cv_version_id) if draft.cv_version_id else None
-    if cv is None or cv.status != CVStatus.approved:
-        raise OutreachError("The CV this email was written from is no longer approved; "
-                            "regenerate the email")
-    pdf = ensure_pdf(engine, cv)
-    if pdf is None:
-        raise OutreachError("The CV PDF couldn't be rendered")
+    """The email exactly as it will go out: text/plain, no attachment, no image."""
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     recipient = to or (contact.email if contact else None)
     if not recipient:
         raise OutreachError("No recipient email address")
-    cfg = outreach_settings(s)
-    body = full_body(s, draft)
-    photo = (cfg["signature"].get("photo_path") or "").strip()
-    html = None
-    images: dict[str, str] = {}
-    if photo and Path(photo).exists():
-        import html as h
-
-        paragraphs = "".join(f"<p>{h.escape(p).replace(chr(10), '<br>')}</p>"
-                             for p in body.split("\n\n"))
-        html = f'{paragraphs}<p><img src="cid:signature-photo" width="72" alt=""></p>'
-        images["signature-photo"] = photo
     return OutgoingEmail(to=recipient, subject=("[TEST] " if test else "") + draft.subject,
-                         body=body, html=html, attachment_path=str(pdf),
-                         attachment_name=download_name(s, cv), inline_images=images)
+                         body=full_body(s, draft))
 
 
 def own_address(s: Session) -> str:
@@ -1000,7 +972,7 @@ def test_send(engine: Engine, draft_id: int, mailer: Mailer) -> SendLog:
             raise OutreachError("Set your Gmail address in Settings → Email first")
         email = outgoing(s, engine, draft, to=to, test=True)
         log = SendLog(draft_id=draft.id, kind="test", to=to, subject=email.subject,
-                      status="sent", attachment=email.attachment_name)
+                      status="sent")
         try:
             log.message_id = mailer.send(email)
             draft.test_sent_at = utcnow()

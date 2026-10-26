@@ -34,7 +34,7 @@ export function ApproveUnverifiedDialog({
             <h2 className="text-md font-semibold tracking-tight">Approve without verification</h2>
             <p className="text-sm text-fg-muted">
               This draft only: the Claude claim verifier and the blocking checks are skipped. It is marked “approved without verification” with today’s date and the list below. Before it is sent, the
-              exact text, the attached CV, the contact and the CV version must still be what you approve now.
+              exact text and the contact must still be what you approve now.
             </p>
           </div>
           {issues.length === 0 ? (
