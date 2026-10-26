@@ -139,3 +139,76 @@ def test_no_summary_is_retried_once_then_fails_and_is_never_a_snippet() -> None:
         _empty_plan(), pool, request, gen)  # type: ignore[arg-type]
     assert plan.summary == "Software Engineer at Reality Sports." and gen.calls == 1
     assert report["attempts"] == 2 and not any(i["type"] == "summary_fallback" for i in issues)
+
+
+# ------------------------------------------------------- HTTP 402: the daily check-in
+
+
+def _client_402():  # noqa: ANN202
+    import httpx
+
+    from app.providers.apinex_client import APInexClient, RollingRateLimiter
+
+    body = {"error": {"message": "Daily check-in required to use free models."}}
+    return APInexClient(
+        api_key="k", sleep_fn=lambda s: None,
+        limiter=RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None),
+        transport=httpx.MockTransport(lambda request: httpx.Response(402, json=body)))
+
+
+def test_a_402_is_remembered_shown_and_cleared_without_calling_apinex(client) -> None:  # noqa: ANN001
+    from app.providers.base import QuotaExceeded
+
+    assert client.get("/api/scoring/apinex").json()["needs_checkin"] is False
+    with pytest.raises(QuotaExceeded, match="daily check-in"):
+        _client_402().complete_sync("s", "u")
+    seen = client.get("/api/scoring/apinex").json()
+    assert seen["needs_checkin"] is True and "check-in" in seen["message"]
+    assert seen["url"].startswith("https://apinex.bond/")
+    assert client.post("/api/scoring/apinex/checked-in").json()["needs_checkin"] is False
+
+
+def test_a_good_apinex_answer_clears_the_notice(client) -> None:  # noqa: ANN001
+    import httpx
+
+    from app.providers.apinex_client import APInexClient, RollingRateLimiter
+    from app.providers.base import QuotaExceeded
+
+    with pytest.raises(QuotaExceeded):
+        _client_402().complete_sync("s", "u")
+    answer = {"choices": [{"message": {"content": "{\"ok\": 1}"}}]}
+    ok = APInexClient(api_key="k", sleep_fn=lambda s: None,
+                      limiter=RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None),
+                      transport=httpx.MockTransport(lambda r: httpx.Response(200, json=answer)))
+    assert ok.complete_sync("s", "u") == {"ok": 1}
+    assert client.get("/api/scoring/apinex").json()["needs_checkin"] is False
+
+
+def test_a_402_on_the_cv_is_a_single_non_retryable_failure_with_the_retry_panel() -> None:
+    gen = APInexCVGenerator(client=_client_402())  # type: ignore[arg-type]
+    with pytest.raises(GenerationFailed) as err:
+        gen.generate(REQUEST)
+    assert err.value.retryable is False and "check-in" in str(err.value)
+    with pytest.raises(GenerationFailed) as err2:
+        gen.generate_summary(REQUEST, "")
+    assert err2.value.retryable is False  # the background worker marks it failed once, no loop
+
+
+def test_generate_with_gemini_is_a_one_shot_choice_and_never_automatic(seeded: None) -> None:
+    from sqlmodel import Session
+
+    from app.db import engine
+    from app.services import model_choice
+
+    with Session(engine) as s:
+        pick = model_choice.choice(s, "cv", "gemini")
+        assert pick["provider"] == "gemini" and pick["model"].startswith("gemini-")
+        assert model_choice.choice(s, "cv")["provider"] == "apinex"  # the setting is unchanged
+
+
+def test_the_cv_endpoints_accept_only_known_one_shot_choices(client) -> None:  # noqa: ANN001
+    app_id = client.get("/api/applications").json()[0]["id"]
+    assert client.post(f"/api/applications/{app_id}/cv/generate",
+                       json={"use": "gpt"}).status_code == 422
+    cv_id = client.get("/api/jobs?stage=all").json()["items"][0]["id"]  # any id: validated first
+    assert client.post(f"/api/cv/{cv_id}/summary", json={"use": "gpt"}).status_code in (404, 422)

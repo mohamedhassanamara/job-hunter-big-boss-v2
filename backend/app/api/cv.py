@@ -95,7 +95,7 @@ def generate_cv(
     the one-page fit loop in code."""
     get_or_404(session, Application, app_id, "Application")
     if body.use not in model_choice.USES:
-        raise HTTPException(422, "use must be empty or 'claude'")
+        raise HTTPException(422, "use must be empty, 'claude' or 'gemini'")
     generator = _generator(session, engine, workspace, body.use)
     try:
         version = cv_service.generate(engine, app_id, generator, body.template,
@@ -109,7 +109,10 @@ def generate_cv(
 
 def _generator(session: Session, engine, workspace: str, use: str | None = None):  # noqa: ANN001, ANN202
     """The CV generator from Settings → Models (`use="claude"`: this call only)."""
-    pick = model_choice.choice(session, "cv", use)
+    try:
+        pick = model_choice.choice(session, "cv", use)
+    except ValueError as exc:  # "gemini" while Gemini is paused
+        raise HTTPException(409, str(exc)) from exc
     return cv_generator(mock=True if workspace == "demo" else None, model=pick["model"],
                         thinking_level=pick["thinking_level"], engine=engine)
 
@@ -143,13 +146,20 @@ def cv_pdf(cv_id: int, session: SessionDep, engine: EngineDep, download: bool = 
                         headers={"Cache-Control": "no-store, max-age=0"})
 
 
+def _use(body: "SummaryIn | None") -> str | None:
+    use = body.use if body else None
+    if use not in model_choice.USES:
+        raise HTTPException(422, "use must be empty, 'claude' or 'gemini'")
+    return use
+
+
 @router.post("/cv/{cv_id}/summary", response_model=CVVersionOut)
 def regenerate_summary(cv_id: int, session: SessionDep, engine: EngineDep,
                        workspace: WorkspaceDep, body: SummaryIn | None = None) -> CVVersionOut:
     """New summary for a draft, written by the CV model from Settings → Models; bullets and layout
     stay as they are. With `feedback` the model edits the current summary toward it."""
     get_or_404(session, CVVersion, cv_id, "CV version")
-    generator = _generator(session, engine, workspace)
+    generator = _generator(session, engine, workspace, _use(body))
     try:
         v = cv_service.regenerate_summary(engine, cv_id, generator, body.feedback if body else None)
     except cv_service.CVError as exc:
@@ -162,7 +172,7 @@ def revise_summary(cv_id: int, session: SessionDep, engine: EngineDep,
                    workspace: WorkspaceDep, body: SummaryIn | None = None) -> CVVersionOut:
     """A corrected draft of an approved CV: same bullets and layout, a new summary."""
     get_or_404(session, CVVersion, cv_id, "CV version")
-    generator = _generator(session, engine, workspace)
+    generator = _generator(session, engine, workspace, _use(body))
     try:
         v = cv_service.revise_summary(engine, cv_id, generator, body.feedback if body else None)
     except cv_service.CVError as exc:

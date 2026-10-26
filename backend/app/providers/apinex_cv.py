@@ -21,6 +21,7 @@ from app.providers.base import (
     PlanExtra,
     PlanProject,
     PlanSkillGroup,
+    QuotaExceeded,
     SummaryDraft,
     SummarySentence,
     plan_from_draft,
@@ -56,7 +57,8 @@ class APInexCVGenerator:
             if isinstance(exc, CVGenerationFailed):
                 raise
             log.exception("APInex 2-pass CV generation failed: %s", exc)
-            raise GenerationFailed(f"CV generation failed on {self.model}: {exc}") from exc
+            raise GenerationFailed(f"CV generation failed on {self.model}: {exc}",
+                                   retryable=not isinstance(exc, QuotaExceeded)) from exc
 
     def _run_pass1_planner(self, request: CVRequest) -> dict[str, Any]:
         """Pass 1: Fast structural selection of roles, projects, and skills."""
@@ -424,7 +426,8 @@ class APInexCVGenerator:
         try:
             res = self.client.complete_sync(system_prompt, user_prompt, model=self.model)
         except Exception as exc:
-            raise GenerationFailed(f"Summary generation failed on {self.model}: {exc}") from exc
+            raise GenerationFailed(f"Summary generation failed on {self.model}: {exc}",
+                                   retryable=not isinstance(exc, QuotaExceeded)) from exc
         sentences = [
             SummarySentence(text=s.get("text", "").strip(), citations=s.get("citations", []))
             for s in res.get("summary_sentences", []) if isinstance(s, dict) and s.get("text")

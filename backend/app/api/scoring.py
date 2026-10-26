@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import col, select
 
-from app.api.deps import SessionDep, WorkspaceDep, get_or_404
+from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.config import get_settings
 from app.db import engine_for
 from app.models import Company, FitScore, Job
@@ -26,7 +26,7 @@ from app.schemas.scoring import (
     ScoringHealth,
     ScoringStatus,
 )
-from app.services import gemini_keys, open_jobs, scoring
+from app.services import apinex_status, gemini_keys, open_jobs, scoring
 from app.services.gemini_keys import pool_for
 from app.services.listing import ListingUnavailable, fetch_full_listing, with_location_requirements
 from app.services.text import html_to_text
@@ -206,6 +206,21 @@ def rescore(body: RescoreIn, session: SessionDep, workspace: WorkspaceDep) -> En
     if queue.blocked:
         raise HTTPException(503, queue.blocked)
     return Enqueued(enqueued=added)
+
+
+@router.get("/scoring/apinex")
+def apinex_state(session: SessionDep) -> dict[str, Any]:
+    """Does the APInex gateway want the daily check-in? (Today and Settings → Models banner.)"""
+    return apinex_status.state(session)
+
+
+@router.post("/scoring/apinex/checked-in")
+def apinex_checked_in(session: SessionDep, engine: EngineDep) -> dict[str, Any]:
+    """"I checked in": clears the notice. The next real APInex call sets it again if it is still
+    refused. Nothing is called here."""
+    apinex_status.clear(engine)
+    session.expire_all()
+    return apinex_status.state(session)
 
 
 @router.post("/scoring/start", response_model=Enqueued)
