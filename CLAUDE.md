@@ -215,7 +215,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   in `app/prompts/eval_log.json`.
 - Sending: `send_queue.tick` (worker thread in the real workspace, `SEND_WORKER_ENABLED`), Gmail SMTP
   (`providers/smtp_mailer.py`, `SMTP_APP_PASSWORD` via `get_settings()`). Tests and the sandbox use `MockMailer`;
-  never send real email from tests. A test send must succeed before `resume`.
+  never send real email from tests. A test send must succeed before `resume`. Queue states change only through `send_queue.set_status` (each change is a `queue_event` row: idle/running/paused, reason, actor): an emptied (idle) queue restarts itself when an approved email is added (`enqueue`, needs a test send), a paused one never does (`paused_reason` manual or fatal).
 
 ## Tracking after the CV (services/tracking.py, api/tracking.py)
 

@@ -738,10 +738,7 @@ def get_queue(session: SessionDep) -> QueueOut:
 
 @router.post("/queue/pause", response_model=QueueOut)
 def pause_queue(session: SessionDep) -> QueueOut:
-    queue = _queue(session)
-    queue.status = QueueStatus.paused
-    queue.next_send_at = None
-    session.add(queue)
+    queue = send_queue.pause(session)
     session.commit()
     return _queue_out(session, queue)
 

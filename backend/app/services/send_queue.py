@@ -31,6 +31,7 @@ from app.models import (
     CVVersion,
     Job,
     OutreachDraft,
+    QueueEvent,
     SendLog,
     SendQueue,
     SendQueueItem,
@@ -89,6 +90,20 @@ def queue(s: Session) -> SendQueue:
     return row
 
 
+def set_status(s: Session, q: SendQueue, new: QueueStatus, reason: str | None = None,
+               actor: str = "user", now: datetime | None = None) -> None:
+    """The only writer of `queue.status`: every real change is logged as a `queue_event`."""
+    old = QueueStatus(q.status)
+    q.paused_reason = reason if new == QueueStatus.paused else None
+    if new != QueueStatus.running:
+        q.next_send_at = None
+    if old != new:
+        s.add(QueueEvent(at=now or utcnow(), from_status=old.value, to_status=new.value,
+                         reason=reason, actor=actor))
+    q.status = new
+    s.add(q)
+
+
 def pending_count(s: Session, q: SendQueue) -> int:
     return s.exec(select(func.count()).select_from(SendQueueItem).where(
         SendQueueItem.queue_id == q.id, SendQueueItem.status == QueueItemStatus.pending)).one()
@@ -110,6 +125,11 @@ def enqueue(s: Session, draft: OutreachDraft) -> bool:
         s.add(SendQueueItem(queue_id=q.id, draft_id=draft.id, position=(last or 0) + 1))
     draft.status = DraftStatus.queued
     s.add(draft)
+    # An idle queue (it emptied) starts again for the new email once a test send exists. A
+    # paused one (by you, or after a failed send) stays paused until you resume it.
+    if QueueStatus(q.status) == QueueStatus.idle and outreach.has_successful_test(s):
+        set_status(s, q, QueueStatus.running, "added", "auto_on_add")
+        q.next_send_at = utcnow()
     return True
 
 
@@ -155,7 +175,7 @@ def resume(s: Session, now: datetime | None = None) -> SendQueue:
         raise QueueError("Send one test email to yourself first (Outreach → a draft → "
                          "Send test to me), then start the queue")
     q = queue(s)
-    q.status = QueueStatus.running
+    set_status(s, q, QueueStatus.running, "resume", "user", now)
     q.next_send_at = now or utcnow()  # the first email goes out on the next tick
     s.add(q)
     return q
@@ -163,8 +183,7 @@ def resume(s: Session, now: datetime | None = None) -> SendQueue:
 
 def pause(s: Session) -> SendQueue:
     q = queue(s)
-    q.status, q.next_send_at = QueueStatus.paused, None
-    s.add(q)
+    set_status(s, q, QueueStatus.paused, "manual", "user")
     return q
 
 
@@ -251,8 +270,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
             SendQueueItem.queue_id == q.id, SendQueueItem.status == QueueItemStatus.pending)
             .order_by(col(SendQueueItem.position))).first()
         if item is None:
-            q.status, q.next_send_at = QueueStatus.idle, None
-            s.add(q)
+            set_status(s, q, QueueStatus.idle, "empty", "worker", now)
             s.commit()
             return "empty"
         draft = s.get(OutreachDraft, item.draft_id)
@@ -288,7 +306,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
             s.add(entry)
             q = queue(s)
             if fatal:
-                q.status, q.next_send_at = QueueStatus.paused, None
+                set_status(s, q, QueueStatus.paused, "fatal", "worker", now)
             else:
                 q.next_send_at = now + draw_gap(*gap_bounds(s))
             s.add(q)

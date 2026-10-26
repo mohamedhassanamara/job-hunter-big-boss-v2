@@ -68,7 +68,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'today-manual', title: 'Manual applications', body: 'Jobs without a contact go to web apply: open the listing with the approved CV, then mark it applied.', placement: 'top' },
       { target: 'today-followups', title: 'Follow-ups', body: 'No reply 7 and 14 days after applying? A follow-up shows here; snooze or dismiss it. After 30 days the app suggests closing as no response, but only your click closes anything.', placement: 'top' },
       { target: 'today-interviews', title: 'Upcoming interviews', body: 'Interview rounds scheduled in the next 14 days.', placement: 'left' },
-      { target: 'today-queue', title: 'Send queue', body: 'Approved emails go out one at a time, 15 minutes apart, at most 20 per queue. Pause anytime.', placement: 'left' },
+      { target: 'today-queue', title: 'Send queue', body: 'Approved emails go out one at a time, a random 4 to 7 minutes apart (Settings → Email), at most 20 per queue. The queue starts itself when you add an email after it emptied, and stays paused only if you pause it.', placement: 'left' },
       { target: 'today-scoring', title: 'Scoring progress', body: 'How many jobs are scored with the current prompt and model, best jobs first, and what is left of the free Gemini quota per key (separate daily quota per key, reset at midnight Pacific). When every key is used up the rest waits and carries on by itself; you can also score it right away with the Ollama cloud model.', placement: 'left' },
       { target: 'today-discovery', title: 'Discovery status', body: 'Discovery runs daily on its own. If a source fails, you see it here, not buried in logs.', placement: 'left' },
     ],
@@ -381,7 +381,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'outreach-editor', title: 'Edit freely', body: 'Edits autosave and are re-checked. Your signature and a polite opt-out line are added when it is sent, and the approved CV is attached.', placement: 'left' },
       { target: 'outreach-test-send', title: 'Test on yourself first', body: 'Sends this exact email, CV attached, to your own address with a [TEST] subject. The queue cannot start before one test went through.', placement: 'top' },
       { target: 'outreach-approve', title: 'Approve, then add to the queue', body: 'Approve marks the email Ready to send; Add to send queue is a separate step that shows its place and send time. Nothing is sent before that.', placement: 'top' },
-      { target: 'outreach-queue', title: 'Send queue', body: 'One email every 15 minutes, at most 20 per queue, pause anytime. It survives restarts; an email caught mid-send is never resent blindly. A sent email moves the job to Sent and starts the follow-up reminders.', route: '/outreach?tab=queue' },
+      { target: 'outreach-queue', title: 'Send queue', body: 'One email every 4 to 7 minutes (random, set in Settings → Email), at most 20 per queue, pause anytime. When the queue has emptied, adding an approved email starts it again (a test send must exist); a queue you paused stays paused. It survives restarts; an email caught mid-send is never resent blindly. A sent email moves the job to Sent and starts the follow-up reminders.', route: '/outreach?tab=queue' },
     ],
   },
   contacts: {
