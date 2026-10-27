@@ -9,7 +9,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useNow } from '@/hooks/useNow'
 import { absoluteDate, clockTime, relativeTime } from '@/lib/format'
-import { useQueue, useQueueControl, useQueueItemAction, useRemoveQueueItem } from '@/lib/queries/workflow'
+import { QUEUED_NOT_SENDING, useQueue, useQueueControl, useQueueItemAction, useRemoveQueueItem } from '@/lib/queries/workflow'
 import type { QueueItem } from '@/lib/types'
 
 const ITEM_STATUS: Record<QueueItem['status'], { tone: Tone; label: string }> = {
@@ -105,6 +105,13 @@ export function QueueTab() {
           ? `Real emails go out through your Gmail, as plain text, nothing attached. Every attempt is logged; a failure stops only that email (a login problem pauses the queue).`
           : `Nothing is sent until one test email reaches ${queue.own_address || 'your own address'}: open a draft and use “Send test to me”.`}
       </div>
+
+      {!running && queue.counts.pending > 0 && (
+        <div className="flex items-center gap-2 rounded-md border border-border bg-primary-subtle px-3 py-2 text-xs text-fg">
+          <Clock className="size-3.5 text-fg-subtle" />
+          {queue.status === 'paused' ? 'Paused: nothing is sending. Press Resume when you are ready.' : QUEUED_NOT_SENDING + '.'}
+        </div>
+      )}
 
       {queue.items.length === 0 ? (
         <div className="rounded-lg border border-border bg-surface shadow-sm">

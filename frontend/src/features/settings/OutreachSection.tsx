@@ -48,7 +48,7 @@ export function OutreachSection({ settings }: { settings: SettingsView }) {
         />
       }
     >
-      <Field label="Approve adds to the send queue" hint="Approving an email in Review also queues it (the queue starts itself if it had emptied and a test email was sent). Remove from queue undoes it. Approval stays a deliberate key press.">
+      <Field label="Approve adds to the send queue" hint="Approving an email in Review also adds it to the send queue. Adding never starts sending: you press Start sending. Remove from queue undoes it. Approval stays a deliberate key press.">
         <Switch checked={value.approve_adds_to_queue !== false} onCheckedChange={(v) => setValue({ ...value, approve_adds_to_queue: v })} aria-label="Approve adds to the send queue" />
       </Field>
       <Field label="Signature" hint="Empty fields use Settings → Candidate">

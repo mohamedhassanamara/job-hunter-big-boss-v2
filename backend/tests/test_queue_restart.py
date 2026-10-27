@@ -1,5 +1,5 @@
-"""An emptied (idle) send queue restarts when an approved email is added; a paused one never
-does; every state change is logged."""
+"""Adding an email never starts an idle or paused send queue (only Start sending / Resume do);
+a running one takes it; every state change is logged."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -47,8 +47,8 @@ def enqueue(draft_id: int) -> None:
         s.commit()
 
 
-def test_adding_to_an_idle_queue_starts_it_and_the_next_tick_sends(
-        job_ready: dict, fresh_queue: None) -> None:  # noqa: F811  # noqa: F811
+def test_adding_to_an_idle_queue_does_not_start_it(
+        job_ready: dict, fresh_queue: None) -> None:  # noqa: F811
     with Session(engine) as s:
         for e in s.exec(select(QueueEvent)).all():
             s.delete(e)
@@ -57,16 +57,36 @@ def test_adding_to_an_idle_queue_starts_it_and_the_next_tick_sends(
     enqueue(draft_id)
     with Session(engine) as s:
         q = send_queue.queue(s)
-        assert q.status == QueueStatus.running and q.next_send_at is not None
-        assert events(s) == [("idle", "running", "added", "auto_on_add")]
+        assert q.status == QueueStatus.idle and q.next_send_at is None
+        assert events(s) == []
     mailer = MockMailer()
+    assert send_queue.tick(engine, lambda s: mailer, datetime.now(UTC)) != "sent"
+    assert mailer.sent == []
+    # Start sending is the only way in; then the email goes out and an emptied queue idles again
+    with Session(engine) as s:
+        send_queue.resume(s, NOW)
+        s.commit()
     assert send_queue.tick(engine, lambda s: mailer, datetime.now(UTC)) == "sent"
     assert len(mailer.sent) == 1
-    # nothing left: the next tick idles the queue, and that is logged too
     later = datetime.now(UTC) + timedelta(hours=1)  # past the random gap
     assert send_queue.tick(engine, lambda s: mailer, later) == "empty"
     with Session(engine) as s:
         assert events(s)[-1] == ("running", "idle", "empty", "worker")
+    # the emptied queue stays idle when something new is added
+    enqueue(drafted(job_ready))
+    with Session(engine) as s:
+        assert send_queue.queue(s).status == QueueStatus.idle
+
+
+def test_a_running_queue_takes_new_emails(job_ready: dict, fresh_queue: None) -> None:  # noqa: F811
+    with Session(engine) as s:
+        set_test_send(s, True)
+        send_queue.resume(s, NOW)
+        s.commit()
+    enqueue(drafted(job_ready))
+    with Session(engine) as s:
+        assert send_queue.queue(s).status == QueueStatus.running
+        assert send_queue.pending_count(s, send_queue.queue(s)) == 1
 
 
 def test_without_a_test_send_the_queue_stays_idle(job_ready: dict, fresh_queue: None) -> None:  # noqa: F811
@@ -104,6 +124,8 @@ def test_a_fatal_pause_is_not_restarted_by_adding(job_ready: dict, fresh_queue: 
 
     with Session(engine) as s:
         set_test_send(s, True)
+        send_queue.resume(s, NOW)
+        s.commit()
     enqueue(drafted(job_ready))
     now = datetime.now(UTC)
     assert send_queue.tick(engine, lambda s: Refuses(), now) == "failed (queue paused)"

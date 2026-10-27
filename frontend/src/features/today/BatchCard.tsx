@@ -53,7 +53,8 @@ export function BatchCard({ queue }: { queue: Today['queue'] }) {
       </div>
       <Link to="/outreach?tab=queue" className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-fg-muted hover:text-fg">
         <Send className="size-3.5" />
-        Send queue {running ? 'running' : queue.status}: {queue.pending} waiting
+        Send queue {running ? 'running' : queue.status}: {queue.pending} {queue.pending === 1 ? 'email waits' : 'emails wait'}
+        {!running && queue.pending > 0 ? ' · not sending yet, press Start sending' : ''}
         {running && queue.next_send_at ? ` · next ${clockTime(queue.next_send_at)}` : ''}
         <ArrowRight className="ml-auto size-3.5" />
       </Link>

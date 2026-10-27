@@ -132,11 +132,8 @@ def enqueue(s: Session, draft: OutreachDraft) -> bool:
         s.add(SendQueueItem(queue_id=q.id, draft_id=draft.id, position=(last or 0) + 1))
     draft.status = DraftStatus.queued
     s.add(draft)
-    # An idle queue (it emptied) starts again for the new email once a test send exists. A
-    # paused one (by you, or after a failed send) stays paused until you resume it.
-    if QueueStatus(q.status) == QueueStatus.idle and outreach.has_successful_test(s):
-        set_status(s, q, QueueStatus.running, "added", "auto_on_add")
-        q.next_send_at = utcnow()
+    # Adding never starts or resumes the queue: an idle or paused one waits for Start sending /
+    # Resume. A running queue simply picks the new email up.
     return True
 
 

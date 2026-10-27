@@ -44,7 +44,7 @@ import { useDiscoveryAction } from '@/hooks/useDiscoveryAction'
 import { absoluteDate, clockTime, pluralize, relativeTime, shortAge, SOURCE_LABELS } from '@/lib/format'
 import { useMotivation } from '@/lib/queries/motivation'
 import { useReminderAction } from '@/lib/queries/tracking'
-import { useQueueAll, useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
+import { queuedNote, useQueueAll, useQueueControl, useQueueDraft, useSources, useToday } from '@/lib/queries/workflow'
 import { INTERVIEW_TYPE_LABELS, pct, shortDateTime } from '@/lib/tracking'
 import type { Reminder, Today } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -354,7 +354,7 @@ function EmailsCard({ data }: { data: Today }) {
                 disabled={queueAll.isPending}
                 onClick={() =>
                   queueAll.mutate(data.emails_to_queue.map((d) => d.draft_id), {
-                    onSuccess: (r) => (r.stoppedBy ? toast.warning(`Added ${r.added}, ${r.left} left`, { description: r.stoppedBy }) : toast.success(`Added ${r.added} to the send queue`)),
+                    onSuccess: async (r) => (r.stoppedBy ? toast.warning(`Added ${r.added}, ${r.left} left`, { description: r.stoppedBy }) : toast.success(`Added ${r.added} to the send queue`, { description: await queuedNote() })),
                   })
                 }
               >
@@ -370,7 +370,7 @@ function EmailsCard({ data }: { data: Today }) {
               <Button
                 size="sm"
                 onClick={() =>
-                  queueDraft.mutate(d.draft_id, { onSuccess: () => toast.success('Added to the send queue'), onError: (e) => toast.error(e.message) })
+                  queueDraft.mutate(d.draft_id, { onSuccess: async () => toast.success('Added to the send queue', { description: await queuedNote() }), onError: (e) => toast.error(e.message) })
                 }
                 disabled={queueDraft.isPending}
               >
@@ -382,6 +382,7 @@ function EmailsCard({ data }: { data: Today }) {
       )}
       <Link to="/outreach?tab=queue" className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-fg-muted hover:text-fg">
         Queue {q.status === 'running' ? 'running' : q.status}: {q.pending} waiting
+        {q.status !== 'running' && q.pending > 0 ? ' · not sending, press Start sending' : ''}
         {q.status === 'running' && q.next_send_at ? ` · next ${clockTime(q.next_send_at)}` : ''}
         <ArrowRight className="ml-auto size-3.5" />
       </Link>

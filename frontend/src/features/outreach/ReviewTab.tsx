@@ -12,7 +12,7 @@ import { useListKeyboard } from '@/hooks/useListKeyboard'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { shortAge } from '@/lib/format'
 import { useSettings } from '@/lib/queries/library'
-import { useDequeueDraft, useDraftAction, useDrafts, useQueueAll, useQueueDraft } from '@/lib/queries/workflow'
+import { useDequeueDraft, useDraftAction, useDrafts, queuedNote, useQueueAll, useQueueDraft } from '@/lib/queries/workflow'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft } from '@/lib/types'
@@ -70,7 +70,7 @@ export function ReviewTab() {
                   label: 'Add to queue',
                   onClick: () =>
                     queueDraft.mutate(d.id, {
-                      onSuccess: () => toast.success('Added to the send queue'),
+                      onSuccess: async () => toast.success('Added to the send queue', { description: await queuedNote() }),
                       onError: (e) => toast.error(e.message),
                     }),
                 },
@@ -78,15 +78,17 @@ export function ReviewTab() {
               return
             }
             queueDraft.mutate(d.id, {
-              onSuccess: () =>
+              onSuccess: async () => {
+                const note = await queuedNote()
                 toast.success('Approved and added to the send queue', {
-                  description: to,
+                  description: note ? `${to} · ${note}` : to,
                   duration: 8000,
                   action: {
                     label: 'Remove from queue',
                     onClick: () => dequeue.mutate(d.id, { onSuccess: () => toast('Removed from the queue: still approved'), onError: (e) => toast.error(e.message) }),
                   },
-                }),
+                })
+              },
               onError: (e) => toast.error(`Approved, but not queued: ${e.message}`),
             })
           } else {

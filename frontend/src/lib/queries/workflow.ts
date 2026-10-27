@@ -272,6 +272,19 @@ export function useOutreachStep(appId: number | undefined) {
   })
 }
 
+/** Shown after adding to the queue: adding never starts it, so say so unless it already runs. */
+export const QUEUED_NOT_SENDING = 'Queued, not sending yet. Press Start sending'
+
+/** The note for the toast after an add: undefined when the queue is running (the email joins it). */
+export async function queuedNote(): Promise<string | undefined> {
+  try {
+    const q = await api.get<Queue>('/queue')
+    return q.status === 'running' ? undefined : q.status === 'paused' ? 'Queued, queue is paused. Press Resume' : QUEUED_NOT_SENDING
+  } catch {
+    return undefined
+  }
+}
+
 export function useQueueDraft() {
   const qc = useQueryClient()
   return useMutation({
