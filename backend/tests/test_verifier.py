@@ -11,7 +11,6 @@ from sqlmodel import Session
 from app.db import engine
 from app.models import Contact, OutreachDraft
 from app.models.base import utcnow
-from app.models.enums import DraftStatus
 from app.providers.base import DraftFailed, VerifyClaim, VerifyPlan
 from app.services import outreach, verifier
 from tests.test_outreach import Script, good_plan, job_ready  # noqa: F401 (fixture)
@@ -103,55 +102,44 @@ def _ready_draft(info: dict) -> int:
     return draft.id
 
 
-def test_approval_runs_the_verifier_and_blocks_on_a_bad_claim(job_ready: dict, client,  # noqa: F811, ANN001
-                                                              monkeypatch) -> None:  # noqa: ANN001
+def test_approval_never_calls_the_verifier(job_ready: dict, client,  # noqa: F811, ANN001
+                                           monkeypatch) -> None:  # noqa: ANN001
     draft_id = _ready_draft(job_ready)
     bad = Scripted(VerifyPlan(claims=[claim("Subject", "exaggerated", reason="one junior only")]))
     monkeypatch.setattr(verifier, "for_workspace", lambda s, w: bad)
-    r = client.post(f"/api/outreach/drafts/{draft_id}/approve")
-    assert r.status_code == 409 and "don't hold" in r.json()["detail"]
-    shown = client.get(f"/api/outreach/drafts/{draft_id}").json()
-    assert shown["verification_state"] == "failed" and shown["status"] == "draft"
-    assert shown["verification"]["claims"][0]["verdict"] == "exaggerated"
-    # Only the final text and its sources reach the verifier: never the drafting prompt.
-    request = bad.calls[0]
-    assert set(request) == {"kind", "text", "sources"}
-    assert request["text"].startswith("Subject: ") and "Best regards," in request["text"]
-    assert any(k.startswith("pool:") for k in request["sources"]) and "facts" in \
-        request["sources"]
-
-
-def test_approval_passes_then_an_edit_makes_it_verify_again(job_ready: dict, client,  # noqa: F811, ANN001
-                                                            monkeypatch) -> None:  # noqa: ANN001
-    draft_id = _ready_draft(job_ready)
-
-    class AllGood(Scripted):
-        def verify(self, request: dict) -> VerifyPlan:
-            self.calls.append(request)
-            return VerifyPlan(claims=[VerifyClaim(sentence=x, claim=x, about="other",
-                                                  verdict="not_a_claim")
-                                      for x in verifier.sentences(request["text"])])
-
-    good = AllGood(VerifyPlan())
-    monkeypatch.setattr(verifier, "for_workspace", lambda s, w: good)
-    checked = client.post(f"/api/outreach/drafts/{draft_id}/verify").json()
-    assert checked["verification_state"] == "passed" and len(good.calls) == 1
-    client.patch(f"/api/outreach/drafts/{draft_id}", json={"subject": "A new subject"})
-    assert client.get(f"/api/outreach/drafts/{draft_id}").json()["verification_state"] == "stale"
     approved = client.post(f"/api/outreach/drafts/{draft_id}/approve")
     assert approved.status_code == 200 and approved.json()["status"] == "approved"
-    assert len(good.calls) == 2  # the edited text was verified again at approval
-    with Session(engine) as s:
-        assert s.get(OutreachDraft, draft_id).status == DraftStatus.approved
+    assert bad.calls == []  # no model verdict gates an approval
 
 
-def test_a_verifier_error_blocks_approval(job_ready: dict, client, monkeypatch) -> None:  # noqa: F811, ANN001
+def test_review_gets_the_body_and_its_sources_and_a_failing_reviewer_still_answers_200(
+        job_ready: dict, client, monkeypatch) -> None:  # noqa: F811, ANN001
+    from app.providers.gemini_review import DraftReview
+
     draft_id = _ready_draft(job_ready)
-    monkeypatch.setattr(verifier, "for_workspace",
-                        lambda s, w: Scripted(DraftFailed("Claude is authenticated with an API "
-                                                          "key")))
-    r = client.post(f"/api/outreach/drafts/{draft_id}/approve")
-    assert r.status_code == 409 and "couldn't run" in r.json()["detail"]
+    seen: list[dict] = []
+
+    class Reviewer:
+        model = "rev"
+
+        def review(self, request: dict) -> tuple[DraftReview, str]:
+            seen.append(request)
+            return DraftReview(feedback="Tighten the opening.", suggestions="Lead with Kafka.",
+                               has_unverified_claims=True), ""
+
+    monkeypatch.setattr("app.api.outreach.reviewer_provider", lambda **kw: Reviewer())
+    out = client.post(f"/api/outreach/drafts/{draft_id}/review").json()
+    assert out["has_unverified_claims"] is True and out["feedback"] == "Tighten the opening."
+    assert set(seen[0]) == {"kind", "text", "sources"} and "Subject:" not in seen[0]["text"]
+    assert any(k.startswith("pool:") for k in seen[0]["sources"])
+
+    class Broken(Reviewer):
+        def review(self, request: dict) -> tuple[DraftReview, str]:
+            return DraftReview(), "Gemini is paused"
+
+    monkeypatch.setattr("app.api.outreach.reviewer_provider", lambda **kw: Broken())
+    r = client.post(f"/api/outreach/drafts/{draft_id}/review")
+    assert r.status_code == 200 and r.json()["error"] == "Gemini is paused"
 
 
 def test_the_claude_call_is_isolated_and_gets_only_text_and_sources() -> None:

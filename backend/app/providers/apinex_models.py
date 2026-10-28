@@ -1,13 +1,19 @@
 """Which model ids belong to the APInex gateway. One definition for every routing decision.
 
-APInex is valid for fit scoring and the CV only. Email, letters, interview prep, the Copilot's
-rewrite, the claim verifier and everything else that runs through `claude -p` reject it before
-any call (`reject`).
+APInex serves fit scoring, the CV, letters, the Copilot, research, and (by the user's choice) the
+email and LinkedIn drafter (`DRAFT_MODEL`). The constructive draft reviewer is Google Gemini.
+Interview prep, the rewrite, Ask Claude, the claim verifier and everything else that runs through
+`claude -p` reject it before any call (`reject`).
 """
+
+# Email + LinkedIn drafting. The `free/` prefix is the gateway's free tier: without it the gateway
+# answers 402 "Insufficient balance".
+DRAFT_MODEL = "free/gemini-3.8-flash"
 
 
 def is_apinex(model: str | None) -> bool:
-    """`free/*` gateway ids (e.g. `free/minimax-m3.1-flash`), a bare `minimax*` id, or `apinex`."""
+    """`free/*` gateway ids (e.g. `free/minimax-m3.1-flash`, `free/gemini-3.8-flash`), a bare
+    `minimax*` id, or `apinex`. A bare `gemini-*` id is Google's."""
     m = (model or "").strip().lower()
     return m.startswith(("free/", "minimax")) or m == "apinex"
 

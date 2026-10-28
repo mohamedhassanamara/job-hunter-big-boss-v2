@@ -556,6 +556,16 @@ export interface Draft {
   unverified_approval: UnverifiedApproval | null
 }
 
+/** The reviewer's feedback on a draft (advice only; mirrors `DraftReviewOut`). */
+export interface DraftReview {
+  feedback: string
+  suggestions: string
+  revised_body: string
+  has_unverified_claims: boolean
+  model: string
+  error: string
+}
+
 export interface UnverifiedApproval {
   at: string
   ignored: { type: string; severity: 'error' | 'warning'; message: string }[]

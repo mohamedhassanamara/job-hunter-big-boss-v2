@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api, qs } from '@/lib/api'
 import type {
+  DraftReview,
   HeaderPreviewRow,
   HeaderResult,
   CVLeftOut,
@@ -527,12 +528,10 @@ export function usePasteDescription() {
   })
 }
 
-/** Check every claim of the email now (Claude, ~20-60 s), without approving. */
-export function useVerifyDraft() {
-  const qc = useQueryClient()
+/** Constructive feedback on the email (the reviewer model). Advice only: nothing is stored or blocked. */
+export function useReviewDraft() {
   return useMutation({
-    mutationFn: (id: number) => api.post<Draft>(`/outreach/drafts/${id}/verify`),
-    onSettled: () => invalidateWork(qc),
+    mutationFn: (id: number) => api.post<DraftReview>(`/outreach/drafts/${id}/review`),
   })
 }
 
@@ -542,15 +541,6 @@ export function useDraftHistory(appId: number | undefined) {
     queryKey: ['draft-history', appId],
     queryFn: () => api.get<DraftHistoryItem[]>(`/applications/${appId}/draft/history`),
     enabled: appId !== undefined,
-  })
-}
-
-/** Approve THIS draft without the claim verifier or the blocking checks (the dialog lists them). */
-export function useApproveUnverified() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => api.post<Draft>(`/outreach/drafts/${id}/approve-unverified`, { confirm: true }),
-    onSettled: () => invalidateWork(qc),
   })
 }
 

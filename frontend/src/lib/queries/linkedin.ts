@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
+import type { DraftReview, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
 import { invalidateWork } from './keys'
 
 export function useLinkedInLinks(remote: boolean, easy: boolean) {
@@ -82,9 +82,11 @@ export function useEditLinkedIn(appId: number) {
   )
 }
 
-/** Check every claim of the note or follow-up (Claude): Copy unlocks when it passes. */
-export function useVerifyLinkedIn(appId: number) {
-  return usePersonMutation(appId, ({ id, kind }: { id: number; kind: 'note' | 'followup' | 'inmail' }) => api.post<LinkedInPerson>(`/linkedin/people/${id}/verify?kind=${kind}`))
+/** Constructive feedback on a note, follow-up or InMail (the reviewer model): Copy unlocks once you have asked. */
+export function useReviewLinkedIn() {
+  return useMutation({
+    mutationFn: ({ id, kind }: { id: number; kind: 'note' | 'followup' | 'inmail' }) => api.post<DraftReview>(`/linkedin/people/${id}/review?kind=${kind}`),
+  })
 }
 
 export function useLinkedInStatus(appId: number) {

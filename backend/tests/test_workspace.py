@@ -96,3 +96,23 @@ def test_ensure_defaults_restores_a_deleted_key_when_models_exists(client: TestC
     with Session(engine) as s:  # a fresh session: the row must be committed, not just added
         row = s.exec(select(AppSetting).where(AppSetting.key == "generation")).one()
     assert row.value == {"auto_cv": True, "auto_email": True}
+
+
+def test_ensure_defaults_prefixes_a_stored_bare_gemini_id(client: TestClient) -> None:
+    from sqlmodel import Session, select
+
+    from app.db import engine
+    from app.models import AppSetting
+    from app.seed.seed import ensure_defaults
+
+    with Session(engine) as s:
+        row = s.exec(select(AppSetting).where(AppSetting.key == "models")).one()
+        row.value = {**row.value, "email": {"provider": "apinex", "model": "gemini-3.8-flash"},
+                     "linkedin": {"provider": "apinex", "model": "claude-sonnet-5"}}
+        s.add(row)
+        s.commit()
+    ensure_defaults(engine)
+    with Session(engine) as s:
+        value = s.exec(select(AppSetting).where(AppSetting.key == "models")).one().value
+    assert value["email"]["model"] == "free/gemini-3.8-flash"
+    assert value["linkedin"]["model"] == "claude-sonnet-5"  # a deliberate choice is kept

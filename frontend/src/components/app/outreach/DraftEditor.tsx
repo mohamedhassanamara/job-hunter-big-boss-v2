@@ -1,12 +1,13 @@
 import { useSyncFromServer } from '@/hooks/useSyncFromServer'
-import { CircleCheck, CircleX, FileText, ListPlus, Mail, RefreshCw, RotateCcw, Send, ShieldOff, TriangleAlert, X } from 'lucide-react'
+import { CircleCheck, CircleX, FileText, ListPlus, Mail, MessageSquareText, RefreshCw, RotateCcw, Send, TriangleAlert, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { FitBadge, ToneBadge } from '@/components/app/badges'
 import { ContactAlertBanner } from '@/components/app/ContactAlertBanner'
-import { ApproveUnverifiedDialog, UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
+import { UnverifiedBadge } from '@/components/app/outreach/ApproveUnverifiedDialog'
+import { ReviewPanel } from '@/components/app/review/ReviewPanel'
 import { RegenerateDialog } from '@/components/app/RegenerateDialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -16,8 +17,8 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useApproveUnverified, useDraftAction, useDraftHistory, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend, useVerifyDraft } from '@/lib/queries/workflow'
-import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
+import { useDraftAction, useDraftHistory, useDraftRun, useMentionApplication, useQueueDraft, useReviewDraft, useSaveDraft, useTestSend } from '@/lib/queries/workflow'
+import { emailKey, emailText, markReviewed, reviewFor, useReviewVersion } from '@/lib/reviewGate'
 import { DRAFT_STATUS } from '@/lib/outreach'
 import type { Draft, EmailScenario, Persona, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -219,7 +220,7 @@ export function DraftEditor({
 }: {
   draft: Draft
   onApprove: () => void
-  /** Approval is running: Claude checks every claim first (up to a minute). */
+  /** Approval is running (saving the decision). */
   approving?: boolean
   onReject: () => void
   /** On the job page the Contact card carries the full "may have left" warning. */
@@ -231,10 +232,9 @@ export function DraftEditor({
   const testSend = useTestSend()
   const queueDraft = useQueueDraft()
   const mention = useMentionApplication()
-  const verify = useVerifyDraft()
-  const approveUnverified = useApproveUnverified()
+  const reviewDraft = useReviewDraft()
+  useReviewVersion()
   const [regenOpen, setRegenOpen] = useState(false)
-  const [unverifiedOpen, setUnverifiedOpen] = useState(false)
   const errors = draft.violations.filter((v) => v.severity === 'error')
   const added = draft.full_body.slice(draft.body.trim().length).trim()
   const [subject, setSubject] = useState(draft.subject)
@@ -244,6 +244,8 @@ export function DraftEditor({
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const timer = useRef<number | undefined>(undefined)
   const editable = draft.status === 'draft'
+  // hasCheckedClaims: true only for this exact text after Review draft; any edit (or a new draft) resets it.
+  const { review, reviewed: hasCheckedClaims } = reviewFor(emailKey(draft.id), emailText(subject, body))
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
@@ -262,6 +264,17 @@ export function DraftEditor({
         },
       )
     }, 700)
+  }
+
+  const runReview = () =>
+    reviewDraft.mutate(draft.id, {
+      onSuccess: (r) => markReviewed(emailKey(draft.id), emailText(subject, body), r),
+      onError: (e) => toast.error(e.message),
+    })
+
+  const applySuggestion = (revised: string) => {
+    setBody(revised)
+    queueSave({ body: revised })
   }
 
   return (
@@ -358,16 +371,7 @@ export function DraftEditor({
           />
         )}
         {draft.status === 'draft' && <Checks violations={draft.violations} contactFlagged={draft.contact_alerts.length > 0} />}
-        {(draft.status === 'draft' || draft.status === 'approved' || draft.status === 'queued') && (
-          <ClaimCheck
-            verification={draft.verification}
-            state={approving ? 'none' : draft.verification_state}
-            verifying={verify.isPending || approving}
-            gate="approval"
-            fixTarget={editable && saveState !== 'saving' ? { kind: 'email', id: draft.id } : undefined}
-            onVerify={editable && errors.length === 0 ? () => verify.mutate(draft.id, { onError: (e) => toast.error(e.message) }) : undefined}
-          />
-        )}
+        {editable && review && <ReviewPanel review={review} stale={!hasCheckedClaims} onApply={applySuggestion} />}
         {draft.format === 'intro' && (
           <div className="space-y-1.5 rounded-md border border-border bg-surface px-3 py-2 text-sm" data-tour="outreach-signals">
             <p className="text-xs font-medium text-fg-subtle">
@@ -491,11 +495,11 @@ export function DraftEditor({
                 {testSend.isPending ? 'Sending…' : 'Send test to me'}
               </Button>
               <div className="basis-full" aria-hidden />
-              <Tooltip content="Skips the claim verifier and the blocking checks for this draft only; you confirm what is ignored">
+              <Tooltip content={saveState === 'saving' ? 'Wait for your edits to save' : 'Feedback on this exact text from the reviewer model. Advice only: it never blocks approval'}>
                 <span>
-                  <Button variant="outline" onClick={() => setUnverifiedOpen(true)} disabled={approving || verify.isPending || approveUnverified.isPending}>
-                    <ShieldOff />
-                    Approve without verification
+                  <Button variant="outline" onClick={runReview} disabled={reviewDraft.isPending || saveState === 'saving' || errors.length > 0} data-tour="outreach-review-button">
+                    <MessageSquareText className={reviewDraft.isPending ? 'animate-pulse' : undefined} />
+                    {reviewDraft.isPending ? 'Reviewing…' : 'Review draft'}
                   </Button>
                 </span>
               </Tooltip>
@@ -505,15 +509,15 @@ export function DraftEditor({
                     ? `${draft.contact?.full_name ?? 'The contact'} may have left: write to someone else or verify them first`
                     : errors.length
                       ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first`
-                      : draft.verification_state === 'failed'
-                        ? 'Claims in this exact text don’t hold: edit them, then approve (it’s checked again)'
+                      : !hasCheckedClaims
+                        ? 'Click Review draft first (again after you edit the text)'
                         : null
                 }
               >
                 <span>
-                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0 || draft.contact_alerts.length > 0 || draft.verification_state === 'failed' || approving || verify.isPending}>
+                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={!hasCheckedClaims || errors.length > 0 || draft.contact_alerts.length > 0 || approving}>
                     <CircleCheck />
-                    {approving ? 'Checking claims…' : 'Approve'}
+                    {approving ? 'Approving…' : 'Approve'}
                     <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
                   </Button>
                 </span>
@@ -568,21 +572,6 @@ export function DraftEditor({
           setRegenOpen(false)
           regenerate.start({ feedback, base_draft_id: draft.id }, { onError: (e) => toast.error(e.message) })
         }}
-      />
-      <ApproveUnverifiedDialog
-        draft={draft}
-        open={unverifiedOpen}
-        onClose={() => setUnverifiedOpen(false)}
-        pending={approveUnverified.isPending}
-        onConfirm={() =>
-          approveUnverified.mutate(draft.id, {
-            onSuccess: () => {
-              setUnverifiedOpen(false)
-              toast.success('Approved without verification', { description: 'It is marked as such in the queue and on the job.' })
-            },
-            onError: (e) => toast.error(e.message),
-          })
-        }
       />
     </div>
   )

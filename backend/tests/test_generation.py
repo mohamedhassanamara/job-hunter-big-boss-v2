@@ -173,7 +173,9 @@ def test_model_choice_defaults_and_claude_is_a_one_shot_override(seeded: None) -
         assert model_choice.choice(s, "cv") == {
             "provider": "apinex", "model": "free/minimax-m3.1-flash", "thinking_level": None}
         assert model_choice.choice(s, "email") == {
-            "provider": "gemini", "model": "gemini-3.5-flash-lite", "thinking_level": "minimal"}
+            "provider": "apinex", "model": "free/gemini-3.8-flash", "thinking_level": None}
+        assert model_choice.choice(s, "linkedin")["provider"] == "apinex"
+        assert model_choice.reviewer_model(s) == "gemini-3.5-flash-lite"  # Google, never APInex
         assert model_choice.choice(s, "email", "claude")["provider"] == "anthropic"
         assert model_choice.choice(s, "cv", "claude")["provider"] == "anthropic"
         assert model_choice.choice(s, "cv")["provider"] == "apinex"  # setting unchanged
@@ -183,9 +185,11 @@ def test_model_choice_defaults_and_claude_is_a_one_shot_override(seeded: None) -
     model_choice.check({"letter": {"model": "free/minimax-m3.1-flash"}})  # ... and letters
     with pytest.raises(ValueError):
         model_choice.check({"letter": {"model": "gemini-3.5-flash-lite"}})
-    for bad in ({"email": {"model": "free/minimax-m3.1-flash"}},
-                {"linkedin": {"model": "free/minimax-m3.1-flash"}},
-                {"interview": {"model": "free/minimax-m3.1-flash"}},
+    model_choice.check({"email": {"model": "free/gemini-3.8-flash"}})
+    model_choice.check({"linkedin": {"model": "free/gemini-3.8-flash"}})
+    with pytest.raises(ValueError):
+        model_choice.check({"reviewer": {"model": "free/minimax-m3.1-flash"}})
+    for bad in ({"interview": {"model": "free/minimax-m3.1-flash"}},
                 {"rewrite": {"model": "free/minimax-m3.1-flash"}}):
         with pytest.raises(ValueError, match="APInex"):
             model_choice.check(bad)
@@ -385,3 +389,11 @@ def test_task_details_work_for_claude_generators_too() -> None:
 
     assert generation._details(Claude()) == {}
     assert generation._details(Gemini()) == {"calls": 2}
+
+
+def test_the_reviewer_sends_your_signature_links_to_gemini() -> None:
+    from app.db import engine
+    from app.providers.registry import reviewer
+
+    # the CV/email runners keep the privacy guard; the reviewer's draft has your links by design
+    assert reviewer(mock=False, engine=engine).runner._terms is None

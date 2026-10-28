@@ -93,12 +93,16 @@ def cv_generator(*, mock: bool | None = None, model: str = "claude-sonnet-5",
 
 def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5",
                   thinking_level: str | None = None, engine: Any = None) -> EmailDrafter:
-    """Real workspace: Gemini for `gemini-*` models, else Claude Code headless (subscription
-    only). Tests and the sandbox: mock."""
+    """Real workspace: APInex for its ids (`free/gemini-3.8-flash` by default), Google for other
+    `gemini-*` models, else Claude Code headless (subscription only). Tests and the sandbox:
+    mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    reject(model, "the email")
     if use_mock:
         return MockEmailDrafter()
+    if is_apinex(model):
+        from app.providers.apinex_outreach import APInexEmailDrafter
+
+        return APInexEmailDrafter(model)
     if model.startswith("gemini-"):
         from app.db import engine as default_engine
         from app.providers.gemini_generate import GeminiEmailDrafter, runner_for
@@ -164,16 +168,19 @@ def hook_checker(*, mock: bool | None = None, model: str = "free/minimax-m3.1-fl
     return MockHookChecker() if use_mock else OllamaHookChecker(model, fallback)
 
 
-def linkedin_drafter(*, mock: bool | None = None, model: str = "gemini-3.5-flash-lite",
+def linkedin_drafter(*, mock: bool | None = None, model: str = "free/gemini-3.8-flash",
                      thinking_level: str | None = "minimal", engine: Any = None):  # noqa: ANN201
     """LinkedIn connection notes, follow-ups and InMail: Gemini by default (Settings → Models →
     linkedin); a claude-* id runs through Claude Code headless. Tests and the sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    reject(model, "LinkedIn messages")
     from app.providers.mock import MockLinkedInDrafter
 
     if use_mock:
         return MockLinkedInDrafter()
+    if is_apinex(model):
+        from app.providers.apinex_outreach import APInexLinkedInDrafter
+
+        return APInexLinkedInDrafter(model)
     if model.startswith("gemini-"):
         from app.db import engine as default_engine
         from app.providers.gemini_generate import GeminiLinkedInDrafter, runner_for
@@ -191,6 +198,24 @@ def critic(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa
     from app.providers.mock import MockCritic
 
     return MockCritic() if use_mock else ClaudeCritic(model)
+
+
+def reviewer(*, mock: bool | None = None, model: str = "gemini-3.5-flash-lite",
+             engine: Any = None):  # noqa: ANN201
+    """The constructive draft reviewer: Google Gemini on your key (not APInex). Tests and the
+    sandbox: the mock."""
+    use_mock = get_settings().job_sources == "mock" if mock is None else mock
+    from app.providers.gemini_review import GeminiReviewer, MockReviewer
+
+    if use_mock:
+        return MockReviewer()
+    from app.db import engine as default_engine
+    from app.providers.gemini_generate import GeminiRunner
+    from app.services.gemini_keys import pool_for
+
+    # No `check_private`: the draft carries your signature links, and you chose to send it.
+    return GeminiReviewer(GeminiRunner(pool_for(engine or default_engine, model), model,
+                                       "minimal"))
 
 
 def verifier(*, mock: bool | None = None, model: str = "claude-opus-5-5"):  # noqa: ANN201

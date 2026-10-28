@@ -146,6 +146,15 @@ def _gateway_message(res: httpx.Response) -> str:
         return res.text[:300]
 
 
+def _raise_402(message: str) -> None:
+    """HTTP 402 is the daily check-in OR an empty balance (a model outside the free tier). Only
+    the check-in sets the banner: checking in doesn't fix a balance."""
+    if "balance" in message.lower():
+        raise QuotaExceeded(f"APInex balance too low for this model (HTTP 402): {message}")
+    apinex_status.mark_checkin_needed(message)
+    raise QuotaExceeded(f"APInex needs the daily check-in (HTTP 402): {message}")
+
+
 @dataclass
 class ProviderHealth:
     ok: bool
@@ -407,9 +416,7 @@ class APInexClient:
                     raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
 
                 if res.status_code == 402:  # e.g. "Daily check-in required to use free models"
-                    message = _gateway_message(res)
-                    apinex_status.mark_checkin_needed(message)
-                    raise QuotaExceeded(f"APInex needs the daily check-in (HTTP 402): {message}")
+                    _raise_402(_gateway_message(res))
                 raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
 
         raise ScoringFailed(f"APInex request failed: {last_error}")
@@ -500,9 +507,7 @@ class APInexClient:
                     raise ScoringFailed(f"APInex server error after {MAX_ATTEMPTS} attempts: {last_error}")
 
                 if res.status_code == 402:  # e.g. "Daily check-in required to use free models"
-                    message = _gateway_message(res)
-                    apinex_status.mark_checkin_needed(message)
-                    raise QuotaExceeded(f"APInex needs the daily check-in (HTTP 402): {message}")
+                    _raise_402(_gateway_message(res))
                 raise ScoringFailed(f"APInex request failed with HTTP {res.status_code}: {res.text[:300]}")
 
         raise ScoringFailed(f"APInex request failed: {last_error}")

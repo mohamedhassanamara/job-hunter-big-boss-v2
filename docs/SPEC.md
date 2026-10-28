@@ -282,12 +282,11 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   Restore). The same box is on LinkedIn notes, follow-ups and InMails (versions in the message's `history`,
   `POST /linkedin/people/{id}/restore`) and on cover letters / form texts (each version keeps its `feedback`,
   the version picker shows it).
-- **Approve without verification** (`POST /outreach/drafts/{id}/approve-unverified`, next to Approve; this draft
-  only). A dialog lists every outstanding error and warning (and the skipped verifier, and contact alerts), then
-  approves. The draft is marked "approved without verification" with the date and the ignored issues, in the
-  draft, the send queue and the job's Outreach step. The contact must still be verified (Get contact). The send gate
-  still compares the exact subject + body + CV file (hash), the contact (id and address) and the CV version;
-  any difference sends it back to review and clears the mark. It never joins the regression set.
+- **Review draft** (`POST /outreach/drafts/{id}/review`; LinkedIn: `/linkedin/people/{id}/review`): constructive
+  feedback from the reviewer model (Google `gemini-3.5-flash-lite`): strengths, improvements, a suggestion, an optional
+  revised body (**Apply suggestion**) and an informational "may not be backed by your sources" flag. Advice only. Approve
+  stays disabled until Review draft ran for the exact current text (any edit or a new draft resets it), then approves
+  at once with no model check. The send gate still compares the approved text hash and the contact.
 - **Copy for another AI** (Job page → Outreach, `external-prompt`): one self-contained prompt for Gemini, ChatGPT…
   with the full listing, company, contact name and role, only the relevant experience (the approved CV's items,
   else the best matches for the listing), the structure and rules of the chosen mode (application follow-up /

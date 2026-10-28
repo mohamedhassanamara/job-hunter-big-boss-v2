@@ -26,7 +26,7 @@ from app.models import (
     SendLog,
 )
 from app.models.base import utcnow
-from app.models.enums import ApplyMethod, CVStatus, DraftStatus, EventKind, Route, Stage
+from app.models.enums import ApplyMethod, CVStatus, DraftStatus, EventKind, Route
 from app.providers.base import (
     CVPlan,
     DraftFailed,
@@ -39,7 +39,7 @@ from app.providers.base import (
     SendFailed,
 )
 from app.services import applied_check as ac
-from app.services import dnc, get_contact, pipeline
+from app.services import get_contact, pipeline
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
 from app.services.contacts import ranking_settings
@@ -575,54 +575,6 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
             return draft
     finally:
         _one_at_a_time.release()
-
-
-def approve_unverified(s: Session, draft: OutreachDraft, contact_alerts: list[Any] | None = None,
-                       ) -> OutreachDraft:
-    """Approve THIS draft without the claim verifier and without the blocking checks. Records
-    when, and every issue that was ignored (errors and warnings, and a skipped or failed
-    verification); the send gate still holds the exact text, attachment, contact and CV version
-    you approved. The contact must still be verified (that is the Get contact step)."""
-    from app.services import verifier
-
-    if draft.status != DraftStatus.draft:
-        raise OutreachError("Only drafts under review can be approved")
-    app = s.get(Application, draft.application_id)
-    try:
-        get_contact.require_ready(s, app)
-    except get_contact.GetContactError as exc:
-        raise OutreachError(str(exc)) from exc
-    contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
-    if contact is None or not contact.email:
-        raise OutreachError("The contact has no email address")
-    if reason := dnc.blocked_reason(s, contact):
-        raise OutreachError(f"Do not contact: {reason}")
-    if reason := draft_gate(s, draft):
-        raise OutreachError(reason)
-    state = verifier.state(draft.verification, verifier.email_text(s, draft),
-                           verifier.pool_stamp(s))
-    ignored = [{"type": v.get("type"), "severity": v.get("severity"), "message": v.get("message")}
-               for v in draft.violations or []]
-    if state != "passed":
-        ignored.append({"type": "verification", "severity": "warning",
-                        "message": "The claim verifier was skipped"
-                        + ("" if state == "none" else f" (its last result: {state})")})
-    for alert in contact_alerts or []:
-        ignored.append({"type": "contact_alert", "severity": "warning",
-                        "message": f"{contact.full_name} may have left ({alert.reason})"})
-    draft.unverified_approval = {
-        "at": utcnow().isoformat(), "ignored": ignored,
-        "hash": verifier.text_hash(verifier.email_text(s, draft)),
-        "contact_id": contact.id, "recipient": contact.email,
-        "verification_state": state}
-    draft.status = DraftStatus.approved
-    s.add(draft)
-    pipeline.log_event(s, app, EventKind.draft_approved,
-                       f"Email approved WITHOUT verification ({len(ignored)} issue"
-                       f"{'s' if len(ignored) != 1 else ''} ignored)")
-    if app.stage == Stage.cv_ready:
-        pipeline.transition(s, app, Stage.ready)
-    return draft
 
 
 def draft_history(s: Session, app_id: int) -> list[dict[str, Any]]:

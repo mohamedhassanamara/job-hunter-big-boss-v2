@@ -1,5 +1,5 @@
 import { useSyncFromServer } from '@/hooks/useSyncFromServer'
-import { ClipboardPaste, Copy, ExternalLink, Mail, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
+import { ClipboardPaste, Copy, ExternalLink, Mail, MessageSquareText, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -18,9 +18,9 @@ import { useAgencyAction } from '@/hooks/useAgencyAction'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
 import { RegenerateDialog } from '@/components/app/RegenerateDialog'
-import { useAddLinkedInPerson, useDraftLinkedIn, useRestoreLinkedIn, useEditLinkedIn, useInMailSent, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useVerifyLinkedIn } from '@/lib/queries/linkedin'
-import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
-import { verified } from '@/lib/verify'
+import { useAddLinkedInPerson, useDraftLinkedIn, useRestoreLinkedIn, useEditLinkedIn, useInMailSent, useLinkedInPanel, useLinkedInStatus, useRemoveLinkedInPerson, useReviewLinkedIn } from '@/lib/queries/linkedin'
+import { ReviewPanel } from '@/components/app/review/ReviewPanel'
+import { linkedinKey, markReviewed, reviewFor, useReviewVersion } from '@/lib/reviewGate'
 import type { JobDetail, LinkedInGroup, LinkedInPanel, LinkedInPerson } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -117,8 +117,8 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const draft = kind === 'note' ? person.note : person.followup
   const run = useDraftLinkedIn(appId)
   const edit = useEditLinkedIn(appId)
-  const verify = useVerifyLinkedIn(appId)
-  const vstate = kind === 'note' ? person.note_verification_state : person.followup_verification_state
+  const reviewMessage = useReviewLinkedIn()
+  useReviewVersion()
   const [regen, setRegen] = useState(false)
   const [text, setText] = useState(draft?.text ?? '')
   const pendingEdit = edit.isPending || (draft?.text ?? '') !== text
@@ -131,8 +131,11 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const limit = draft?.max_chars ?? (kind === 'note' ? max : 600)
   const errors = (draft?.violations ?? []).filter((v) => v.severity === 'error')
   const label = kind === 'note' ? 'Connection note' : 'Follow-up message'
-  // A 300-character note is short enough to check yourself: no claim check, Copy is never locked.
+  // A 300-character note is short enough to check yourself: Copy is never locked for it, but you can still ask for a review.
   const checked = kind !== 'note'
+  const { review, reviewed } = reviewFor(linkedinKey(person.id, kind), text)
+  const runReview = () =>
+    reviewMessage.mutate({ id: person.id, kind }, { onSuccess: (r) => markReviewed(linkedinKey(person.id, kind), text, r), onError: (e) => toast.error(e.message) })
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
@@ -181,27 +184,33 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with Claude`}
         </Button>
         {draft && (
-          <Tooltip content={!checked || (verified(vstate) && !pendingEdit) ? null : 'Copy unlocks once Claude has checked every claim of this exact text'}>
+          <Tooltip content={!checked || (reviewed && !pendingEdit) ? null : 'Copy unlocks once you have clicked Review draft for this exact text'}>
             <span>
-              <Button size="sm" variant="ghost" disabled={checked ? !verified(vstate) || pendingEdit : text.length === 0} onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
+              <Button size="sm" variant="ghost" disabled={checked ? !reviewed || pendingEdit : text.length === 0} onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
                 <Copy />
                 Copy
               </Button>
             </span>
           </Tooltip>
         )}
+        {draft && (
+          <Button size="sm" variant="ghost" disabled={reviewMessage.isPending || pendingEdit || errors.length > 0} onClick={runReview}>
+            <MessageSquareText className={reviewMessage.isPending ? 'animate-pulse' : undefined} />
+            {reviewMessage.isPending ? 'Reviewing…' : 'Review draft'}
+          </Button>
+        )}
         {draft && <CritiqueButton kind={kind === 'note' ? 'linkedin_note' : 'linkedin_followup'} id={person.id} />}
         {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
       </div>
-      {draft && checked && (
-        <ClaimCheck
+      {draft && review && (
+        <ReviewPanel
           compact
-          verification={draft.verification}
-          state={pendingEdit ? 'stale' : vstate}
-          verifying={verify.isPending}
-          gate="Copy"
-          fixTarget={pendingEdit ? undefined : { kind: 'linkedin', id: person.id, sub: kind }}
-          onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind }, { onError: (e) => toast.error(e.message) })}
+          review={review}
+          stale={!reviewed}
+          onApply={(revised) => {
+            setText(revised)
+            save(revised)
+          }}
         />
       )}
       {draft && <VersionHistory person={person} kind={kind} appId={appId} draft={draft} />}
@@ -225,7 +234,8 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
   const draft = person.inmail
   const run = useDraftLinkedIn(appId)
   const edit = useEditLinkedIn(appId)
-  const verify = useVerifyLinkedIn(appId)
+  const reviewMessage = useReviewLinkedIn()
+  useReviewVersion()
   const sent = useInMailSent(appId)
   const [regen, setRegen] = useState(false)
   const max = draft?.max_chars ?? panel.inmail_max_chars
@@ -241,8 +251,11 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
   }
   const errors = (draft?.violations ?? []).filter((v) => v.severity === 'error')
   const warnings = (draft?.violations ?? []).filter((v) => v.severity !== 'error')
-  const vstate = person.inmail_verification_state
-  const ok = !!draft && verified(vstate) && !pendingEdit
+  const inmailKey = linkedinKey(person.id, 'inmail')
+  const { review, reviewed } = reviewFor(inmailKey, `${subject}\n${text}`)
+  const ok = !!draft && reviewed && !pendingEdit
+  const runReview = () =>
+    reviewMessage.mutate({ id: person.id, kind: 'inmail' }, { onSuccess: (r) => markReviewed(inmailKey, `${subject}\n${text}`, r), onError: (e) => toast.error(e.message) })
   const credits = panel.credits
   const copy = (value: string, what: string) => navigator.clipboard.writeText(value).then(() => toast.success(`${what} copied: paste it on LinkedIn`))
   const already = !!person.inmail_sent_at
@@ -308,9 +321,15 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
             {run.isPending ? 'Drafting…' : draft ? 'Redraft' : 'Draft InMail with Claude'}
           </Button>
         )}
+        {draft && !already && (
+          <Button size="sm" variant="ghost" disabled={reviewMessage.isPending || pendingEdit || errors.length > 0} onClick={runReview}>
+            <MessageSquareText className={reviewMessage.isPending ? 'animate-pulse' : undefined} />
+            {reviewMessage.isPending ? 'Reviewing…' : 'Review draft'}
+          </Button>
+        )}
         {draft && (
           <>
-            <Tooltip content={ok ? null : 'Copy unlocks once Claude has checked every claim of this exact subject and body'}>
+            <Tooltip content={ok ? null : 'Copy unlocks once you have clicked Review draft for this exact subject and body'}>
               <span className="flex items-center gap-1">
                 <Button size="sm" variant="ghost" disabled={!ok} onClick={() => copy(subject, 'Subject')}>
                   <Copy />
@@ -354,17 +373,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
         )}
         {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
       </div>
-      {draft && !already && (
-        <ClaimCheck
-          compact
-          verification={draft.verification}
-          state={pendingEdit ? 'stale' : vstate}
-          verifying={verify.isPending}
-          gate="Copy"
-          fixTarget={pendingEdit ? undefined : { kind: 'linkedin', id: person.id, sub: 'inmail' }}
-          onVerify={pendingEdit || errors.length > 0 ? undefined : () => verify.mutate({ id: person.id, kind: 'inmail' }, { onError: (e) => toast.error(e.message) })}
-        />
-      )}
+      {draft && !already && review && <ReviewPanel compact review={review} stale={!reviewed} />}
       {draft && <VersionHistory person={person} kind="inmail" appId={appId} draft={draft} />}
       <RegenerateDialog
         open={regen}
@@ -492,7 +501,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           </Button>
         )}
         {person.status === 'accepted' && (
-          <Button size="sm" variant="outline" disabled={!person.followup || !verified(person.followup_verification_state)} onClick={() => move('messaged', `Follow-up to ${person.full_name} marked sent`)}>
+          <Button size="sm" variant="outline" disabled={!person.followup || !reviewFor(linkedinKey(person.id, 'followup'), person.followup.text).reviewed} onClick={() => move('messaged', `Follow-up to ${person.full_name} marked sent`)}>
             I sent the follow-up
           </Button>
         )}

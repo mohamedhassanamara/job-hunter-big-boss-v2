@@ -277,11 +277,8 @@ def _run_email(engine: Engine, app_id: int, use: str | None, mock: bool,
     drafter = email_drafter(mock=mock, model=pick["model"], engine=engine,
                             thinking_level=pick["thinking_level"])
     draft = outreach.generate_applied(engine, app_id, drafter)
-    from app.services import auto_verify
-
-    draft_id, verified = auto_verify.verify_after_draft(engine, draft.id, drafter=drafter,
-                                                        workspace=workspace)
-    return draft_id, drafter.model, {**_details(drafter), **verified}
+    # No background verification or automatic rewrite: you press Review draft yourself.
+    return draft.id, drafter.model, _details(drafter)
 
 
 def _details(generator: Any) -> dict[str, Any]:
@@ -334,10 +331,6 @@ def start_worker(engine: Engine) -> None:
             try:
                 while tick(engine, mock=mock) and not _stop.is_set():
                     pass
-                if not _stop.is_set():  # idle: verify a draft you edited or whose sources
-                    from app.services import auto_verify  # changed (one per tick)
-
-                    auto_verify.stale_tick(engine)
             except Exception:  # noqa: BLE001
                 log.exception("generation worker tick failed")
 

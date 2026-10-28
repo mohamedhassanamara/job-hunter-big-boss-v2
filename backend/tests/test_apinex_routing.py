@@ -1,4 +1,5 @@
-"""Copilot, research, hook check and letters run on APInex; LinkedIn on Gemini (no real calls)."""
+"""Copilot, research, hook check, letters, email/LinkedIn drafting and the reviewer run on APInex
+(no real calls)."""
 
 import json
 
@@ -79,7 +80,9 @@ def test_letters_and_answers_use_apinex_and_validate() -> None:
         drafter._call(drafter.command("sys", CoverLetterPlan), "msg", CoverLetterPlan)
 
 
-def test_linkedin_runs_on_gemini_and_never_on_apinex() -> None:
-    assert isinstance(registry.linkedin_drafter(mock=False), GeminiLinkedInDrafter)
-    with pytest.raises(ValueError, match="APInex"):
-        registry.linkedin_drafter(mock=False, model=M)
+def test_linkedin_defaults_to_the_apinex_gemini_and_google_ids_still_work() -> None:
+    from app.providers.apinex_outreach import APInexLinkedInDrafter
+
+    assert isinstance(registry.linkedin_drafter(mock=False), APInexLinkedInDrafter)
+    assert isinstance(registry.linkedin_drafter(mock=False, model="gemini-3.5-flash-lite"),
+                      GeminiLinkedInDrafter)

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from sqlmodel import Session
 
 from app.db import engine
-from app.models import ApplicationAnswer
+from app.models import ApplicationAnswer, OutreachDraft
 from app.providers.base import VerifyClaim, VerifyPlan
 from app.services import claim_fix, verifier
 from tests.test_outreach import job_ready  # noqa: F401 (fixture)
@@ -191,7 +191,6 @@ def test_apply_remove_drops_the_sentence_and_a_stale_check_is_refused(
 
 def test_apply_on_an_email_edits_its_body_and_reverifies_the_sentence(
         job_ready: dict, client, monkeypatch) -> None:  # noqa: F811, ANN001
-    from app.models import OutreachDraft
     from app.services import outreach
     from tests.test_outreach import Script, good_plan
 
@@ -210,7 +209,9 @@ def test_apply_on_an_email_edits_its_body_and_reverifies_the_sentence(
 
     judge = OneBad()
     monkeypatch.setattr(verifier, "for_workspace", lambda s, w: judge)
-    out = client.post(f"/api/outreach/drafts/{draft.id}/verify").json()
+    with Session(engine) as s:
+        out = {"verification": verifier.verify_email(s, s.get(OutreachDraft, draft.id), judge)}
+        s.commit()
     flag = next(c for c in out["verification"]["claims"] if c["verdict"] == "unsupported")
     assert flag["sentence"] == sentence and flag["fix"]["kind"] == "remove"
     applied = client.post("/api/claim-fixes/apply", json={

@@ -920,6 +920,22 @@ def ensure_defaults(engine: Engine) -> None:
                 models_row.value = val
                 s.add(models_row)
                 changed = True
+            # Email and LinkedIn drafting moved from Google's flash-lite to free/gemini-3.8-flash on
+            # APInex; only a stored value that is still the old default is switched.
+            val = dict(models_row.value)
+            for task in ("email", "linkedin"):
+                cfg = dict(val.get(task) or {})
+                if cfg.get("model") in ("gemini-3.5-flash-lite", "gemini-3.8-flash"):
+                    # the bare id isn't the gateway's free model: it asks for a balance (402)
+                    val[task] = {"provider": "apinex", "model": "free/gemini-3.8-flash"}
+                    models_row.value = val
+                    s.add(models_row)
+                    changed = True
+            if "reviewer" not in val:
+                val["reviewer"] = fx.SETTINGS["models"]["reviewer"]
+                models_row.value = val
+                s.add(models_row)
+                changed = True
         if changed:
             s.commit()
 

@@ -33,13 +33,14 @@ from app.providers.base import SendFailed
 from app.providers.gemini_generate import generation_failure
 from app.providers.registry import email_drafter, hook_checker, mailer
 from app.providers.registry import researcher as research_provider
+from app.providers.registry import reviewer as reviewer_provider
 from app.schemas.outreach import (
-    ApproveUnverifiedIn,
     DraftContact,
     DraftHistoryItem,
     DraftOut,
     DraftPatch,
     DraftProgress,
+    DraftReviewOut,
     ExternalCheckOut,
     ExternalDraftIn,
     ExternalPromptIn,
@@ -65,6 +66,7 @@ from app.services import (
     send_queue,
     verifier,
 )
+from app.services import reviewer as reviewer_svc
 from app.services.views import contact_alert_fields, fit_brief, latest_fits
 
 router = APIRouter(tags=["outreach"])
@@ -270,8 +272,9 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
 @router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
 def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -> DraftOut:
     """Approve the email (job → Ready to send). Queuing it is the next, separate step. A draft
-    with unresolved errors (grounding, names, banned phrases, length) can't be approved. A hook
-    you edited is checked against the signals first (one model call)."""
+    with unresolved code errors (grounding, names, banned phrases, length) can't be approved.
+    A hook you edited is checked against the signals first (one model call). No model verdict
+    blocks it."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
         raise HTTPException(409, "Only drafts under review can be approved")
@@ -301,14 +304,14 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
         raise HTTPException(409, f"{contact.full_name} may have left ({alerts[0].reason}, "
                             f"{alerts[0].source_title or alerts[0].source_url}): pick another "
                             "contact, or dismiss the warning once you've verified them")
-    # Last: Claude checks every claim of the exact text against your sources (zero tolerance).
-    try:
-        verifier.require_email(session, d, verifier.for_workspace(session, workspace))
-    except verifier.VerifyError as exc:
-        session.commit()  # keep the verdicts: the review screen shows each claim
-        raise HTTPException(409, str(exc)) from exc
+    # No model verdict gates an approval: Review draft is advice (`POST …/review`). The send
+    # gate holds the exact text and the contact approved here.
     d.status = DraftStatus.approved
-    d.unverified_approval = {}  # a verified approval
+    d.unverified_approval = {}
+    d.plan = {**(d.plan or {}), "approval": {
+        "at": utcnow().isoformat(),
+        "hash": verifier.text_hash(verifier.email_text(session, d)),
+        "contact_id": contact.id, "recipient": contact.email}}
     session.add(d)
     from app.eval.emails import record
 
@@ -321,18 +324,16 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     return _drafts_out(session, [d])[0]
 
 
-@router.post("/outreach/drafts/{draft_id}/verify", response_model=DraftOut)
-def verify_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -> DraftOut:
-    """Check every claim now (Claude), without approving: the verdicts show in the review."""
+@router.post("/outreach/drafts/{draft_id}/review", response_model=DraftReviewOut)
+def review_draft(draft_id: int, session: SessionDep, engine: EngineDep,
+                 workspace: WorkspaceDep) -> dict[str, Any]:
+    """Constructive feedback on the current text (the reviewer model, `models.reviewer`). Advice
+    only: it stores nothing and never blocks approval; a reviewer that fails answers 200 with
+    `error` set."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
-    try:
-        verifier.code_checks_first(d.violations)
-    except verifier.VerifyError as exc:
-        raise HTTPException(409, str(exc)) from exc
-    verifier.verify_email(session, d, verifier.for_workspace(session, workspace))
-    session.commit()
-    session.refresh(d)
-    return _drafts_out(session, [d])[0]
+    reviewer = reviewer_provider(mock=True if workspace == "demo" else None,
+                                 model=model_choice.reviewer_model(session), engine=engine)
+    return reviewer_svc.review_email(session, d, reviewer)
 
 
 @router.post("/outreach/drafts/{draft_id}/queue", response_model=DraftOut)
@@ -535,27 +536,6 @@ def draft_history(app_id: int, session: SessionDep) -> list[dict[str, Any]]:
     "Go back" is Restore on an older one."""
     get_or_404(session, Application, app_id, "Application")
     return outreach.draft_history(session, app_id)
-
-
-@router.post("/outreach/drafts/{draft_id}/approve-unverified", response_model=DraftOut)
-def approve_unverified(draft_id: int, body: ApproveUnverifiedIn, session: SessionDep) -> DraftOut:
-    """Approve this draft WITHOUT the claim verifier or the blocking checks (this draft only;
-    `confirm` must be true: the dialog lists what is outstanding). It is marked "approved without
-    verification" with the date and the ignored issues; the send gate still holds the exact text,
-    attachment, contact and CV version."""
-    if not body.confirm:
-        raise HTTPException(422, "Confirm that you want to approve without verification")
-    d = get_or_404(session, OutreachDraft, draft_id, "Draft")
-    from app.services import contact_check
-
-    alerts = contact_check.active(session, d.contact_id) if d.contact_id else []
-    try:
-        outreach.approve_unverified(session, d, alerts)
-    except outreach.OutreachError as exc:
-        raise HTTPException(409, str(exc)) from exc
-    session.commit()
-    session.refresh(d)
-    return _drafts_out(session, [d])[0]
 
 
 @router.post("/applications/{app_id}/external-prompt", response_model=ExternalPromptOut)

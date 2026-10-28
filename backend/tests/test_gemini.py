@@ -223,8 +223,8 @@ def test_one_403_disables_the_key_pauses_gemini_and_moves_cv_and_email_to_claude
         from app.services import model_choice
 
         row = db.exec(select(AppSetting).where(AppSetting.key == "models")).one()
-        row.value = {**row.value, "cv": {"provider": "gemini", "model": MODEL,
-                                         "thinking_level": "minimal"}}
+        google = {"provider": "gemini", "model": MODEL, "thinking_level": "minimal"}
+        row.value = {**row.value, "cv": google, "email": google}  # (the default email is APInex)
         db.add(row)
         db.commit()
         for task in ("cv", "email"):

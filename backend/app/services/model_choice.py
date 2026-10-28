@@ -14,7 +14,7 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.models import AppSetting
-from app.providers.apinex_models import is_apinex
+from app.providers.apinex_models import DRAFT_MODEL, is_apinex
 
 DEFAULT_GEMINI = "gemini-3.5-flash-lite"
 DEFAULT_APINEX = "free/minimax-m3.1-flash"
@@ -29,7 +29,7 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
     """{provider, model, thinking_level} for a task, honouring a one-shot `use="claude"`."""
     row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
     cfg = dict(((row.value if row else {}) or {}).get(task) or {})
-    default_model = DEFAULT_APINEX if task == "cv" else DEFAULT_GEMINI
+    default_model = DEFAULT_APINEX if task == "cv" else DRAFT_MODEL
     model = str(cfg.get("model") or default_model)
     if model.startswith("claude-haiku"):
         model = DEFAULT_CLAUDE
@@ -43,8 +43,6 @@ def choice(s: Session, task: str, use: str | None = None) -> dict[str, Any]:
         claude = model if model.startswith("claude-") else DEFAULT_CLAUDE
         return {"provider": "anthropic", "model": claude, "thinking_level": None}
     if is_apinex(model):
-        if task != "cv":
-            raise ValueError(f"{model} is an APInex model: it can write the CV, not the {task}")
         return {"provider": "apinex", "model": model, "thinking_level": None}
     if model.startswith("gemini-"):
         from app.services.gemini_keys import is_paused
@@ -64,6 +62,13 @@ def claude_model(s: Session, key: str) -> str:
     model = str(((((row.value if row else {}) or {}).get(key)) or {}).get("model") or "")
     return model if model.startswith("claude-") and not model.startswith("claude-haiku") \
         else DEFAULT_CLAUDE
+
+
+def reviewer_model(s: Session) -> str:
+    """The constructive reviewer (`models.reviewer`): a Google `gemini-*` id (never APInex)."""
+    row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    model = str(((((row.value if row else {}) or {}).get("reviewer")) or {}).get("model") or "")
+    return model if model.startswith("gemini-") and not is_apinex(model) else DEFAULT_GEMINI
 
 
 def letter_model(s: Session) -> str:
@@ -93,6 +98,9 @@ def check(value: dict[str, Any]) -> None:
             raise ValueError(f"models.{key}.model must be a claude-* model (it runs through "
                              "claude -p)" + (" — APInex is for scoring and the CV only"
                                               if is_apinex(model) else ""))
+    reviewer = str((((value or {}).get("reviewer")) or {}).get("model") or "")
+    if reviewer and (is_apinex(reviewer) or not reviewer.startswith("gemini-")):
+        raise ValueError("models.reviewer.model must be a Google gemini-* model")
     letter = str((((value or {}).get("letter")) or {}).get("model") or "")
     if letter and not (is_apinex(letter) or letter.startswith("claude-")):
         raise ValueError("models.letter.model must be an APInex (free/*) or claude-* model")
@@ -101,14 +109,11 @@ def check(value: dict[str, Any]) -> None:
         if cfg is None:
             continue
         model = str(cfg.get("model") or "")
-        if task == "cv" and is_apinex(model):
+        if is_apinex(model):
             continue
         if not model.startswith(("gemini-", "claude-")):
-            allowed = ("a gemini-*, claude-* or APInex (free/*)" if task == "cv"
-                       else "a gemini-* or claude-*")
-            raise ValueError(f"models.{task}.model must be {allowed} model"
-                             + (" (APInex is for scoring and the CV only)"
-                                if is_apinex(model) else ""))
+            raise ValueError(f"models.{task}.model must be a gemini-*, claude-* or APInex "
+                             "(free/*) model")
         level = cfg.get("thinking_level")
         if level is not None and level not in THINKING_LEVELS:
             raise ValueError(f"models.{task}.thinking_level must be one of "

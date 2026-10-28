@@ -15,17 +15,14 @@ import { useSettings } from '@/lib/queries/library'
 import { useDequeueDraft, useDraftAction, useDrafts, queuedNote, useQueueAll, useQueueDraft } from '@/lib/queries/workflow'
 import { DraftEditor } from '@/components/app/outreach/DraftEditor'
 import { DRAFT_STATUS } from '@/lib/outreach'
+import { emailKey, emailText, reviewFor, useReviewVersion } from '@/lib/reviewGate'
 import type { Draft } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-/** The claim check, done in the background after the draft is written: Approve doesn't wait. */
-function VerifyChip({ state, errors }: { state: string; errors: boolean }) {
-  if (errors) return <ToneBadge tone="amber">Fix the checks first</ToneBadge>
-  if (state === 'passed') return <ToneBadge tone="green">Verified</ToneBadge>
-  if (state === 'failed') return <ToneBadge tone="red">Claims failed</ToneBadge>
-  if (state === 'stale') return <ToneBadge tone="amber">Re-checking</ToneBadge>
-  if (state === 'error') return <ToneBadge tone="gray">Check didn't run</ToneBadge>
-  return <ToneBadge tone="gray">Not verified yet</ToneBadge>
+/** Whether you asked the reviewer about this exact text (Approve stays locked until you did). */
+function ReviewChip({ draft }: { draft: Draft }) {
+  if (draft.violations.some((v) => v.severity === 'error')) return <ToneBadge tone="amber">Fix the checks first</ToneBadge>
+  return reviewFor(emailKey(draft.id), emailText(draft.subject, draft.body)).reviewed ? <ToneBadge tone="green">Reviewed</ToneBadge> : <ToneBadge tone="gray">Not reviewed yet</ToneBadge>
 }
 
 export function ReviewTab() {
@@ -34,6 +31,7 @@ export function ReviewTab() {
   const selectedId = url.get('draft') ? Number(url.get('draft')) : null
   const { data, isPending, error, refetch } = useDrafts(status)
   const action = useDraftAction()
+  useReviewVersion()
   const queueDraft = useQueueDraft()
   const dequeue = useDequeueDraft()
   const queueAll = useQueueAll()
@@ -118,8 +116,8 @@ export function ReviewTab() {
       ? 'Fix the problems the checks found first'
       : d.contact_alerts.length > 0
         ? `${d.contact?.full_name ?? 'The contact'} may have left: verify them or write to someone else first`
-        : d.verification_state === 'failed'
-          ? 'Claims in this exact text don’t hold: edit them, then approve'
+        : !reviewFor(emailKey(d.id), emailText(d.subject, d.body)).reviewed
+          ? 'Click Review draft first (again after you edit the text)'
           : null
   const approveByKey = (d: Draft) => {
     const why = approveBlocked(d)
@@ -209,7 +207,7 @@ export function ReviewTab() {
                       Remove from queue
                     </button>
                   )}
-                  {d.status === 'draft' && <VerifyChip state={d.verification_state} errors={d.violations.some((v) => v.severity === 'error')} />}
+                  {d.status === 'draft' && <ReviewChip draft={d} />}
                 </div>
               </button>
             ))

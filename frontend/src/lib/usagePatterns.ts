@@ -43,7 +43,6 @@ export const ACTIONS: ActionRule[] = [
   { method: 'POST', pattern: /^\/cv\/regenerate-batch$/, name: 'regenerate_selected', ref: null },
   { method: 'POST', pattern: /^\/applications\/(\d+)\/draft\/generate$/, name: 'generate_email', ref: 'app' },
   { method: 'POST', pattern: /^\/outreach\/drafts\/(\d+)\/approve$/, name: 'approve_email', ref: 'draft' },
-  { method: 'POST', pattern: /^\/outreach\/drafts\/(\d+)\/approve-unverified$/, name: 'approve_email_unverified', ref: 'draft' },
   { method: 'POST', pattern: /^\/outreach\/drafts\/(\d+)\/queue$/, name: 'queue_add', ref: 'draft' },
   { method: 'POST', pattern: /^\/queue\/resume$/, name: 'queue_start', ref: null },
   { method: 'POST', pattern: /^\/applications\/(\d+)\/applied$/, name: 'mark_applied', ref: 'app' },

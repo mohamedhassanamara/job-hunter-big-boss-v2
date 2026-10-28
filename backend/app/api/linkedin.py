@@ -10,6 +10,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep
+from app.schemas.outreach import DraftReviewOut
 from app.services import linkedin
 
 router = APIRouter(tags=["linkedin"])
@@ -361,42 +362,34 @@ def set_status(row_id: int, body: StatusIn, session: SessionDep) -> PersonOut:
         status = LinkedInStatus(body.status)
     except ValueError as exc:
         raise HTTPException(422, "Unknown status") from exc
-    # Sending a follow-up needs the exact text verified (moving back never does). The 300-character
-    # connection note has no claim check: you read it yourself.
-    gates = {(LinkedInStatus.accepted, LinkedInStatus.messaged): ("follow-up", row.followup)}
-    if gate := gates.get((LinkedInStatus(row.status), status)):
-        label, message = gate
-        if message and _vstate(message) != "passed":
-            raise HTTPException(409, f"Verify the {label} first: every claim must hold before "
-                                     "you send it")
     lt.set_status(session, row, status)
     session.commit()
     session.refresh(row)
     return _person(session, row)
 
 
-@router.post("/linkedin/people/{row_id}/verify", response_model=PersonOut)
-def verify_message(row_id: int, session: SessionDep, workspace: WorkspaceDep,
-                   kind: str = "note") -> PersonOut:
-    """Check every claim of the note (or follow-up) with Claude: Copy unlocks when it passes."""
-    from app.services import verifier
+@router.post("/linkedin/people/{row_id}/review", response_model=DraftReviewOut)
+def review_message(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
+                   kind: str = "note") -> dict[str, Any]:
+    """Constructive feedback on a note, follow-up or InMail (the reviewer model). Advice only:
+    nothing is stored and nothing is blocked."""
+    from app.providers.registry import reviewer
+    from app.services import model_choice, verifier
+    from app.services import reviewer as reviewer_svc
 
     if kind not in ("note", "followup", "inmail"):
         raise HTTPException(422, "kind is note, followup or inmail")
     row = _row(session, row_id)
     try:
-        verifier.code_checks_first(({"note": row.note, "followup": row.followup,
-                                     "inmail": row.inmail}[kind] or {}).get("violations"))
-        verifier.verify_linkedin(session, row, kind, verifier.for_workspace(session, workspace))
+        return reviewer_svc.review_linkedin(
+            session, row, kind, reviewer(mock=True if workspace == "demo" else None,
+                                         model=model_choice.reviewer_model(session), engine=engine))
     except verifier.VerifyError as exc:
         raise HTTPException(422, str(exc)) from exc
-    session.commit()
-    session.refresh(row)
-    return _person(session, row)
 
 
 def _drafter(workspace: str, session: Session, engine: Engine):  # noqa: ANN202
-    """The LinkedIn drafter from Settings → Models (`models.linkedin`, Gemini by default)."""
+    """The LinkedIn drafter from Settings → Models (`models.linkedin`, APInex by default)."""
     from app.providers.registry import linkedin_drafter
     from app.services import model_choice
 
@@ -480,13 +473,10 @@ def restore_version(row_id: int, body: RestoreIn, session: SessionDep) -> Person
 
 @router.post("/linkedin/people/{row_id}/inmail/sent", response_model=PersonOut)
 def inmail_sent(row_id: int, session: SessionDep) -> PersonOut:
-    """You sent the InMail on LinkedIn: it uses a credit. Needs the exact text verified."""
+    """You sent the InMail on LinkedIn: it uses a credit."""
     from app.services import linkedin_track as lt
 
     row = _row(session, row_id)
-    if _vstate(row.inmail, "inmail") != "passed":
-        raise HTTPException(409, "Verify the InMail first: every claim must hold before you "
-                                 "send it")
     try:
         lt.send_inmail(session, row)
     except lt.LinkedInError as exc:

@@ -263,43 +263,30 @@ def test_linkedin_feedback_edits_the_message_and_every_version_can_be_restored(
         assert "verification" not in row.note  # the restored text is verified again
 
 
-# =========================================================== 3. approval without verification
+# ====================================================== 3. approval, review and the send gate
 
 
-def draft_with_errors(job_ready: dict) -> int:  # noqa: F811
-    bad = applied_plan(job_ready, experience=[EmailSentence(
-        text="I built it with Kafka and Terraform at scale.", citations=[job_ready["role"]])])
-    return outreach.generate(engine, job_ready["app"], Spy(bad, bad)).id
-
-
-def test_approving_without_verification_needs_a_confirmation_and_skips_the_verifier(
+def test_approval_needs_no_model_verdict_and_records_what_the_send_gate_holds(
         job_ready: dict, client) -> None:  # noqa: ANN001, F811
-    draft_id = draft_with_errors(job_ready)  # a draft with a blocking error
-    assert client.post(f"/api/outreach/drafts/{draft_id}/approve").status_code == 409
-    assert client.post(f"/api/outreach/drafts/{draft_id}/approve-unverified",
-                       json={"confirm": False}).status_code == 422
-    r = client.post(f"/api/outreach/drafts/{draft_id}/approve-unverified",
-                    json={"confirm": True})
+    d = outreach.generate(engine, job_ready["app"], MockEmailDrafter())
+    out = client.post(f"/api/outreach/drafts/{d.id}/approve").json()
+    assert out["status"] == "approved" and out["unverified_approval"] is None
+    with Session(engine) as s:
+        approval = s.get(OutreachDraft, d.id).plan["approval"]
+    assert approval["hash"] and approval["recipient"] == job_ready["email"]
+    assert client.post(f"/api/outreach/drafts/{d.id}/approve-unverified",
+                       json={"confirm": True}).status_code in (404, 405)
+
+
+def test_review_is_advice_only_and_changes_nothing(job_ready: dict, client) -> None:  # noqa: ANN001, F811
+    d = outreach.generate(engine, job_ready["app"], MockEmailDrafter())
+    r = client.post(f"/api/outreach/drafts/{d.id}/review")
     assert r.status_code == 200
     out = r.json()
-    assert out["status"] == "approved" and out["verification"] in ({}, None)
-    approval = out["unverified_approval"]
-    assert approval["at"] and approval["verification_state"] == "none"
-    types = {i["type"] for i in approval["ignored"]}
-    assert {"grounding", "verification"} <= types  # the error and the skipped verifier are listed
-    severities = {i["severity"] for i in approval["ignored"] if i["type"] == "grounding"}
-    assert severities == {"error"}
-
-
-def test_it_is_marked_on_the_draft_in_the_queue_and_on_the_job_step(
-        job_ready: dict, client, fresh_queue: None) -> None:  # noqa: ANN001, F811
-    draft_id = draft_with_errors(job_ready)
-    client.post(f"/api/outreach/drafts/{draft_id}/approve-unverified", json={"confirm": True})
-    assert client.post(f"/api/outreach/drafts/{draft_id}/queue").status_code == 200
-    queue = client.get("/api/queue").json()
-    assert [i["unverified"] for i in queue["items"]] == [True]
-    step = client.get(f"/api/applications/{job_ready['app']}/outreach").json()
-    assert step["draft"]["unverified_approval"]["ignored"]
+    assert out["feedback"] and out["error"] == "" and out["has_unverified_claims"] is False
+    with Session(engine) as s:
+        again = s.get(OutreachDraft, d.id)
+        assert again.status == DraftStatus.draft and not again.verification
 
 
 def test_a_normal_approval_is_not_marked(job_ready: dict, client) -> None:  # noqa: ANN001, F811
@@ -309,8 +296,8 @@ def test_a_normal_approval_is_not_marked(job_ready: dict, client) -> None:  # no
 
 
 def sent_gate_setup(job_ready: dict, client) -> int:  # noqa: ANN001, F811
-    draft_id = draft_with_errors(job_ready)
-    client.post(f"/api/outreach/drafts/{draft_id}/approve-unverified", json={"confirm": True})
+    draft_id = outreach.generate(engine, job_ready["app"], MockEmailDrafter()).id
+    assert client.post(f"/api/outreach/drafts/{draft_id}/approve").status_code == 200
     assert client.post(f"/api/outreach/drafts/{draft_id}/queue").status_code == 200
     with Session(engine) as s:
         send_queue.resume(s, NOW)
@@ -318,7 +305,7 @@ def sent_gate_setup(job_ready: dict, client) -> int:  # noqa: ANN001, F811
     return draft_id
 
 
-def test_the_send_gate_lets_an_unverified_approval_go_when_nothing_changed(
+def test_the_send_gate_lets_an_approved_email_go_when_nothing_changed(
         job_ready: dict, client, fresh_queue: None) -> None:  # noqa: ANN001, F811
     sent_gate_setup(job_ready, client)
     mailer = MockMailer()
@@ -332,12 +319,12 @@ def test_the_send_gate_still_holds_text_and_contact(
     draft_id = sent_gate_setup(job_ready, client)
     with Session(engine) as s:
         d = s.get(OutreachDraft, draft_id)
-        approval = dict(d.unverified_approval)
+        approval = dict(d.plan["approval"])
         if change == "text":
             d.body += " I also mentored ten developers."
         else:
             approval["recipient"] = "someone.else@outco.test"
-        d.unverified_approval = approval
+        d.plan = {**d.plan, "approval": approval}
         s.add(d)
         s.commit()
     mailer = MockMailer()
@@ -346,17 +333,7 @@ def test_the_send_gate_still_holds_text_and_contact(
         d = s.get(OutreachDraft, draft_id)
         item = s.exec(select(SendQueueItem).where(SendQueueItem.draft_id == draft_id)).one()
         assert d.status == DraftStatus.draft and item.status == QueueItemStatus.cancelled
-        assert not d.unverified_approval  # approving again is a new decision
         assert any(v["type"] == "send_gate" for v in d.violations)
-
-
-def test_an_unverified_approval_never_joins_the_regression_set(job_ready: dict,  # noqa: F811
-                                                               client) -> None:  # noqa: ANN001
-    draft_id = draft_with_errors(job_ready)
-    client.post(f"/api/outreach/drafts/{draft_id}/approve-unverified", json={"confirm": True})
-    with Session(engine) as s:
-        assert s.exec(select(EmailExample).where(EmailExample.draft_id == draft_id)).first() \
-            is None
 
 
 # ================================================================ 4. copy for another AI

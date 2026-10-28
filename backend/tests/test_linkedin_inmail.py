@@ -364,18 +364,15 @@ def test_api_inmail_flow_gate_credits_and_viewers(seeded: None, client: TestClie
     assert person_["reason"] == "viewed my profile on 17 Oct"
     assert person_["source"] == "viewed_profile"
     assert panel["credits"]["left"] == 5 and panel["inmail_max_chars"] == 1000
-    # draft → can't be marked sent before every claim is verified
     drafted = client.post(f"/api/linkedin/people/{rid}/inmail").json()
-    assert drafted["inmail"]["subject"] and drafted["inmail_verification_state"] == "none"
-    assert client.post(f"/api/linkedin/people/{rid}/inmail/sent").status_code == 409
-    verified = client.post(f"/api/linkedin/people/{rid}/verify", params={"kind": "inmail"}).json()
-    assert verified["inmail_verification_state"] == "passed"
+    assert drafted["inmail"]["subject"]
+    review = client.post(f"/api/linkedin/people/{rid}/review", params={"kind": "inmail"}).json()
+    assert review["feedback"] and review["error"] == ""  # advice only: nothing is stored
     sent = client.post(f"/api/linkedin/people/{rid}/inmail/sent").json()
     assert sent["inmail_sent_at"] and sent["status"] == "messaged"
     assert client.get("/api/linkedin/credits").json()["credits"]["left"] == 4
-    # editing after verification makes it stale again (subject is part of what was verified)
     edited = client.patch(f"/api/linkedin/people/{rid}", json={"inmail_subject": "A new subject"})
-    assert edited.json()["inmail_verification_state"] == "stale"
+    assert edited.status_code == 200
     replied = client.post(f"/api/linkedin/people/{rid}/status", json={"status": "replied"}).json()
     assert replied["inmail_refunded_at"]
     assert client.get("/api/linkedin/credits").json()["credits"]["left"] == 5

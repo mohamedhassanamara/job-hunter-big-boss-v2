@@ -108,8 +108,15 @@ class GenerateIn(BaseModel):
     scenario: str | None = None  # direct | years_gap | stack_pivot (auto clears an override)
 
 
-class ApproveUnverifiedIn(BaseModel):
-    confirm: bool = False
+class DraftReviewOut(BaseModel):
+    """The reviewer's feedback. Advice only: `has_unverified_claims` never blocks anything."""
+
+    feedback: str = ""
+    suggestions: str = ""
+    revised_body: str = ""  # the whole message with the suggestions applied ("" = no change)
+    has_unverified_claims: bool = False
+    model: str = ""
+    error: str = ""  # set when the reviewer couldn't answer (the answer is still a 200)
 
 
 class ExternalPromptIn(BaseModel):

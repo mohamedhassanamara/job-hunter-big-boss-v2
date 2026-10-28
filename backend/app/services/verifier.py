@@ -369,17 +369,19 @@ def require_email(s: Session, draft: OutreachDraft, verifier: Any) -> dict[str, 
 
 def send_gate(draft: OutreachDraft, subject: str, body: str,
               recipient: str | None = None) -> str | None:
-    """Right before a queued email goes out: the exact text must be the one approved and
-    verified. Returns why not, or None when it may go. (The message itself is checked for
-    attachments and non-text parts by `smtp_mailer.email_problem`, called by the queue.)
+    """Right before a queued email goes out: the exact text must be the one approved. Returns
+    why not, or None when it may go. (The message itself is checked for attachments and non-text
+    parts by `smtp_mailer.email_problem`, called by the queue.) An approval records the text hash
+    and the contact in `plan["approval"]`; no model verdict is involved.
 
     An email you approved without verification (`unverified_approval`) skips only the claim
     verification: the text and the contact (and their address) must still be exactly what you
     approved."""
-    if draft.unverified_approval:
-        a = draft.unverified_approval
+    approval = (draft.plan or {}).get("approval")
+    if approval or draft.unverified_approval:
+        a = approval or draft.unverified_approval
         if a.get("hash") != text_hash(f"Subject: {subject}\n\n{body}"):
-            return "Its text changed since you approved it without verification"
+            return "Its text changed since you approved it"
         if a.get("contact_id") != draft.contact_id or (
                 recipient and a.get("recipient") and recipient != a["recipient"]):
             return "The contact or their address changed since you approved the email"

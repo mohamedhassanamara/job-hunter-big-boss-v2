@@ -43,19 +43,30 @@ def test_is_apinex(model: str | None, expected: bool) -> None:
     assert is_apinex(model) is expected
 
 
-def test_apinex_never_reaches_email_letters_or_claude_p() -> None:
+def test_apinex_never_reaches_claude_p() -> None:
     from app.providers.claude_cv import ClaudeCVGenerator
     from app.providers.claude_verify import ClaudeVerifier
 
     m = "free/minimax-m3.1-flash"
-    for call in (lambda: registry.email_drafter(model=m),
-                 lambda: registry.linkedin_drafter(model=m),
-                 lambda: registry.email_drafter(mock=True, model=m),
-                 lambda: ClaudeCVGenerator(m), lambda: ClaudeVerifier(m),
+    for call in (lambda: ClaudeCVGenerator(m), lambda: ClaudeVerifier(m),
                  lambda: registry._claude_cv(m)):
         with pytest.raises(ValueError, match="APInex"):
             call()
     assert isinstance(registry.cv_generator(mock=False, model=m), APInexCVGenerator)
+
+
+def test_gateway_gemini_ids_route_to_apinex_for_drafting_and_review() -> None:
+    from app.providers.apinex_outreach import APInexEmailDrafter, APInexLinkedInDrafter
+    from app.providers.gemini_review import GeminiReviewer
+
+    assert is_apinex("free/gemini-3.8-flash") and not is_apinex("gemini-3.5-flashlite")
+    assert not is_apinex("gemini-3.5-flash-lite")  # Google's own id stays on Google
+    assert isinstance(registry.email_drafter(mock=False, model="free/gemini-3.8-flash"),
+                      APInexEmailDrafter)
+    assert isinstance(registry.linkedin_drafter(mock=False, model="free/gemini-3.8-flash"),
+                      APInexLinkedInDrafter)
+    reviewer = registry.reviewer(mock=False)  # Google's own id, on your Gemini key
+    assert isinstance(reviewer, GeminiReviewer) and reviewer.model == "gemini-3.5-flash-lite"
 
 
 def planner(ratings: list | None = None) -> dict:
@@ -167,6 +178,48 @@ def test_a_402_is_remembered_shown_and_cleared_without_calling_apinex(client) ->
     assert seen["needs_checkin"] is True and "check-in" in seen["message"]
     assert seen["url"].startswith("https://apinex.bond/")
     assert client.post("/api/scoring/apinex/checked-in").json()["needs_checkin"] is False
+
+
+def test_an_insufficient_balance_402_is_not_the_checkin(client) -> None:  # noqa: ANN001
+    import httpx
+
+    from app.providers.apinex_client import APInexClient, RollingRateLimiter
+    from app.providers.base import QuotaExceeded
+
+    body = {"error": {"message": "Insufficient balance"}}
+    broke = APInexClient(
+        api_key="k", sleep_fn=lambda s: None,
+        limiter=RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None),
+        transport=httpx.MockTransport(lambda request: httpx.Response(402, json=body)))
+    with pytest.raises(QuotaExceeded, match="balance too low") as err:
+        broke.complete_sync("s", "u")
+    assert "check-in" not in str(err.value)
+    assert client.get("/api/scoring/apinex").json()["needs_checkin"] is False  # no banner
+
+
+def test_the_drafters_send_the_free_prefixed_model_id() -> None:
+    import json
+
+    import httpx
+
+    from app.providers.apinex_client import APInexClient, RollingRateLimiter
+    from app.providers.apinex_models import DRAFT_MODEL
+    from app.providers.registry import email_drafter
+
+    assert DRAFT_MODEL == "free/gemini-3.8-flash"
+    sent: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(json.loads(request.content)["model"])
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}]})
+
+    drafter = email_drafter(mock=False, model=DRAFT_MODEL)
+    drafter.client = APInexClient(
+        api_key="k", sleep_fn=lambda s: None,
+        limiter=RollingRateLimiter(limit=100, window=60.0, sleep_fn=lambda s: None),
+        transport=httpx.MockTransport(handler))
+    drafter.client.complete_sync("s", "u", model=drafter.model)
+    assert sent == ["free/gemini-3.8-flash"]
 
 
 def test_a_good_apinex_answer_clears_the_notice(client) -> None:  # noqa: ANN001
