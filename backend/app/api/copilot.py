@@ -20,7 +20,8 @@ router = APIRouter(tags=["copilot"])
 
 def _model(session: Session) -> str:
     row = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
-    return ((row.value if row else {}).get("copilot") or {}).get("model") or "gemma4:12b"
+    cfg = (row.value if row else {}).get("copilot") or {}
+    return cfg.get("model") or "free/minimax-m3.1-flash"
 
 
 def _thread_out(session: Session, t: CopilotThread) -> CopilotThreadOut:
@@ -44,13 +45,16 @@ def _detail(session: Session, t: CopilotThread) -> CopilotThreadDetail:
 
 @router.get("/copilot/status", response_model=CopilotStatus)
 def copilot_status(session: SessionDep, workspace: WorkspaceDep) -> CopilotStatus:
-    """Is the local model ready? (Ollama running and the model pulled.)"""
+    """Is the model ready? (APInex key present; for an Ollama id: running and pulled.)"""
     model = _model(session)
     if workspace == "demo":
         return CopilotStatus(ok=True, model="mock", message="Sample answers (tour)")
+    from app.providers.apinex_client import APInexClient
+    from app.providers.apinex_models import is_apinex
     from app.providers.ollama import OllamaFitScorer
 
-    health = OllamaFitScorer(model).health()
+    health = APInexClient(model=model).health() if is_apinex(model) \
+        else OllamaFitScorer(model).health()
     return CopilotStatus(ok=health.ok, model=model, message=health.message)
 
 

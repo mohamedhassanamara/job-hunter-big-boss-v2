@@ -388,13 +388,19 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   site, a job board or LinkedIn (Mark applied; applying by email doesn't count). Drafting, approving and queueing
   are blocked before that with a clear message, and marking a job applied queues the draft when its contact is
   verified. Code builds the subject ("<Role> application - <name>"), the greeting, the opening ("I applied for
-  the <Role> position via <your careers page | LinkedIn | a job board> <earlier today | yesterday | on <date>>
-  and wanted to introduce myself directly.", from the application record, three wordings rotating), the closing question (one of three
+  the <Role> role through <your careers page | LinkedIn | a job board> <today | yesterday | on Monday | on <date>>.",
+  from the application record, four wordings rotating, no filler tail), the closing question (one of three
   wordings, rotating and never the one the previous email to the same company used: a quick 10-minute technical
   chat "in the next few days" / "this week" (Monday to Wednesday in your Settings → Motivation timezone only) / a
   quick call; a call for HR or recruiters; never "next week" or a date; "next week" in the closing is a warning) and the signature (sign-off, name, then
   `portfolio · github · linkedin` from Settings → Candidate links, then the opt-out line from Settings → Email if
-  you set one). The model writes only the 1-2 proof sentences. Errors: a URL or domain in the body, attachment
+  you set one). The model writes only the 1-3 proof sentences (**v19**: the whole email must stay at 110 words or fewer, an
+  error above that). The draft header shows **who it's written for** (persona from the contact's title: engineering manager,
+  founder/CTO, tech lead, recruiter, other) and **the situation** (direct match, years gap when the posting asks for 2+ more
+  years than you have, stack pivot when its primary stack isn't in your pool but another of the same family is): both worked
+  out in code and overridable from two dropdowns (regenerates; a manual pick sticks across regenerations, "automatic" clears
+  it). They only steer tone and emphasis, never the facts. A banned-wording list (filler, clichés and the defensive years/stack
+  disclaimers) is a blocking error. Errors: a URL or domain in the body, attachment
   wording, apology or defensive wording, asking whether they hire or hinting at going around the portal, visa,
   location. Warning: more than 110 words. Without a posting the email stays manual ("Quick intro | <Role> at
   <Company>"), also plain text.

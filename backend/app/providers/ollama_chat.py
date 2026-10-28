@@ -3,6 +3,7 @@
 
 import json
 from collections.abc import Iterator
+from typing import Any
 
 import httpx
 
@@ -55,6 +56,32 @@ class OllamaCopilot:
             raise CopilotUnavailable(f"The local model timed out after {self.timeout:g}s") from exc
         except httpx.TransportError as exc:
             raise CopilotUnavailable(self._not_running()) from exc
+
+
+class APInexCopilot:
+    """The Copilot on APInex (`free/minimax-m3.1-flash`). The gateway call isn't streamed: the
+    answer arrives whole and is yielded in small pieces so the page still fills in. Text only,
+    no tools. A quota or gateway failure is a `CopilotUnavailable` with the reason."""
+
+    def __init__(self, model: str = "free/minimax-m3.1-flash", client: Any = None):
+        from app.providers.apinex_client import APInexClient
+
+        self.model = model
+        self.client = client or APInexClient(model=model)
+
+    def stream(self, messages: list[dict[str, str]]) -> Iterator[str]:
+        from app.providers.base import QuotaExceeded, ScoringFailed
+
+        if not self.client.api_key:
+            raise CopilotUnavailable("No APInex API key (APINEX_API_KEY in .env).")
+        try:
+            text = self.client.text_sync("", "", model=self.model, messages=messages)
+        except QuotaExceeded as exc:
+            raise CopilotUnavailable(f"APInex: {exc}") from exc
+        except (ScoringFailed, ValueError) as exc:
+            raise CopilotUnavailable(f"APInex failed: {exc}") from exc
+        for i in range(0, len(text), 40):
+            yield text[i:i + 40]
 
 
 class MockCopilot:

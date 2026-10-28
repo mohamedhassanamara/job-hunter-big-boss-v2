@@ -76,6 +76,13 @@
       "cases": 6,
       "errors": 5,
       "note": "Only the external_applied closing text changed: the fixed 'next week' ask is now a rotating closing built by code (never 'next week', never a date). Run with --claude. The new-structure case (#28) has 0 errors; the 5 errors are the older reference_bad/rejected/speculative cases (hook and length checks), unchanged in kind from v17."
+    },
+    "19": {
+      "report": "data/eval/emails/20261027-152656_outreach_v19.md",
+      "date": "2026-10-27",
+      "cases": 9,
+      "errors": 11,
+      "note": "Persona-aware, gap-resilient follow-up: persona (recipient title) and scenario (direct / years gap / stack pivot) are computed in code and passed as RULES; the fixed 'introduce myself directly' opening tail and the roadmap closing are gone; the v19 banlist is a blocking check. Run with --claude. The 3 new-structure applied cases (#28, #29, #30) have 0 errors; the 11 errors are the older speculative reference/rejected cases (#1-#4, #8, #31: hook, length and vague checks that the applied rewrite did not touch; they vary run to run with the model), unchanged in kind. The new must_block set (5 emails with the old filler, roadmap closing, years-gap spin, stack-pivot disclaimer and clichés) is blocked by the banlist in every case, and the 3 must_warn Healy emails still raise the copy warning."
     }
   }
 }

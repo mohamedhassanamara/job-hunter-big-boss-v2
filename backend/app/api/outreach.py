@@ -209,6 +209,10 @@ def _drafts_out(session: Session, drafts: list[OutreachDraft]) -> list[DraftOut]
                 language_detected=((d.plan or {}).get("language_choice") or {}).get("detected"),
                 language_reason=((d.plan or {}).get("language_choice") or {}).get("reason"),
                 language_source=((d.plan or {}).get("language_choice") or {}).get("source"),
+                persona=((d.plan or {}).get("guidance") or {}).get("persona"),
+                persona_source=((d.plan or {}).get("guidance") or {}).get("persona_source"),
+                scenario=((d.plan or {}).get("guidance") or {}).get("scenario"),
+                scenario_source=((d.plan or {}).get("guidance") or {}).get("scenario_source"),
                 feedback=d.feedback or "", parent_id=d.parent_id,
                 source=(d.plan or {}).get("source") or "generated",
                 unverified_approval=d.unverified_approval or None,
@@ -444,7 +448,7 @@ def email_generator(session: Session, engine, demo: bool, use: str | None = None
 def _research_models(session: Session) -> tuple[str, str | None]:
     models = session.exec(select(AppSetting).where(AppSetting.key == "models")).first()
     cfg = (models.value if models else {}).get("research") or {}
-    return cfg.get("model") or "gemma4:31b-cloud", cfg.get("fallback", "gemma4:12b")
+    return cfg.get("model") or "free/minimax-m3.1-flash", cfg.get("fallback", "gemma4:12b")
 
 
 # The draft step runs in the background (research can take a minute): one per job, polled.
@@ -474,6 +478,12 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep, workspac
         raise HTTPException(422, "language must be auto, en or fr")
     if mode not in (None, *outreach.EMAIL_MODES):
         raise HTTPException(422, f"mode must be one of {', '.join(outreach.EMAIL_MODES)}")
+    if body.persona not in (None, "auto", *outreach.ac.PERSONAS):
+        raise HTTPException(
+            422, f"persona must be auto or one of {', '.join(outreach.ac.PERSONAS)}")
+    if body.scenario not in (None, "auto", *outreach.ac.SCENARIOS):
+        raise HTTPException(
+            422, f"scenario must be auto or one of {', '.join(outreach.ac.SCENARIOS)}")
     get_or_404(session, Application, app_id, "Application")
     key = (workspace, app_id)
     with _draft_runs_lock:
@@ -499,7 +509,8 @@ def generate_draft(app_id: int, session: SessionDep, engine: EngineDep, workspac
                                       fetcher=_demo_fetcher() if demo else None,
                                       progress=progress, hook_checker=checker, mode=mode,
                                       language=body.language, feedback=body.feedback,
-                                      base_draft_id=body.base_draft_id)
+                                      base_draft_id=body.base_draft_id, persona=body.persona,
+                                      scenario=body.scenario)
             with _draft_runs_lock:
                 _draft_runs[key].update(status="done", phase="done", draft_id=draft.id)
         except Exception as exc:  # noqa: BLE001 (shown to the user)

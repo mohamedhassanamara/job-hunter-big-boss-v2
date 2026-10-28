@@ -538,8 +538,15 @@ SETTINGS: dict[str, dict] = {
         "cv": {"provider": "apinex", "model": "free/minimax-m3.1-flash"},
         "email": {"provider": "gemini", "model": "gemini-3.5-flash-lite",
                   "thinking_level": "minimal"},
-        # Cover letters, form text and application answers: Claude Code only, never the CV/email model.
-        "letter": {"provider": "anthropic", "model": "claude-sonnet-5"},
+        # Cover letters, form text and application answers: APInex (a claude-* id is still allowed).
+        "letter": {"provider": "apinex", "model": "free/minimax-m3.1-flash"},
+        # Copilot answers, company research and the hook check: APInex, Ollama only as the fallback.
+        "copilot": {"provider": "apinex", "model": "free/minimax-m3.1-flash"},
+        "research": {"provider": "apinex", "model": "free/minimax-m3.1-flash",
+                     "fallback": "gemma4:12b"},
+        # LinkedIn notes, follow-ups and InMail: Gemini on the shared single key.
+        "linkedin": {"provider": "gemini", "model": "gemini-3.5-flash-lite",
+                     "thinking_level": "minimal"},
     },
     # Automatic drafting (never approves anything): the CV when you shortlist a job, the email
     # when a verified contact AND an approved CV both exist. The email one starts off.

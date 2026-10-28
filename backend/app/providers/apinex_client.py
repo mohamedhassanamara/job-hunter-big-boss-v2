@@ -58,11 +58,56 @@ def strip_code_fence(text: str) -> str:
     return text
 
 
+def repair_json(text: str) -> str:
+    """Fix the structural slips this model makes, never touching string contents: text around
+    the outer object, a trailing comma, and a missing comma between two values."""
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end > start:
+        text = text[start:end + 1]
+    out: list[str] = []
+    in_str = escaped = False
+    prev = ""  # last significant char outside strings
+    gap = False  # whitespace since prev
+    for ch in text:
+        if in_str:
+            out.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str, prev = False, '"'
+            continue
+        if ch.isspace():
+            out.append(ch)
+            gap = True
+            continue
+        if ch in "}]" and prev == ",":  # trailing comma
+            for i in range(len(out) - 1, -1, -1):
+                if out[i] == ",":
+                    del out[i]
+                    break
+        value_start = ch in '"{[' or ch.isdigit() or ch == "-" or ch in "tfn"
+        if value_start and (prev in ('"', "}", "]") or (prev.isalnum() and gap)):
+            out.append(",")  # a value directly after a value
+        out.append(ch)
+        gap = False
+        if ch == '"':
+            in_str = True
+        else:
+            prev = ch
+    return "".join(out)
+
+
 def sanitize_and_parse_json(content: str) -> dict[str, Any]:
-    """Cleanly parse model output content into JSON."""
+    """Cleanly parse model output content into JSON (one structural repair if needed)."""
     unfenced = strip_code_fence(content)
     try:
-        data = json.loads(unfenced)
+        try:
+            data = json.loads(unfenced)
+        except json.JSONDecodeError:
+            data = json.loads(repair_json(unfenced))
+            log.warning("APInex JSON needed a structural repair")
         if isinstance(data, dict):
             return data
         raise ValueError(f"Expected JSON object, got {type(data).__name__}")
@@ -214,16 +259,19 @@ class APInexClient:
             "Content-Type": "application/json",
         }
 
-    def _build_payload(self, model_name: str, system_prompt: str, user_prompt: str) -> dict[str, Any]:
-        return {
+    def _build_payload(self, model_name: str, system_prompt: str, user_prompt: str,
+                       *, raw: bool = False, temperature: float = 0.0) -> dict[str, Any]:
+        payload: dict[str, Any] = {
             "model": model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "temperature": 0.0,
-            "response_format": {"type": "json_object"},
+            "temperature": temperature,
         }
+        if not raw:  # plain text answers (the Copilot) skip the JSON mode
+            payload["response_format"] = {"type": "json_object"}
+        return payload
 
     def _extract_content(self, data: dict[str, Any]) -> str:
         try:
@@ -236,9 +284,36 @@ class APInexClient:
     def complete_sync(
         self, system_prompt: str, user_prompt: str, model: str | None = None
     ) -> dict[str, Any]:
+        """One call with its own retries (502s, timeouts, 429) and, when the last answer was a
+        broken object, ONE more full call: gateway errors use up attempts, and a bad answer that
+        arrives on the last of them would otherwise never be asked again."""
+        try:
+            return self._complete_sync_once(system_prompt, user_prompt, model)
+        except ValueError as exc:
+            if not str(exc).startswith("Invalid JSON"):
+                raise
+            log.warning("APInex answered invalid JSON after its retries: asking once more")
+            return self._complete_sync_once(system_prompt, user_prompt, model)
+
+    def text_sync(self, system_prompt: str, user_prompt: str, model: str | None = None,
+                  temperature: float = 0.3,
+                  messages: list[dict[str, str]] | None = None) -> str:
+        """A plain-text answer (no JSON mode), same limiter, retries and error types. `messages`
+        replaces the system/user pair with a whole conversation."""
+        return self._complete_sync_once(system_prompt, user_prompt, model, raw=True,
+                                        temperature=temperature, messages=messages)
+
+    def _complete_sync_once(
+        self, system_prompt: str, user_prompt: str, model: str | None = None,
+        *, raw: bool = False, temperature: float = 0.0,
+        messages: list[dict[str, str]] | None = None,
+    ) -> Any:
         """Call model with up to 3 attempts, backing off on HTTP 429. Raises QuotaExceeded on persistent 429."""
         target_model = model or self.model
-        payload = self._build_payload(target_model, system_prompt, user_prompt)
+        payload = self._build_payload(target_model, system_prompt, user_prompt, raw=raw,
+                                      temperature=temperature)
+        if messages is not None:
+            payload["messages"] = messages
         last_error = ""
 
         with httpx.Client(timeout=self.timeout, transport=self._transport) as client:
@@ -279,8 +354,23 @@ class APInexClient:
                 if res.status_code == 200:
                     data = res.json()
                     content = self._extract_content(data)
+                    if raw:
+                        apinex_status.note_success()
+                        return content.strip()
+                    try:
+                        parsed = sanitize_and_parse_json(content)
+                    except ValueError as exc:
+                        # The model sometimes emits a broken object (a missing comma): ask again.
+                        last_error = str(exc)
+                        # Length and ending tell a cut-off answer from a broken one.
+                        log.warning("APInex invalid JSON on %s: %s (%d chars, ends %r)",
+                                    target_model, exc, len(content), content[-80:])
+                        if attempt < MAX_ATTEMPTS - 1:
+                            log.warning("Retrying (%d/%d)...", attempt + 1, MAX_ATTEMPTS)
+                            continue
+                        raise
                     apinex_status.note_success()
-                    return sanitize_and_parse_json(content)
+                    return parsed
 
                 if res.status_code == 429:
                     last_error = f"HTTP 429: {res.text[:200]}"
@@ -451,3 +541,39 @@ def _short_validation(exc: ValidationError) -> str:
     first = exc.errors()[0]
     where = ".".join(str(p) for p in first.get("loc", ()))
     return f"{where}: {first.get('msg', 'invalid')}"
+
+
+def json_instruction(schema: type) -> str:
+    """The output-format paragraph for any pydantic schema (APInex has no native schema mode)."""
+    from app.providers.ollama import inline_schema
+
+    return ("Output format: reply with ONE JSON object and nothing else (no Markdown, no code "
+            "fence) that matches this JSON schema exactly:\n"
+            + json.dumps(inline_schema(schema), separators=(",", ":")))
+
+
+class APInexStructured:
+    """A schema-validated call on APInex for the steps that used the Ollama cloud model (company
+    research, the hook check): the schema goes in the prompt, one retry when the answer doesn't
+    match, errors typed like scoring's. Returns (object, meta) like `ollama.structured`."""
+
+    def __init__(self, model: str = DEFAULT_MODEL, client: APInexClient | None = None):
+        self.model = model
+        self.client = client or APInexClient(model=model)
+
+    def call(self, system: str, user: str, schema: type) -> tuple[Any, dict[str, Any]]:
+        sys_prompt = f"{system}\n\n{json_instruction(schema)}"
+        started = time.monotonic()
+        ask, error = user, ""
+        for attempt in range(2):
+            if attempt:
+                ask = (f"{user}\n\nYour previous answer didn't match the schema: {error}. "
+                       "Answer again with the full JSON only.")
+            data = self.client.complete_sync(sys_prompt, ask, model=self.model)
+            try:
+                out = schema.model_validate(data)
+                return out, {"model": self.model, "calls": attempt + 1,
+                             "duration_ms": int((time.monotonic() - started) * 1000)}
+            except ValidationError as exc:
+                error = _short_validation(exc)
+        raise ScoringFailed(f"Invalid answer from APInex after a retry: {error}")

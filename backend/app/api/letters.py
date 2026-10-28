@@ -93,7 +93,7 @@ def get_letter_studio(app_id: int, session: SessionDep) -> LetterStudio:
 
 def _model(session: Session) -> str:
     """The Letter generator setting (`models.letter`), never the CV or email one."""
-    return model_choice.claude_model(session, "letter")
+    return model_choice.letter_model(session)
 
 
 @router.post("/applications/{app_id}/letter/generate", response_model=LetterOut)

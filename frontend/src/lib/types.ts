@@ -543,6 +543,11 @@ export interface Draft {
   language_detected: string | null // the listing's language (en | fr | de | es | ar)
   language_reason: string | null
   language_source: 'auto' | 'override' | 'job' | 'setting' | null
+  // Applied follow-ups: who the email is written for and which situation it handles (computed in code)
+  persona: Persona | null
+  persona_source: 'auto' | 'manual' | null
+  scenario: EmailScenario | null
+  scenario_source: 'auto' | 'manual' | null
   // Draft history: what you asked to change to get this version
   feedback: string
   parent_id: number | null
@@ -574,8 +579,13 @@ export interface DraftHistoryItem {
   current: boolean
 }
 
+export type Persona = 'engineering_manager' | 'founder_cto' | 'tech_lead' | 'recruiter' | 'other'
+export type EmailScenario = 'direct' | 'years_gap' | 'stack_pivot'
+
 export type DraftGenerateInput = {
   mode?: EmailMode
+  persona?: Persona | 'auto' // auto clears a persona you picked for this draft
+  scenario?: EmailScenario | 'auto'
   language?: 'auto' | 'en' | 'fr' // auto clears a language you picked for this draft
   feedback?: string
   base_draft_id?: number

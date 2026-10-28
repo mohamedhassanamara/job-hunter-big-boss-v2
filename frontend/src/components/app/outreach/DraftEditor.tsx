@@ -19,7 +19,7 @@ import { relativeTime } from '@/lib/format'
 import { useApproveUnverified, useDraftAction, useDraftHistory, useDraftRun, useMentionApplication, useQueueDraft, useSaveDraft, useTestSend, useVerifyDraft } from '@/lib/queries/workflow'
 import { ClaimCheck } from '@/components/app/verify/ClaimCheck'
 import { DRAFT_STATUS } from '@/lib/outreach'
-import type { Draft, Violation } from '@/lib/types'
+import type { Draft, EmailScenario, Persona, Violation } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 
@@ -81,6 +81,63 @@ function LanguageLine({ draft, editable, onPick, busy }: { draft: Draft; editabl
           ]}
           className="w-44"
         />
+      )}
+    </div>
+  )
+}
+
+const PERSONA_LABEL: Record<Persona, string> = {
+  engineering_manager: 'Engineering manager',
+  founder_cto: 'Founder / CTO',
+  tech_lead: 'Tech lead / senior engineer',
+  recruiter: 'Recruiter',
+  other: 'Other / unknown',
+}
+const SCENARIO_LABEL: Record<EmailScenario, string> = {
+  direct: 'Direct match',
+  years_gap: 'Years gap',
+  stack_pivot: 'Stack pivot',
+}
+
+/** Who the follow-up is written for and the situation it handles (both worked out in code), with dropdowns to override (regenerates). */
+function PersonaLine({
+  draft, editable, busy, onPick,
+}: { draft: Draft; editable: boolean; busy: boolean; onPick: (change: { persona?: Persona | 'auto'; scenario?: EmailScenario | 'auto' }) => void }) {
+  if (!draft.persona || !draft.scenario) return null
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs text-fg-muted" data-tour="outreach-persona">
+      <span>
+        <span className="font-medium text-fg">Written for: {PERSONA_LABEL[draft.persona]}</span>
+        {` · ${SCENARIO_LABEL[draft.scenario]}`}
+        {draft.persona_source === 'manual' || draft.scenario_source === 'manual' ? ' (your choice)' : ''}
+      </span>
+      {editable && (
+        <>
+          <Select
+            aria-label="Email persona"
+            size="sm"
+            disabled={busy}
+            value={draft.persona_source === 'manual' ? draft.persona : 'auto'}
+            onValueChange={(v) => onPick({ persona: v as Persona | 'auto' })}
+            options={[
+              { value: 'auto', label: 'Persona: automatic' },
+              ...(Object.keys(PERSONA_LABEL) as Persona[]).map((p) => ({ value: p, label: PERSONA_LABEL[p] })),
+            ]}
+            className="w-52"
+          />
+          <Select
+            aria-label="Email scenario"
+            size="sm"
+            disabled={busy}
+            value={draft.scenario_source === 'manual' ? draft.scenario : 'auto'}
+            onValueChange={(v) => onPick({ scenario: v as EmailScenario | 'auto' })}
+            options={[
+              { value: 'auto', label: 'Situation: automatic' },
+              ...(Object.keys(SCENARIO_LABEL) as EmailScenario[]).map((s) => ({ value: s, label: SCENARIO_LABEL[s] })),
+            ]}
+            className="w-48"
+          />
+        </>
       )}
     </div>
   )
@@ -258,6 +315,12 @@ export function DraftEditor({
           editable={editable}
           busy={regenerate.running}
           onPick={(l) => regenerate.start({ language: l, base_draft_id: draft.id }, { onError: (e) => toast.error(e.message) })}
+        />
+        <PersonaLine
+          draft={draft}
+          editable={editable}
+          busy={regenerate.running}
+          onPick={(change) => regenerate.start({ ...change, base_draft_id: draft.id }, { onError: (e) => toast.error(e.message) })}
         />
         {draft.unverified_approval && (
           <div className="space-y-1">

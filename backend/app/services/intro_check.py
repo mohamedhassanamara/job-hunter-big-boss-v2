@@ -88,6 +88,9 @@ class Context:
     honesty: Any = None  # services/honesty.Rules: years never attached to a projects track
     references: list[str] = field(default_factory=list)  # style references (never copied)
     track: str = ""  # the job's matched track (a projects track's proof can't be a job)
+    required_years: set[int] = field(default_factory=set)  # years the listing asks for (v19)
+    scenario: str = "direct"  # direct | years_gap | stack_pivot (v19)
+    target_stack: str = ""  # a stack pivot's target, named in the listing, absent from the pool
 
 
 def intro_line(first_name: str, focus: str, language: str, statement: str | None,

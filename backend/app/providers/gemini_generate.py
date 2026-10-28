@@ -29,6 +29,7 @@ from sqlmodel import Session
 from app.providers.base import CVGenerationFailed, CVPlanDraft, QuotaWait
 from app.providers.claude_cv import ClaudeCVGenerator, plan_schema
 from app.providers.claude_email import ClaudeEmailDrafter
+from app.providers.claude_linkedin import ClaudeLinkedInDrafter
 from app.providers.gemini import BASE_URL, _error_text, classify_error
 from app.providers.ollama import strip_fence
 from app.services.gemini_keys import KeyPool, pool_for
@@ -238,6 +239,16 @@ class GeminiCVGenerator(_GeminiMixin, ClaudeCVGenerator):
 
 
 class GeminiEmailDrafter(_GeminiMixin, ClaudeEmailDrafter):
+    def __init__(self, runner: GeminiRunner):
+        super().__init__(runner.model)
+        self.runner = runner
+        self.thinking_level = next(iter(runner.thinking.values()))
+
+
+class GeminiLinkedInDrafter(_GeminiMixin, ClaudeLinkedInDrafter):
+    """LinkedIn notes, follow-ups and InMail on Gemini: the Claude drafter's prompts, schema and
+    checks, only the call replaced."""
+
     def __init__(self, runner: GeminiRunner):
         super().__init__(runner.model)
         self.runner = runner

@@ -84,3 +84,25 @@ def test_must_warn_emails_still_raise_the_copy_warning(job_ready: dict, tmp_path
     # the regeneration eval never rewrites them
     path, results = ev.run_eval(engine, MockEmailDrafter(), out_dir=tmp_path)
     assert all(r["kind"] != "must_warn" for r in results)
+
+
+def test_must_block_emails_are_still_blocked_by_the_applied_banlist(tmp_path: Path) -> None:
+    """The robotic or defensive emails stay in the set: the banlist must block each, and an
+    email without a banned phrase must not be."""
+    with Session(engine) as s:
+        for company, body, scenario in [
+                ("Filler", "Hi Ana,\n\nI applied today and wanted to introduce myself directly.",
+                 "direct"),
+                ("Spin", "Hi Ana,\n\nDespite my lack of years, I ship.", "years_gap"),
+                ("Clean", "Hi Ana,\n\nI applied for the role through your careers page today.",
+                 "direct")]:
+            s.add(EmailExample(kind="must_block", language="en", subject="S", company=company,
+                               body=body, inputs={"mode": "applied",
+                                                  "expect": {"rule": "banlist",
+                                                             "scenario": scenario}}))
+        s.commit()
+    by_company = {r["company"]: r for r in ev.check_must_block(engine)}
+    assert by_company["Filler"]["blocks"] and by_company["Spin"]["blocks"]
+    assert not by_company["Clean"]["blocks"]
+    path, results = ev.run_eval(engine, MockEmailDrafter(), out_dir=tmp_path)
+    assert all(r["kind"] != "must_block" for r in results)  # the regeneration eval skips them

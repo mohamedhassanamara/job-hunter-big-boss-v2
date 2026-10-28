@@ -363,7 +363,8 @@ def _sticky_language(base: OutreachDraft | None, language: str | None) -> str | 
 def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: Any = None,
              fetcher: Any = None, progress: Any = None, hook_checker: Any = None,
              mode: str | None = None, language: str | None = None, feedback: str = "",
-             base_draft_id: int | None = None) -> OutreachDraft:
+             base_draft_id: int | None = None, persona: str | None = None,
+             scenario: str | None = None) -> OutreachDraft:
     """Draft the email for one job (never in bulk: one generation at a time). A job with a
     posting gets the application follow-up (prompt v11 `applied`, no research started); a
     speculative email (`mode`, or a company with no posting) researches the company first
@@ -381,7 +382,8 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
         chosen = email_mode(job, mode) if job else "speculative"
     options = {"language": language, "feedback": feedback.strip(), "base_draft_id": base_id}
     if hasattr(drafter, "draft_applied") and chosen == "applied":
-        return generate_applied(engine, app_id, drafter, progress=progress, **options)
+        return generate_applied(engine, app_id, drafter, progress=progress, persona=persona,
+                                scenario=scenario, **options)
     if hasattr(drafter, "draft_intro"):
         return generate_intro(engine, app_id, drafter, researcher=researcher, fetcher=fetcher,
                               progress=progress, hook_checker=hook_checker, **options)
@@ -654,6 +656,13 @@ def recheck(s: Session, draft: OutreachDraft) -> list[dict[str, str]]:
         ctx = applied_context(s, app, job, company, contact, load_pool(s),
                               language=draft.plan.get("language") or "en",
                               exclude_draft=draft.id)
+        guided = (draft.plan or {}).get("guidance") or {}
+        detail = guided.get("scenario_detail") or {}
+        ctx.scenario = guided.get("scenario") or "direct"  # what the draft was written for
+        if detail.get("required_years"):
+            ctx.required_years = {int(detail["required_years"])}
+        if ctx.scenario == "stack_pivot":
+            ctx.target_stack = detail.get("target_stack") or ""
         return ac.check_text(draft.subject, draft.body, ctx)
     if (draft.plan or {}).get("format") == "intro":
         from app.services import hook_check
@@ -900,6 +909,44 @@ def applied_request(s: Session, app: Application, job: Job, company: Company, co
                         pool=request.pool, rules=rules)
 
 
+def applied_guidance(contact: Contact, request: EmailRequest, job: Job, pool: Pool,
+                     ctx: ic.Context, *, persona: str | None = None,
+                     scenario: str | None = None) -> dict[str, Any]:
+    """Who the recipient is and which situation the email handles, both computed in code and
+    both overridable: they steer tone and emphasis in the prompt, never the facts. Sets the
+    context's scenario fields (the checks allow the posting's years / target stack to be named
+    once, in the acknowledgement)."""
+    auto = ac.persona_for(contact.title, request.contact.get("role_group"))
+    if persona is not None and persona not in ac.PERSONAS:
+        raise OutreachError(f"Unknown persona “{persona}”")
+    if scenario is not None and scenario not in ac.SCENARIOS:
+        raise OutreachError(f"Unknown scenario “{scenario}”")
+    found = ac.scenario_for(job.title, job.description or "", pool.all_text(),
+                            max(ctx.allowed_years) if ctx.allowed_years else None)
+    asked = ac.required_years(job.description or "")
+    chosen = scenario or found["scenario"]
+    if scenario == "years_gap" and not found.get("required_years"):
+        if not asked:
+            raise OutreachError("The listing states no years of experience to acknowledge")
+        found.update(required_years=asked, have_years=max(ctx.allowed_years, default=0))
+    if scenario == "stack_pivot" and not found.get("target_stack"):
+        raise OutreachError("No stack in the listing that your experience pool lacks")
+    ctx.scenario = chosen
+    ctx.required_years = {int(found["required_years"])} if found.get("required_years") else (
+        {asked} if asked else set())
+    ctx.target_stack = found.get("target_stack", "") if chosen == "stack_pivot" else ""
+    who = persona or auto
+    detail = {} if chosen == "direct" else {k: v for k, v in found.items() if k != "scenario"}
+    request.rules["persona"] = who
+    request.rules["persona_focus"] = ac.PERSONA_FOCUS[who]
+    request.rules["scenario"] = {"kind": chosen, **detail,
+                                 "pattern": ac.SCENARIO_PATTERN[chosen]}
+    return {"persona": who, "persona_auto": auto,
+            "persona_source": "manual" if persona else "auto", "scenario": chosen,
+            "scenario_auto": found["scenario"],
+            "scenario_source": "manual" if scenario else "auto", "scenario_detail": detail}
+
+
 def add_revision(request: EmailRequest, base: OutreachDraft | None, feedback: str) -> None:
     """A regeneration with feedback: the model gets the previous draft and what you want changed
     (the normal sources and rules stay), and edits toward it. The facts checks still apply."""
@@ -954,7 +1001,8 @@ def complete_applied(plan: Any, app: Application, job: Job, request: EmailReques
 
 def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any = None,
                      language: str | None = None, feedback: str = "",
-                     base_draft_id: int | None = None) -> OutreachDraft:
+                     base_draft_id: int | None = None, persona: str | None = None,
+                     scenario: str | None = None) -> OutreachDraft:
     """The job-linked email draft: one call (plus one retry with the problems as feedback). No
     research is started: signals the company already has are optional extras."""
     progress = progress or (lambda *_: None)
@@ -987,6 +1035,13 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
             base = s.get(OutreachDraft, base_draft_id) if base_draft_id else None
             add_revision(request, base, feedback)
             ctx = applied_context(s, app, job, company, contact, pool, language=language)
+            earlier = (base.plan or {}).get("guidance") or {} if base else {}
+            persona = None if persona == "auto" else persona or (
+                earlier.get("persona") if earlier.get("persona_source") == "manual" else None)
+            scenario = None if scenario == "auto" else scenario or (
+                earlier.get("scenario") if earlier.get("scenario_source") == "manual" else None)
+            guidance = applied_guidance(contact, request, job, pool, ctx, persona=persona,
+                                        scenario=scenario)
             variant = len(s.exec(select(OutreachDraft.id).where(
                 OutreachDraft.application_id == app_id)).all())  # a new wording each time
             cta = ac.cta_variant(previous_cta_variant(s, company.id), variant)
@@ -1032,7 +1087,7 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
                 plan={"delivery": "text", "format": "applied", "mode": "applied",
-                      "cta_variant": cta, "plan": plan.model_dump(),
+                      "cta_variant": cta, "guidance": guidance, "plan": plan.model_dump(),
                       "attempts": attempts, "language": language,
                       "language_choice": choice.as_dict(),
                       "signal_ids": plan.signal.signal_ids,

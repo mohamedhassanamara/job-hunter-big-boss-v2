@@ -166,6 +166,11 @@ def candidate_sources(s: Session, pool: Pool, cv: CVVersion | None) -> dict[str,
                      "is claimed)")
     if where.get("relocation"):
         lines.append(f"Relocation: the candidate is {where['relocation']}")
+    from app.services.outreach import candidate_links, outreach_settings
+
+    if links := candidate_links(outreach_settings(s), pool.profile.get("links") or []):
+        lines.append(f"Links in the signature (the candidate's own, Settings → Candidate links): "
+                     f"{links}")
     if words := glossary.verifier_lines(pool.profile):
         lines.append(words)
     out = {"facts": "\n".join(lines)}

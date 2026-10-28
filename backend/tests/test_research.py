@@ -195,14 +195,15 @@ def test_the_model_policy_retries_busy_and_falls_back_on_quota() -> None:
     seen: list[str] = []
     sleeps: list[float] = []
     busy = (429, '{"error":"too many concurrent requests"}')
-    r = rs.OllamaResearcher(sleep=sleeps.append, transport=ollama([busy, (200, ANSWER)], seen))
+    r = rs.OllamaResearcher("gemma4:31b-cloud", sleep=sleeps.append,
+                         transport=ollama([busy, (200, ANSWER)], seen))
     log: list[dict] = []
     assert r.extract("Voxa", [rs.Source("u", "home", "t", "x")], log.append) == []
     assert [c["outcome"] for c in log] == ["concurrency_limited", "ok"] and sleeps == [2.0]
     assert log[1]["prompt_tokens"] == 900
 
     quota = (429, '{"error":"you have reached your weekly usage limit"}')
-    r = rs.OllamaResearcher(transport=ollama([quota, (200, ANSWER)], seen))
+    r = rs.OllamaResearcher("gemma4:31b-cloud", transport=ollama([quota, (200, ANSWER)], seen))
     log = []
     r.extract("Voxa", [rs.Source("u", "home", "t", "x")], log.append)
     assert seen[-2:] == ["gemma4:31b-cloud", "gemma4:12b"] and r.model == "gemma4:12b"
@@ -214,12 +215,12 @@ def test_a_schema_shaped_answer_is_unwrapped_not_read_as_empty() -> None:
     wrapped = json.dumps({"message": {"content": json.dumps({"properties": {"signals": [
         {"kind": "product", "fact": "Voxa builds voice agents", "quote": "Voxa builds voice "
          "agents for customer service", "source_url": "u"}]}})}})
-    r = rs.OllamaResearcher(transport=ollama([(200, wrapped)], seen))
+    r = rs.OllamaResearcher("gemma4:31b-cloud", transport=ollama([(200, wrapped)], seen))
     out = r.extract("Voxa", [rs.Source("u", "home", "t", "x")], lambda c: None)
     assert out and out[0].fact == "Voxa builds voice agents"
     empty_default = json.dumps({"message": {"content": json.dumps({"other": 1})}})
-    r = rs.OllamaResearcher(transport=ollama([(200, empty_default), (200, empty_default),
-                                              (200, empty_default), (200, empty_default)], seen))
+    r = rs.OllamaResearcher("gemma4:31b-cloud", transport=ollama(
+        [(200, empty_default)] * 4, seen))
     with pytest.raises(rs.ResearchError):
         r.extract("Voxa", [rs.Source("u", "home", "t", "x")], lambda c: None)
 

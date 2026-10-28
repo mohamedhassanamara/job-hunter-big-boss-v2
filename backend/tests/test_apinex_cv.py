@@ -48,7 +48,8 @@ def test_apinex_never_reaches_email_letters_or_claude_p() -> None:
     from app.providers.claude_verify import ClaudeVerifier
 
     m = "free/minimax-m3.1-flash"
-    for call in (lambda: registry.email_drafter(model=m), lambda: registry.letter_drafter(model=m),
+    for call in (lambda: registry.email_drafter(model=m),
+                 lambda: registry.linkedin_drafter(model=m),
                  lambda: registry.email_drafter(mock=True, model=m),
                  lambda: ClaudeCVGenerator(m), lambda: ClaudeVerifier(m),
                  lambda: registry._claude_cv(m)):
@@ -212,3 +213,13 @@ def test_the_cv_endpoints_accept_only_known_one_shot_choices(client) -> None:  #
                        json={"use": "gpt"}).status_code == 422
     cv_id = client.get("/api/jobs?stage=all").json()["items"][0]["id"]  # any id: validated first
     assert client.post(f"/api/cv/{cv_id}/summary", json={"use": "gpt"}).status_code in (404, 422)
+
+
+def test_pass_1_certifications_default_to_none_and_only_real_pool_ids_survive() -> None:
+    request = REQUEST.model_copy(update={"pool": {
+        **REQUEST.pool, "certifications": [{"id": 20, "name": "Flutter", "issuer": "X"}]}})
+    out = APInexCVGenerator(client=FakeClient(planner([])))._run_pass1_planner(request)  # type: ignore[arg-type]
+    assert out["selected_certifications"] == []  # the model said nothing: none shown
+    ans = {**planner([]), "selected_certifications": [20, "99", 7]}
+    out = APInexCVGenerator(client=FakeClient(ans))._run_pass1_planner(request)  # type: ignore[arg-type]
+    assert out["selected_certifications"] == [20]

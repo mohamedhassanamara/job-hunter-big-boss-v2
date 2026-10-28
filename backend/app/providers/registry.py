@@ -109,24 +109,32 @@ def email_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5",
     return ClaudeEmailDrafter(model)
 
 
-def letter_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5") -> LetterDrafter:
-    """Cover letters and application answers. Real workspace: Claude Code headless (subscription
-    only). Tests and the sandbox: the mock."""
+def letter_drafter(*, mock: bool | None = None,
+                   model: str = "free/minimax-m3.1-flash") -> LetterDrafter:
+    """Cover letters and application answers. Real workspace: APInex by default; a claude-* id
+    (Settings → Models → letter) runs through Claude Code headless (subscription only). Tests
+    and the sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    reject(model, "cover letters")
     if use_mock:
         return MockLetterDrafter()
+    if is_apinex(model):
+        from app.providers.apinex_letter import APInexLetterDrafter
+
+        return APInexLetterDrafter(model)
     from app.providers.claude_letter import ClaudeLetterDrafter
 
     return ClaudeLetterDrafter(model)
 
 
-def copilot(*, mock: bool | None = None, model: str = "gemma4:12b"):  # noqa: ANN201
-    """The Copilot's local model (Ollama). Tests and the sandbox: the mock."""
+def copilot(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flash"):  # noqa: ANN201
+    """The Copilot's model: APInex by default, a local Ollama id still works. Tests and the
+    sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    from app.providers.ollama_chat import MockCopilot, OllamaCopilot
+    from app.providers.ollama_chat import APInexCopilot, MockCopilot, OllamaCopilot
 
-    return MockCopilot() if use_mock else OllamaCopilot(model)
+    if use_mock:
+        return MockCopilot()
+    return APInexCopilot(model) if is_apinex(model) else OllamaCopilot(model)
 
 
 def rewriter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
@@ -137,7 +145,7 @@ def rewriter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # no
     return MockRewriter() if use_mock else ClaudeRewriter(model)
 
 
-def researcher(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
+def researcher(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flash",
                fallback: str | None = "gemma4:12b"):  # noqa: ANN201
     """Company research signals (cold emails only). Tests and the sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
@@ -146,7 +154,7 @@ def researcher(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
     return MockResearcher() if use_mock else OllamaResearcher(model, fallback)
 
 
-def hook_checker(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
+def hook_checker(*, mock: bool | None = None, model: str = "free/minimax-m3.1-flash",
                  fallback: str | None = "gemma4:12b"):  # noqa: ANN201
     """Checks an email's hook against the signals it cites (the research models). Tests and the
     sandbox: the mock."""
@@ -156,14 +164,24 @@ def hook_checker(*, mock: bool | None = None, model: str = "gemma4:31b-cloud",
     return MockHookChecker() if use_mock else OllamaHookChecker(model, fallback)
 
 
-def linkedin_drafter(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201
-    """LinkedIn connection notes and follow-ups: Claude Code headless (your subscription). Tests
-    and the sandbox: the mock."""
+def linkedin_drafter(*, mock: bool | None = None, model: str = "gemini-3.5-flash-lite",
+                     thinking_level: str | None = "minimal", engine: Any = None):  # noqa: ANN201
+    """LinkedIn connection notes, follow-ups and InMail: Gemini by default (Settings → Models →
+    linkedin); a claude-* id runs through Claude Code headless. Tests and the sandbox: the mock."""
     use_mock = get_settings().job_sources == "mock" if mock is None else mock
-    from app.providers.claude_linkedin import ClaudeLinkedInDrafter
+    reject(model, "LinkedIn messages")
     from app.providers.mock import MockLinkedInDrafter
 
-    return MockLinkedInDrafter() if use_mock else ClaudeLinkedInDrafter(model)
+    if use_mock:
+        return MockLinkedInDrafter()
+    if model.startswith("gemini-"):
+        from app.db import engine as default_engine
+        from app.providers.gemini_generate import GeminiLinkedInDrafter, runner_for
+
+        return GeminiLinkedInDrafter(runner_for(engine or default_engine, model, thinking_level))
+    from app.providers.claude_linkedin import ClaudeLinkedInDrafter
+
+    return ClaudeLinkedInDrafter(model)
 
 
 def critic(*, mock: bool | None = None, model: str = "claude-sonnet-5"):  # noqa: ANN201

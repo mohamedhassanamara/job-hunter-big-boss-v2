@@ -357,26 +357,24 @@ def user_message(company: str, sources: list[Source]) -> str:
 
 
 class OllamaStructured:
-    """A structured call on gemma4:31b-cloud, local gemma4:12b as the fallback, with scoring's
+    """A structured call on APInex (`free/minimax-m3.1-flash`; an Ollama model id still works),
+    local gemma4:12b as the fallback when APInex's quota is out, with scoring's
     error handling: a 429 concurrency limit backs off and retries (3 attempts), a quota error
     switches to the fallback for the rest of the run, other errors get one retry. Every call is
     logged. Used by research (signal extraction) and the hook check."""
 
-    def __init__(self, model: str = "gemma4:31b-cloud", fallback: str | None = "gemma4:12b",
+    def __init__(self, model: str = "free/minimax-m3.1-flash", fallback: str | None = "gemma4:12b",
                  sleep: Callable[[float], None] = time.sleep, transport: Any = None):
         self.model, self.fallback, self._sleep, self._transport = model, fallback, sleep, transport
 
     def ask(self, version: str, system: str, message: str, schema: type,
             log: Callable[[dict[str, Any]], None], **extra: Any) -> Any:
         from app.providers.base import ConcurrencyLimited, QuotaExceeded, ScoringFailed
-        from app.providers.ollama import structured
-
         failures, limited = 0, 0
         while True:
             started = time.monotonic()
             try:
-                out, meta = structured(self.model, system, message, schema,
-                                       transport=self._transport)
+                out, meta = self._structured(system, message, schema)
                 log({"model": self.model, "prompt_version": version, "outcome": "ok",
                      "duration_ms": meta.get("duration_ms"), "calls": meta.get("calls"),
                      "prompt_tokens": meta.get("prompt_tokens"),
@@ -398,6 +396,15 @@ class OllamaStructured:
                 log(self._failed(version, "error", exc, started))
                 if failures >= 2:
                     raise ResearchError(f"The model call failed: {exc}") from exc
+
+    def _structured(self, system: str, message: str, schema: type) -> tuple[Any, dict[str, Any]]:
+        from app.providers.apinex_client import APInexStructured
+        from app.providers.apinex_models import is_apinex
+        from app.providers.ollama import structured
+
+        if is_apinex(self.model):
+            return APInexStructured(self.model).call(system, message, schema)
+        return structured(self.model, system, message, schema, transport=self._transport)
 
     def _failed(self, version: str, outcome: str, exc: Exception, started: float) -> dict:
         return {"model": self.model, "prompt_version": version, "outcome": outcome,

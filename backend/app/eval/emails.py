@@ -136,7 +136,8 @@ def run_eval(engine: Engine, drafter: Any, *, limit: int | None = None,
             stmt = stmt.where(EmailExample.id == case)
         examples = [e for e in s.exec(stmt).all()
                     if (e.inputs or {}).get("channel") != "linkedin"  # emails only
-                    and e.kind not in ("must_fail", "must_warn", "retired")]  # own sets / history
+                    and e.kind not in ("must_fail", "must_warn", "must_block",
+                                       "retired")]  # own sets / history
         examples = examples[:limit] if limit else examples
         for ex in examples:
             request, language = _request(s, ex)
@@ -213,6 +214,23 @@ def check_must_warn(engine: Engine) -> list[dict[str, Any]]:
                     best, where, quote = run, source, sentence.strip()
             out.append({"id": ex.id, "company": ex.company, "note": ex.note, "run": best,
                         "source": where, "quote": quote, "warns": best >= ac.COPY_RUN})
+    return out
+
+
+def check_must_block(engine: Engine) -> list[dict[str, Any]]:
+    """The stored `must_block` emails (robotic filler, the v17/v18 opening and closing, defensive
+    years or stack disclaimers) must still be BLOCKED by the applied banlist: each row's `expect`
+    is {"rule": "banlist", "scenario": "direct" | "years_gap" | "stack_pivot"}. No model call."""
+    from app.services import applied_check as ac
+
+    out = []
+    with Session(engine) as s:
+        for ex in s.exec(select(EmailExample).where(EmailExample.kind == "must_block")
+                         .order_by(col(EmailExample.id))).all():
+            scenario = ((ex.inputs or {}).get("expect") or {}).get("scenario", "direct")
+            found = [v["message"] for v in ac.banlist_violations(ex.body, scenario)]
+            out.append({"id": ex.id, "company": ex.company, "note": ex.note, "found": found,
+                        "blocks": bool(found)})
     return out
 
 
@@ -317,6 +335,9 @@ def main() -> None:
     print(f"{len(done)} case(s) written with {drafter.prompt_version}: {path}")
     for r in done:
         print(f"  #{r['id']} {r['kind']} {r['company']}: {len(r['errors'])} error(s)")
+    for r in check_must_block(engine):
+        print(f"  must-block #{r['id']} {r['company']}: "
+              f"{'blocked (' + '; '.join(r['found']) + ')' if r['blocks'] else 'NOT BLOCKED'}")
     for r in check_must_warn(engine):
         print(f"  must-warn #{r['id']} {r['company']}: longest copy {r['run']} words "
               f"({'warns' if r['warns'] else 'DOES NOT WARN'})")

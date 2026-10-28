@@ -6,6 +6,8 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import Engine
+from sqlmodel import Session
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep
 from app.services import linkedin
@@ -359,9 +361,9 @@ def set_status(row_id: int, body: StatusIn, session: SessionDep) -> PersonOut:
         status = LinkedInStatus(body.status)
     except ValueError as exc:
         raise HTTPException(422, "Unknown status") from exc
-    # Sending needs the exact text verified (moving back never does).
-    gates = {(LinkedInStatus.to_contact, LinkedInStatus.sent): ("note", row.note),
-             (LinkedInStatus.accepted, LinkedInStatus.messaged): ("follow-up", row.followup)}
+    # Sending a follow-up needs the exact text verified (moving back never does). The 300-character
+    # connection note has no claim check: you read it yourself.
+    gates = {(LinkedInStatus.accepted, LinkedInStatus.messaged): ("follow-up", row.followup)}
     if gate := gates.get((LinkedInStatus(row.status), status)):
         label, message = gate
         if message and _vstate(message) != "passed":
@@ -393,22 +395,26 @@ def verify_message(row_id: int, session: SessionDep, workspace: WorkspaceDep,
     return _person(session, row)
 
 
-def _drafter(workspace: str):  # noqa: ANN202
+def _drafter(workspace: str, session: Session, engine: Engine):  # noqa: ANN202
+    """The LinkedIn drafter from Settings → Models (`models.linkedin`, Gemini by default)."""
     from app.providers.registry import linkedin_drafter
+    from app.services import model_choice
 
-    return linkedin_drafter(mock=True if workspace == "demo" else None)
+    pick = model_choice.choice(session, "linkedin")
+    return linkedin_drafter(mock=True if workspace == "demo" else None, model=pick["model"],
+                            thinking_level=pick["thinking_level"], engine=engine)
 
 
 @router.post("/linkedin/people/{row_id}/note", response_model=PersonOut)
 def draft_note(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
                body: RegenerateIn | None = None) -> PersonOut:
-    """Claude drafts the connection note (claude -p, your subscription), checked in code. With
+    """Gemini drafts the connection note (Settings → Models), checked in code. With
     feedback ("What should change?") it edits the current note toward it."""
     from app.services import linkedin_track as lt
 
     _row(session, row_id)
     try:
-        row = lt.draft_note(engine, row_id, _drafter(workspace),
+        row = lt.draft_note(engine, row_id, _drafter(workspace, session, engine),
                            (body or RegenerateIn()).feedback)
     except lt.LinkedInError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -430,7 +436,7 @@ def draft_followup(row_id: int, session: SessionDep, engine: EngineDep, workspac
     model, fallback = _research_models(session)
     demo = workspace == "demo"
     try:
-        row = lt.draft_followup(engine, row_id, _drafter(workspace),
+        row = lt.draft_followup(engine, row_id, _drafter(workspace, session, engine),
                                 researcher=research_provider(mock=True if demo else None,
                                                              model=model, fallback=fallback),
                                 fetcher=SampleFetcher() if demo else None,
@@ -444,13 +450,13 @@ def draft_followup(row_id: int, session: SessionDep, engine: EngineDep, workspac
 @router.post("/linkedin/people/{row_id}/inmail", response_model=PersonOut)
 def draft_inmail(row_id: int, session: SessionDep, engine: EngineDep, workspace: WorkspaceDep,
                  body: RegenerateIn | None = None) -> PersonOut:
-    """Claude drafts a LinkedIn Premium InMail (subject + body, claude -p on your subscription),
+    """Gemini drafts a LinkedIn Premium InMail (subject + body, Settings → Models),
     checked in code like the note. You send it yourself."""
     from app.services import linkedin_track as lt
 
     _row(session, row_id)
     try:
-        row = lt.draft_inmail(engine, row_id, _drafter(workspace),
+        row = lt.draft_inmail(engine, row_id, _drafter(workspace, session, engine),
                              (body or RegenerateIn()).feedback)
     except lt.LinkedInError as exc:
         raise HTTPException(422, str(exc)) from exc

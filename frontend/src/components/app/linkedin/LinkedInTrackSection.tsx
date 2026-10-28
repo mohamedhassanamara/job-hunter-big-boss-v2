@@ -131,6 +131,8 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
   const limit = draft?.max_chars ?? (kind === 'note' ? max : 600)
   const errors = (draft?.violations ?? []).filter((v) => v.severity === 'error')
   const label = kind === 'note' ? 'Connection note' : 'Follow-up message'
+  // A 300-character note is short enough to check yourself: no claim check, Copy is never locked.
+  const checked = kind !== 'note'
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
@@ -179,9 +181,9 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with Claude`}
         </Button>
         {draft && (
-          <Tooltip content={verified(vstate) && !pendingEdit ? null : 'Copy unlocks once Claude has checked every claim of this exact text'}>
+          <Tooltip content={!checked || (verified(vstate) && !pendingEdit) ? null : 'Copy unlocks once Claude has checked every claim of this exact text'}>
             <span>
-              <Button size="sm" variant="ghost" disabled={!verified(vstate) || pendingEdit} onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
+              <Button size="sm" variant="ghost" disabled={checked ? !verified(vstate) || pendingEdit : text.length === 0} onClick={() => navigator.clipboard.writeText(text).then(() => toast.success('Copied: paste it on LinkedIn'))}>
                 <Copy />
                 Copy
               </Button>
@@ -191,7 +193,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
         {draft && <CritiqueButton kind={kind === 'note' ? 'linkedin_note' : 'linkedin_followup'} id={person.id} />}
         {edit.isPending && <span className="text-2xs text-fg-subtle">Saving…</span>}
       </div>
-      {draft && (
+      {draft && checked && (
         <ClaimCheck
           compact
           verification={draft.verification}
@@ -478,7 +480,7 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
         {person.status === 'to_contact' && (
           <Tooltip content={atLimit ? `You've sent ${panel.requests_today} requests today (your limit: ${panel.daily_limit})` : 'After you send it on LinkedIn'}>
             <span>
-              <Button size="sm" variant="outline" disabled={!person.note || !verified(person.note_verification_state)} onClick={() => move('sent', `Request to ${person.full_name} marked sent`)}>
+              <Button size="sm" variant="outline" disabled={!person.note} onClick={() => move('sent', `Request to ${person.full_name} marked sent`)}>
                 I sent the request
               </Button>
             </span>

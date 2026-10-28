@@ -20,8 +20,8 @@ DEFAULT_GEMINI = "gemini-3.5-flash-lite"
 DEFAULT_APINEX = "free/minimax-m3.1-flash"
 DEFAULT_CLAUDE = "claude-sonnet-5"
 DEFAULT_THINKING = "minimal"
-TASKS = ("cv", "email")
-CLAUDE_ONLY = ("letter", "interview", "rewrite", "confirm", "verifier")
+TASKS = ("cv", "email", "linkedin")
+CLAUDE_ONLY = ("interview", "rewrite", "confirm", "verifier")
 USES = (None, "claude", "gemini")
 
 
@@ -66,6 +66,16 @@ def claude_model(s: Session, key: str) -> str:
         else DEFAULT_CLAUDE
 
 
+def letter_model(s: Session) -> str:
+    """The model for cover letters, form text and application answers (`models.letter`): APInex
+    by default, or a claude-* id (then it runs through `claude -p`)."""
+    row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+    model = str(((((row.value if row else {}) or {}).get("letter")) or {}).get("model") or "")
+    if is_apinex(model) or (model.startswith("claude-") and not model.startswith("claude-haiku")):
+        return model
+    return DEFAULT_APINEX
+
+
 def check(value: dict[str, Any]) -> None:
     """Validation for `PUT /settings/models`. Raises ValueError."""
     from app.providers.gemini_generate import THINKING_LEVELS
@@ -83,6 +93,9 @@ def check(value: dict[str, Any]) -> None:
             raise ValueError(f"models.{key}.model must be a claude-* model (it runs through "
                              "claude -p)" + (" — APInex is for scoring and the CV only"
                                               if is_apinex(model) else ""))
+    letter = str((((value or {}).get("letter")) or {}).get("model") or "")
+    if letter and not (is_apinex(letter) or letter.startswith("claude-")):
+        raise ValueError("models.letter.model must be an APInex (free/*) or claude-* model")
     for task in TASKS:
         cfg = (value or {}).get(task)
         if cfg is None:

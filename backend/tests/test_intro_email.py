@@ -242,7 +242,8 @@ def test_the_ollama_hook_check_reads_the_models_verdicts() -> None:
         return httpx.Response(200, json={"message": {"content": json.dumps(answer)},
                                          "prompt_eval_count": 10, "eval_count": 5})
 
-    checker = hook_check.OllamaHookChecker(transport=httpx.MockTransport(handler))
+    checker = hook_check.OllamaHookChecker(
+        "gemma4:31b-cloud", transport=httpx.MockTransport(handler))
     result = hook_check.check(checker, "A hook.", {2: "models", 4: "37%"})
     assert result["status"] == "ok" and result["calls"][0]["prompt_version"] == "hook_check/v1"
     assert "cause or effect" in hook_check.violations(result)[0]["message"]

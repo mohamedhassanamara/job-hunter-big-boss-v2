@@ -78,7 +78,13 @@ class APInexCVGenerator:
             "3. \"selected_skills\": Select up to 4 skill groups from the pool that best match "
             "the job. Under each group, select up to 8 skills copied VERBATIM from the pool's "
             "skills list.\n"
-            "4. \"ratings\": rate how relevant to THIS job every OTHER item is, 0 (irrelevant) to "
+            "4. \"selected_certifications\": ids of pool certifications to show. Only include "
+            "certifications if they directly support the target job track (e.g. Mobile/Flutter/"
+            "Android/iOS credentials for mobile roles; Cloud/Data credentials for data/backend "
+            "roles). If no certifications are directly relevant to the role, return an empty "
+            "list ([]). Do NOT include data engineering or analytics certifications on mobile "
+            "developer CVs.\n"
+            "5. \"ratings\": rate how relevant to THIS job every OTHER item is, 0 (irrelevant) to "
             "10 (as relevant as an essential): every role fact you did not list in fact_indices, "
             "every project you did not select (\"fact_index\": null) and every fact of a selected "
             "project you did not list. Rate honestly; a rating never changes the text.\n\n"
@@ -93,6 +99,7 @@ class APInexCVGenerator:
             "  \"selected_skills\": [\n"
             "    {\"category\": \"<group_title>\", \"skills\": [\"<skill1>\", \"<skill2>\"]}\n"
             "  ],\n"
+            "  \"selected_certifications\": [<certification_id>],\n"
             "  \"ratings\": [\n"
             "    {\"kind\": \"role\" or \"project\", \"id\": <item_id>, \"fact_index\": <int or "
             "null>, \"relevance\": 0-10}\n"
@@ -103,6 +110,7 @@ class APInexCVGenerator:
         pool_roles = request.pool.get("roles", [])
         pool_projects = request.pool.get("projects", [])
         pool_skills = request.pool.get("skill_groups", [])
+        pool_certs = request.pool.get("certifications", [])
 
         user_prompt = (
             f"TARGET JOB:\n{json.dumps(request.job, ensure_ascii=False, indent=1)}\n\n"
@@ -111,6 +119,7 @@ class APInexCVGenerator:
             f"Roles: {json.dumps(pool_roles, ensure_ascii=False, indent=1)}\n"
             f"Projects: {json.dumps(pool_projects, ensure_ascii=False, indent=1)}\n"
             f"Skill Groups: {json.dumps(pool_skills, ensure_ascii=False, indent=1)}\n"
+            f"Certifications: {json.dumps(pool_certs, ensure_ascii=False, indent=1)}\n"
         )
 
         res = self.client.complete_sync(system_prompt, user_prompt, model=self.model)
@@ -163,7 +172,14 @@ class APInexCVGenerator:
                 normalized_skills.append({"id": match["id"], "category": match["category"],
                                          "skills": valid_items[:8]})
 
+        cert_ids = {c.get("id") for c in pool_certs}
+        selected_certs = res.get("selected_certifications")
+        normalized_certs = list(dict.fromkeys(
+            int(i) for i in (selected_certs if isinstance(selected_certs, list) else [])
+            if isinstance(i, (int, str)) and str(i).isdigit() and int(i) in cert_ids))
+
         return {
+            "selected_certifications": normalized_certs,
             "selected_roles": normalized_roles,
             "selected_projects": normalized_projects,
             "selected_skills": normalized_skills[:4],
@@ -381,7 +397,7 @@ class APInexCVGenerator:
         for sg in planner["selected_skills"]:
             skills_out.append(PlanSkillGroup(item_id=sg["id"], items=sg["skills"]))
 
-        cert_ids = [c["id"] for c in request.pool.get("certifications", [])]
+        cert_ids = list(planner["selected_certifications"])
         edu_ids = [e["id"] for e in request.pool.get("education", [])]
 
         return CVPlanDraft(

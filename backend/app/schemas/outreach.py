@@ -66,6 +66,11 @@ class DraftOut(BaseModel):
     language_detected: str | None = None  # the listing's language
     language_reason: str | None = None
     language_source: str | None = None  # auto | override | job | setting
+    # Who the email is written for and which situation it handles (v19, computed in code).
+    persona: str | None = None
+    persona_source: str | None = None  # auto | manual
+    scenario: str | None = None  # direct | years_gap | stack_pivot
+    scenario_source: str | None = None
     # Draft history: what you asked to change to get this version, and where it came from.
     feedback: str = ""
     parent_id: int | None = None
@@ -99,6 +104,8 @@ class GenerateIn(BaseModel):
     mode: str | None = None  # applied | speculative
     base_draft_id: int | None = None  # the draft to edit (default: the one under review)
     use: str | None = None  # "claude": this call only (after a Gemini failure)
+    persona: str | None = None  # engineering_manager | founder_cto | tech_lead | recruiter | other
+    scenario: str | None = None  # direct | years_gap | stack_pivot (auto clears an override)
 
 
 class ApproveUnverifiedIn(BaseModel):

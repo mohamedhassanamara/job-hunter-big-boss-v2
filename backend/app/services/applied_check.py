@@ -126,7 +126,9 @@ _MONTHS = {
            "September", "October", "November", "December"],
     "fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre",
            "octobre", "novembre", "décembre"]}
-VARIANTS = 3
+VARIANTS = 4
+_WEEKDAYS = {"en": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+             "fr": ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]}
 
 
 def method_phrase(method: str | None, language: str) -> str:
@@ -141,14 +143,17 @@ def method_phrase(method: str | None, language: str) -> str:
 
 
 def when_phrase(applied: date | None, today: date, language: str) -> str:
-    """"earlier today" only when it was today; "yesterday"; else "on 12 October"."""
+    """"today", "yesterday", "on Monday" (within the last week), else "on 12 October"."""
     fr = language == "fr"
     if applied is None:
         return ""
     if applied == today:
-        return "plus tôt aujourd'hui" if fr else "earlier today"
+        return "aujourd'hui" if fr else "today"
     if applied == today - timedelta(days=1):
         return "hier" if fr else "yesterday"
+    if today - timedelta(days=6) <= applied < today:
+        day = _WEEKDAYS["fr" if fr else "en"][applied.weekday()]
+        return f"{day} dernier" if fr else f"on {day}"
     month = _MONTHS["fr" if fr else "en"][applied.month - 1]
     year = f" {applied.year}" if applied.year != today.year else ""
     return f"le {applied.day} {month}{year}" if fr else f"on {applied.day} {month}{year}"
@@ -156,36 +161,166 @@ def when_phrase(applied: date | None, today: date, language: str) -> str:
 
 def opening_line(role: str, method: str | None, applied: date | None, today: date,
                  language: str, variant: int = 0) -> str:
-    """"I applied for the <Role> position via <where> <when> and wanted to introduce myself
-    directly." Everything comes from the application record; three equivalent wordings rotate."""
+    """"I applied for the <Role> role through <where> <when>." Everything comes from the
+    application record; four equivalent wordings rotate. Nothing else is said (no filler)."""
     role, via = plain_role(role), method_phrase(method, language)
     when = when_phrase(applied, today, language)
     v = variant % VARIANTS
+    lead = when[:1].upper() + when[1:]
     if language == "fr":
         post = f"au poste de {role}" if role else "à ce poste"
-        if v == 0:
-            return (f"J'ai postulé {post} via {via} {when} et je souhaitais me présenter "
-                    "directement.").replace("  ", " ")
-        if v == 1:
-            return (f"J'ai déposé ma candidature {post.replace('au poste', 'pour le poste')} via "
-                    f"{via} {when} et je souhaitais me présenter directement.").replace("  ", " ")
-        lead = when[:1].upper() + when[1:]
-        return f"{lead + ', ' if when else ''}j'ai postulé {post} via {via}, et je souhaitais " \
-            "me présenter directement."
+        pour = f"pour le poste de {role}" if role else "pour ce poste"
+        lines = [f"J'ai postulé {post} via {via} {when}.",
+                 f"J'ai déposé ma candidature {pour} via {via} {when}.",
+                 f"{lead + ', ' if when else ''}j'ai postulé {post} via {via}.",
+                 f"Ma candidature {pour} a été envoyée via {via} {when}."]
+        return lines[v].replace(" .", ".").replace("  ", " ")
+    role_ = f"the {role} role" if role else "the role"
     position = f"the {role} position" if role else "the position"
-    if v == 0:
-        return (f"I applied for {position} via {via} {when} and wanted to introduce myself "
-                "directly.").replace("  ", " ")
-    if v == 1:
-        return (f"I submitted my application for {position} via {via} {when} and wanted to "
-                "introduce myself directly.").replace("  ", " ")
-    lead = when[:1].upper() + when[1:]
-    return f"{lead + ' ' if when else ''}I applied for {position} via {via}, and I wanted to " \
-        "introduce myself directly."
+    lines = [f"I applied for {role_} through {via} {when}.",
+             f"I submitted my application for {position} via {via} {when}.",
+             f"{lead + ', ' if when else ''}I applied for {role_} on {via}.",
+             f"My application for {role_} went in through {via} {when}."]
+    return lines[v].replace(" .", ".").replace("  ", " ")
 
 
 def is_recruiter(title: str | None, group: str | None = None) -> bool:
     return bool(_RECRUITER.search(f"{title or ''} {group or ''}"))
+
+
+# ------------------------------------------------------------- persona and scenario (v19, code)
+
+PERSONAS = ("engineering_manager", "founder_cto", "tech_lead", "recruiter", "other")
+SCENARIOS = ("direct", "years_gap", "stack_pivot")
+# Guidance on tone and on which pool-backed facts to lead with. Never a source of claims.
+PERSONA_FOCUS = {
+    "engineering_manager": "architecture reliability, refactoring legacy code, codebase health "
+                           "and delivering with little supervision",
+    "founder_cto": "end-to-end execution, shipping to the stores or production, practical delivery",
+    "tech_lead": "technical craft: state management, architecture boundaries, release pipelines",
+    "recruiter": "a clear, jargon-free match to the role's requirements, the honest years and "
+                 "an easy conversational ask",
+    "other": "a neutral technical tone"}
+_FOUNDER = re.compile(r"founder|fondateur|\bceo\b|\bcto\b|chief|owner|managing director|"
+                      r"geschäftsführer", re.I)
+_MANAGER = re.compile(r"manager|head of|director|\bvp\b|vice president|\bdirektor|responsable|"
+                      r"directeur", re.I)
+_TECHLEAD = re.compile(r"lead|staff|principal|architect|senior|engineer|developer|"
+                       r"ingénieur|entwickler|développeu", re.I)
+
+
+def persona_for(title: str | None, group: str | None = None) -> str:
+    """Who the recipient is: their own title decides; the contact ranking's group label only
+    settles a title that says nothing (an empty one, or "Partner")."""
+    if is_recruiter(title, None if title else group):
+        return "recruiter"
+    for text in (title or "", group or ""):
+        if _FOUNDER.search(text):
+            return "founder_cto"
+        if _MANAGER.search(text):
+            return "engineering_manager"
+        if _TECHLEAD.search(text):
+            return "tech_lead"
+        if text == (title or "") and is_recruiter(None, group):
+            return "recruiter"
+    return "other"
+
+
+_YEARS = re.compile(r"(\d{1,2})\s*\+?\s*(?:years?|yrs?|ans|jahre?n?)\b", re.I)
+_EXPERIENCE = re.compile(r"experience|expérience|erfahrung|berufserfahrung", re.I)
+YEARS_GAP_MARGIN = 2  # the posting asks for at least this many years more than you have
+# Neutral technology names (not personal data): what a listing's primary stack can be, grouped
+# by family. A pivot is a primary stack your pool lacks while it shows another of the same family.
+STACK_FAMILIES: dict[str, tuple[str, ...]] = {
+    "mobile": ("flutter", "react native", "kotlin", "swift", "swiftui", "jetpack compose",
+               "xamarin", "ionic", "nativescript"),
+    "frontend": ("react", "vue", "angular", "svelte", "next.js"),
+    "backend": ("java", "spring", "python", "django", "fastapi", "flask", "node.js", "nestjs",
+                "golang", "ruby", "rails", "rust", "php", "laravel", "c#", ".net", "kotlin"),
+}
+
+
+def required_years(listing: str) -> int | None:
+    """The most years of experience the listing asks for (a number near "experience"), or None."""
+    found = []
+    for m in _YEARS.finditer(listing or ""):
+        window = (listing or "")[max(0, m.start() - 60): m.end() + 60]
+        if _EXPERIENCE.search(window) and 1 <= int(m.group(1)) <= 15:
+            found.append(int(m.group(1)))
+    return max(found) if found else None
+
+
+def _has_term(text: str, term: str) -> bool:
+    return bool(re.search(rf"(?<![\w.+#]){re.escape(term)}(?![\w+#])", text, re.I))
+
+
+def stack_pivot(title: str, listing: str, pool_text: str) -> tuple[str, list[str]] | None:
+    """(target, what the pool shows in that family) when the listing's primary stack is one your
+    pool never names while it names another of the same family; else None. The title decides;
+    without a stack in the title, a stack the listing names at least four times and twice as
+    often as any other of its family does (a stray mention is not the primary stack)."""
+    for terms in STACK_FAMILIES.values():
+        named = [t for t in terms if _has_term(title or "", t)]
+        if not named:
+            counts = sorted(((len(re.findall(rf"(?<![\w.+#]){re.escape(t)}(?![\w+#])",
+                                              listing or "", re.I)), t) for t in terms),
+                            reverse=True)
+            top, runner_up = counts[0], counts[1][0]
+            named = [top[1]] if top[0] >= 4 and top[0] >= 2 * runner_up else []
+        if not named or any(_has_term(pool_text, t) for t in named):
+            continue
+        have = [t for t in terms if _has_term(pool_text, t)]
+        if have:
+            return named[0], have
+    return None
+
+
+def scenario_for(title: str, listing: str, pool_text: str, have_years: int | None) -> dict:
+    """direct | years_gap | stack_pivot, from the listing and your pool (no model). A pivot
+    outranks a years gap (one acknowledgement per email); both are reported."""
+    out: dict = {"scenario": "direct"}
+    asked = required_years(listing)
+    if asked and have_years and asked >= have_years + YEARS_GAP_MARGIN:
+        out.update(scenario="years_gap", required_years=asked, have_years=have_years)
+    if pivot := stack_pivot(title, listing, pool_text):
+        out.update(scenario="stack_pivot", target_stack=pivot[0], pool_stack=pivot[1])
+    return out
+
+
+SCENARIO_PATTERN = {
+    "direct": "Lead with the single strongest pool proof for the job's primary requirement.",
+    "years_gap": "Acknowledge the posting's years once, plainly, then go straight to concrete "
+                 "work: \"While the posting calls for {required_years} years, my {have_years} "
+                 "years of software engineering have centered on {what the pool shows}: at "
+                 "{employer} ...\". No defensiveness, no spin.",
+    "stack_pivot": "Say once, up front and without defensiveness, that your production work is "
+                   "in {pool_stack} rather than {target_stack}, then connect fundamentals the "
+                   "pool backs: \"While my production background is in {pool_stack} rather than "
+                   "{target_stack}, the core engineering overlaps directly: {pool-backed "
+                   "fundamentals} ...\"."}
+
+# What no applied email may say (a blocking error): filler, clichés and the disclaimer patterns
+# that sound defensive or robotic. Matched on folded text with word boundaries.
+V19_BANNED = (
+    "wanted to introduce myself directly", "i hope this email finds you well",
+    "fits your team's roadmap", "align with your roadmap", "aligns with your roadmap",
+    "building screens and integrating backend services", "spearheaded", "delve", "testament",
+    "passionate", "thrilled", "esteemed", "humbled", "moves fast", "without hand-holding",
+    "without supervision", "rock-solid", "zero-regression", "engineering discipline",
+    "ui assembly", "i'd love to grab", "so here is the part that matters",
+    "i'd rather say that up front")
+SCENARIO_BANNED = {
+    "years_gap": ("despite my lack of", "even though i only have", "rather than ticket-taking",
+                  "high-velocity"),
+    "stack_pivot": ("what carries over is work i've done", "productive from day one",
+                    "transfer immediately")}
+
+
+def banlist_violations(text: str, scenario: str = "direct") -> list[dict[str, str]]:
+    folded = oc.fold(text)  # punctuation-free, so "rock-solid" and "I'd" match their folded form
+    banned = V19_BANNED + SCENARIO_BANNED.get(scenario, ())
+    return [violation("banlist", f"Banned wording: “{p}”", "body", "error")
+            for p in banned if re.search(rf"\b{re.escape(oc.fold(p))}\b", folded)]
 
 
 CTA_VARIANTS = 3
@@ -200,35 +335,28 @@ def cta_variant(previous: int | None, seed: int) -> int:
 
 
 def cta_line(language: str, recruiter: bool = False, variant: int = 0, weekday: int = 0) -> str:
-    """The closing question, built by code: a quick 10-minute technical chat (a call for HR and
-    recruiters). Never "next week" and never a date. Wording b says "this week" only on Monday to
-    Wednesday (`weekday` 0-2, in your timezone), else "in the next few days"."""
+    """The closing question, built by code: a 10-minute technical chat (a call for HR and
+    recruiters). Never "next week" and never a date. Wordings b and c say "this week" only on
+    Monday to Wednesday (`weekday` 0-2, in your timezone), else "in the next few days"."""
     fr, v = language == "fr", variant % CTA_VARIANTS
     early = weekday <= 2
     if fr:
-        kind = "un bref appel" if recruiter else "un court échange technique"
+        when = "cette semaine" if early else "dans les prochains jours"
         if v == 0:
-            return (f"Seriez-vous disponible pour {kind} de 10 minutes dans les prochains jours "
-                    "afin de voir si ce que j'ai construit correspond à la feuille de route de "
-                    "votre équipe ?")
+            kind = "un bref appel" if recruiter else "un court échange technique"
+            return f"Seriez-vous disponible pour {kind} de 10 minutes dans les prochains jours ?"
         if v == 1:
-            when = "cette semaine" if early else "dans les prochains jours"
-            kind = "un court appel" if recruiter else "un court échange technique"
-            return (f"Auriez-vous 10 minutes pour {kind} {when} ? J'aimerais voir si mon travail "
-                    "correspond à la direction que prend votre équipe.")
-        return ("Pourrions-nous faire un court appel de 10 minutes dans les jours qui viennent ? "
-                "Je m'adapte volontiers à votre emploi du temps.")
+            kind = "un bref appel" if recruiter else "un bref appel technique"
+            return f"Auriez-vous 10 minutes pour {kind} {when} ?"
+        return f"Je serais ravi d'échanger 10 minutes par téléphone {when}, si cela vous convient."
     if v == 0:
         kind = "call" if recruiter else "technical chat"
-        return (f"Would you be open to a quick 10-minute {kind} in the next few days to see if "
-                "what I've built fits your team's roadmap?")
+        return f"Would you be open to a quick 10-minute {kind} in the next few days?"
+    when = "this week" if early else "in the next few days"
     if v == 1:
-        kind = "call" if recruiter else "technical chat"
-        when = "this week" if early else "in the next few days"
-        return (f"Do you have 10 minutes for a short {kind} {when}? I'd like to see if my work "
-                "fits where your team is heading.")
-    return ("Could we do a quick 10-minute call in the coming days? Happy to work around your "
-            "schedule.")
+        kind = "call" if recruiter else "technical call"
+        return f"Do you have 10 minutes for a brief {kind} {when}?"
+    return f"Happy to hop on a 10-minute call {when} if you'd like to connect."
 
 
 def body(plan: AppliedEmailPlan) -> str:
@@ -244,8 +372,22 @@ def proof_of(text: str) -> str:
     return "\n\n".join(parts[2:-1]) if len(parts) >= 4 else ""
 
 
+def _acknowledgement_free(text: str, ctx: ic.Context) -> str:
+    """The scenario's one acknowledgement is allowed to name the posting's years and the target
+    stack ("the posting calls for 5 years", "rather than React Native"): they come from the
+    listing, not from your pool, so they are not claims about you."""
+    for n in ctx.required_years:
+        text = re.sub(rf"\b(?:posting|listing|role|job|position|description)\s+"
+                      rf"(?:calls for|asks for|requires|wants|lists|specifies)\s+{n}\+?\s+"
+                      r"years?", "the posting asks", text, flags=re.I)
+    if ctx.target_stack:
+        text = re.sub(rf"(?<![\w.+#]){re.escape(ctx.target_stack)}(?![\w+#])", "the target stack",
+                      text, flags=re.I)
+    return text
+
+
 def _facts_without_statement(text: str, ctx: ic.Context) -> str:
-    return ic._without_statement(text, ctx)
+    return _acknowledgement_free(ic._without_statement(text, ctx), ctx)
 
 
 def _source_text(ctx: ic.Context) -> oc.Context:
@@ -339,6 +481,7 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     out += oc.attachment_violations(everything)
     if v17:
         out += v17_violations(text)
+        out += banlist_violations(text, ctx.scenario)
         closing = (text.strip().split("\n\n") or [""])[-1]
         if _NEXT_WEEK.search(closing):
             out.append(violation("closing", "The closing says “next week”: ask for a few minutes "
@@ -384,8 +527,8 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
                              "or fetch it, then regenerate", "body"))
     n = len(oc.words(text)) - (0 if v17 else len(oc.words(greeting)))
     if v17 and n > ctx.max_words:
-        out.append(violation("length", f"{n} words ({ctx.max_words} or fewer reads best)",
-                             "body"))
+        out.append(violation("length", f"{n} words: the follow-up is {ctx.max_words} words or "
+                             "fewer", "body", "error"))
     elif not v17 and (n < ctx.min_words or n > ctx.max_words):
         out.append(violation("length", f"{n} words (about {ctx.min_words}-{ctx.max_words} reads "
                              "best)", "body"))

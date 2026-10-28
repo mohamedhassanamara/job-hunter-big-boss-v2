@@ -104,7 +104,7 @@ def test_generate_writes_the_application_follow_up_without_researching(
     assert d.subject.startswith("Data Engineer application - ")
     parts = d.body.split("\n\n")
     assert parts[0] == "Hi Ana," and "applied" in parts[1] and "Data Engineer" in parts[1]
-    assert parts[-1].endswith("roadmap?")  # the ask is built by code
+    assert parts[-1].endswith("?") and "roadmap" not in parts[-1]  # the ask is built by code
     assert not errors(d.violations), d.violations
     assert d.plan["application"]["applied"] is True  # portal first: the gate needs it
     assert "snippet" in warnings(d.violations)  # the fixture's listing is one short line
@@ -453,7 +453,7 @@ def test_a_company_fact_paragraph_may_use_the_words(job_ready: dict) -> None:  #
     ctx = ctx_for(job_ready, signals={7: fact})
     text = good_body(job_ready) + f"\n\n{fact}."
     assert "visa_disclaimer_banned" not in {v["type"] for v in ac.check_text("Role", text, ctx)}
-    edited = text.replace("roadmap?", "roadmap? I need a visa.")
+    edited = text.replace("next few days?", "next few days? I need a visa.")
     assert "visa_disclaimer_banned" in errors(ac.check_text("Role", edited, ctx))
 
 
@@ -465,13 +465,21 @@ TODAY = date(2026, 10, 26)
 
 def test_the_opening_says_how_and_when_from_the_application_record() -> None:
     today = ac.opening_line("Mobile Engineer", "company_site", TODAY, TODAY, "en")
-    assert today == ("I applied for the Mobile Engineer position via your careers page earlier "
-                     "today and wanted to introduce myself directly.")
+    assert today == "I applied for the Mobile Engineer role through your careers page today."
     assert "yesterday" in ac.opening_line("X", "linkedin", date(2026, 10, 25), TODAY, "en")
+    assert "on Thursday" in ac.opening_line("X", "company_site", date(2026, 10, 22), TODAY, "en")
     assert "on 12 October" in ac.opening_line("X", "company_site", date(2026, 10, 12), TODAY,
                                               "en")
-    assert "earlier today" not in ac.opening_line("X", "company_site", date(2026, 10, 25),
-                                                  TODAY, "en")
+    for variant in range(ac.VARIANTS):  # never the old filler, never "earlier today"
+        line = ac.opening_line("X", "company_site", date(2026, 10, 25), TODAY, "en", variant)
+        assert "introduce myself" not in line and "earlier today" not in line
+
+
+def test_the_opening_capitalizes_a_leading_date() -> None:
+    line = ac.opening_line("Mobile Engineer", "linkedin", date(2026, 10, 22), TODAY, "en", 2)
+    assert line == "On Thursday, I applied for the Mobile Engineer role on LinkedIn."
+    assert ac.opening_line("Mobile Engineer", "linkedin", None, TODAY, "en", 2) == (
+        "I applied for the Mobile Engineer role on LinkedIn.")
 
 
 @pytest.mark.parametrize("variant", range(ac.VARIANTS))
@@ -479,8 +487,8 @@ def test_a_linkedin_or_board_application_never_says_careers_page(variant: int) -
     linkedin = ac.opening_line("Engineer", "linkedin", TODAY, TODAY, "en", variant)
     board = ac.opening_line("Engineer", "job_board", TODAY, TODAY, "en", variant)
     assert "LinkedIn" in linkedin and "careers" not in linkedin
-    assert "via a job board" in board and "careers" not in board  # no board is ever named
-    assert "Engineer" in board and board.endswith("introduce myself directly.")
+    assert "a job board" in board and "careers" not in board  # no board is ever named
+    assert "Engineer" in board
 
 
 def test_the_wordings_rotate_and_french_is_built_too() -> None:
@@ -500,20 +508,26 @@ def test_the_closing_has_three_wordings_a_call_for_recruiters_and_never_next_wee
                     assert "next week" not in line and "prochaine" not in line
     assert "quick 10-minute technical chat in the next few days" in ac.cta_line("en", False, 0)
     assert "quick 10-minute call in the next few days" in ac.cta_line("en", True, 0)
-    assert "short technical chat" in ac.cta_line("en", False, 1)
-    assert "short call" in ac.cta_line("en", True, 1) and "technical" not in ac.cta_line(
-        "en", True, 1)
+    assert ac.cta_line("en", False, 0, 0) == (
+        "Would you be open to a quick 10-minute technical chat in the next few days?")
+    assert ac.cta_line("en", False, 1, 0) == (
+        "Do you have 10 minutes for a brief technical call this week?")
+    assert ac.cta_line("en", True, 1, 0) == (
+        "Do you have 10 minutes for a brief call this week?")
+    assert ac.cta_line("en", False, 2, 0) == (
+        "Happy to hop on a 10-minute call this week if you'd like to connect.")
     assert ac.cta_line("en", False, 2) == ac.cta_line("en", True, 2)  # already a call
     assert ac.is_recruiter("Senior Technical Recruiter") and ac.is_recruiter("Head of People")
     assert not ac.is_recruiter("CTO", "Engineering leader")
 
 
-def test_wording_b_says_this_week_only_monday_to_wednesday() -> None:
+@pytest.mark.parametrize("variant", [1, 2])
+def test_wordings_b_and_c_say_this_week_only_monday_to_wednesday(variant: int) -> None:
     for weekday in (0, 1, 2):
-        assert "this week" in ac.cta_line("en", False, 1, weekday)
-        assert "cette semaine" in ac.cta_line("fr", False, 1, weekday)
+        assert "this week" in ac.cta_line("en", False, variant, weekday)
+        assert "cette semaine" in ac.cta_line("fr", False, variant, weekday)
     for weekday in (3, 4, 5, 6):
-        line = ac.cta_line("en", False, 1, weekday)
+        line = ac.cta_line("en", False, variant, weekday)
         assert "this week" not in line and "in the next few days" in line
 
 
@@ -572,12 +586,12 @@ def test_links_apologies_and_bypass_wording_block(job_ready: dict, text: str, ki
     assert kind in errors(found), found
 
 
-def test_more_than_110_words_is_only_a_warning(job_ready: dict) -> None:  # noqa: F811
+def test_more_than_110_words_is_an_error(job_ready: dict) -> None:  # noqa: F811
     wordy = good_body(job_ready) + " " + "I enjoy this work a lot. " * 12
     found = ac.check_text("S - Alex Doe", wordy, ctx_for(job_ready))
-    assert "length" in warnings(found) and "length" not in errors(found)
-    assert "length" not in warnings(ac.check_text("S - Alex Doe", good_body(job_ready),
-                                                  ctx_for(job_ready)))
+    assert "length" in errors(found)
+    assert "length" not in errors(ac.check_text("S - Alex Doe", good_body(job_ready),
+                                                ctx_for(job_ready)))
 
 
 def test_the_duplicate_check_looks_at_the_proof_only(job_ready: dict) -> None:  # noqa: F811
@@ -608,7 +622,9 @@ def test_a_generated_email_is_built_from_the_record_with_links_in_the_signature(
     try:
         d = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
         parts = d.body.split("\n\n")
-        assert len(parts) == 4 and parts[1].startswith("I applied for the Data Engineer position")
+        assert len(parts) == 4 and parts[1].startswith(
+            ("I applied", "I submitted", "Today, I applied", "My application"))
+        assert "Data Engineer" in parts[1]
         assert "https://" not in d.body and "me.example.dev" not in d.body  # links: signature only
         assert len(d.body.split()) <= 110 and not errors(d.violations), d.violations
         with Session(engine) as s:
@@ -642,3 +658,138 @@ def test_a_projects_track_proof_cannot_cite_a_job(job_ready: dict) -> None:  # n
     ok = ac.check_plan(plan(job_ready), ctx_for(job_ready, pool=pool, track="Data/AI",
                                                 honesty=rules))
     assert "projects_track" not in errors(ok)
+
+
+# ------------------------------------------------------------ v19: persona, scenario, banlist
+
+
+@pytest.mark.parametrize("title,group,expected", [
+    ("Engineering Manager", "Engineering Manager", "engineering_manager"),
+    ("Head of Data", None, "engineering_manager"),
+    ("VP Engineering", None, "engineering_manager"),
+    ("Co-Founder & CEO", "Founder / CEO", "founder_cto"),
+    ("CTO", None, "founder_cto"),
+    ("Staff Engineer", None, "tech_lead"),
+    ("Senior Software Developer", None, "tech_lead"),
+    ("Tech Lead", None, "tech_lead"),
+    ("Senior Technical Recruiter", None, "recruiter"),
+    ("Talent Acquisition Partner", "HR / Talent", "recruiter"),
+    ("Office Coordinator", None, "other"),
+    (None, None, "other")])
+def test_persona_comes_from_the_contacts_title(title: str | None, group: str | None,
+                                               expected: str) -> None:
+    assert ac.persona_for(title, group) == expected
+
+
+def test_the_years_a_listing_asks_for_are_read_near_the_word_experience() -> None:
+    assert ac.required_years("We need 5+ years of experience with Flutter") == 5
+    assert ac.required_years("Experience: at least 4 years in mobile") == 4
+    assert ac.required_years("Founded 12 years ago. A friendly team.") is None
+    assert ac.required_years("3 years of experience, ideally 6 years total experience") == 6
+
+
+def test_a_years_gap_needs_two_more_years_than_you_have() -> None:
+    gap = ac.scenario_for("Senior Developer", "5+ years of experience", "I built apps", 3)
+    assert gap == {"scenario": "years_gap", "required_years": 5, "have_years": 3}
+    near = ac.scenario_for("Developer", "4 years of experience", "I built apps", 3)
+    assert near["scenario"] == "direct"
+    assert ac.scenario_for("Developer", "5 years of experience", "x", None)["scenario"] == "direct"
+
+
+def test_a_stack_pivot_is_a_title_stack_your_pool_lacks_in_a_family_it_has() -> None:
+    pivot = ac.scenario_for("React Native Engineer", "Build apps", "Shipped Flutter apps", 3)
+    assert pivot["scenario"] == "stack_pivot" and pivot["target_stack"] == "react native"
+    assert pivot["pool_stack"] == ["flutter"]
+    same = ac.scenario_for("Flutter Engineer", "Build apps", "Shipped Flutter apps", 3)
+    assert same["scenario"] == "direct"
+    nothing = ac.scenario_for("React Native Engineer", "Build apps", "Wrote SQL pipelines", 3)
+    assert nothing["scenario"] == "direct"  # no mobile stack in the pool: not a pivot
+    assert ac.scenario_for("Java Developer", "javascript, typescript", "Python APIs", 3)[
+        "target_stack"] == "java"  # java is not javascript
+
+
+def test_a_pivot_outranks_a_years_gap() -> None:
+    both = ac.scenario_for("React Native Engineer", "6 years of experience", "Flutter", 3)
+    assert both["scenario"] == "stack_pivot" and both["required_years"] == 6
+
+
+@pytest.mark.parametrize("phrase", [
+    "wanted to introduce myself directly", "I hope this email finds you well",
+    "This fits your team's roadmap", "I spearheaded the work", "I am passionate",
+    "I was thrilled", "rock-solid releases", "engineering discipline", "UI assembly",
+    "I'd love to grab a coffee", "so here is the part that matters",
+    "I'd rather say that up front"])
+def test_the_v19_banlist_is_blocking(job_ready: dict, phrase: str) -> None:  # noqa: F811
+    text = good_body(job_ready) + f"\n\n{phrase}."
+    assert "banlist" in errors(ac.check_text("S - Alex Doe", text, ctx_for(job_ready)))
+
+
+@pytest.mark.parametrize("scenario,phrase", [
+    ("years_gap", "Despite my lack of years"), ("years_gap", "even though I only have three"),
+    ("years_gap", "rather than ticket-taking"), ("years_gap", "high-velocity teams"),
+    ("stack_pivot", "What carries over is work I've done"),
+    ("stack_pivot", "I'm productive from day one"),
+    ("stack_pivot", "it will transfer immediately")])
+def test_scenario_patterns_are_banned_only_in_their_scenario(scenario: str, phrase: str) -> None:
+    found = ac.banlist_violations(f"I did it. {phrase}.", scenario)
+    assert found and found[0]["severity"] == "error"
+    assert not ac.banlist_violations(f"I did it. {phrase}.", "direct")
+
+
+def test_the_scenarios_one_acknowledgement_may_name_the_postings_years(
+        job_ready: dict) -> None:  # noqa: F811
+    sentence = (f"While the posting calls for 5 years, my 3 years of software engineering have "
+                f"centered on delivery: at {job_ready['org']}, I built data pipelines with "
+                f"{job_ready['tag']}.")
+    p = plan(job_ready, experience=[EmailSentence(text=sentence, citations=[job_ready["role"]])])
+    ctx = ctx_for(job_ready, scenario="years_gap", required_years={5})
+    assert "years" not in errors(ac.check_plan(p, ctx)), ac.check_plan(p, ctx)
+    plain = ctx_for(job_ready)  # without the scenario, 5 years is still a claim you can't make
+    assert "years" in errors(ac.check_plan(p, plain))
+    claim = sentence.replace("the posting calls for 5 years", "I have 5 years")
+    p2 = plan(job_ready, experience=[EmailSentence(text=claim, citations=[job_ready["role"]])])
+    assert "years" in errors(ac.check_plan(p2, ctx))  # only the posting's wording is exempt
+
+
+def test_the_target_stack_may_be_named_in_a_pivot(job_ready: dict) -> None:  # noqa: F811
+    sentence = (f"While my production work is in {job_ready['tag']} rather than React Native, "
+                f"at {job_ready['org']} I built data pipelines with {job_ready['tag']}.")
+    p = plan(job_ready, experience=[EmailSentence(text=sentence, citations=[job_ready["role"]])])
+    ctx = ctx_for(job_ready, scenario="stack_pivot", target_stack="React Native")
+    assert "grounding" not in errors(ac.check_plan(p, ctx)), ac.check_plan(p, ctx)
+
+
+def test_generate_stores_the_persona_and_scenario_and_honors_overrides(
+        job_ready: dict) -> None:  # noqa: F811
+    d = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
+    g = d.plan["guidance"]
+    assert g["persona_source"] == "auto" and g["persona"] in ac.PERSONAS
+    assert g["scenario"] == "direct" and d.plan["request"]["rules"]["persona"] == g["persona"]
+    assert d.plan["request"]["rules"]["scenario"]["kind"] == "direct"
+    picked = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter(),
+                                       persona="founder_cto", base_draft_id=d.id)
+    assert picked.plan["guidance"]["persona"] == "founder_cto"
+    assert picked.plan["guidance"]["persona_source"] == "manual"
+    kept = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter(),
+                                     base_draft_id=picked.id)  # a regeneration keeps your pick
+    assert kept.plan["guidance"]["persona"] == "founder_cto"
+    cleared = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter(),
+                                        persona="auto", base_draft_id=kept.id)
+    assert cleared.plan["guidance"]["persona_source"] == "auto"
+    with pytest.raises(outreach.OutreachError):
+        outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter(), persona="boss")
+    with pytest.raises(outreach.OutreachError):  # nothing in the listing to acknowledge
+        outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter(),
+                                  scenario="stack_pivot")
+
+
+def test_a_stray_stack_mention_is_not_a_pivot_and_the_title_beats_the_group() -> None:
+    stray = "We use Java daily. Some services are .NET or .NET Core, others Python."
+    assert ac.scenario_for("Backend Engineer", stray, "Java Spring Python", 3)[
+        "scenario"] == "direct"
+    dominant = "React Native React Native React Native React Native, some Swift"
+    assert ac.scenario_for("Mobile Engineer", dominant, "Flutter apps", 3)[
+        "target_stack"] == "react native"
+    assert ac.persona_for("Engineering Manager", "CTO") == "engineering_manager"
+    assert ac.persona_for("", "Founder / CEO") == "founder_cto"
+    assert ac.persona_for("Partner", "HR / Talent") == "recruiter"
