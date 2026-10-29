@@ -9,7 +9,7 @@ outreach, and keeps me in control. **Nothing is final or sent without my review.
 
 | # | Step | What happens | Where in the UI |
 |---|---|---|---|
-| 1 | **Discover** | A daily scheduled pull from Adzuna, Remotive, Arbeitnow, and Welcome to the Jungle, filtered by the active search profile. LinkedIn is excluded from automation | Discover, Today, Settings → Sources |
+| 1 | **Discover** | A scheduled pull (twice a day on weekdays by default) from Adzuna, Remotive, Arbeitnow, and Welcome to the Jungle, filtered by the active search profile. LinkedIn is excluded from automation | Discover, Today, Settings → Sources |
 | 2 | **Score fit** | An LLM (Ollama, local) scores each job 0–100 against the master experience, with strengths and gaps | Fit badge everywhere, fit panel |
 | 3 | **Dedupe** | The same job from 2 sources is flagged as a duplicate. Companies already contacted or applied to are flagged | Discover flags, Job detail |
 | 4 | **Get contact** | The best-ranked imported contact is verified first (still there?); with nobody, you find someone with the Apollo extension (guided, one job at a time). Drafting and research wait for a verified contact | Outreach → Contacts to get, job Outreach step |
@@ -627,7 +627,7 @@ Sections in a left sub-nav:
 - **Candidate:** the CV header (full name, location, phone, email, links with type/label/URL); empty fields are left out of the CV.
 - **Sources** list the target countries each source can't search ("Not supported by this source: Portugal, …"; Adzuna has no endpoint for them).
 - **Sources:** a toggle per source, with a note that LinkedIn is not automated. Also the last run status per source.
-- **Schedule:** discovery time of day (APScheduler, local time).
+- **Schedule:** one to six discovery times of day and a weekdays-only switch (APScheduler, local time; a stored single `time` still works as one run a day, every day). Keep runs at least 6 hours apart: Remotive, Bayt and the company boards skip a source fetched less than 6 hours ago. Adzuna has no cooldown: it runs on every discovery, capped at 8 queries per supported country (about 40 requests a run, ~1,840 a month at two runs on 23 weekdays, against the 2,500 monthly free quota). Settings → Sources shows this calendar month's Adzuna requests, and a 429 shows as a warning ("N of M queries done") in the run, the toast and `discovery.log`.
 - **Contacts:** the role-ranking groups (label + keywords, reorderable; saving re-ranks every contact and re-matches
   open jobs) and the Apollo extension daily limit and how long a verification lasts.
 - **Cover letter** also holds the form-text word range and the CV-jargon list.
@@ -656,7 +656,7 @@ Sections in a left sub-nav:
 - **Runs:**
   - One at a time (409 otherwise), in the background.
   - One failing source never breaks the others.
-  - A daily APScheduler run (Settings → Schedule) plus the manual button.
+  - Scheduled APScheduler runs (Settings → Schedule: several times a day, optionally weekdays only) plus the manual button. A second run the same day only updates `last_seen_at` on listings already seen and scores only never-scored jobs.
 - **UI:**
   - A Discover progress strip while running, and a summary toast at the end ("34 fetched · 12 new · 9 filtered · 3 duplicates").
   - Settings → Sources: status, counts, full errors, config hints, **Test source** (a dry run), and a filter report.
