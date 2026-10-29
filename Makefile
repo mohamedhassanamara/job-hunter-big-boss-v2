@@ -3,7 +3,7 @@ BACKEND := backend
 FRONTEND := frontend
 PY := $(BACKEND)/.venv/bin/python
 
-.PHONY: setup dev seed reset migrate test lint build eval eval-emails eval-verifier backend frontend
+.PHONY: setup dev seed reset migrate test lint build extension eval eval-emails eval-verifier backend frontend
 
 setup: ## Create venv, install backend + frontend deps, migrate and seed
 	cd $(BACKEND) && uv venv --python 3.12 --allow-existing .venv && uv pip install --python .venv/bin/python -e ".[dev]"
@@ -14,6 +14,9 @@ setup: ## Create venv, install backend + frontend deps, migrate and seed
 
 dev: ## Run API (:8000) and web (:5173) together
 	./scripts/dev.sh
+
+extension: ## Build the LinkedIn capture extension into extension/dist (load it unpacked in Chrome/Edge)
+	cd extension && ../$(FRONTEND)/node_modules/.bin/tsc -p tsconfig.json && node build.mjs
 
 backend:
 	cd $(BACKEND) && .venv/bin/uvicorn app.main:app --reload --port 8000

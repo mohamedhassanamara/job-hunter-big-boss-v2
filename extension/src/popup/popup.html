@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Job Hunter</title>
+<style>
+  body { width: 320px; margin: 12px; font: 13px/1.4 system-ui, sans-serif; color-scheme: light dark }
+  button { margin: 4px 4px 0 0 } .ok { color: #1a7f37 } .no { color: #cf222e } .small { font-size: 12px; opacity: .7 }
+</style>
+<strong>Job Hunter capture</strong>
+<div id="status" class="small">Looking at the current tab…</div>
+<div id="anchors"></div>
+<div>
+  <button id="check">Check page</button>
+  <button id="report">Copy report</button>
+  <button id="structure">Copy page structure</button>
+</div>
+<label class="small"><input type="checkbox" id="text" /> Include page text (only on your own pages)</label>
+<div id="note" class="small">Nothing is saved or sent anywhere in this build.</div>
+<script src="popup.js"></script>

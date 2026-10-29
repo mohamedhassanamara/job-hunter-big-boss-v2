@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Job Hunter capture",
+  "description": "Reads the LinkedIn page you are viewing, only when you click. Local use only.",
+  "version": "0.0.1",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5XHPtZ6OcXkG2ND0Gdb4ZYaYHN80jCEIby5UHIdVb6NWngwVsl0Uj77uqiUvLCRKCcgOZnGo2UrhhckXOM2Merqj7gwT1ftWzfM+apNrLcHDmnaZAdnxV81FxdGugf4Vg4sjySkhiBV3aJkZu49/ix7ZoeqHydbKb5RFc85w/bx7+Ed1+pDlAbvV+EK6CPO1pdYLoi7rmTFDpGgLMqbIIsFR+Lm7GGxdkt+tIbSWX56M2BNg1n7Z2rp9oz5TY8nnh1fyfk+o2LzGAsFYGVNuzG8x0dHDw8FJNNncqRf+3AE1Dt9ia9NLKVN8jh6LhclVnUSUsFknftGkwoNMFo2XwwIDAQAB",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.linkedin.com/*"],
+  "content_scripts": [
+    { "matches": ["https://www.linkedin.com/*"], "js": ["content.js"], "run_at": "document_idle" }
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Job Hunter", "default_popup": "popup.html" },
+  "commands": {
+    "capture": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Check this LinkedIn page"
+    }
+  }
+}
