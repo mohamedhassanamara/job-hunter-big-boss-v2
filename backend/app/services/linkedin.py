@@ -383,6 +383,12 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
         if c.poster:
             add_person(s, app, full_name=c.poster["name"], title=c.poster.get("title"),
                        linkedin_url=c.poster.get("url"), hiring_team=True)
+        from app.services.linkedin_people import link_waiting  # people captured with no job
+
+        waiting = link_waiting(s, app, job.company_id)
+        if waiting:
+            warnings.append(f"{waiting} person{'s' if waiting != 1 else ''} you captured earlier "
+                            "at this company joined this job")
         duplicate = None
         if merged is not None:
             duplicate = {"id": merged.id, "title": merged.title, "source": merged.source}
@@ -403,43 +409,56 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
 
 _RECRUITER = re.compile(r"recruit|talent|sourc|\bhr\b|human resources|people (?:partner|ops)|"
                         r"staffing|headhunt|\brh\b|recrutement|ressources humaines", re.I)
-_LEAD = re.compile(r"\bhead\b|\blead\b|manager|director|\bvp\b|vice president|\bcto\b|chief|"
-                   r"principal|founder|\bceo\b|responsable|directeur|directrice|engineering "
-                   r"manager", re.I)
+# A lead is a leadership word TOGETHER WITH a tech/data keyword ("Responsable" alone is a generic
+# French word: "Responsable de gestion des exigences" is not engineering leadership). A few titles
+# are leadership on their own (CTO, founder…).
+_LEAD_WORD = re.compile(r"\bhead\b|\blead\b|\bmanager\b|\bdirector\b|\bprincipal\b|responsable|"
+                        r"directeur|directrice|\bvp\b|vice president", re.I)
+_LEAD_ALONE = re.compile(r"\bcto\b|\bcio\b|\bceo\b|\bco-?founder\b|\bfounder\b|chief (?:technology|"
+                         r"technical|data|information|digital|ai|executive)", re.I)
+_TECH = re.compile(r"engineer|engineering|\bdata\b|\bml\b|machine learning|\bai\b|software|"
+                   r"\btech|platform|infrastructure|devops|\bsre\b|analytics|cloud|developer|"
+                   r"\bit\b|\bsi\b|digital|architect|mobile|backend|frontend|security|"
+                   r"scien(?:ce|tist)|informatique|ing[ée]nieur|d[ée]veloppeu", re.I)
+
+
+def persona(*titles: str | None) -> tuple[LinkedInGroup, list[str]]:
+    """A person's ROLE from their headline / current title, and why (shown in the panel)."""
+    text = " | ".join(t for t in titles if t)
+    if m := _RECRUITER.search(text):
+        return LinkedInGroup.recruiter, [f"title mentions \"{m.group(0).strip()}\""]
+    if m := _LEAD_ALONE.search(text):
+        return LinkedInGroup.lead, [f"title mentions \"{m.group(0).strip()}\""]
+    lead, tech = _LEAD_WORD.search(text), _TECH.search(text)
+    if lead and tech:
+        return LinkedInGroup.lead, [f"\"{lead.group(0).strip()}\" with \"{tech.group(0).strip()}\""]
+    if lead:
+        return LinkedInGroup.peer, [f"\"{lead.group(0).strip()}\" but no tech keyword: not "
+                                    "engineering leadership"]
+    return LinkedInGroup.peer, ["no recruiter or leadership wording in the title"]
 
 
 def detect_group(title: str | None) -> LinkedInGroup:
     """Who they are, by role, from their title: a recruiter, a team lead / hiring manager, or a
     peer. (Being an alum is a separate flag, never a role.)"""
-    if _RECRUITER.search(title or ""):
-        return LinkedInGroup.recruiter
-    if _LEAD.search(title or ""):
-        return LinkedInGroup.lead
-    return LinkedInGroup.peer
+    return persona(title)[0]
 
 
-def add_person(s: Session, app: Application, *, full_name: str, title: str | None,
-               linkedin_url: str | None, group: LinkedInGroup | None = None,
-               alumni: bool = False, hiring_team: bool = False) -> LinkedInOutreach:
-    """Someone to message on LinkedIn about this job: one person table across tracks (a
-    contact at the company), one LinkedIn row per job. Known by their profile URL or name. The
-    group (the note's angle) is detected from the title unless you set it."""
-    if group is None or group == LinkedInGroup.hiring_team:
-        hiring_team = hiring_team or group == LinkedInGroup.hiring_team
-        group = detect_group(title)
+def ensure_contact(s: Session, company_id: int, *, full_name: str, title: str | None,
+                   linkedin_url: str | None) -> Contact:
+    """The person as a contact at the company: known by their profile URL, then their name."""
     from app.services.contacts import normalize_person, rank, role_ranking
 
-    job = s.get(Job, app.job_id)
     url = profile_url(linkedin_url)
     name = " ".join(full_name.split())
     if not name:
         raise CaptureError("A name is needed")
-    people = s.exec(select(Contact).where(Contact.company_id == job.company_id)).all()
+    people = s.exec(select(Contact).where(Contact.company_id == company_id)).all()
     contact = next((p for p in people if url and profile_url(p.linkedin_url) == url), None) or \
         next((p for p in people if p.normalized_name == normalize_person(name)), None)
     if contact is None:
         parts = name.split(" ", 1)
-        contact = Contact(company_id=job.company_id, full_name=name, first_name=parts[0],
+        contact = Contact(company_id=company_id, full_name=name, first_name=parts[0],
                           last_name=parts[1] if len(parts) > 1 else None,
                           normalized_name=normalize_person(name),
                           title=(title or "").strip() or None, linkedin_url=url,
@@ -450,12 +469,28 @@ def add_person(s: Session, app: Application, *, full_name: str, title: str | Non
     elif url and not contact.linkedin_url:
         contact.linkedin_url = url
         s.add(contact)
+    return contact
+
+
+def add_person(s: Session, app: Application, *, full_name: str, title: str | None,
+               linkedin_url: str | None, group: LinkedInGroup | None = None,
+               alumni: bool = False, hiring_team: bool = False,
+               source: str = "manual") -> LinkedInOutreach:
+    """Someone to message on LinkedIn about this job: one person table across tracks (a
+    contact at the company), one LinkedIn row per job. Known by their profile URL or name. The
+    group (the note's angle) is detected from the title unless you set it."""
+    if group is None or group == LinkedInGroup.hiring_team:
+        hiring_team = hiring_team or group == LinkedInGroup.hiring_team
+        group = detect_group(title)
+    job = s.get(Job, app.job_id)
+    contact = ensure_contact(s, job.company_id, full_name=full_name, title=title,
+                             linkedin_url=linkedin_url)
     row = s.exec(select(LinkedInOutreach).where(LinkedInOutreach.application_id == app.id,
                                                 LinkedInOutreach.contact_id == contact.id)).first()
     if row is None:
         row = LinkedInOutreach(application_id=app.id, contact_id=contact.id, group=group,
                                alumni=alumni,
-                               hiring_team=hiring_team)
+                               hiring_team=hiring_team, source=source)
         s.add(row)
         s.flush()
     return row

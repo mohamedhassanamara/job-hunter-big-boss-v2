@@ -18,8 +18,8 @@ from app.api.deps import SessionDep, WorkspaceDep
 from app.api.linkedin import CaptureIn, CaptureOut, PasteIn
 from app.config import get_settings
 from app.db import engine, workspace_of
-from app.models import Contact, Job, LinkedInOutreach
-from app.services import ext_auth, linkedin
+from app.models import Contact, Job, LinkedInOutreach, LinkedInProfile
+from app.services import ext_auth, linkedin, linkedin_page, linkedin_people
 
 router = APIRouter()
 
@@ -143,23 +143,48 @@ class ExtJobOut(BaseModel):
     duplicate_of: dict[str, Any] | None = None
     matched_track: str | None = None
     scoring: str = ""
+    parsed: dict[str, str] = {}  # what was read, so the panel can show / correct it
+
+
+class ExtJobIn(CaptureIn):
+    """What the extension sends: the page `payload` (read here), plus `fields` the user typed in the
+    panel for anything the page did not give. Plain capture fields still work too."""
+
+    payload: dict[str, Any] | None = None
+    fields: dict[str, Any] | None = None
+
+
+_OVERRIDABLE = ("title", "company", "description", "location", "workplace", "company_url", "url")
+
+
+def _job_fields(body: ExtJobIn) -> dict[str, Any]:
+    data = linkedin_page.parse_job(body.payload) if body.payload else {}
+    flat = body.model_dump(exclude={"payload", "fields"})
+    typed = {k: v for k, v in (body.fields or {}).items() if k in _OVERRIDABLE and str(v).strip()}
+    data = {**data, **{k: v for k, v in flat.items() if v not in ("", None, {}, [])}, **typed}
+    sources = {**(data.get("sources") or {}), **{k: "you" for k in typed}}
+    return {**data, "sources": sources}
 
 
 @ext.post("/job", response_model=ExtJobOut)
-def capture_job(body: CaptureIn, session: ExtSession) -> ExtJobOut:
-    """Validate the captured fields and save the job in one call. A missing required field saves
-    nothing and says which (the panel then asks for it)."""
+def capture_job(body: ExtJobIn, session: ExtSession) -> ExtJobOut:
+    """Read the page payload, validate, and save the job in one call. A missing required field
+    saves nothing and says which (the panel then asks for it)."""
     try:
-        c = linkedin.validate(body.model_dump())
+        c = linkedin.validate(_job_fields(body))
     except linkedin.CaptureError as exc:
         raise HTTPException(422, str(exc)) from exc
     if c.missing:
-        return ExtJobOut(saved=False, missing=c.missing, warnings=c.warnings)
+        return ExtJobOut(saved=False, missing=c.missing, warnings=c.warnings,
+                         parsed={k: getattr(c, k) for k in ("title", "company", "location",
+                                                            "workplace")})
     done = linkedin.import_job(engine, c, workspace="real")
     return ExtJobOut(saved=True, missing=[], warnings=done.warnings, job_id=done.job_id,
                      application_id=done.application_id, created=done.created,
                      duplicate_of=done.duplicate_of, matched_track=done.matched_track,
-                     scoring=done.scoring)
+                     scoring=done.scoring,
+                     parsed={k: getattr(c, k) for k in ("title", "company", "location",
+                                                        "workplace")})
 
 
 @ext.post("/paste", response_model=CaptureOut)
@@ -170,6 +195,123 @@ def paste(body: PasteIn, session: ExtSession) -> CaptureOut:
     except linkedin.CaptureError as exc:
         raise HTTPException(422, str(exc)) from exc
     return CaptureOut(**vars(c), existing=linkedin.existing(session, c))
+
+
+class PersonIn(BaseModel):
+    payload: dict[str, Any] | None = None  # the extension's profile read
+    paste: str | None = None  # the fallback: pasted profile text
+    url: str = ""
+    company: str | None = None  # typed in the panel when the page did not give it
+    persona: str | None = None  # recruiter | lead | peer (a chip you picked)
+    alumni: bool | None = None
+    job_id: int | None = None  # None: best open job at the company; 0: keep as a contact only
+    extension_version: str = ""
+
+
+class PersonOut(BaseModel):
+    saved: bool
+    missing: list[str]
+    warnings: list[str]
+    name: str
+    headline: str
+    location: str
+    current_title: str
+    current_company: str
+    degree: int | None
+    persona: str
+    persona_reasons: list[str]
+    persona_source: str
+    alumni: bool
+    school: str | None
+    education: list[str | None]
+    job: dict[str, Any] | None
+    existing: bool
+    contact_id: int | None
+    do_not_contact: str | None
+
+
+class PersonPatch(BaseModel):
+    persona: str | None = None
+    alumni: bool | None = None
+    job_id: int | None = None
+
+
+def _person_args(body: PersonIn) -> dict[str, Any]:
+    return {"payload": body.payload, "paste": body.paste, "url": body.url,
+            "company": body.company, "persona": body.persona, "alumni": body.alumni,
+            "job_id": body.job_id}
+
+
+@ext.post("/person/preview", response_model=PersonOut)
+def preview_person(body: PersonIn, session: ExtSession) -> PersonOut:
+    """What saving this profile would do (role and why, alum, the job it joins). Writes nothing."""
+    try:
+        out = linkedin_people.preview(session, **_person_args(body))
+    except linkedin.CaptureError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.rollback()
+    return PersonOut(**out)
+
+
+@ext.post("/person", response_model=PersonOut)
+def save_person(body: PersonIn, session: ExtSession) -> PersonOut:
+    try:
+        out = linkedin_people.save(session, extension_version=body.extension_version,
+                                   **_person_args(body))
+    except linkedin.CaptureError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return PersonOut(**out)
+
+
+@ext.patch("/person/{contact_id}")
+def patch_person(contact_id: int, body: PersonPatch, session: ExtSession) -> dict[str, Any]:
+    try:
+        return linkedin_people.update(session, contact_id, persona=body.persona,
+                                      alumni=body.alumni, job_id=body.job_id)
+    except linkedin.CaptureError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+# ------------------------------------------------------ the app's People list (no token)
+
+
+class CapturedPersonOut(BaseModel):
+    contact_id: int
+    full_name: str
+    headline: str
+    current_title: str
+    company: str
+    company_id: int
+    persona: str
+    alumni: bool
+    degree: int | None
+    profile_url: str
+    captured_at: Any
+    jobs: list[dict[str, Any]]
+    do_not_contact: bool
+
+
+class PeopleOut(BaseModel):
+    items: list[CapturedPersonOut]
+    total: int
+
+
+@router.get("/linkedin/profiles", response_model=PeopleOut)
+def captured_people(session: SessionDep) -> PeopleOut:
+    """People captured with the extension: with a job, and the ones waiting for one."""
+    items = linkedin_people.listing(session)
+    return PeopleOut(items=[CapturedPersonOut(**x) for x in items], total=len(items))
+
+
+@router.delete("/linkedin/profiles/{contact_id}", status_code=204)
+def delete_snapshot(contact_id: int, session: SessionDep) -> None:
+    """Forget the captured profile fields. The contact and its LinkedIn messages stay."""
+    prof = session.exec(select(LinkedInProfile).where(
+        LinkedInProfile.contact_id == contact_id)).first()
+    if prof is None:
+        raise HTTPException(404, "No captured profile for this person")
+    session.delete(prof)
+    session.commit()
 
 
 router.include_router(ext)
