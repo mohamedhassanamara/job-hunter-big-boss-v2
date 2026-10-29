@@ -196,3 +196,24 @@ def test_adzuna_skips_items_without_an_id_or_a_url() -> None:
                            {k: v for k, v in good.items() if k != "id"}]}
     jobs = parse_adzuna(payload, "DE")
     assert [j.external_id for j in jobs] == ["1"]
+
+
+def test_adzuna_has_no_cooldown_and_caps_queries_per_country() -> None:
+    from app.providers.sources.adzuna import MAX_QUERIES_PER_COUNTRY, AdzunaSource
+
+    assert AdzunaSource.cooldown_hours == 0
+    assert MAX_QUERIES_PER_COUNTRY == 8
+
+
+def test_adzuna_one_run_stays_inside_the_monthly_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    from app.providers.base import ProfileSpec
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"results": []})
+
+    source = _adzuna_with(monkeypatch, handler)
+    roles = [f"Role {n}" for n in range(30)]
+    source.fetch_payloads(ProfileSpec(locations=["DE", "FR", "ES", "IT", "BE"], roles=roles))
+    assert source.requests <= 40  # x 2 runs x 23 weekdays = 1,840 of 2,500
