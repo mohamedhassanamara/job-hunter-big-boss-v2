@@ -406,18 +406,28 @@ years wording), `duration_ms`, `error`.
 - `application_event.kind` gains `applied_undone`; the `applied` event payload records what undo restores
   (stage_before, cv_locked_now, letters_locked_now, applied_at_before, applied_method_before).
 
+### linkedin_profile (migration 0038, the browser extension)
+One per `contact` (unique `contact_id`, `ON DELETE CASCADE`): what a captured profile showed, parsed (the raw
+page lines are never stored). `profile_url`, `public_id` (the /in/ slug), `headline`, `current_title`,
+`current_company`, `company_linkedin_url`, `location`, `connection_degree` (1-3), `education` / `experience`
+(trimmed JSON lists), `about` (≤ 1,500 chars), `badges`, `persona` (hiring_team | lead | recruiter | peer, by
+role), `persona_source` (`auto` | `manual`: a manual role is never overwritten by a recapture), `persona_reasons`,
+`is_alum` (a fact, independent of the role), `capture_sources`, `captured_at`, `extension_version`. "Delete
+snapshot" removes the row and keeps the contact. `app_setting.extension_auth` holds the extension token's SHA-256
+(never returned by the settings API).
+
 ### linkedin_outreach / linkedin_link_open / cv_fit (Phase 10, migration 0017)
 - `linkedin_outreach`: one person to message on LinkedIn about one job (unique application + contact):
-  `group` (hiring_team | alumni | lead | recruiter | other), `alumni`, `status` (to_contact | sent | accepted |
+  `group` (hiring_team | lead | recruiter | peer: a person's ROLE; migration 0038 moved `other` and `alumni` to `peer`, an alum keeps `alumni = true`), `alumni`, `status` (to_contact | sent | accepted |
   messaged | replied), `note` / `followup` (JSON: text, citations, violations, model, prompt version, edited,
   max_chars), `critique`, `sent_at` / `accepted_at` / `messaged_at` / `replied_at`. People are `contact` rows
   (source `linkedin` when added only for LinkedIn: never the email's contact without an email).
 - `linkedin_outreach.hiring_team` (migration 0018): they posted this job (captured poster). `group` is then the
-  note's angle (recruiter | lead | alumni | other), detected from the title and overridable; 0018 moved old
+  person's role (recruiter | lead | peer), detected from the title and overridable; 0018 moved old
   `hiring_team` groups to the flag.
 - `linkedin_outreach` (migration 0029, LinkedIn Premium): `inmail` (JSON: subject, text, citations, violations,
   verification, model, edited, max_chars), `inmail_sent_at`, `inmail_refunded_at` (a reply within 90 days),
-  `source` (manual | captured | viewed_profile), `reason` ("viewed my profile on 20 Oct": for the user only,
+  `source` (manual | captured | viewed_profile | extension), `reason` ("viewed my profile on 20 Oct": for the user only,
   never given to a model) and `viewed_on`. Credits are computed (sent this month, refunds dated by the reply).
 - `linkedin_lead` (migration 0029): someone who viewed your profile whose company has no job yet (name, title,
   company_name, profile URL, viewed_on, reason, `linked_outreach_id` once linked).
