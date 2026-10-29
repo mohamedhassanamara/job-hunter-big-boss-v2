@@ -10,7 +10,7 @@ const dist = resolve(here, 'dist')
 rmSync(dist, { recursive: true, force: true })
 mkdirSync(dist, { recursive: true })
 
-const entries = { content: 'src/content/index.ts', background: 'src/background/index.ts', popup: 'src/popup/index.ts' }
+const entries = { content: 'src/content/index.ts', background: 'src/background/index.ts', popup: 'src/popup/index.ts', options: 'src/options/index.ts' }
 for (const [name, entry] of Object.entries(entries)) {
   await build({
     configFile: false,
@@ -27,4 +27,5 @@ for (const [name, entry] of Object.entries(entries)) {
 }
 copyFileSync(resolve(here, 'manifest.json'), resolve(dist, 'manifest.json'))
 copyFileSync(resolve(here, 'src/popup/popup.html'), resolve(dist, 'popup.html'))
+copyFileSync(resolve(here, 'src/options/options.html'), resolve(dist, 'options.html'))
 console.log('extension built in', dist)

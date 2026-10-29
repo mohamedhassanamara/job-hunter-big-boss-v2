@@ -8,6 +8,9 @@ interface ChromeTab {
 }
 declare const chrome: {
   runtime: {
+    id: string
+    sendMessage(msg: unknown): Promise<unknown>
+    openOptionsPage(): Promise<void>
     onMessage: ChromeEvent<(msg: unknown, sender: unknown, send: (r?: unknown) => void) => boolean | void>
   }
   tabs: {

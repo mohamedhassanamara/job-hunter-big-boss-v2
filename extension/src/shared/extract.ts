@@ -18,6 +18,8 @@ export interface LinkItem {
   shape: string
   text: string
   region: string
+  /** Capture mode only: the link's path (no query), so the server can save the poster's / company's page. */
+  href?: string
 }
 export interface Region {
   label: string
@@ -56,8 +58,10 @@ export interface Extraction {
   payload: JobPayload | ProfilePayload | null
 }
 
-const MAX_LINES = 60
-const MAX_LINE = 200
+// Reports are short and redacted; a capture carries the whole region (it goes only to your own app, and is parsed there).
+let CAPTURE = false
+const maxLines = () => (CAPTURE ? 600 : 60)
+const maxLine = () => (CAPTURE ? 2000 : 200)
 
 const follows = (a: Node, b: Node): boolean => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) && !a.contains(b)
 const linkText = (a: Element): string => collapseDoubled(firstLine((a as HTMLElement).innerText || a.textContent || ''))
@@ -92,7 +96,7 @@ function between(root: Element, from: Element | null, to: Element | null): Range
 function region(label: string, root: Element, range: Range): Region {
   const lines = toLines(textOfRange(root, range))
   const li = Array.from(root.querySelectorAll('li')).filter((e) => range.isPointInRange(e, 0)).length
-  return { label, line_count: lines.length, li_count: li, lines: lines.slice(0, MAX_LINES).map((l) => l.slice(0, MAX_LINE)) }
+  return { label, line_count: lines.length, li_count: li, lines: lines.slice(0, maxLines()).map((l) => l.slice(0, maxLine())) }
 }
 
 function inventory(root: Element, bounds: Element[], names: string[]): LinkItem[] {
@@ -101,7 +105,16 @@ function inventory(root: Element, bounds: Element[], names: string[]): LinkItem[
     const s = linkShape(a.getAttribute('href') ?? '')
     if (!s) continue
     const idx = bounds.filter((b) => follows(b, a)).length
-    out.push({ kind: s.kind, shape: s.shape, text: linkText(a).slice(0, 120), region: names[idx] ?? 'unknown' })
+    const item: LinkItem = { kind: s.kind, shape: s.shape, text: linkText(a).slice(0, 120), region: names[idx] ?? 'unknown' }
+    if (CAPTURE) {
+      try {
+        const u = new URL(a.getAttribute('href') ?? '', 'https://www.linkedin.com')
+        if (u.hostname.endsWith('linkedin.com')) item.href = `https://www.linkedin.com${u.pathname}`
+      } catch {
+        /* no usable href */
+      }
+    }
+    out.push(item)
   }
   return out.slice(0, 200)
 }
@@ -247,7 +260,7 @@ export function extractProfile(doc: Document, loc: Location): Extraction {
       mode = 'lines'
       const slice = (label: string, a: number, b: number): Region => {
         const lines = all.slice(a, b)
-        return { label, line_count: lines.length, li_count: 0, lines: lines.slice(0, MAX_LINES).map((l) => l.slice(0, MAX_LINE)) }
+        return { label, line_count: lines.length, li_count: 0, lines: lines.slice(0, maxLines()).map((l) => l.slice(0, maxLine())) }
       }
       regions.push(slice('top', 0, cuts[0].i))
       cuts.forEach((c, k) => regions.push(slice(c.key, c.i + 1, cuts[k + 1]?.i ?? all.length)))
@@ -275,9 +288,27 @@ export function extractProfile(doc: Document, loc: Location): Extraction {
   return { page: 'profile', anchors, payload }
 }
 
-export function extract(doc: Document, loc: Location): Extraction {
+export function extract(doc: Document, loc: Location, capture = false): Extraction {
   const kind = pageOf(loc.href).kind
-  if (kind === 'job') return extractJob(doc, loc)
-  if (kind === 'profile') return extractProfile(doc, loc)
-  return { page: 'other', anchors: [], payload: null }
+  CAPTURE = capture
+  try {
+    const x = kind === 'job' ? extractJob(doc, loc) : kind === 'profile' ? extractProfile(doc, loc) : { page: 'other' as const, anchors: [], payload: null }
+    return capture ? minimise(x) : x
+  } finally {
+    CAPTURE = false
+  }
+}
+
+const KEEP_REGIONS = new Set(['top', 'about', 'experience', 'education'])
+
+/** A capture sends only what the parsers use: no activity feed, interests, recommendations or other people's lines. */
+function minimise(x: Extraction): Extraction {
+  const p = x.payload
+  if (p?.page === 'profile') {
+    return { ...x, payload: { ...p, regions: p.regions.filter((r) => KEEP_REGIONS.has(r.label)), links: p.links.filter((l) => KEEP_REGIONS.has(l.region) && (l.kind === 'company' || l.kind === 'school')) } }
+  }
+  if (p?.page === 'job') {
+    return { ...x, payload: { ...p, links: p.links.filter((l) => l.kind === 'company' || (l.kind === 'person' && l.region === 'team')) } }
+  }
+  return x
 }

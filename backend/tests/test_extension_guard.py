@@ -16,6 +16,7 @@ BANNED = {
     "scroll": r"\b(?:scrollTo|scrollBy|scrollIntoView)\b",
     "dispatch": r"\bdispatchEvent\b",
     "network": r"\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon|EventSource)\b\s*\(?",
+    "navigation": r"\b(?:window\.open|location\.(?:assign|replace)|location\.href\s*=)",
     "innerHTML": r"\.(?:innerHTML|outerHTML)\b|insertAdjacentHTML",
     "class read": r"\.className\b|\bclassList\b|getAttribute\(\s*['\"]class['\"]",
 }
@@ -43,12 +44,40 @@ def test_manifest_asks_for_nothing_beyond_linkedin() -> None:
     assert [c["matches"] for c in m["content_scripts"]] == [["https://www.linkedin.com/*"]]
     assert "web_accessible_resources" not in m  # nothing for a page to probe
     assert "externally_connectable" not in m
+    assert m["options_ui"]["page"] == "options.html"  # pairing lives there, not on linkedin.com
+
+
+# The one file that may touch the network: your own app on this computer, with the token.
+NETWORK_FILE = SRC / "background" / "api.ts"
 
 
 def test_sources_never_automate_or_request_anything() -> None:
     offenders = [f"{p.relative_to(EXT)}: {name}" for p in _sources() for name, pat in BANNED.items()
-                 if re.search(pat, _code(p))]
+                 if re.search(pat, _code(p)) and not (name == "network" and p == NETWORK_FILE)]
     assert offenders == []
+
+
+def test_the_only_network_call_goes_to_localhost_under_ext() -> None:
+    code = _code(NETWORK_FILE)
+    assert len(re.findall(r"\bfetch\(", code)) == 1
+    assert "localhost" in code and "127.0.0.1" in code and "'http:'" in code
+    assert "path.startsWith('/ext/')" in code  # nothing but the extension routes
+    # the call target is built from the validated origin, never from a page or a message
+    assert "fetch(`${origin}/api${path}`" in code
+    hosts = set(re.findall(r"https?://[A-Za-z0-9.-]+(?::\d+)?", code))
+    # (the two defaults, and the two hosts named in the validation error message)
+    assert hosts <= {"http://localhost:8000", "http://localhost:5173", "http://localhost",
+                     "http://127.0.0.1"}
+
+
+def test_the_token_never_reaches_a_page() -> None:
+    """Only the worker and the options page read the token; the content script (which runs inside
+    linkedin.com) and the shared code never read it or the storage entry that holds it. (The word
+    may appear in a message shown to you.)"""
+    reads = re.compile(r"\.token\b|storage\.local\.get\(\s*['\"]config|Authorization")
+    for folder in ("content", "shared", "popup"):
+        for p in (SRC / folder).rglob("*.ts"):
+            assert not reads.search(_code(p)), f"{folder}/{p.name}"
 
 
 def test_no_css_class_or_id_selectors() -> None:
