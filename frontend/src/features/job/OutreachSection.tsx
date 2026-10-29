@@ -178,10 +178,10 @@ export function OutreachSection({ job }: { job: JobDetail }) {
   if (isPending || !data) return <Skeleton className="h-40" />
 
   const draft = data.draft
-  const decide = (verdict: 'approve' | 'reject') =>
+  const decide = (verdict: 'approve' | 'reject', force = false) =>
     draft &&
     action.mutate(
-      { id: draft.id, action: verdict },
+      { id: draft.id, action: verdict, force },
       {
         onSuccess: () => toast.success(verdict === 'approve' ? 'Approved: ready to send' : 'Draft rejected'),
         onError: (e) => toast.error(e.message),
@@ -254,7 +254,7 @@ export function OutreachSection({ job }: { job: JobDetail }) {
         )}
         {draft && ['review', 'queue'].includes(data.step) && (
           <div className="h-160 border-b border-border">
-            <DraftEditor key={`${draft.id}-${draft.updated_at}`} draft={draft} onApprove={() => decide('approve')} onReject={() => decide('reject')} onJobPage approving={action.isPending && action.variables?.action === 'approve'} />
+            <DraftEditor key={`${draft.id}-${draft.updated_at}`} draft={draft} onApprove={() => decide('approve')} onForceApprove={() => decide('approve', true)} onReject={() => decide('reject')} onJobPage approving={action.isPending && action.variables?.action === 'approve'} />
           </div>
         )}
         {data.step === 'queued' && (

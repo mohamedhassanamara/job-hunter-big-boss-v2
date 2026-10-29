@@ -19,10 +19,10 @@ import { emailKey, emailText, reviewFor, useReviewVersion } from '@/lib/reviewGa
 import type { Draft } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-/** Whether you asked the reviewer about this exact text (Approve stays locked until you did). */
+/** Whether you asked the reviewer about this exact text (advice only: it never gates Approve). */
 function ReviewChip({ draft }: { draft: Draft }) {
   if (draft.violations.some((v) => v.severity === 'error')) return <ToneBadge tone="amber">Fix the checks first</ToneBadge>
-  return reviewFor(emailKey(draft.id), emailText(draft.subject, draft.body)).reviewed ? <ToneBadge tone="green">Reviewed</ToneBadge> : <ToneBadge tone="gray">Not reviewed yet</ToneBadge>
+  return reviewFor(emailKey(draft.id), emailText(draft.subject, draft.body)).reviewed ? <ToneBadge tone="green">Reviewed</ToneBadge> : <ToneBadge tone="gray">Not reviewed</ToneBadge>
 }
 
 export function ReviewTab() {
@@ -50,12 +50,12 @@ export function ReviewTab() {
 
   const select = (id: number) => url.set({ draft: id })
 
-  const decide = (draft: Draft, verdict: 'approve' | 'reject') => {
+  const decide = (draft: Draft, verdict: 'approve' | 'reject', force = false) => {
     if (draft.status !== 'draft') return
     const index = ids.indexOf(draft.id)
     const next = ids[index + 1] ?? ids[index - 1] ?? null
     action.mutate(
-      { id: draft.id, action: verdict },
+      { id: draft.id, action: verdict, force },
       {
         onSuccess: (d) => {
           if (status === 'draft') url.set({ draft: next })
@@ -116,9 +116,7 @@ export function ReviewTab() {
       ? 'Fix the problems the checks found first'
       : d.contact_alerts.length > 0
         ? `${d.contact?.full_name ?? 'The contact'} may have left: verify them or write to someone else first`
-        : !reviewFor(emailKey(d.id), emailText(d.subject, d.body)).reviewed
-          ? 'Click Review draft first (again after you edit the text)'
-          : null
+        : null
   const approveByKey = (d: Draft) => {
     const why = approveBlocked(d)
     if (why) toast.error(why)
@@ -225,6 +223,7 @@ export function ReviewTab() {
             key={selected.id}
             draft={selected}
             onApprove={() => decide(selected, 'approve')}
+            onForceApprove={() => decide(selected, 'approve', true)}
             approving={action.isPending && action.variables?.action === 'approve'}
             onReject={() => decide(selected, 'reject')}
           />

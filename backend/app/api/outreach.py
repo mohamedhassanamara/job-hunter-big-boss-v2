@@ -270,11 +270,14 @@ def patch_draft(draft_id: int, body: DraftPatch, session: SessionDep) -> DraftOu
 
 
 @router.post("/outreach/drafts/{draft_id}/approve", response_model=DraftOut)
-def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -> DraftOut:
+def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep,
+                  force: bool = False) -> DraftOut:
     """Approve the email (job → Ready to send). Queuing it is the next, separate step. A draft
     with unresolved code errors (grounding, names, banned phrases, length) can't be approved.
-    A hook you edited is checked against the signals first (one model call). No model verdict
-    blocks it."""
+    `?force=true` approves anyway (the user judged the code errors a false positive) and records
+    the ignored errors in `plan.forced_errors`; do-not-contact, a missing email and a contact
+    who left still block. A hook you edited is checked against the signals first (one model
+    call). No model verdict blocks it."""
     d = get_or_404(session, OutreachDraft, draft_id, "Draft")
     if d.status != DraftStatus.draft:
         raise HTTPException(409, "Only drafts under review can be approved")
@@ -288,7 +291,7 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     session.add(d)
     session.commit()
     blocking = [v for v in d.violations or [] if v.get("severity") == "error"]
-    if blocking:
+    if blocking and not force:  # `force`: you judged the checks wrong; safety gates stay
         raise HTTPException(409, f"Fix {len(blocking)} problem(s) first: {blocking[0]['message']}")
     app = get_or_404(session, Application, d.application_id)
     contact = session.get(Contact, d.contact_id) if d.contact_id else None
@@ -308,10 +311,12 @@ def approve_draft(draft_id: int, session: SessionDep, workspace: WorkspaceDep) -
     # gate holds the exact text and the contact approved here.
     d.status = DraftStatus.approved
     d.unverified_approval = {}
+    forced = ([{"type": v.get("type"), "message": v.get("message")} for v in blocking]
+              if force else [])
     d.plan = {**(d.plan or {}), "approval": {
         "at": utcnow().isoformat(),
         "hash": verifier.text_hash(verifier.email_text(session, d)),
-        "contact_id": contact.id, "recipient": contact.email}}
+        "contact_id": contact.id, "recipient": contact.email, "forced_errors": forced}}
     session.add(d)
     from app.eval.emails import record
 

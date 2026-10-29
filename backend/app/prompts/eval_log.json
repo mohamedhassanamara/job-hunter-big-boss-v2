@@ -83,6 +83,27 @@
       "cases": 9,
       "errors": 11,
       "note": "Persona-aware, gap-resilient follow-up: persona (recipient title) and scenario (direct / years gap / stack pivot) are computed in code and passed as RULES; the fixed 'introduce myself directly' opening tail and the roadmap closing are gone; the v19 banlist is a blocking check. Run with --claude. The 3 new-structure applied cases (#28, #29, #30) have 0 errors; the 11 errors are the older speculative reference/rejected cases (#1-#4, #8, #31: hook, length and vague checks that the applied rewrite did not touch; they vary run to run with the model), unchanged in kind. The new must_block set (5 emails with the old filler, roadmap closing, years-gap spin, stack-pivot disclaimer and clichés) is blocked by the banlist in every case, and the 3 must_warn Healy emails still raise the copy warning."
+    },
+    "20": {
+      "report": "data/eval/emails/20261029-114127_outreach_v20.md",
+      "date": "2026-10-29",
+      "cases": 11,
+      "errors": 8,
+      "note": "Recruiter persona calibration: a recruiter's proof is at most two short sentences (40 words, none over 25) leading with years, platforms shipped, backend/API work and endpoint-to-release ownership, with no library, pattern or metric detail; the recruiter closing is a brief 10-minute introductory call (code). Run with --claude. The applied cases (#28, #29, #30, #39, #40) have 0 errors; the errors are the older speculative reference/rejected cases (#1-#4, #8, #31), unchanged in kind, and the must-block and must-warn sets still behave. The regression set has no recruiter-recipient case, so the 95-word recruiter target is not measured by it."
+    },
+    "21": {
+      "report": "data/eval/emails/20261029-115939_outreach_v21.md",
+      "date": "2026-10-29",
+      "cases": 11,
+      "errors": 8,
+      "note": "One opening only: model sentences that open again (applied/portal/role) and raw ISO dates are dropped in code, and the prompt forbids them. Recruiter persona: proof leads with the years, no counts, library or BFF/endpoint terms, sentences <= 25 words, email < 85 words (blocking checks that feed the one retry); recruiter closing is the fixed introductory-call line. Run with --claude. Applied cases have 0 errors; the errors are the older speculative reference/rejected cases, unchanged in kind. No recruiter-recipient case exists in the set."
+    },
+    "22": {
+      "report": "data/eval/emails/20261029-121833_outreach_v22.md",
+      "date": "2026-10-29",
+      "cases": 11,
+      "errors": 8,
+      "note": "The code-built opening names the company ('I applied for the <role> role at <company> through <where> <when>', legal forms dropped) and the applied subject is '<role> at <company> - <name>'; the prompt tells the model never to write the opening and to use the exact company name. Run with --claude: applied cases (#28, #29, #30, #39, #40) 0 errors with the company in every new opening; the errors are the older speculative reference/rejected cases, unchanged in kind."
     }
   }
 }

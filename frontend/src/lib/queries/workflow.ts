@@ -231,8 +231,8 @@ export function useMentionApplication() {
 export function useDraftAction() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'approve' | 'reject' | 'restore' }) =>
-      api.post<Draft>(`/outreach/drafts/${id}/${action}`),
+    mutationFn: ({ id, action, force = false }: { id: number; action: 'approve' | 'reject' | 'restore'; force?: boolean }) =>
+      api.post<Draft>(`/outreach/drafts/${id}/${action}${force ? '?force=true' : ''}`),
     onSettled: () => invalidateWork(qc),
   })
 }

@@ -250,7 +250,8 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
 
     def complete(p: Any) -> None:
         if job is not None and app is not None:
-            outreach.complete_applied(p, app, job, request, language, recruiter=recruiter)
+            outreach.complete_applied(p, app, job, request, language, recruiter=recruiter,
+                                      company=str((request.job or {}).get("company") or ""))
         else:
             p.greeting = ic.greeting_line(request.contact.get("first_name") or "", language)
 
@@ -275,7 +276,8 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
                     len(oc.errors(found)), ac.copies(found)):
                 plan, found = retry, retry_found
     text = ac.body(plan)
-    subject = ac.subject_line(plan.role, name, language)
+    subject = ac.subject_line(plan.role, name, language,
+                              str((request.job or {}).get("company") or ""))
     row.update(new={"subject": subject, "body": text}, attempts=attempts,
                errors=[v["message"] for v in found if v["severity"] == "error"],
                warnings=[v["message"] for v in found if v["severity"] != "error"],

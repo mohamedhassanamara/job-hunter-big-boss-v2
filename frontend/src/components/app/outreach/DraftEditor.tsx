@@ -214,12 +214,15 @@ function Sources({ draft }: { draft: Draft }) {
 export function DraftEditor({
   draft,
   onApprove,
+  onForceApprove,
   onReject,
   onJobPage = false,
   approving = false,
 }: {
   draft: Draft
   onApprove: () => void
+  /** Approve despite the code checks' errors (you judged them wrong). Never lifts the contact or do-not-contact blocks. */
+  onForceApprove?: () => void
   /** Approval is running (saving the decision). */
   approving?: boolean
   onReject: () => void
@@ -509,19 +512,25 @@ export function DraftEditor({
                     ? `${draft.contact?.full_name ?? 'The contact'} may have left: write to someone else or verify them first`
                     : errors.length
                       ? `Fix ${errors.length} problem${errors.length > 1 ? 's' : ''} first`
-                      : !hasCheckedClaims
-                        ? 'Click Review draft first (again after you edit the text)'
-                        : null
+                      : null
                 }
               >
                 <span>
-                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={!hasCheckedClaims || errors.length > 0 || draft.contact_alerts.length > 0 || approving}>
+                  <Button variant="default" onClick={onApprove} data-tour="outreach-approve" disabled={errors.length > 0 || draft.contact_alerts.length > 0 || approving}>
                     <CircleCheck />
                     {approving ? 'Approving…' : 'Approve'}
                     <Kbd className="border-transparent bg-primary-hover text-primary-fg">A</Kbd>
                   </Button>
                 </span>
               </Tooltip>
+              {errors.length > 0 && onForceApprove && draft.contact_alerts.length === 0 && (
+                <Tooltip content="The checks found problems. If you know they are wrong, approve anyway: the ignored problems are recorded">
+                  <Button variant="outline" onClick={onForceApprove} disabled={approving} data-tour="outreach-force-approve">
+                    <CircleCheck />
+                    Force approve
+                  </Button>
+                </Tooltip>
+              )}
             </>
           )}
           {draft.status === 'rejected' && (

@@ -937,16 +937,17 @@ def previous_cta_variant(s: Session, company_id: int,
 
 def complete_applied(plan: Any, app: Application, job: Job, request: EmailRequest,
                      language: str, variant: int = 0, *, recruiter: bool = False,
-                     cta: int = 0, weekday: int = 0) -> None:
+                     cta: int = 0, weekday: int = 0, company: str = "") -> None:
     """Everything but the proof, built from the application record: the role, the greeting, the
     opening (how and when you applied) and the ask. The model's own values are overwritten."""
     facts = application_facts(app)
+    plan.experience = ac.strip_model_opening(plan.experience)  # one opening, written here
     plan.role = ac.plain_role(job.title)
     plan.greeting = ic.greeting_line(request.contact["first_name"], language)
     plan.opening = ac.opening_line(
         plan.role, facts["method"],
         app.web_applied_at.date() if app.web_applied_at else None,
-        datetime.now().astimezone().date(), language, variant)
+        datetime.now().astimezone().date(), language, variant, company)
     plan.ask = ac.cta_line(language, recruiter, cta, weekday)
     plan.signal = HookSentence(text="")
 
@@ -1000,11 +1001,12 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
             weekday = local_weekday(s)
 
             def checked(plan: Any) -> list[dict[str, str]]:
+                recruiter = (guidance.get("persona") == "recruiter"
+                             or ac.is_recruiter(contact.title, request.contact.get("role_group")))
                 complete_applied(plan, app, job, request, language, variant,
-                                 recruiter=ac.is_recruiter(contact.title,
-                                                           request.contact.get("role_group")),
-                                 cta=cta, weekday=weekday)
-                return ac.check_plan(plan, ctx)
+                                 recruiter=recruiter, cta=cta, weekday=weekday,
+                                 company=company.name)
+                return ac.check_plan(plan, ctx, recruiter=recruiter)
 
             started = time.monotonic()
             try:
@@ -1035,7 +1037,8 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 s.add(old)
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id,
-                subject=ac.subject_line(plan.role, ctx.candidate_name, language),
+                subject=ac.subject_line(plan.role, ctx.candidate_name, language,
+                                        company.name),
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
                 plan={"delivery": "text", "format": "applied", "mode": "applied",

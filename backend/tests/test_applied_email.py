@@ -101,7 +101,7 @@ def test_generate_writes_the_application_follow_up_without_researching(
     d = outreach.generate(engine, job_ready["app"], MockEmailDrafter(), researcher=NoResearch(),
                           hook_checker=NoResearch())
     assert d.plan["format"] == "applied" and d.plan["mode"] == "applied"
-    assert d.subject.startswith("Data Engineer application - ")
+    assert d.subject.startswith("Data Engineer at ")
     parts = d.body.split("\n\n")
     assert parts[0] == "Hi Ana," and "applied" in parts[1] and "Data Engineer" in parts[1]
     assert parts[-1].endswith("?") and "roadmap" not in parts[-1]  # the ask is built by code
@@ -507,16 +507,17 @@ def test_the_closing_has_three_wordings_a_call_for_recruiters_and_never_next_wee
                     line = ac.cta_line(lang, recruiter, v, weekday)
                     assert "next week" not in line and "prochaine" not in line
     assert "quick 10-minute technical chat in the next few days" in ac.cta_line("en", False, 0)
-    assert "quick 10-minute call in the next few days" in ac.cta_line("en", True, 0)
+    assert ac.cta_line("en", True, 0, 0) == (
+        "If my background aligns with what you're screening for, I'd welcome a brief "
+        "10-minute introductory call this week.")
     assert ac.cta_line("en", False, 0, 0) == (
         "Would you be open to a quick 10-minute technical chat in the next few days?")
     assert ac.cta_line("en", False, 1, 0) == (
         "Do you have 10 minutes for a brief technical call this week?")
-    assert ac.cta_line("en", True, 1, 0) == (
-        "Do you have 10 minutes for a brief call this week?")
     assert ac.cta_line("en", False, 2, 0) == (
         "Happy to hop on a 10-minute call this week if you'd like to connect.")
-    assert ac.cta_line("en", False, 2) == ac.cta_line("en", True, 2)  # already a call
+    assert ac.cta_line("en", True, 0, 4).endswith("introductory call in the next few days.")
+    assert ac.cta_line("en", True, 1, 0) == ac.cta_line("en", True, 2, 0)
     assert ac.is_recruiter("Senior Technical Recruiter") and ac.is_recruiter("Head of People")
     assert not ac.is_recruiter("CTO", "Engineering leader")
 
@@ -793,3 +794,56 @@ def test_a_stray_stack_mention_is_not_a_pivot_and_the_title_beats_the_group() ->
     assert ac.persona_for("Engineering Manager", "CTO") == "engineering_manager"
     assert ac.persona_for("", "Founder / CEO") == "founder_cto"
     assert ac.persona_for("Partner", "HR / Talent") == "recruiter"
+
+
+def test_a_model_opening_and_raw_dates_are_dropped_from_the_proof() -> None:
+    from types import SimpleNamespace as S
+    kept = ac.strip_model_opening([
+        S(text="I applied for the Fullstack role through the company's portal on 2026-10-29."),
+        S(text="At Reality Sports I shipped the app on 2026-10-29.")])
+    assert [k.text for k in kept] == ["At Reality Sports I shipped the app."]
+
+
+def test_recruiter_proofs_lead_with_years_and_carry_no_metrics_or_libraries() -> None:
+    from types import SimpleNamespace as S
+
+    def plan(*texts: str) -> S:
+        return S(experience=[S(text=t) for t in texts], greeting="Hi Anna,", opening="x.", ask="y.")
+
+    good = plan("Over the last 3 years of production engineering I bridged iOS and Android "
+                "delivery with Spring Boot APIs.")
+    assert ac.recruiter_problems(good) == []
+    bad = plan("I built 10+ Flutter screens and 15+ RESTful services behind BFF endpoints.")
+    kinds = {p["type"] for p in ac.recruiter_problems(bad)}
+    assert {"recruiter_years", "recruiter_jargon"} <= kinds
+
+
+def test_force_approve_overrides_code_errors_but_records_them(job_ready: dict, client) -> None:  # noqa: F811, ANN001
+    d = outreach.generate(engine, job_ready["app"], MockEmailDrafter())
+    with Session(engine) as s:
+        row = s.get(type(d), d.id)
+        row.violations = [{"type": "grounding", "severity": "error", "where": "body",
+                           "message": "false positive"}]
+        s.add(row)
+        s.commit()
+    assert client.post(f"/api/outreach/drafts/{d.id}/approve").status_code == 409
+    forced = client.post(f"/api/outreach/drafts/{d.id}/approve?force=true")
+    assert forced.status_code == 200 and forced.json()["status"] == "approved"
+    with Session(engine) as s:
+        approval = s.get(type(d), d.id).plan["approval"]
+        assert approval["forced_errors"] == [{"type": "grounding", "message": "false positive"}]
+
+
+def test_the_opening_and_subject_name_the_company_without_its_legal_form() -> None:
+    assert ac.display_company("Acme S.r.l.") == "Acme" and ac.display_company("Acme GmbH") == "Acme"
+    assert ac.display_company("Reality Sports Inc.") == "Reality Sports"
+    assert ac.display_company("Group") == "Group"
+    lines = [ac.opening_line("Fullstack Developer", "linkedin", TODAY, TODAY, "en", v, "Acme Corp")
+             for v in range(ac.VARIANTS)]
+    assert all("at Acme Corp" in line for line in lines)
+    assert lines[0] == (
+        "I applied for the Fullstack Developer role at Acme Corp through LinkedIn today.")
+    assert "chez Acme" in ac.opening_line("Dev", "linkedin", TODAY, TODAY, "fr", 0, "Acme SAS")
+    assert ac.subject_line("Fullstack Developer", "Alex Doe", "en", "Acme Corp") \
+        == "Fullstack Developer at Acme Corp - Alex Doe"
+    assert ac.subject_line("Dev", "Alex Doe", "en") == "Dev application - Alex Doe"

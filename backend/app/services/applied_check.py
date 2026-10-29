@@ -15,6 +15,7 @@ allowed to be mentioned here: the old introduction rules live in `intro_check` (
 
 import re
 from datetime import date, timedelta
+from typing import Any
 
 from app.providers.base import AppliedEmailPlan, SummarySentence
 from app.services import intro_check as ic
@@ -96,9 +97,27 @@ def plain_role(role: str) -> str:
     return " ".join(re.split(r"\s+[–—|]\s+|\s+-\s+", role)[0].split())
 
 
-def subject_line(role: str, name: str, language: str) -> str:
-    """"<Role> application - <your name>" (French: "Candidature <role> - <name>"); editable."""
+def display_company(name: str | None) -> str:
+    """The company as people say it: trailing legal forms ("GmbH", "S.r.l.", "Inc.") dropped,
+    the rest exactly as written (never lowercased)."""
+    from app.services.dedupe import _LEGAL_SUFFIXES
+
+    words = " ".join((name or "").replace(",", " ").split()).split(" ")
+    while len(words) > 1 and re.sub(r"[^a-z]", "", words[-1].lower()) in _LEGAL_SUFFIXES:
+        words.pop()
+    return " ".join(words).strip()
+
+
+def subject_line(role: str, name: str, language: str, company: str = "") -> str:
+    """"<Role> at <Company> - <your name>" (without a company: "<Role> application - <name>";
+    French: "Candidature <role> chez <company> - <name>"); editable."""
     role, name = plain_role(role), " ".join((name or "").split())
+    if company := display_company(company):
+        if language == "fr":
+            head = f"Candidature {role} chez {company}" if role else f"Candidature chez {company}"
+        else:
+            head = f"{role} at {company}" if role else f"Application at {company}"
+        return f"{head} - {name}" if name else head
     if language == "fr":
         head = f"Candidature {role}" if role else "Candidature"
     else:
@@ -160,23 +179,26 @@ def when_phrase(applied: date | None, today: date, language: str) -> str:
 
 
 def opening_line(role: str, method: str | None, applied: date | None, today: date,
-                 language: str, variant: int = 0) -> str:
-    """"I applied for the <Role> role through <where> <when>." Everything comes from the
-    application record; four equivalent wordings rotate. Nothing else is said (no filler)."""
+                 language: str, variant: int = 0, company: str = "") -> str:
+    """"I applied for the <Role> role at <Company> through <where> <when>." Everything comes
+    from the application record; four equivalent wordings rotate. Nothing else is said."""
     role, via = plain_role(role), method_phrase(method, language)
+    company = display_company(company)
     when = when_phrase(applied, today, language)
     v = variant % VARIANTS
     lead = when[:1].upper() + when[1:]
     if language == "fr":
-        post = f"au poste de {role}" if role else "à ce poste"
-        pour = f"pour le poste de {role}" if role else "pour ce poste"
+        chez = f" chez {company}" if company else ""
+        post = (f"au poste de {role}" if role else "à ce poste") + chez
+        pour = (f"pour le poste de {role}" if role else "pour ce poste") + chez
         lines = [f"J'ai postulé {post} via {via} {when}.",
                  f"J'ai déposé ma candidature {pour} via {via} {when}.",
                  f"{lead + ', ' if when else ''}j'ai postulé {post} via {via}.",
                  f"Ma candidature {pour} a été envoyée via {via} {when}."]
         return lines[v].replace(" .", ".").replace("  ", " ")
-    role_ = f"the {role} role" if role else "the role"
-    position = f"the {role} position" if role else "the position"
+    at = f" at {company}" if company else ""
+    role_ = (f"the {role} role" if role else "the role") + at
+    position = (f"the {role} position" if role else "the position") + at
     lines = [f"I applied for {role_} through {via} {when}.",
              f"I submitted my application for {position} via {via} {when}.",
              f"{lead + ', ' if when else ''}I applied for {role_} on {via}.",
@@ -198,8 +220,10 @@ PERSONA_FOCUS = {
                            "and delivering with little supervision",
     "founder_cto": "end-to-end execution, shipping to the stores or production, practical delivery",
     "tech_lead": "technical craft: state management, architecture boundaries, release pipelines",
-    "recruiter": "a clear, jargon-free match to the role's requirements, the honest years and "
-                 "an easy conversational ask",
+    "recruiter": "a skimmable match to the role's checklist: the honest years of production "
+                 "software engineering, the platforms shipped, the backend or API work and "
+                 "features owned from endpoint to release; no library names, no refactoring "
+                 "or metric detail",
     "other": "a neutral technical tone"}
 _FOUNDER = re.compile(r"founder|fondateur|\bceo\b|\bcto\b|chief|owner|managing director|"
                       r"geschäftsführer", re.I)
@@ -335,28 +359,86 @@ def cta_variant(previous: int | None, seed: int) -> int:
 
 
 def cta_line(language: str, recruiter: bool = False, variant: int = 0, weekday: int = 0) -> str:
-    """The closing question, built by code: a 10-minute technical chat (a call for HR and
-    recruiters). Never "next week" and never a date. Wordings b and c say "this week" only on
-    Monday to Wednesday (`weekday` 0-2, in your timezone), else "in the next few days"."""
+    """The closing question, built by code: a 10-minute technical chat (for HR and recruiters
+    always the same introductory-call line). Never "next week" and never a date. The
+    wordings say "this week" only on Monday to Wednesday (`weekday` 0-2, in your timezone),
+    else "in the next few days"."""
     fr, v = language == "fr", variant % CTA_VARIANTS
     early = weekday <= 2
     if fr:
         when = "cette semaine" if early else "dans les prochains jours"
+        if recruiter:
+            return ("Si mon profil correspond à ce que vous recherchez, je serais ravi d'avoir "
+                    f"un bref appel de présentation de 10 minutes {when}.")
         if v == 0:
-            kind = "un bref appel" if recruiter else "un court échange technique"
-            return f"Seriez-vous disponible pour {kind} de 10 minutes dans les prochains jours ?"
+            return ("Seriez-vous disponible pour un court échange technique de 10 minutes "
+                    "dans les prochains jours ?")
         if v == 1:
-            kind = "un bref appel" if recruiter else "un bref appel technique"
-            return f"Auriez-vous 10 minutes pour {kind} {when} ?"
+            return f"Auriez-vous 10 minutes pour un bref appel technique {when} ?"
         return f"Je serais ravi d'échanger 10 minutes par téléphone {when}, si cela vous convient."
-    if v == 0:
-        kind = "call" if recruiter else "technical chat"
-        return f"Would you be open to a quick 10-minute {kind} in the next few days?"
     when = "this week" if early else "in the next few days"
+    if recruiter:
+        return ("If my background aligns with what you're screening for, I'd welcome a brief "
+                f"10-minute introductory call {when}.")
+    if v == 0:
+        return "Would you be open to a quick 10-minute technical chat in the next few days?"
     if v == 1:
-        kind = "call" if recruiter else "technical call"
-        return f"Do you have 10 minutes for a brief {kind} {when}?"
+        return f"Do you have 10 minutes for a brief technical call {when}?"
     return f"Happy to hop on a 10-minute call {when} if you'd like to connect."
+
+
+_ISO_DATE = re.compile(r"\s*\b(?:on\s+)?\d{4}-\d{2}-\d{2}\b", re.I)
+_OPENING_LIKE = re.compile(
+    r"\b(?:applied|application|candidature|postul\w+)\b.*\b(?:role|position|poste|portal|"
+    r"careers?|linkedin|job board|via|through)\b", re.I)
+
+
+def strip_model_opening(sentences: list[Any]) -> list[Any]:
+    """The program writes the one opening; a model sentence that opens again ("I applied for
+    the … role through …") is dropped, and a raw ISO date is never printed."""
+    kept = []
+    for sentence in sentences:
+        text = sentence.text
+        short = len(re.findall(r"\w+", text)) <= 40
+        if (_OPENING_LIKE.search(text) and _FIRST_PERSON["en"].search(text) and short
+                and not re.search(r"\bbuilt|shipped|led\b", text)):
+            continue
+        sentence.text = _ISO_DATE.sub("", text).strip()
+        kept.append(sentence)
+    return kept
+
+
+# Recruiters skim for a checklist; library, pattern and counted-metric detail is noise.
+RECRUITER_MAX_WORDS, RECRUITER_MAX_SENTENCE = 85, 25
+_RECRUITER_JARGON = re.compile(
+    r"\bBFF\b|\bendpoints?\b|\bRESTful\b|\bclean architecture\b|\bstate management\b|"
+    r"\bRiverpod\b|\bGoRouter\b|\bBLoC\b|\bRetrofit\b|\bDio\b|\bbinary size\b|"
+    r"\d+\s?%|\b\d+\s?\+\s*\w+|\b\d+\s+(?!years?\b|months?\b|ans\b)[a-z]+\s+"
+    r"(?:screens|services|apis|modules|features|endpoints)\b", re.I)
+
+
+def recruiter_problems(plan: "AppliedEmailPlan") -> list[dict[str, str]]:
+    """Recruiter persona: lead with years, no counted metrics or library names, short sentences,
+    under 85 words in all. Errors, so the one retry gets them as feedback."""
+    out: list[dict[str, str]] = []
+    proof = " ".join(s.text for s in plan.experience)
+    if not re.search(r"\b\d+\+?\s*(?:years?|ans)\b", proof, re.I):
+        out.append(violation("recruiter_years", "Lead with the years of production software "
+                             "engineering: a recruiter looks for them first",
+                             "experience", "error"))
+    if m := _RECRUITER_JARGON.search(proof):
+        out.append(violation("recruiter_jargon", f"“{m.group(0)}” is detail a recruiter doesn't "
+                             "screen for: say the platforms and the stack, no counts or library "
+                             "names", "experience", "error"))
+    for sentence in plan.experience:
+        if len(oc.words(sentence.text)) > RECRUITER_MAX_SENTENCE:
+            out.append(violation("recruiter_long", f"A recruiter reads short sentences: split "
+                                 f"“{sentence.text[:50]}…” (max {RECRUITER_MAX_SENTENCE} words)",
+                                 "experience", "error"))
+    if len(oc.words(body(plan))) > RECRUITER_MAX_WORDS:
+        out.append(violation("recruiter_words", f"{len(oc.words(body(plan)))} words: a recruiter "
+                             f"email stays under {RECRUITER_MAX_WORDS}", "body", "error"))
+    return out
 
 
 def body(plan: AppliedEmailPlan) -> str:
@@ -608,7 +690,8 @@ def projects_track_problems(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dic
     return out
 
 
-def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
+def check_plan(plan: AppliedEmailPlan, ctx: ic.Context,
+               recruiter: bool = False) -> list[dict[str, str]]:
     """The proof is the only model-written part: grounded, in plain first person, in pool
     wording. The greeting, opening and ask are code; the whole body gets the v17 rules."""
     from app.services.letter_check import RESTATE_THRESHOLD, _item_terms, _overlap
@@ -652,7 +735,9 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context) -> list[dict[str, str]]:
         out.append(violation("restates", f"The proof restates the listing ({run} words in a "
                              "row): say it in your own words", "experience"))
     out += projects_track_problems(plan, ctx)
-    subject = subject_line(plan.role, ctx.candidate_name, ctx.language)
+    subject = subject_line(plan.role, ctx.candidate_name, ctx.language, ctx.company)
+    if recruiter:
+        out += recruiter_problems(plan)
     return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False, v17=True)
 
 
