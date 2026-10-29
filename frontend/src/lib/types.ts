@@ -1756,7 +1756,8 @@ export interface LinkedInImport {
   scoring: string
 }
 
-export type LinkedInGroup = 'hiring_team' | 'alumni' | 'lead' | 'recruiter' | 'other'
+/** A person's role. Being an alum is the separate `alumni` flag. */
+export type LinkedInGroup = 'hiring_team' | 'lead' | 'recruiter' | 'peer'
 /** Settings → LinkedIn: the browser extension's token (the plain text is never returned again). */
 export interface ExtensionStatus {
   available: boolean
@@ -1874,7 +1875,7 @@ export interface LinkedInPanel {
   credits: InMailCredits
   requests_today: number
   daily_limit: number
-  groups: { group: LinkedInGroup; label: string; why: string; search: string | null; titles: string[] }[]
+  groups: { group: LinkedInGroup; label: string; why: string; search: string | null; titles: string[]; alumni?: boolean }[]
   people: LinkedInPerson[]
   order_hint: { step: string; done: boolean }[]
   agency: string[] // why the company looks like a recruiting agency

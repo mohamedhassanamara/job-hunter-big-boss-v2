@@ -409,12 +409,13 @@ _LEAD = re.compile(r"\bhead\b|\blead\b|manager|director|\bvp\b|vice president|\b
 
 
 def detect_group(title: str | None) -> LinkedInGroup:
-    """Who they are, from their title: a recruiter, a team lead / hiring manager, or other."""
+    """Who they are, by role, from their title: a recruiter, a team lead / hiring manager, or a
+    peer. (Being an alum is a separate flag, never a role.)"""
     if _RECRUITER.search(title or ""):
         return LinkedInGroup.recruiter
     if _LEAD.search(title or ""):
         return LinkedInGroup.lead
-    return LinkedInGroup.other
+    return LinkedInGroup.peer
 
 
 def add_person(s: Session, app: Application, *, full_name: str, title: str | None,
@@ -425,7 +426,7 @@ def add_person(s: Session, app: Application, *, full_name: str, title: str | Non
     group (the note's angle) is detected from the title unless you set it."""
     if group is None or group == LinkedInGroup.hiring_team:
         hiring_team = hiring_team or group == LinkedInGroup.hiring_team
-        group = LinkedInGroup.alumni if alumni else detect_group(title)
+        group = detect_group(title)
     from app.services.contacts import normalize_person, rank, role_ranking
 
     job = s.get(Job, app.job_id)
@@ -453,7 +454,7 @@ def add_person(s: Session, app: Application, *, full_name: str, title: str | Non
                                                 LinkedInOutreach.contact_id == contact.id)).first()
     if row is None:
         row = LinkedInOutreach(application_id=app.id, contact_id=contact.id, group=group,
-                               alumni=alumni or group == LinkedInGroup.alumni,
+                               alumni=alumni,
                                hiring_team=hiring_team)
         s.add(row)
         s.flush()

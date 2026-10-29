@@ -5,7 +5,7 @@ builds links and reads the one job page you hand it with the bookmark."""
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import JSON, Text, UniqueConstraint
+from sqlalchemy import JSON, Column, ForeignKey, Integer, Text, UniqueConstraint
 from sqlmodel import Field
 
 from app.models.base import TableBase, dt_field, enum_field, json_field
@@ -31,7 +31,7 @@ class LinkedInOutreach(TableBase, table=True):
     application_id: int = Field(foreign_key="application.id", index=True)
     contact_id: int = Field(foreign_key="contact.id", index=True)
     # Who they are (the note's angle): detected from their title, yours to override.
-    group: LinkedInGroup = enum_field(LinkedInGroup.other)
+    group: LinkedInGroup = enum_field(LinkedInGroup.peer)
     alumni: bool = False
     hiring_team: bool = False  # they posted this job / are on its hiring team (captured)
     status: LinkedInStatus = enum_field(LinkedInStatus.to_contact, index=True)
@@ -55,6 +55,38 @@ class LinkedInOutreach(TableBase, table=True):
     source: str = "manual"
     reason: str = ""
     viewed_on: date | None = None
+
+
+class LinkedInProfile(TableBase, table=True):
+    """What a captured LinkedIn profile showed (one per contact; deleted with the contact).
+
+    Only the fields the persona rules and note drafting use: raw page lines are never stored.
+    `persona` is the person-level default (role-based); `LinkedInOutreach.group` starts from it
+    and may differ per job. A `manual` persona is never overwritten by a recapture."""
+
+    __tablename__ = "linkedin_profile"
+
+    contact_id: int = Field(sa_column=Column(Integer, ForeignKey("contact.id", ondelete="CASCADE"),
+                                             unique=True, nullable=False))
+    profile_url: str = ""
+    public_id: str = Field(default="", index=True)  # the /in/<slug>
+    headline: str = ""
+    current_title: str = ""
+    current_company: str = ""
+    company_linkedin_url: str | None = None
+    location: str = ""
+    connection_degree: int | None = None  # 1, 2 or 3
+    education: list[dict[str, Any]] = json_field(list)
+    experience: list[dict[str, Any]] = json_field(list)
+    about: str = Field(default="", sa_type=Text)
+    badges: list[str] = json_field(list)
+    persona: LinkedInGroup = enum_field(LinkedInGroup.peer)
+    persona_source: str = "auto"  # auto | manual
+    persona_reasons: list[str] = json_field(list)
+    is_alum: bool = False  # a fact about the person, independent of their role
+    capture_sources: dict[str, str] = Field(default_factory=dict, sa_type=JSON)
+    captured_at: datetime | None = dt_field()
+    extension_version: str = ""
 
 
 class LinkedInLead(TableBase, table=True):

@@ -71,8 +71,8 @@ def test_no_projects_track_means_no_rule() -> None:
     ("Chargée de recrutement", LinkedInGroup.recruiter),
     ("Head of Data", LinkedInGroup.lead),
     ("Engineering Manager", LinkedInGroup.lead),
-    ("Software Engineer", LinkedInGroup.other),
-    (None, LinkedInGroup.other),
+    ("Software Engineer", LinkedInGroup.peer),
+    (None, LinkedInGroup.peer),
 ])
 def test_the_group_comes_from_the_title(title: str | None, group: LinkedInGroup) -> None:
     assert li.detect_group(title) == group
@@ -92,7 +92,7 @@ def test_an_agency_job_skips_alumni_and_leads_and_puts_the_recruiter_first(seede
         assert agency.is_agency(company, job)
         job.description = "We build data pipelines."
         assert not agency.is_agency(company, job)
-        assert LinkedInGroup.alumni in [g["group"] for g in lt.suggestions(s, app)]
+        assert any(g.get("alumni") for g in lt.suggestions(s, app))
         s.rollback()
 
 

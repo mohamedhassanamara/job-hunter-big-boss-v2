@@ -26,23 +26,22 @@ import { cn } from '@/lib/utils'
 
 const GROUP: Record<LinkedInGroup, { label: string; tone: Tone }> = {
   hiring_team: { label: 'Hiring team', tone: 'violet' },
-  alumni: { label: 'Alumni', tone: 'teal' },
   lead: { label: 'Team lead', tone: 'blue' },
   recruiter: { label: 'Recruiter', tone: 'slate' },
-  other: { label: 'Other', tone: 'gray' },
+  peer: { label: 'Peer', tone: 'gray' },
 }
 
-/** The note's angle: detected from the title unless you pick one. */
+/** Who they are by role (the note's angle): detected from the title unless you pick one. Being an alum is a separate checkbox. */
 const ANGLES: { value: string; label: string }[] = [
   { value: 'auto', label: 'Detect from title' },
-  ...(['recruiter', 'lead', 'alumni', 'other'] as const).map((g) => ({ value: g, label: GROUP[g].label })),
+  ...(['recruiter', 'lead', 'peer'] as const).map((g) => ({ value: g, label: GROUP[g].label })),
 ]
 
-function AddPerson({ appId, group, school, onDone }: { appId: number; group: LinkedInGroup; school: string | null; onDone: () => void }) {
+function AddPerson({ appId, group, alumni, school, onDone }: { appId: number; group: LinkedInGroup; alumni: boolean; school: string | null; onDone: () => void }) {
   const add = useAddLinkedInPerson(appId)
   const parse = useParsePaste()
   const hiring = group === 'hiring_team'
-  const [f, setF] = useState({ full_name: '', title: '', linkedin_url: '', group: hiring || group === 'other' ? 'auto' : (group as string), alumni: group === 'alumni' })
+  const [f, setF] = useState({ full_name: '', title: '', linkedin_url: '', group: hiring || group === 'peer' ? 'auto' : (group as string), alumni })
   const fill = (text: string) =>
     text.trim() &&
     parse.mutate(text, {
@@ -63,7 +62,7 @@ function AddPerson({ appId, group, school, onDone }: { appId: number; group: Lin
         <Input value={f.linkedin_url} onChange={(e) => setF({ ...f, linkedin_url: e.target.value })} placeholder="Profile URL" aria-label="Profile URL" />
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Select size="sm" value={f.group} onValueChange={(v) => setF({ ...f, group: v, alumni: v === 'alumni' || f.alumni })} options={ANGLES} aria-label="Who they are" />
+        <Select size="sm" value={f.group} onValueChange={(v) => setF({ ...f, group: v })} options={ANGLES} aria-label="Who they are" />
         {hiring && <span className="text-xs text-fg-subtle">Saved as hiring team</span>}
         {school && (
           <label className="flex items-center gap-1.5 text-xs text-fg-muted">
@@ -421,14 +420,14 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           <span>
             <Select
               size="sm"
-              value={person.group === 'hiring_team' ? 'other' : person.group}
+              value={person.group === 'hiring_team' ? 'peer' : person.group}
               onValueChange={(v) => edit.mutate({ id: person.id, group: v as LinkedInGroup }, { onSuccess: () => toast.success(`${person.full_name}: ${GROUP[v as LinkedInGroup].label}`), onError: (e) => toast.error(e.message) })}
               options={ANGLES.slice(1)}
               aria-label={`Who ${person.full_name} is`}
             />
           </span>
         </Tooltip>
-        {person.alumni && person.group !== 'alumni' && <ToneBadge tone="teal">Alumni</ToneBadge>}
+        {person.alumni && <ToneBadge tone="teal">Alumni</ToneBadge>}
         {person.reason && (
           <Tooltip content="Only you see this. Drafts open warmly and never mention that they looked at your profile.">
             <span>
@@ -628,7 +627,7 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
                         Add
                       </Button>
                     </div>
-                    {adding === g.group && <AddPerson appId={appId} group={g.group} school={data.school} onDone={() => setAdding(null)} />}
+                    {adding === g.group && <AddPerson appId={appId} group={g.group} alumni={!!g.alumni} school={data.school} onDone={() => setAdding(null)} />}
                   </div>
                 )
               })}

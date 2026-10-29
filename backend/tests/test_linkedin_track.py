@@ -41,8 +41,9 @@ def test_groups_in_order_with_links_and_the_school_from_your_pool(seeded: None) 
     with Session(engine) as s:
         app, company = job_with_people(s)
         groups = lt.suggestions(s, app)
-        assert [g["group"] for g in groups] == [LinkedInGroup.hiring_team, LinkedInGroup.alumni,
+        assert [g["group"] for g in groups] == [LinkedInGroup.hiring_team, LinkedInGroup.peer,
                                                 LinkedInGroup.lead, LinkedInGroup.recruiter]
+        assert groups[1]["alumni"] is True  # the school suggestion: a peer by role, flagged alum
         short, full = lt.school(load_pool(s))
         assert short and short in groups[1]["label"] and full
         assert groups[1]["search"].startswith(
@@ -62,7 +63,7 @@ def test_notes_fit_the_limit_and_only_alumni_get_the_school(seeded: None) -> Non
     with Session(engine) as s:
         app, _ = job_with_people(s)
         alum = lt.add(s, app, full_name="Lea Alum", title="Data Engineer", linkedin_url=None,
-                      group=LinkedInGroup.alumni)
+                      alumni=True)
         lead = lt.add(s, app, full_name="Max Lead", title="Head of Data",
                       linkedin_url="https://www.linkedin.com/in/max-lead?x=1",
                       group=LinkedInGroup.lead)
@@ -229,7 +230,7 @@ def test_stats_per_channel_group_and_source(seeded: None, client) -> None:  # no
     with Session(engine) as s:
         app, _ = job_with_people(s)
         row = lt.add(s, app, full_name="Al Umni", title="Engineer", linkedin_url=None,
-                     group=LinkedInGroup.alumni)
+                     alumni=True)
         lt.set_status(s, row, LinkedInStatus.sent)
         lt.set_status(s, row, LinkedInStatus.replied)
         s.commit()

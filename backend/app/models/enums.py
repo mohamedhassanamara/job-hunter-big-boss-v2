@@ -147,13 +147,14 @@ class ResponseChannel(StrEnum):
 
 
 class LinkedInGroup(StrEnum):
-    """Who to message on LinkedIn, in the order they're suggested."""
+    """Who a LinkedIn person is by ROLE (the note's angle). Being an alum of your school is a
+    separate flag (`LinkedInOutreach.alumni`), never a group: migration 0038 moved the old
+    `other` and `alumni` groups to `peer` (alumni keep `alumni = true`)."""
 
     hiring_team = "hiring_team"
-    alumni = "alumni"
     lead = "lead"
     recruiter = "recruiter"
-    other = "other"
+    peer = "peer"
 
 
 class LinkedInStatus(StrEnum):

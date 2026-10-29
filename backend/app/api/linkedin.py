@@ -160,7 +160,7 @@ class PersonOut(BaseModel):
     full_name: str
     title: str | None
     linkedin_url: str | None
-    group: str  # the note's angle: recruiter | lead | alumni | other (detected, overridable)
+    group: str  # the person's role: recruiter | lead | peer (detected, overridable)
     alumni: bool
     hiring_team: bool  # they posted this job
     # The claim verifier on the current text: passed | failed | error | stale | none.
@@ -189,6 +189,7 @@ class GroupOut(BaseModel):
     why: str
     search: str | None
     titles: list[str] = []
+    alumni: bool = False  # add the person with the alumni flag (a peer by role)
 
 
 class PanelOut(BaseModel):

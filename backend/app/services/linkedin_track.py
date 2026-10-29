@@ -49,8 +49,8 @@ from app.services import linkedin_check as lc
 from app.services.contacts import local_midnight
 from app.services.cv_pool import Pool, load_pool, prompt_pool
 
-ORDER = [LinkedInGroup.hiring_team, LinkedInGroup.alumni, LinkedInGroup.lead,
-         LinkedInGroup.recruiter, LinkedInGroup.other]
+ORDER = [LinkedInGroup.hiring_team, LinkedInGroup.lead, LinkedInGroup.recruiter,
+         LinkedInGroup.peer]
 _STATUS_ORDER = {s: i for i, s in enumerate(LinkedInStatus)}
 FOLLOWUP_MAX_CHARS = 600
 
@@ -102,7 +102,8 @@ def suggestions(s: Session, app: Application) -> list[dict[str, Any]]:
     team = (job.matched_track or "").split("/")[0].strip()
     out = [hiring]
     if short:
-        out.append({"group": LinkedInGroup.alumni, "label": f"{short} alumni",
+        # an alum is a peer by role with the alumni flag: the add form sets both
+        out.append({"group": LinkedInGroup.peer, "alumni": True, "label": f"{short} alumni",
                     "why": f"A shared school ({short}): ask for advice or a referral.",
                     "search": people_search(company, short)})
     lead_kw = " OR ".join(f'"{t}"' for t in lead_titles) or (f'"Head of {team}"' if team
@@ -118,8 +119,11 @@ def suggestions(s: Session, app: Application) -> list[dict[str, Any]]:
 def rows(s: Session, app: Application) -> list[LinkedInOutreach]:
     found = list(s.exec(select(LinkedInOutreach).where(
         LinkedInOutreach.application_id == app.id)).all())
-    return sorted(found, key=lambda r: (not r.hiring_team, ORDER.index(LinkedInGroup(r.group)),
-                                        r.id or 0))
+    def order(r: LinkedInOutreach) -> int:  # alumni peers come right after the hiring team
+        group = LinkedInGroup(r.group)
+        return -1 if r.alumni and group == LinkedInGroup.peer else ORDER.index(group)
+
+    return sorted(found, key=lambda r: (not r.hiring_team, order(r), r.id or 0))
 
 
 def track_status(found: list[LinkedInOutreach]) -> str:
@@ -190,8 +194,7 @@ def requests_today(s: Session) -> int:
 ANGLE = {
     LinkedInGroup.recruiter: "recruiter",
     LinkedInGroup.lead: "lead",
-    LinkedInGroup.alumni: "alumni",
-    LinkedInGroup.other: "lead",
+    LinkedInGroup.peer: "lead",  # an alum peer is drafted with the "alumni" angle (below)
     LinkedInGroup.hiring_team: "recruiter",
 }
 
@@ -291,8 +294,9 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
                  else int(cfg["inmail_max_chars"]) if kind == "inmail" else FOLLOWUP_MAX_CHARS)
     warm = row.source == "viewed_profile"
     first = person.first_name or person.full_name.split(" ")[0]
-    alumni = bool(row.alumni or row.group == LinkedInGroup.alumni)
-    angle = "alumni" if row.group == LinkedInGroup.alumni else ANGLE[LinkedInGroup(row.group)]
+    alumni = bool(row.alumni)
+    group = LinkedInGroup(row.group)
+    angle = "alumni" if alumni and group == LinkedInGroup.peer else ANGLE[group]
     job_text = f"{job.title}\n{job.description or ''}"
     tools = matching_tools(pool, job_text)
     years = max((int(f["years"]) for f in facts), default=None)

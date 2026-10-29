@@ -628,7 +628,7 @@ def _seed_contact_alert(s: Session, apps: dict[str, Application]) -> None:
 def _seed_linkedin(s: Session, apps: dict[str, Application]) -> None:
     """The LinkedIn messages tour: on the first job past New, a hiring-team person with a
     drafted note (mock drafter) and an alumni contact already requested. Sample data only."""
-    from app.models.enums import LinkedInGroup, LinkedInStatus
+    from app.models.enums import LinkedInStatus
     from app.providers.mock import MockLinkedInDrafter
     from app.services import linkedin_track as lt
 
@@ -641,7 +641,7 @@ def _seed_linkedin(s: Session, apps: dict[str, Application]) -> None:
                   hiring_team=True)
     alum = lt.add(s, app, full_name="Robin Example", title="Data Engineer",
                   linkedin_url="https://www.linkedin.com/in/robin-example/",
-                  group=LinkedInGroup.alumni)
+                  alumni=True)
     s.flush()
     request, ctx = lt._request(s, hire, "note")
     hire.note = lt._draft(MockLinkedInDrafter(), request, ctx)
