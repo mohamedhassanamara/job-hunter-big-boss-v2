@@ -34,7 +34,7 @@ export interface ApiResult {
   error?: string
 }
 
-export async function call(path: string, method: 'GET' | 'POST' | 'PATCH', body?: unknown): Promise<ApiResult> {
+export async function call(path: string, method: 'GET' | 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<ApiResult> {
   const c = await config()
   const origin = localOrigin(c.api)
   if (!origin) return { ok: false, status: 0, data: null, error: 'The app address must be http://localhost or http://127.0.0.1' }

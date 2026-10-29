@@ -14,7 +14,7 @@ chrome.commands.onCommand.addListener((command) => {
 
 // The pill and the options page ask the worker to talk to the app (the token stays here).
 chrome.runtime.onMessage.addListener((raw, _sender, send) => {
-  const msg = raw as { type?: string; path?: string; method?: 'GET' | 'POST' | 'PATCH'; body?: unknown }
+  const msg = raw as { type?: string; path?: string; method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown }
   if (msg.type === 'api' && msg.path) {
     void call(msg.path, msg.method ?? 'GET', msg.body).then(send)
     return true
