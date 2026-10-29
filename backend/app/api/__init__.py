@@ -9,6 +9,7 @@ from app.api import (
     cv,
     discovery,
     experience,
+    ext,
     generation,
     get_contact,
     interview,
@@ -38,6 +39,6 @@ def health() -> dict[str, str]:
 for module in (
     today, jobs, tracking, applications, cv, letters, copilot, outreach, experience, contacts,
     settings, discovery, scoring, studio, research, get_contact, linkedin, motivation,
-    providers, interview, confirmation, generation, claim_fixes, usage,
+    providers, interview, confirmation, generation, claim_fixes, usage, ext,
 ):
     router.include_router(module.router)

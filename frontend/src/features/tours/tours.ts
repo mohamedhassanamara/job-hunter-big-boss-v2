@@ -35,6 +35,7 @@ export type TourId =
   | 'get-contact'
   | 'linkedin'
   | 'linkedin-messages'
+  | 'linkedin-extension'
   | 'studio'
   | 'email-route'
   | 'outreach'
@@ -321,6 +322,15 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'linkedin-searches', title: "Today's searches", body: 'One LinkedIn job search per role and target country, posted in the past 24 hours, newest first. Click one: it opens in a new tab and is marked opened today. You browse; the app never visits LinkedIn.', placement: 'bottom' },
       { target: 'linkedin-viewers', title: 'Viewed my profile', body: 'LinkedIn Premium shows who looked at your profile. Add them here (name, title, company, profile URL): they join the LinkedIn track for your best open job at their company, with the reason "viewed my profile on <date>" that only you see. No job there yet? They are kept as a lead and link themselves when one appears. Drafts for them open warmly and never mention the visit.', placement: 'bottom' },
       { target: 'linkedin-bookmark', title: 'One-click import', body: 'Drag “Save to Job Hunter” to your bookmarks bar. On a LinkedIn job page, click it: a small window shows what it read (and how), you check it, save, and the job is scored right away.', placement: 'top' },
+    ],
+  },
+  'linkedin-extension': {
+    id: 'linkedin-extension',
+    title: 'Browser extension',
+    description: 'Save the LinkedIn page you are viewing with one click',
+    resolveRoute: async () => '/settings?section=linkedin',
+    steps: [
+      { target: 'ext-token', title: 'A token only you hold', body: 'The extension saves a job or a person you are viewing on LinkedIn, and talks only to this app on your computer. Create a token here (it is shown once, and only a hash is kept), then paste it into the extension\'s options. Replacing it stops the old one; Revoke turns the extension off. The tour sandbox has no token: the extension only works on your real workspace.', placement: 'bottom' },
     ],
   },
   'linkedin-messages': {

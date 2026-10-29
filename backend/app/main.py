@@ -11,7 +11,7 @@ from app.api import router as api_router
 from app.config import get_settings
 from app.db import demo_engine, engine
 from app.seed.seed import ensure_defaults
-from app.services import generation, scheduler, send_queue
+from app.services import ext_auth, generation, scheduler, send_queue
 from app.services.discovery import mark_stale_runs
 from app.services.pipeline import TransitionError
 from app.services.scoring import workspace_queue
@@ -48,6 +48,7 @@ app = FastAPI(title="Job Hunter v2", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=ext_auth.origin_regex(settings.extension_ids),
     allow_methods=["*"],
     allow_headers=["*"],
 )

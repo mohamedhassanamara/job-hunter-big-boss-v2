@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Dev aid: delay every /api response to exercise skeleton states in the UI.
     mock_latency_ms: int = 0
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    # The capture extension's id(s) (EXTENSION_IDS, JSON list): the ONLY chrome-extension origins
+    # CORS accepts. The default is the id the fixed key in extension/manifest.json produces.
+    extension_ids: list[str] = ["chmdlkfgnkafhlghokcgggmddahnaoao"]
 
     # Job sources. `mock` swaps every source for the offline MockJobSource (tests, demos).
     job_sources: Literal["real", "mock"] = "real"

@@ -51,7 +51,11 @@ def last_runs(session: Session) -> list[SourceRunOut]:
 
 @router.get("/settings", response_model=SettingsOut)
 def get_settings_view(session: SessionDep) -> SettingsOut:
-    values = {s.key: s.value for s in session.exec(select(AppSetting)).all()}
+    from app.services import ext_auth
+
+    # The extension token's hash is a secret: it never leaves the database (not even hashed).
+    values = {s.key: s.value for s in session.exec(select(AppSetting)).all()
+              if s.key != ext_auth.KEY}
     from app.services.cv_rules import structure
     from app.services.cv_service import cv_settings
 

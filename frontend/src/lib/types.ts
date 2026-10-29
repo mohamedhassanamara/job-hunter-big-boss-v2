@@ -1757,6 +1757,15 @@ export interface LinkedInImport {
 }
 
 export type LinkedInGroup = 'hiring_team' | 'alumni' | 'lead' | 'recruiter' | 'other'
+/** Settings → LinkedIn: the browser extension's token (the plain text is never returned again). */
+export interface ExtensionStatus {
+  available: boolean
+  exists: boolean
+  created_at: string | null
+  last_used_at: string | null
+  extension_ids: string[]
+}
+
 export type LinkedInStatus = 'to_contact' | 'sent' | 'accepted' | 'messaged' | 'replied'
 
 /** A drafted LinkedIn message (note or follow-up) with its checks. */

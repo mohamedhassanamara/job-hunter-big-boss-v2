@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { DraftReview, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
+import type { DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
 import { invalidateWork } from './keys'
 
 export function useLinkedInLinks(remote: boolean, easy: boolean) {
@@ -142,5 +142,30 @@ export function useRemoveLead() {
   return useMutation({
     mutationFn: (id: number) => api.del<void>(`/linkedin/leads/${id}`),
     onSettled: () => invalidateLinkedIn(qc),
+  })
+}
+
+// ---- the browser extension's token (Settings → LinkedIn) -------------------------------------
+
+const extensionKey = ['linkedin', 'extension'] as const
+
+export function useExtensionStatus() {
+  return useQuery({ queryKey: extensionKey, queryFn: () => api.get<ExtensionStatus>('/linkedin/extension') })
+}
+
+/** Creates (or replaces) the token. The plain text comes back once and is not kept by the server. */
+export function useCreateExtensionToken() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<{ token: string }>('/linkedin/extension/token', { label: '' }),
+    onSettled: () => qc.invalidateQueries({ queryKey: extensionKey }),
+  })
+}
+
+export function useRevokeExtensionToken() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.del<void>('/linkedin/extension/token'),
+    onSettled: () => qc.invalidateQueries({ queryKey: extensionKey }),
   })
 }

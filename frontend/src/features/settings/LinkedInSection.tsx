@@ -11,6 +11,7 @@ import { linkedinSearchUrl } from '@/lib/linkedin'
 import { useLinkedInCredits } from '@/lib/queries/linkedin'
 import { useSaveSetting, useSearchProfile } from '@/lib/queries/library'
 import type { SettingsView } from '@/lib/types'
+import { ExtensionCard } from './ExtensionCard'
 import { Card, Field, SaveBar } from './sections'
 
 interface LinkedInValue {
@@ -60,6 +61,7 @@ export function LinkedInSection({ settings }: { settings: SettingsView }) {
           </div>
         </div>
       )}
+      <ExtensionCard />
       <Card title="The LinkedIn bookmark" description="One click on a LinkedIn job page saves the job here and scores it. It reads only the page you're viewing, in your browser; the app never visits LinkedIn.">
         <div className="px-5 py-4">
           <BookmarkInstall />
