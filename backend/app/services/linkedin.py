@@ -40,7 +40,8 @@ DEFAULT_LINKEDIN: dict[str, Any] = {
         "PT": "100364837", "BE": "100565514", "AE": "104305776", "QA": "104170880",
         "JO": "103710677", "BH": "100425729", "KW": "103239229", "TR": "102105699"}.items()},
 }
-JOBS_SEARCH = "https://www.linkedin.com/jobs/search/"
+# LinkedIn's current results page (the classic /jobs/search/ opens its AI prompt box).
+JOBS_SEARCH = "https://www.linkedin.com/jobs/search-results/"
 PAST_24H = "r86400"
 REQUIRED = ("title", "company", "description")
 MIN_DESCRIPTION = 200
@@ -86,19 +87,18 @@ class Links:
     missing_geo: list[dict[str, str]]
 
 
-def link_key(role: str, country: str, remote: bool, easy: bool) -> str:
-    return f"{role.strip().lower()}|{country.lower()}|{'r' if remote else ''}{'e' if easy else ''}"
+def link_key(role: str, country: str, remote: bool) -> str:
+    return f"{role.strip().lower()}|{country.lower()}|{'r' if remote else ''}"
 
 
-def search_url(role: str, geo_id: str, *, remote: bool = False, easy: bool = False) -> str:
-    """One LinkedIn job search: this role in this country (LinkedIn's geoId, never a text
-    location), posted in the past 24 hours, newest first; optionally remote only (f_WT=2) and
-    Easy Apply only (f_AL=true)."""
-    params = [("keywords", role), ("geoId", geo_id), ("f_TPR", PAST_24H), ("sortBy", "DD")]
+def search_url(role: str, geo_id: str, *, remote: bool = False) -> str:
+    """One LinkedIn job search on the current results page: this role in this country (LinkedIn's
+    geoId, never a text location), posted in the past 24 hours; optionally remote only (f_WT=2).
+    The parameters are the ones LinkedIn's own results URL carries."""
+    params = [("keywords", role), ("geoId", geo_id), ("f_TPR", PAST_24H),
+              ("origin", "SEMANTIC_SEARCH_HISTORY")]
     if remote:
         params.append(("f_WT", "2"))
-    if easy:
-        params.append(("f_AL", "true"))
     return JOBS_SEARCH + "?" + "&".join(f"{k}={quote(v, safe='')}" for k, v in params)
 
 
@@ -108,7 +108,7 @@ def geo_ids(s: Session) -> dict[str, dict[str, Any]]:
             if isinstance(v, dict) and str(v.get("id") or "").strip()}
 
 
-def search_links(s: Session, *, remote: bool = False, easy: bool = False,
+def search_links(s: Session, *, remote: bool = False,
                  today: date | None = None) -> Links:
     """One link per role × target country (Settings → Search profile) that has a geoId,
     grouped by role. Countries without one are listed apart, with no link."""
@@ -133,12 +133,12 @@ def search_links(s: Session, *, remote: bool = False, easy: bool = False,
                 geo = geos.get(code.upper())
                 if geo is None:
                     continue
-                key = link_key(title, code, remote, easy)
+                key = link_key(title, code, remote)
                 gid = str(geo["id"]).strip()
                 group.links.append(SearchLink(
                     key, title, code.upper(), names.get(code.upper(), code), gid,
                     bool(geo.get("verified")),
-                    search_url(title, gid, remote=remote, easy=easy), key in opened))
+                    search_url(title, gid, remote=remote), key in opened))
             groups.append(group)
     return Links(groups, missing)
 

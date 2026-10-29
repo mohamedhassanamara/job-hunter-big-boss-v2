@@ -442,7 +442,8 @@ Every email, LinkedIn note or follow-up, cover letter and form answer is checked
 and reads only the one job page you hand it with the bookmark (a test guards against any backend request to
 linkedin.com).
 - **Today's searches:** one LinkedIn job search per role × target country, posted in the past 24 hours, newest
-  first (`f_TPR=r86400&sortBy=DD`), optionally remote only (`f_WT=2`) and Easy Apply only (`f_AL=true`). Countries
+  first, on LinkedIn's current results page (`/jobs/search-results/?keywords=…&geoId=…&f_TPR=r86400&origin=SEMANTIC_SEARCH_HISTORY`,
+  the parameters its own results URL carries), optionally remote only (`f_WT=2`; no Easy Apply toggle). Countries
   are LinkedIn **geoIds** (Settings → LinkedIn, each Unverified until you Test and Confirm it), never a text
   location; a country without a geoId shows a warning and no link. A link you open is marked "opened today".
 - **One-click import:** the "Save to Job Hunter" bookmark (Settings → LinkedIn) reads the job page you're on

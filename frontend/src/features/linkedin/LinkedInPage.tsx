@@ -23,8 +23,7 @@ import { cn } from '@/lib/utils'
 function SearchLinks() {
   const url = useSearchParamState()
   const remote = url.get('remote') === '1'
-  const easy = url.get('easy') === '1'
-  const { data, isPending, error, refetch } = useLinkedInLinks(remote, easy)
+  const { data, isPending, error, refetch } = useLinkedInLinks(remote)
   const open = useOpenLink()
   return (
     <Section
@@ -34,10 +33,6 @@ function SearchLinks() {
           <label className="flex items-center gap-1.5">
             <Switch checked={remote} onCheckedChange={(v) => url.set({ remote: v ? '1' : null })} aria-label="Remote only" />
             Remote only
-          </label>
-          <label className="flex items-center gap-1.5">
-            <Switch checked={easy} onCheckedChange={(v) => url.set({ easy: v ? '1' : null })} aria-label="Easy Apply only" />
-            Easy Apply only
           </label>
           {data && (
             <span className="tabular-nums">

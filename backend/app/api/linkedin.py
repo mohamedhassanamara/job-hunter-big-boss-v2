@@ -91,9 +91,9 @@ class ImportOut(BaseModel):
 
 
 @router.get("/linkedin/links", response_model=LinksOut)
-def links(session: SessionDep, remote: bool = False, easy: bool = False) -> LinksOut:
+def links(session: SessionDep, remote: bool = False) -> LinksOut:
     """One LinkedIn job search per role × target country, past 24 hours, newest first."""
-    found = linkedin.search_links(session, remote=remote, easy=easy)
+    found = linkedin.search_links(session, remote=remote)
     out = [LinkGroupOut(track=g.track, role=g.role,
                         links=[LinkOut(**vars(x)) for x in g.links]) for g in found.groups]
     every = [x for g in found.groups for x in g.links]

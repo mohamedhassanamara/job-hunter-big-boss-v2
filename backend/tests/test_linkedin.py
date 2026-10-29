@@ -25,10 +25,13 @@ CAPTURE = {
 
 
 def test_search_url_uses_the_geo_id_never_a_text_location() -> None:
-    url = linkedin.search_url("Data Engineer", "103710677", remote=True, easy=True)
-    assert url.startswith("https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer")
-    for part in ("geoId=103710677", "f_TPR=r86400", "sortBy=DD", "f_WT=2", "f_AL=true"):
+    url = linkedin.search_url("Data Engineer", "103710677", remote=True)
+    # the current results page (the classic /jobs/search/ opens the AI prompt box), with the
+    # parameters LinkedIn's own results URL carries
+    assert url.startswith("https://www.linkedin.com/jobs/search-results/?keywords=Data%20Engineer")
+    for part in ("geoId=103710677", "f_TPR=r86400", "origin=SEMANTIC_SEARCH_HISTORY", "f_WT=2"):
         assert part in url
+    assert "f_AL" not in url and "sortBy" not in url
     assert "location=" not in url and "f_WT" not in linkedin.search_url("Data Engineer", "1")
 
 

@@ -1,11 +1,11 @@
 import type { Tone } from '@/components/app/badges'
 import type { Tracks } from '@/lib/types'
 
-/** A LinkedIn job search by geoId (mirrors backend services/linkedin.search_url): used by
- * Settings → LinkedIn's "Test link" so you can see where a geoId lands. */
+/** A LinkedIn job search by geoId on the current results page (mirrors backend services/linkedin.search_url):
+ * used by Settings → LinkedIn's "Test link" so you can see where a geoId lands. */
 export function linkedinSearchUrl(role: string, geoId: string): string {
-  const params = new URLSearchParams({ keywords: role, geoId, f_TPR: 'r86400', sortBy: 'DD' })
-  return `https://www.linkedin.com/jobs/search/?${params.toString().replace(/\+/g, '%20')}`
+  const params = new URLSearchParams({ keywords: role, geoId, f_TPR: 'r86400', origin: 'SEMANTIC_SEARCH_HISTORY' })
+  return `https://www.linkedin.com/jobs/search-results/?${params.toString().replace(/\+/g, '%20')}`
 }
 
 /** LinkedIn track labels (furthest person on the job). */
