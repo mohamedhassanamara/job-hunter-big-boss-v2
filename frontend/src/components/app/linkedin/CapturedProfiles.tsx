@@ -1,40 +1,53 @@
-import { Trash2, Users } from 'lucide-react'
+import { Check, Trash2, TriangleAlert, Users } from 'lucide-react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { ToneBadge } from '@/components/app/badges'
-import { Section } from '@/components/app/PageHeader'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
 import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Select } from '@/components/ui/select'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
-import { useCapturedPeople, useDeleteSnapshot } from '@/lib/queries/linkedin'
+import { useCapturedPeople, useDeleteSnapshot, useEditProfile, useMarkProfileReviewed } from '@/lib/queries/linkedin'
+import type { CapturedPerson } from '@/lib/types'
 
-const ROLE: Record<string, string> = { recruiter: 'Recruiter', lead: 'Team lead', peer: 'Peer', hiring_team: 'Hiring team' }
+const ROLES = [
+  { value: 'recruiter', label: 'Recruiter' },
+  { value: 'lead', label: 'Team lead' },
+  { value: 'peer', label: 'Peer' },
+]
 
-/** People saved with the browser extension: the ones on a job, and the ones waiting for a job at their company. */
-export function CapturedPeople() {
+const needsReview = (p: CapturedPerson) => p.flags.length > 0 && !p.reviewed_at
+
+/** People saved with the extension: the role (yours to change), the alumni flag, the jobs they are on or
+ * the job they wait for. Anything the capture looked unsure about is flagged and listed first. */
+export function CapturedProfiles() {
   const { data, isPending, error, refetch } = useCapturedPeople()
   const forget = useDeleteSnapshot()
+  const edit = useEditProfile()
+  const reviewed = useMarkProfileReviewed()
+  const items = [...(data?.items ?? [])].sort((a, b) => Number(needsReview(b)) - Number(needsReview(a)))
+  const fail = (e: Error) => toast.error(e.message)
   return (
-    <Section title="People captured" action={<span className="text-xs text-fg-subtle">{data ? `${data.total}` : ''}</span>}>
-      <div data-tour="linkedin-people">
-        {isPending ? (
-          <SkeletonRows rows={3} />
-        ) : error ? (
-          <ErrorState compact error={error} onRetry={() => refetch()} />
-        ) : data.items.length === 0 ? (
-          <EmptyState
-            compact
-            icon={Users}
-            title="Nobody captured yet"
-            description="Open someone's LinkedIn profile and press “Save person” in the extension: they're saved here with their role, and join your best open job at their company."
-            action={<TourButton tour="linkedin" />}
-          />
-        ) : (
-          <ul>
-            {data.items.map((p) => (
-              <li key={p.contact_id} className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0">
+    <div data-tour="linkedin-people">
+      {isPending ? (
+        <SkeletonRows rows={3} />
+      ) : error ? (
+        <ErrorState compact error={error} onRetry={() => refetch()} />
+      ) : items.length === 0 ? (
+        <EmptyState
+          compact
+          icon={Users}
+          title="No LinkedIn profiles yet"
+          description="Open someone's LinkedIn profile and press “Save profile” in the extension: they're saved here with their role, and join your best open job at their company."
+          action={<TourButton tour="linkedin" />}
+        />
+      ) : (
+        <ul>
+          {items.map((p) => (
+            <li key={p.contact_id} className="border-b border-border last:border-b-0">
+              <div className="flex items-center gap-3 px-4 py-2.5">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
                     {p.profile_url ? (
@@ -46,11 +59,11 @@ export function CapturedPeople() {
                     )}
                   </p>
                   <p className="truncate text-xs text-fg-muted">
-                    {p.current_title || p.headline} @ {p.company} · captured {relativeTime(p.captured_at)}
+                    {p.current_title || p.headline} @ {p.company} · saved {relativeTime(p.captured_at)}
                   </p>
                   <p className="truncate text-xs text-fg-subtle">
                     {p.jobs.length === 0 ? (
-                      'Waiting for a job at this company: they join the next one you capture.'
+                      'Waiting for a job at this company: they join the next one you save.'
                     ) : (
                       <>
                         On{' '}
@@ -66,26 +79,52 @@ export function CapturedPeople() {
                     )}
                   </p>
                 </div>
-                <ToneBadge tone={p.persona === 'recruiter' ? 'slate' : p.persona === 'lead' ? 'blue' : 'gray'} dot={false}>
-                  {ROLE[p.persona] ?? p.persona}
-                </ToneBadge>
-                {p.alumni && <ToneBadge tone="teal">Alumni</ToneBadge>}
+                {needsReview(p) && (
+                  <ToneBadge tone="amber" dot={false}>
+                    Needs review
+                  </ToneBadge>
+                )}
                 {p.do_not_contact && <ToneBadge tone="red">Do not contact</ToneBadge>}
+                <Select
+                  size="sm"
+                  value={p.persona === 'hiring_team' ? 'peer' : p.persona}
+                  onValueChange={(persona) => edit.mutate({ contactId: p.contact_id, persona }, { onError: fail })}
+                  options={ROLES}
+                  aria-label={`Role of ${p.full_name}`}
+                />
+                <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+                  <Checkbox checked={p.alumni} onCheckedChange={(v) => edit.mutate({ contactId: p.contact_id, alumni: v === true }, { onError: fail })} />
+                  Alum
+                </label>
                 <Tooltip content="Forget the captured profile fields. The contact and its messages stay.">
                   <Button
                     size="icon"
                     variant="ghost"
                     aria-label={`Delete the captured profile of ${p.full_name}`}
-                    onClick={() => forget.mutate(p.contact_id, { onSuccess: () => toast.success('Captured profile deleted'), onError: (e) => toast.error(e.message) })}
+                    onClick={() => forget.mutate(p.contact_id, { onSuccess: () => toast.success('Captured profile deleted'), onError: fail })}
                   >
                     <Trash2 />
                   </Button>
                 </Tooltip>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </Section>
+              </div>
+              {needsReview(p) && (
+                <div className="flex items-start gap-3 bg-warning-bg px-4 py-2 text-xs text-warning-fg">
+                  <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                  <ul className="min-w-0 flex-1 space-y-0.5">
+                    {p.flags.map((f) => (
+                      <li key={f.code}>{f.text}</li>
+                    ))}
+                  </ul>
+                  <Button size="xs" variant="secondary" onClick={() => reviewed.mutate(p.contact_id, { onError: fail })}>
+                    <Check />
+                    Looks right
+                  </Button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

@@ -316,13 +316,14 @@ export const TOURS: Record<TourId, Tour> = {
   linkedin: {
     id: 'linkedin',
     title: 'LinkedIn',
-    description: 'Daily searches and one-click import',
+    description: 'Daily searches, and the jobs and people you saved',
     resolveRoute: async () => '/linkedin',
     steps: [
       { target: 'linkedin-searches', title: "Today's searches", body: 'One LinkedIn job search per role and target country, posted in the past 24 hours, newest first. Click one: it opens in a new tab and is marked opened today. You browse; the app never visits LinkedIn.', placement: 'bottom' },
       { target: 'linkedin-viewers', title: 'Viewed my profile', body: 'LinkedIn Premium shows who looked at your profile. Add them here (name, title, company, profile URL): they join the LinkedIn track for your best open job at their company, with the reason "viewed my profile on <date>" that only you see. No job there yet? They are kept as a lead and link themselves when one appears. Drafts for them open warmly and never mention the visit.', placement: 'bottom' },
-      { target: 'linkedin-people', title: 'People captured', body: 'Open someone\'s profile and press “Save person” in the extension. They are saved with their role (recruiter, team lead or peer: from their title, and you can change it), an alumni flag if you studied at the same school, and join your best open job at their company. No job there yet? They wait here and join the next one you save. Delete a captured profile any time: the contact and any messages stay.', placement: 'top' },
-      { target: 'linkedin-bookmark', title: 'One-click import', body: 'Drag “Save to Job Hunter” to your bookmarks bar. On a LinkedIn job page, click it: a small window shows what it read (and how), you check it, save, and the job is scored right away.', placement: 'top' },
+      { target: 'linkedin-tabs', title: 'Jobs and people you saved', body: 'Open a LinkedIn job or profile and press the one button in the extension (“Save job” or “Save profile”): it is saved at once, no review screen. Jobs you saved wait under LinkedIn Jobs (not in Discover) and people under LinkedIn Profiles (not in Contacts) until you act on them.', placement: 'bottom' },
+      { target: 'linkedin-jobs', title: 'LinkedIn Jobs', body: 'Each saved job is scored right away. If the capture looked unsure (a cut-off description, no location, a guessed company link) the row says “Needs review” and lists why: fix it on the job page, or press “Looks right”. Shortlist or dismiss from here; a shortlisted job continues in the normal pipeline.', route: '/linkedin?view=jobs', placement: 'top' },
+      { target: 'linkedin-people', title: 'LinkedIn Profiles', body: 'People are saved with their role (recruiter, team lead or peer: from their title, and you can change it) and an alumni flag if you studied at the same school. They join your best open job at their company; with no job yet they wait here and join the next one you save. Delete a captured profile any time: the contact and any messages stay.', route: '/linkedin?view=profiles', placement: 'top' },
     ],
   },
   'linkedin-extension': {

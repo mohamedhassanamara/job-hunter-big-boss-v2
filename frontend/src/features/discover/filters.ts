@@ -10,6 +10,7 @@ export function hasActiveFilters(f: JobFilters) {
     f.min_score ||
     f.posted_within ||
     f.hide_duplicates ||
+    f.include_linkedin ||
     f.label ||
     f.flags
   )

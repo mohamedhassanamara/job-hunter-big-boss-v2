@@ -102,10 +102,10 @@ export function useCompanies(q: string, filter: CompanyFilter, limit = 200) {
   })
 }
 
-export function useCompany(id: number | null) {
+export function useCompany(id: number | null, includeLinkedin = false) {
   return useQuery({
-    queryKey: keys.company(id ?? -1),
-    queryFn: () => api.get<CompanyDetail>(`/companies/${id}`),
+    queryKey: [...keys.company(id ?? -1), includeLinkedin] as const,
+    queryFn: () => api.get<CompanyDetail>(`/companies/${id}${includeLinkedin ? '?include_linkedin=true' : ''}`),
     enabled: id !== null,
   })
 }

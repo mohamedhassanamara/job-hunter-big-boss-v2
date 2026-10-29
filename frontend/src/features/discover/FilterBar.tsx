@@ -189,6 +189,10 @@ export function FilterBar({
         />
         Hide duplicates
       </label>
+      <label className="flex h-7 items-center gap-2 px-1 text-sm text-fg-muted">
+        <Switch checked={!!filters.include_linkedin} onCheckedChange={(include_linkedin) => onChange({ include_linkedin })} />
+        Include LinkedIn
+      </label>
       <div className="ml-auto flex items-center gap-2">
         {hasActiveFilters(filters) && (
           <Button size="sm" variant="ghost" onClick={onClear}>

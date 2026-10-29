@@ -1,20 +1,17 @@
-import { ArrowRight, Check, ExternalLink, Search, TriangleAlert } from 'lucide-react'
+import { Check, ExternalLink, Search, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router'
-import { FitBadge, StageBadge } from '@/components/app/badges'
-import { BookmarkInstall } from '@/components/app/linkedin/BookmarkInstall'
 import { Section } from '@/components/app/PageHeader'
 import { PageHeader } from '@/components/app/PageHeader'
 import { EmptyState, ErrorState, SkeletonRows } from '@/components/app/states'
-import { TourButton } from '@/components/app/tour/TourButton'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useSearchParamState } from '@/hooks/useSearchParamState'
-import { relativeTime } from '@/lib/format'
-import { useJobs } from '@/lib/queries/jobs'
-import { useLinkedInLinks, useLinkedInSummary, useOpenLink } from '@/lib/queries/linkedin'
+import { useCapturedJobs, useCapturedPeople, useLinkedInLinks, useLinkedInSummary, useOpenLink } from '@/lib/queries/linkedin'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
-import { CapturedPeople } from '@/components/app/linkedin/CapturedPeople'
+import { CapturedJobs } from '@/components/app/linkedin/CapturedJobs'
+import { CapturedProfiles } from '@/components/app/linkedin/CapturedProfiles'
 import { ViewersCard } from '@/components/app/linkedin/ViewersCard'
 import { cn } from '@/lib/utils'
 
@@ -119,73 +116,67 @@ function ToDo() {
   )
 }
 
-function ImportedJobs() {
-  const { data, isPending, error, refetch } = useJobs({
-    source: ['linkedin'],
-    stage: 'open',
-    sort: 'newest',
-  })
-  return (
-    <Section title="Imported from LinkedIn" action={<span className="text-xs text-fg-subtle">{data ? `${data.total} open` : ''}</span>}>
-      {isPending ? (
-        <SkeletonRows rows={3} />
-      ) : error ? (
-        <ErrorState compact error={error} onRetry={() => refetch()} />
-      ) : data.items.length === 0 ? (
-        <EmptyState
-          compact
-          icon={ArrowRight}
-          title="No imported jobs yet"
-          description="Open a job on LinkedIn and press “Save job” in the browser extension (or the bookmark): it's saved here and scored right away."
-          action={<TourButton tour="linkedin" />}
-        />
-      ) : (
-        <ul>
-          {data.items.map((j) => (
-            <li key={j.id} className="border-b border-border last:border-b-0">
-              <Link to={`/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{j.title}</p>
-                  <p className="truncate text-xs text-fg-muted">
-                    {j.company.name} · {j.location || 'location unknown'} · imported {relativeTime(j.discovered_at)}
-                  </p>
-                </div>
-                <StageBadge stage={j.application.stage} label={j.application.stage_label} />
-                <FitBadge fit={j.fit} size="sm" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Section>
-  )
-}
+type View = 'today' | 'jobs' | 'profiles'
 
 export default function LinkedInPage() {
+  const url = useSearchParamState()
+  const raw = url.get('view')
+  const view: View = raw === 'jobs' || raw === 'profiles' ? raw : 'today'
+  const jobs = useCapturedJobs()
+  const people = useCapturedPeople()
+  const peopleToReview = (people.data?.items ?? []).filter((p) => p.flags.length > 0 && !p.reviewed_at).length
+  const highlight = url.get('job') ? Number(url.get('job')) : null
   return (
     <div className="flex h-full flex-col">
       <PageHeader
         title="LinkedIn"
-        description="Daily searches built from your roles, one-click save of a job or person you're viewing, and the people to message. You browse and send; the app builds links and drafts."
-      />
+        description="Daily searches built from your roles, the jobs and people you saved with the browser extension, and the people to message. You browse and send; the app builds links and drafts."
+      >
+        <Tabs data-tour="linkedin-tabs" value={view} onValueChange={(v) => url.set({ view: v === 'today' ? null : v, job: null })}>
+          <TabsList>
+            <TabsTrigger value="today">Today</TabsTrigger>
+            <TabsTrigger value="jobs" count={jobs.data?.total}>
+              LinkedIn Jobs{jobs.data && jobs.data.needs_review > 0 ? ` · ${jobs.data.needs_review} to review` : ''}
+            </TabsTrigger>
+            <TabsTrigger value="profiles" count={people.data?.total}>
+              LinkedIn Profiles{peopleToReview > 0 ? ` · ${peopleToReview} to review` : ''}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </PageHeader>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl space-y-4 px-6 py-5">
-          <ToDo />
-          <ViewersCard />
-          <SearchLinks />
-          <ImportedJobs />
-          <CapturedPeople />
-          <Section title="The bookmark">
-            <div className="p-4">
-              <BookmarkInstall compact />
-              <p className="mt-2 text-xs text-fg-subtle">
-                Not installed yet?{' '}
-                <Link to="/settings?section=linkedin" className="text-primary hover:underline">
-                  Instructions in Settings → LinkedIn
-                </Link>
-              </p>
-            </div>
-          </Section>
+          {view === 'today' && (
+            <>
+              <ToDo />
+              <ViewersCard />
+              <SearchLinks />
+              <Section title="The browser extension">
+                <div className="space-y-2 p-4 text-sm text-fg-muted">
+                  <p>
+                    Open a LinkedIn job or profile and press <strong>Save job</strong> / <strong>Save profile</strong> in the extension: it is saved at once. Jobs wait in LinkedIn Jobs, people in LinkedIn Profiles, and anything that looks misread is flagged for a look.
+                  </p>
+                  <p className="text-xs text-fg-subtle">
+                    Not set up yet?{' '}
+                    <Link to="/settings?section=linkedin" className="text-primary hover:underline">
+                      Create a token in Settings → LinkedIn
+                    </Link>
+                    . The old bookmark still works there too.
+                  </p>
+                </div>
+              </Section>
+            </>
+          )}
+          {view === 'jobs' && (
+            <Section title="LinkedIn Jobs" action={<span className="text-xs text-fg-subtle">Saved with the extension; New ones wait here, not in Discover</span>}>
+              <CapturedJobs highlight={highlight} />
+            </Section>
+          )}
+          {view === 'profiles' && (
+            <Section title="LinkedIn Profiles" action={<span className="text-xs text-fg-subtle">Saved with the extension; not mixed into Contacts</span>}>
+              <CapturedProfiles />
+            </Section>
+          )}
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export const NAV_MAIN: NavItem[] = [
   { to: '/review-cvs', label: 'Review CVs', icon: FileCheck, shortcut: 'r', count: 'cvs_to_review' },
   { to: '/applications', label: 'Applications', icon: BriefcaseBusiness, shortcut: 'a', count: 'ready_to_apply' },
   { to: '/outreach', label: 'Outreach', icon: Send, shortcut: 'o', count: 'outreach_review' },
-  { to: '/linkedin', label: 'LinkedIn', icon: Network, shortcut: 'n' },
+  { to: '/linkedin', label: 'LinkedIn', icon: Network, shortcut: 'n', count: 'linkedin_review' },
   { to: '/copilot', label: 'Copilot', icon: BotMessageSquare, shortcut: 'i' },
   { to: '/motivation', label: 'Motiv Center', icon: Sparkles, shortcut: 'm', feature: 'motivation' },
 ]

@@ -21,6 +21,7 @@ export interface JobFilters {
   min_score?: number | null
   posted_within?: number | null
   hide_duplicates?: boolean
+  include_linkedin?: boolean // captured LinkedIn jobs still New wait in LinkedIn → Jobs unless asked
   label?: 'unlabeled' | 'good' | 'maybe' | 'no' | null
   flags?: 'hide_hard' | 'only_flagged' | null
   sort?: 'fit' | 'newest'

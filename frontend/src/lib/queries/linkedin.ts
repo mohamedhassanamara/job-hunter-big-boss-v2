@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { CapturedPerson, DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
-import { invalidateWork } from './keys'
+import type { CapturedJobReview, CapturedPerson, DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
+import { invalidateWork, keys } from './keys'
 
 export function useLinkedInLinks(remote: boolean) {
   return useQuery({
@@ -182,5 +182,45 @@ export function useDeleteSnapshot() {
   return useMutation({
     mutationFn: (contactId: number) => api.del<void>(`/linkedin/profiles/${contactId}`),
     onSettled: () => qc.invalidateQueries({ queryKey: ['linkedin', 'profiles'] }),
+  })
+}
+
+// ---- the LinkedIn Jobs / Profiles sections: review state and corrections ----------------------
+
+const profilesKey = ['linkedin', 'profiles'] as const
+const capturedJobsKey = ['linkedin', 'captured-jobs'] as const
+
+export function useCapturedJobs() {
+  return useQuery({ queryKey: capturedJobsKey, queryFn: () => api.get<{ items: CapturedJobReview[]; total: number; needs_review: number }>('/linkedin/captured/jobs') })
+}
+
+export function useMarkJobReviewed() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (jobId: number) => api.post<void>(`/linkedin/captured/jobs/${jobId}/reviewed`),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: capturedJobsKey })
+      qc.invalidateQueries({ queryKey: keys.navCounts })
+    },
+  })
+}
+
+export function useMarkProfileReviewed() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contactId: number) => api.post<void>(`/linkedin/profiles/${contactId}/reviewed`),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: profilesKey })
+      qc.invalidateQueries({ queryKey: keys.navCounts })
+    },
+  })
+}
+
+/** Change a captured person's role or alum flag. */
+export function useEditProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ contactId, ...patch }: { contactId: number; persona?: string; alumni?: boolean }) => api.patch<unknown>(`/linkedin/profiles/${contactId}`, patch),
+    onSettled: () => qc.invalidateQueries({ queryKey: profilesKey }),
   })
 }

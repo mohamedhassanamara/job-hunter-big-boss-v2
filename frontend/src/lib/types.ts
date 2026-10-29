@@ -799,6 +799,7 @@ export interface CompanyDetail extends CompanyListItem {
   website: string | null
   contacts: Contact[] // most relevant role first
   jobs: CompanyJob[]
+  hidden_linkedin: number // captured from LinkedIn (their own section): hidden unless asked
 }
 
 export interface FilePreview {
@@ -1050,6 +1051,7 @@ export interface NavCounts {
   ready_to_apply: number
   contacts_to_get: number
   cvs_to_review: number
+  linkedin_review: number // captured LinkedIn jobs / profiles flagged for a look
 }
 
 // ---- Get contact (Phase 9) ---------------------------------------------------------------
@@ -1773,6 +1775,22 @@ export interface CapturedPerson {
   captured_at: string | null
   jobs: { job_id: number; title: string; status: string }[]
   do_not_contact: boolean
+  flags: CaptureFlag[]
+  reviewed_at: string | null
+}
+
+/** Why a one-click capture is worth a look (derived on the server from what was read). */
+export interface CaptureFlag {
+  code: string
+  text: string
+}
+
+/** The review state of a job captured from LinkedIn (its card comes from GET /jobs). */
+export interface CapturedJobReview {
+  job_id: number
+  flags: CaptureFlag[]
+  reviewed_at: string | null
+  needs_review: boolean
 }
 
 /** Settings → LinkedIn: the browser extension's token (the plain text is never returned again). */

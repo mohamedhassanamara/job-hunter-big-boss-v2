@@ -153,7 +153,8 @@ function SizeEditor({ data }: { data: CompanyDetail }) {
 }
 
 function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => void }) {
-  const { data, isPending, error, refetch } = useCompany(id)
+  const [includeLinkedin, setIncludeLinkedin] = useState(false)
+  const { data, isPending, error, refetch } = useCompany(id, includeLinkedin)
   const add = useAddCompanyContact()
   const search = useContactSearch()
   const [adding, setAdding] = useState(false)
@@ -224,6 +225,14 @@ function CompanyDetailPane({ id, onMissing }: { id: number; onMissing: () => voi
       <div>
         <p className="mb-2 text-xs font-medium text-fg-subtle">
           {pluralize(data.contacts.length, 'contact')} · most relevant first for a {data.small ? 'small' : 'large or unknown-size'} company (Settings → Contacts)
+          {(data.hidden_linkedin > 0 || includeLinkedin) && (
+            <>
+              {' · '}
+              <button type="button" className="text-primary hover:underline" onClick={() => setIncludeLinkedin(!includeLinkedin)}>
+                {includeLinkedin ? 'Hide people captured from LinkedIn' : `${data.hidden_linkedin} captured from LinkedIn (see LinkedIn → Profiles): show them here`}
+              </button>
+            </>
+          )}
         </p>
         {data.contacts.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border-strong p-6 text-center text-sm text-fg-muted">

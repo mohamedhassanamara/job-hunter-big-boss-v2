@@ -30,7 +30,7 @@ import { hasActiveFilters } from './filters'
 import { JobPanel } from './JobPanel'
 import { JobRow } from './JobRow'
 
-const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'track', 'min_score', 'posted_within', 'hide_duplicates', 'label', 'flags']
+const FILTER_KEYS = ['q', 'source', 'remote', 'country', 'track', 'min_score', 'posted_within', 'hide_duplicates', 'linkedin', 'label', 'flags']
 
 const PAGE = 200
 
@@ -51,6 +51,7 @@ export default function DiscoverPage() {
     min_score: url.get('min_score') ? Number(url.get('min_score')) : null,
     posted_within: url.get('posted_within') ? Number(url.get('posted_within')) : null,
     hide_duplicates: url.get('hide_duplicates') === '1',
+    include_linkedin: url.get('linkedin') === '1',
     label: (url.get('label') as JobFilters['label']) ?? null,
     flags: (url.get('flags') as JobFilters['flags']) ?? null,
     sort: (url.get('sort') as JobFilters['sort']) ?? 'fit',
