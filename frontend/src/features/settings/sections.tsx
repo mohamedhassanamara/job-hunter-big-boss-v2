@@ -152,14 +152,28 @@ export function ProfileSection({ profile }: { profile: SearchProfile }) {
   )
 }
 
+type ScheduleValue = {
+  enabled: boolean
+  times: string[]
+  weekdays_only: boolean
+}
+
 export function ScheduleSection({ settings }: { settings: SettingsView }) {
-  const initial = settings.values.schedule as { enabled: boolean; time: string }
+  const stored = settings.values.schedule as Partial<ScheduleValue> & { time?: string }
+  // A stored single `time` (one run a day) shows as one row, weekends included, until you save.
+  const initial: ScheduleValue = {
+    enabled: stored.enabled ?? true,
+    times: stored.times?.length ? stored.times : [stored.time ?? '07:00'],
+    weekdays_only: stored.weekdays_only ?? false,
+  }
   const draft = useDraft(initial)
   const save = useSaveSetting()
+  const { times } = draft.value
+  const setTimes = (next: string[]) => draft.setValue({ ...draft.value, times: next })
   return (
     <Card
       title="Schedule"
-      description="When the daily discovery run happens (local time, via APScheduler)."
+      description="When discovery runs automatically (local time, via APScheduler). Run discovery works anytime."
       footer={
         <SaveBar
           dirty={draft.dirty}
@@ -169,23 +183,51 @@ export function ScheduleSection({ settings }: { settings: SettingsView }) {
         />
       }
     >
-      <Field label="Daily discovery">
+      <Field label="Scheduled discovery">
         <Switch checked={draft.value.enabled} onCheckedChange={(enabled) => draft.setValue({ ...draft.value, enabled })} />
       </Field>
+      <Field label="Weekdays only" hint="Skips Saturday and Sunday.">
+        <Switch
+          checked={draft.value.weekdays_only}
+          disabled={!draft.value.enabled}
+          onCheckedChange={(weekdays_only) => draft.setValue({ ...draft.value, weekdays_only })}
+        />
+      </Field>
       <Field label="Run at">
-        <div className="flex items-center gap-3">
-          <Input
-            type="time"
-            value={draft.value.time}
-            disabled={!draft.value.enabled}
-            onChange={(e) => draft.setValue({ ...draft.value, time: e.target.value })}
-            className="w-32"
-          />
-          <span className="text-xs text-fg-muted">
-            {settings.next_run_at && initial.enabled
-              ? `Next run: ${absoluteDate(settings.next_run_at)}`
-              : 'Not scheduled'}
-          </span>
+        <div className="space-y-2">
+          {times.map((at, n) => (
+            <div key={n} className="flex items-center gap-3">
+              <Input
+                type="time"
+                value={at}
+                disabled={!draft.value.enabled}
+                onChange={(e) => setTimes(times.map((x, k) => (k === n ? e.target.value : x)))}
+                className="w-32"
+                aria-label={`Run time ${n + 1}`}
+              />
+              {times.length > 1 && (
+                <Button size="sm" variant="ghost" disabled={!draft.value.enabled} onClick={() => setTimes(times.filter((_, k) => k !== n))}>
+                  Remove
+                </Button>
+              )}
+            </div>
+          ))}
+          <div className="flex items-center gap-3">
+            {times.length < 6 && (
+              <Button size="sm" disabled={!draft.value.enabled} onClick={() => setTimes([...times, '15:00'])}>
+                Add a time
+              </Button>
+            )}
+            <span className="text-xs text-fg-muted">
+              {settings.next_run_at && stored.enabled !== false
+                ? `Next run: ${absoluteDate(settings.next_run_at)}`
+                : 'Not scheduled'}
+            </span>
+          </div>
+          <p className="max-w-xl text-xs text-fg-subtle">
+            Keep runs at least 6 hours apart: Remotive, Bayt and the company boards skip a source fetched less than
+            6 hours ago. Adzuna runs every time (about 40 of its 2,500 monthly requests per run).
+          </p>
         </div>
       </Field>
     </Card>

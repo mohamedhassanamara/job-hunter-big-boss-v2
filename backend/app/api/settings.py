@@ -261,6 +261,8 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         if not isinstance(body.value.get("enabled", True), bool):
             raise HTTPException(422, "enabled must be true or false")
         body.value = {"enabled": bool(body.value.get("enabled", True))}
+    if key == "schedule":
+        body.value = _check_schedule(body.value)
     if key == "gemini":
         for name, lo, hi in (("max_keys", 1, 5), ("daily_cap", 10, 1000)):
             v = body.value.get(name)
@@ -305,6 +307,16 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         # every stored score from its sub-scores (no LLM). Profile edits also make scores stale.
         recompute_all(session.get_bind())  # type: ignore[arg-type]
     return get_settings_view(session)
+
+
+def _check_schedule(value: dict) -> dict:
+    from app.services.scheduler import MAX_TIMES, normalize, valid_time
+
+    times, weekdays_only = normalize(value)
+    if not 1 <= len(times) <= MAX_TIMES or not all(valid_time(t) for t in times):
+        raise HTTPException(422, f"Give 1 to {MAX_TIMES} run times as HH:MM")
+    return {"enabled": bool(value.get("enabled", True)), "times": times,
+            "weekdays_only": weekdays_only}
 
 
 def _check_motivation(session: Session, value: dict) -> None:

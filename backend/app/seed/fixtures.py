@@ -555,7 +555,7 @@ SETTINGS: dict[str, dict] = {
     "generation": {"auto_cv": True, "auto_email": True},
     "smtp": {"address": "", "from_name": "", "gap_min_minutes": 4, "gap_max_minutes": 7,
              "max_per_queue": 20},
-    "schedule": {"enabled": True, "time": "07:00"},
+    "schedule": {"enabled": True, "times": ["07:00", "15:00"], "weekdays_only": True},
     "lookup": {"daily_cap": 10},
     # Cold emails: signature (empty fields use Settings → Candidate), opt-out, lint rules.
     "outreach": {"signature": {"name": "", "title": "", "email": "", "phone": "",
