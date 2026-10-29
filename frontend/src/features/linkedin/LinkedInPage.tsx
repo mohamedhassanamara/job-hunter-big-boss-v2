@@ -14,6 +14,7 @@ import { relativeTime } from '@/lib/format'
 import { useJobs } from '@/lib/queries/jobs'
 import { useLinkedInLinks, useLinkedInSummary, useOpenLink } from '@/lib/queries/linkedin'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
+import { CapturedPeople } from '@/components/app/linkedin/CapturedPeople'
 import { ViewersCard } from '@/components/app/linkedin/ViewersCard'
 import { cn } from '@/lib/utils'
 
@@ -140,7 +141,7 @@ function ImportedJobs() {
           compact
           icon={ArrowRight}
           title="No imported jobs yet"
-          description="Open a job on LinkedIn and click the “Save to Job Hunter” bookmark: it's saved here and scored right away."
+          description="Open a job on LinkedIn and press “Save job” in the browser extension (or the bookmark): it's saved here and scored right away."
           action={<TourButton tour="linkedin" />}
         />
       ) : (
@@ -170,7 +171,7 @@ export default function LinkedInPage() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="LinkedIn"
-        description="Daily searches built from your roles, one-click import of a job you're viewing, and the people to message. You browse and send; the app builds links and drafts."
+        description="Daily searches built from your roles, one-click save of a job or person you're viewing, and the people to message. You browse and send; the app builds links and drafts."
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-5xl space-y-4 px-6 py-5">
@@ -178,6 +179,7 @@ export default function LinkedInPage() {
           <ViewersCard />
           <SearchLinks />
           <ImportedJobs />
+          <CapturedPeople />
           <Section title="The bookmark">
             <div className="p-4">
               <BookmarkInstall compact />

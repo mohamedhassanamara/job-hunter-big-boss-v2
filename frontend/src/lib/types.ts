@@ -1758,6 +1758,23 @@ export interface LinkedInImport {
 
 /** A person's role. Being an alum is the separate `alumni` flag. */
 export type LinkedInGroup = 'hiring_team' | 'lead' | 'recruiter' | 'peer'
+/** A person captured with the extension (a profile snapshot on a contact). */
+export interface CapturedPerson {
+  contact_id: number
+  full_name: string
+  headline: string
+  current_title: string
+  company: string
+  company_id: number
+  persona: LinkedInGroup
+  alumni: boolean
+  degree: number | null
+  profile_url: string
+  captured_at: string | null
+  jobs: { job_id: number; title: string; status: string }[]
+  do_not_contact: boolean
+}
+
 /** Settings → LinkedIn: the browser extension's token (the plain text is never returned again). */
 export interface ExtensionStatus {
   available: boolean

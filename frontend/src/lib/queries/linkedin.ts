@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import type { DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
+import type { CapturedPerson, DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
 import { invalidateWork } from './keys'
 
 export function useLinkedInLinks(remote: boolean, easy: boolean) {
@@ -167,5 +167,20 @@ export function useRevokeExtensionToken() {
   return useMutation({
     mutationFn: () => api.del<void>('/linkedin/extension/token'),
     onSettled: () => qc.invalidateQueries({ queryKey: extensionKey }),
+  })
+}
+
+// ---- people captured with the extension -------------------------------------------------------
+
+export function useCapturedPeople() {
+  return useQuery({ queryKey: ['linkedin', 'profiles'], queryFn: () => api.get<{ items: CapturedPerson[]; total: number }>('/linkedin/profiles') })
+}
+
+/** Forget the captured fields; the contact and any LinkedIn messages stay. */
+export function useDeleteSnapshot() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contactId: number) => api.del<void>(`/linkedin/profiles/${contactId}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['linkedin', 'profiles'] }),
   })
 }
