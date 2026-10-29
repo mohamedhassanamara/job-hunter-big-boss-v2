@@ -18,7 +18,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
 from app.models import Application, Company, Contact, Job, LinkedInLinkOpen, LinkedInOutreach
-from app.models.enums import ContactSource, LinkedInGroup, RemoteType, Source
+from app.models.enums import ContactSource, DescriptionLevel, LinkedInGroup, RemoteType, Source
 from app.providers.base import RawJob
 from app.services.contacts import local_midnight
 
@@ -207,7 +207,12 @@ def clean_description(text: str) -> str:
     # LinkedIn's own controls that come along with innerText.
     text = re.sub(r"\n?(?:…\s*)?(?:show more|show less|voir plus|voir moins)\s*$", "", text,
                   flags=re.I)
+    text = _COLLAPSED.sub("", text)
     return text.strip()
+
+
+# "… more": the page still shows the collapsed listing, so the text may be cut off.
+_COLLAPSED = re.compile(r"\n?(?:…|\.\.\.)\s*(?:see |show )?more\s*$", re.I)
 
 
 @dataclass
@@ -224,6 +229,15 @@ class Capture:
     sources: dict[str, str]  # field → how found: json-ld, page, meta, url, you or missing
     missing: list[str]
     warnings: list[str]
+    collapsed: bool = False  # the page ended with "… more": the description may be cut off
+
+    @property
+    def description_level(self) -> DescriptionLevel:
+        """`full` only for text read from the listing itself: a meta tag or a collapsed
+        listing is a snippet (it must not be scored with full-listing confidence)."""
+        if self.collapsed or self.sources.get("description") == "meta":
+            return DescriptionLevel.snippet
+        return DescriptionLevel.full
 
 
 def validate(payload: dict[str, Any]) -> Capture:
@@ -235,7 +249,9 @@ def validate(payload: dict[str, Any]) -> Capture:
     if jid and not sources.get("job_id"):
         sources["job_id"] = "url"
     title, company = _clean(payload.get("title")), _clean(payload.get("company"))
-    description = clean_description(str(payload.get("description") or ""))
+    raw_description = str(payload.get("description") or "")
+    description = clean_description(raw_description)
+    collapsed = bool(_COLLAPSED.search(re.sub(r"[ \t\u00a0]+\n", "\n", raw_description.strip())))
     location, workplace = _clean(payload.get("location")), _clean(payload.get("workplace"))
     poster = payload.get("poster") or None
     if poster:
@@ -256,6 +272,11 @@ def validate(payload: dict[str, Any]) -> Capture:
     if _WALL.search(description[:2000]) and len(description) < 1600:
         warnings.append("This looks like a sign-in wall, not the listing: sign in to LinkedIn, "
                         "open the job, then capture again")
+    if collapsed:
+        warnings.append("The listing was still collapsed (\"… more\"): the description may be cut "
+                        "off. Open the full listing and capture again, or paste it")
+    elif sources.get("description") == "meta" and description:
+        warnings.append("The description comes from the page's summary tag, not the listing")
     if not jid:
         warnings.append("No LinkedIn job id found in the URL: the job is saved with its URL only")
     if not (title or company or description):
@@ -264,7 +285,7 @@ def validate(payload: dict[str, Any]) -> Capture:
     return Capture(url=job_url(jid) if jid else url, job_id=jid, title=title, company=company,
                    company_url=company_url(payload.get("company_url")), location=location,
                    workplace=workplace, description=description, poster=poster, sources=sources,
-                   missing=missing, warnings=warnings)
+                   missing=missing, warnings=warnings, collapsed=collapsed)
 
 
 def from_paste(url: str, text: str) -> dict[str, Any]:
@@ -320,9 +341,14 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
         if c.location and country and profile.locations and \
                 country.upper() not in {x.upper() for x in profile.locations}:
             warnings.append(f"{c.location} is outside your target countries")
+        remote = remote_type(c.workplace, c.location)
+        if not country and remote != RemoteType.remote:
+            # You chose this job by capturing it: it stays visible and is scored (open_jobs).
+            warnings.append("No country found in the location: it is saved without one")
         raw = RawJob(source=Source.linkedin, external_id=_external_id(c), url=c.url,
                      title=c.title, company=c.company, location=c.location, country=country,
-                     remote_type=remote_type(c.workplace, c.location), description=c.description,
+                     remote_type=remote, description=c.description,
+                     description_level=c.description_level,
                      matched_track=matched[0] if matched else None,
                      matched_role=matched[1] if matched else None)
         stats = ingest(s, [raw], source_run_id=None, profile_id=profile_id)
@@ -338,7 +364,12 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
                 Job.dedupe_key == key, col(Job.duplicate_of_id).is_(None))).one()
         created = stats.new > 0
         if not created:  # captured again, or merged: refresh what the page now shows
-            job.title, job.location, job.description = c.title, c.location, c.description
+            keep_full = (c.description_level != DescriptionLevel.full
+                         and job.description_level == DescriptionLevel.full
+                         and len(job.description or "") >= len(c.description))
+            job.title, job.location = c.title, c.location
+            if not keep_full:  # a cut-off capture never replaces a complete listing
+                job.description, job.description_level = c.description, c.description_level
             job.remote_type = raw.remote_type
             if matched:
                 job.matched_track, job.matched_role = matched

@@ -141,3 +141,27 @@ def test_the_backend_never_requests_linkedin() -> None:
     offenders = [str(p.relative_to(app_dir)) for p in app_dir.rglob("*.py")
                  if calls.search(p.read_text())]
     assert offenders == []
+
+
+def test_a_collapsed_or_meta_description_is_a_snippet_not_full() -> None:
+    body = "We build data pipelines with Spark and Airflow for logistics customers. " * 5
+    full = linkedin.validate(CAPTURE)
+    assert full.description_level == "full" and not full.collapsed
+    cut = linkedin.validate({**CAPTURE, "description": body + "\n… more"})
+    assert cut.collapsed and cut.description_level == "snippet"
+    assert cut.description == body.strip() and any("collapsed" in w for w in cut.warnings)
+    meta = linkedin.validate({**CAPTURE, "sources": {**CAPTURE["sources"], "description": "meta"}})
+    assert meta.description_level == "snippet"
+
+
+def test_a_countryless_linkedin_capture_stays_open_and_scored(seeded: None, client) -> None:  # noqa: ANN001
+    from app.services import open_jobs
+
+    payload = {**CAPTURE, "url": "https://www.linkedin.com/jobs/view/4099999901/",
+               "company": "Nowhere Phase2b", "location": "Atlantis", "workplace": "On-site"}
+    out = client.post("/api/linkedin/import", json=payload).json()
+    assert any("No country" in w for w in out["warnings"])
+    with Session(engine) as s:
+        job = s.get(Job, out["job_id"])
+        assert job.country is None and job.description_level == "full"
+        assert out["job_id"] in open_jobs.open_ids(s)  # not location_outside:unknown

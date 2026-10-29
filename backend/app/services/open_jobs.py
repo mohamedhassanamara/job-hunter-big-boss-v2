@@ -4,7 +4,8 @@ open jobs; the per-job Rescore button and `recompute_all` ignore this.
 A job is NOT open when it is:
 - in the closed stage (dismissed is a close reason, so it is covered),
 - a duplicate of another job,
-- hidden by the location/remote filters (e.g. a remote job outside the target countries),
+- hidden by the location/remote filters (e.g. a remote job outside the target countries; a job
+  captured from LinkedIn is exempt: you picked it),
 - from a paused source and past the profile's max age (its listing can't be refreshed, so it
   has most likely expired).
 """
@@ -16,7 +17,7 @@ from sqlmodel import Session, col, select
 
 from app.models import Application, Job
 from app.models.base import utcnow
-from app.models.enums import Stage
+from app.models.enums import Source, Stage
 from app.providers.base import RawJob
 from app.services import discovery, prefilter
 
@@ -53,7 +54,8 @@ def open_ids(session: Session, job_ids: Iterable[int] | None = None) -> set[int]
                      title=job.title,
                      company="-", location=job.location, country=job.country,
                      remote_type=job.remote_type, posted_at=job.posted_at)
-        reason = prefilter.check(raw, profile, now)
+        # A LinkedIn job is one you captured yourself: the location/remote filters never hide it.
+        reason = None if job.source == Source.linkedin else prefilter.check(raw, profile, now)
         if reason and reason.split(":", 1)[0] in _FILTER_CODES:
             continue
         if str(job.source) in paused:
