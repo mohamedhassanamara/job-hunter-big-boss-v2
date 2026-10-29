@@ -184,6 +184,8 @@ def test_adzuna_429_keeps_what_was_fetched_and_stops(monkeypatch: pytest.MonkeyP
     out = source.fetch_payloads(_spec())
     assert [country for country, _ in out] == ["DE"]  # FR hit the limit: stop with DE's batch
     assert any("429" in w and "rate limit" in w.lower() for w in source.warnings)
+    assert source.quota_hit is True
+    assert any("1 of 2 queries done" in w for w in source.warnings)  # a cutoff, not "no jobs"
 
 
 def test_adzuna_skips_items_without_an_id_or_a_url() -> None:

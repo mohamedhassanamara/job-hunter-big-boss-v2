@@ -7,7 +7,7 @@ failure is recorded on its SourceRun and never stops the others.
 import logging
 import threading
 from collections.abc import Callable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from typing import Any
 
@@ -141,6 +141,17 @@ def cooldown_remaining(s: Session, source: JobSource, exclude_run: int = -1) -> 
     return remaining if remaining.total_seconds() > 0 else None
 
 
+def month_requests(s: Session, source: Source, now: datetime | None = None) -> int:
+    """Requests a source made this calendar month (UTC), real runs and test runs alike.
+    Read from each run's own count, so days without a run (weekends) cost nothing."""
+    now = now or utcnow()
+    start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    rows = s.exec(select(SourceRun.details).where(
+        SourceRun.source == source, SourceRun.started_at >= start,
+        col(SourceRun.status).in_([RunStatus.success, RunStatus.partial])))
+    return sum(int((d or {}).get("requests") or 0) for d in rows)
+
+
 def _run_source(engine: Engine, run_id: int, source: JobSource) -> list[int]:
     log = _logger()
     with Session(engine) as s:
@@ -183,6 +194,7 @@ def _run_source(engine: Engine, run_id: int, source: JobSource) -> list[int]:
                 "requests": source.requests,
                 "warnings": list(getattr(source, "warnings", [])),
                 "boards": dict(getattr(source, "board_results", {})),
+                "quota_hit": bool(getattr(source, "quota_hit", False)),
                 "reasons": result.reason_counts(),
                 "samples": [
                     {

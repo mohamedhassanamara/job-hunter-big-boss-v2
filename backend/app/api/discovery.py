@@ -109,6 +109,9 @@ def list_sources(session: SessionDep, workspace: WorkspaceDep) -> list[SourceInf
                 last_run=run_out(last) if last else None,
                 unsupported_countries=unsupported_countries(src, profile.locations),
                 paused_reason=paused.get(src.value),
+                monthly_limit=getattr(impl, "monthly_limit", None),
+                month_requests=discovery.month_requests(session, src)
+                if getattr(impl, "monthly_limit", None) else None,
             )
         )
     return out

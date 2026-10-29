@@ -193,3 +193,31 @@ def test_paused_sources_are_never_run() -> None:
         s.add(row)
         s.commit()
         assert Source.bayt in discovery.enabled_sources(s)
+
+
+def test_quota_hit_is_recorded_on_the_run(empty_db: None) -> None:
+    src = FakeSource(Source.adzuna, [])
+    src.quota_hit = True
+    run_id = run_discovery(engine, {Source.adzuna: src})
+    assert source_runs(run_id)["adzuna"].details["quota_hit"] is True
+    ok = run_discovery(engine, {Source.remotive: FakeSource(Source.remotive, [])})
+    assert source_runs(ok)["remotive"].details["quota_hit"] is False
+
+
+def test_month_requests_counts_only_this_calendar_month(empty_db: None) -> None:
+    now = datetime(2026, 10, 29, 15, 0, tzinfo=UTC)
+    with Session(engine) as s:
+        run = DiscoveryRun()
+        s.add(run)
+        s.flush()
+        for started, status, n in [
+            (datetime(2026, 10, 1, 7, 0, tzinfo=UTC), RunStatus.success, 40),
+            (datetime(2026, 10, 28, 15, 0, tzinfo=UTC), RunStatus.partial, 12),
+            (datetime(2026, 9, 30, 15, 0, tzinfo=UTC), RunStatus.success, 40),  # last month
+            (datetime(2026, 10, 15, 7, 0, tzinfo=UTC), RunStatus.skipped, 0),
+        ]:
+            s.add(SourceRun(discovery_run_id=run.id, source=Source.adzuna, status=status,
+                            started_at=started, details={"requests": n}))
+        s.commit()
+        assert discovery.month_requests(s, Source.adzuna, now) == 52
+        assert discovery.month_requests(s, Source.remotive, now) == 0

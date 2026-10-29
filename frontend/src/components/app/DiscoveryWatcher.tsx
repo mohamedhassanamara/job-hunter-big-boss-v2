@@ -32,6 +32,14 @@ export function DiscoveryWatcher() {
       duration: 8000,
       action: run.totals.new ? { label: 'Review', onClick: () => navigate('/discover') } : undefined,
     })
+    const quota = run.sources.filter((s) => s.details.quota_hit)
+    if (quota.length) {
+      toast.warning(`${quota.map((s) => SOURCE_LABELS[s.source]).join(', ')}: quota or rate limit hit`, {
+        description: quota.flatMap((s) => s.details.warnings ?? []).join(' '),
+        duration: 15000,
+        action: { label: 'Details', onClick: () => navigate('/settings?section=sources') },
+      })
+    }
     const failed = run.sources.filter((s) => s.status === 'failed')
     if (failed.length) {
       toast.warning(`${pluralize(failed.length, 'source')} failed`, {

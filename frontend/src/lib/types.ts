@@ -905,6 +905,8 @@ export interface SourceRun {
     reasons?: Record<string, number>
     samples?: FilteredSample[]
     dry_run?: boolean
+    /** The source hit its quota or rate limit (HTTP 429) and stopped early. */
+    quota_hit?: boolean
     /** Company boards source: board label → job count, or an error message. */
     boards?: Record<string, string | number>
   }
@@ -986,6 +988,9 @@ export interface SourceInfo {
   unsupported_countries: string[]
   /** Set when the source is paused (skipped by every run, no failure alert). */
   paused_reason: string | null
+  /** Monthly request quota (Adzuna) and this calendar month's requests so far. */
+  monthly_limit: number | null
+  month_requests: number | null
 }
 
 export interface SampleJob {

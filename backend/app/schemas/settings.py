@@ -100,6 +100,9 @@ class SourceInfo(BaseModel):
     unsupported_countries: list[str] = []
     # Why discovery skips this source (it is paused, not failing); None when it is not paused.
     paused_reason: str | None = None
+    # Sources with a monthly request quota: the limit and this calendar month's requests so far.
+    monthly_limit: int | None = None
+    month_requests: int | None = None
 
 
 class SampleJob(BaseModel):

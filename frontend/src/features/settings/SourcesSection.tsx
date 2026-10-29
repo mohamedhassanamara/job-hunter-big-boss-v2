@@ -179,6 +179,11 @@ function SourceRow({ info, onToggle, boards }: { info: SourceInfo; onToggle: (on
           </div>
           <p className="mt-0.5 text-xs text-fg-muted">{NOTES[info.source]}</p>
           {paused && <p className="mt-0.5 text-xs text-fg-muted">Paused: {info.paused_reason}</p>}
+          {info.monthly_limit !== null && info.month_requests !== null && (
+            <p className="mt-0.5 text-xs text-fg-muted">
+              {info.month_requests.toLocaleString()} of {info.monthly_limit.toLocaleString()} requests used this calendar month
+            </p>
+          )}
           {info.unsupported_countries.length > 0 && (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-warning-fg">
               <TriangleAlert className="size-3.5 shrink-0" />

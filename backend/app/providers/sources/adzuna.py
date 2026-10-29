@@ -97,6 +97,7 @@ def parse_adzuna(payload: dict[str, Any], country: str) -> list[RawJob]:
 
 class AdzunaSource:
     source = Source.adzuna
+    monthly_limit = 2500  # free tier, requests per calendar month (reset date unconfirmed)
     cooldown_hours = 0.0  # every run fetches; the monthly quota is kept by MAX_QUERIES_PER_COUNTRY
 
     def __init__(self) -> None:
@@ -104,6 +105,7 @@ class AdzunaSource:
         self.app_id, self.app_key = settings.adzuna_app_id, settings.adzuna_app_key
         self.requests = 0
         self.warnings: list[str] = []
+        self.quota_hit = False
 
     def configured(self) -> str | None:
         if not (self.app_id and self.app_key):
@@ -124,14 +126,16 @@ class AdzunaSource:
 
     def fetch_payloads(self, profile: ProfileSpec) -> list[tuple[str, dict[str, Any]]]:
         out = []
+        self.quota_hit = False
         if self.configured():
             logger.warning("Adzuna not configured: %s", self.configured())
             return out
         with PoliteClient("Adzuna", min_interval=1.5) as client:
             try:
-                for country in self.targets(profile):
-                    phrases = capped(query_phrases(profile, country), MAX_QUERIES_PER_COUNTRY,
-                                     self.warnings, f"Adzuna {country}")
+                plan = {c: capped(query_phrases(profile, c), MAX_QUERIES_PER_COUNTRY,
+                                  self.warnings, f"Adzuna {c}") for c in self.targets(profile)}
+                planned = sum(len(p) for p in plan.values())
+                for country, phrases in plan.items():
                     for role in phrases:
                         endpoint = f"{BASE}/{ENDPOINTS[country]}/search/1"
                         params = {
@@ -162,10 +166,15 @@ class AdzunaSource:
                                 )
                                 return out
                             elif status == 429:
-                                self.warnings.append(
-                                    f"Adzuna rate limit hit (HTTP 429). "
-                                    f"Continuing with {len(out)} fetched batches."
+                                self.quota_hit = True
+                                done = len(out)
+                                message = (
+                                    f"Adzuna quota or rate limit hit (HTTP 429): {done} of "
+                                    f"{planned} queries done. The rest were not fetched, so "
+                                    "missing jobs here do not mean there are none."
                                 )
+                                logger.warning(message)
+                                self.warnings.append(message)
                                 return out
                             else:
                                 self.warnings.append(
