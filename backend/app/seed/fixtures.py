@@ -567,7 +567,7 @@ SETTINGS: dict[str, dict] = {
     # and the gap between an email and a LinkedIn request to the same person.
     "linkedin": {k: DEFAULT_LINKEDIN[k] for k in (
         "note_max_chars", "daily_requests", "followup_days", "gap_days", "inmail_monthly_credits",
-        "inmail_max_chars", "premium_end_date", "premium_remind_days", "geo_ids")},
+        "inmail_max_chars", "premium_end_date", "premium_remind_days")},
     # Streak, chests, shop (Settings → Motivation). chests_since is stamped on first read.
     "motivation": {k: v for k, v in DEFAULT_MOTIVATION.items() if k != "chests_since"},
     # Who to write to first at a company (Settings → Contacts). Edits re-rank every contact.

@@ -441,10 +441,12 @@ Every email, LinkedIn note or follow-up, cover letter and form answer is checked
 *Purpose:* LinkedIn as its own channel. **The app never scrapes, crawls or automates LinkedIn**: it builds links,
 and reads only the one job page you hand it with the bookmark (a test guards against any backend request to
 linkedin.com).
-- **Today's searches:** one LinkedIn job search per role × target country, posted in the past 24 hours, newest
-  first (`f_TPR=r86400&sortBy=DD`), optionally remote only (`f_WT=2`) and Easy Apply only (`f_AL=true`). Countries
-  are LinkedIn **geoIds** (Settings → LinkedIn, each Unverified until you Test and Confirm it), never a text
-  location; a country without a geoId shows a warning and no link. A link you open is marked "opened today".
+- **Today's searches:** LinkedIn no longer lands on results from a link (it opens a "describe what you want" box),
+  so this is a daily checklist: one **prompt** per role × target country (for example "Data Engineer jobs in
+  Portugal, posted in the last 24 hours", with "remote only" when the toggle is on; a country named like another
+  place gets "(the country)"). Clicking a country **copies the prompt** and ticks it "searched today" (resets
+  tomorrow); **Open LinkedIn Jobs** is a plain link. There are no search URLs, geoIds or Easy Apply toggle, and
+  neither the app nor the extension ever types into LinkedIn.
 - **One-click import:** the "Save to Job Hunter" bookmark (Settings → LinkedIn) reads the job page you're on
   (JSON-LD JobPosting → LinkedIn's layout → headings → meta tags → the URL), opens the local `/import` window with
   the data in its URL fragment (postMessage as a second channel), and shows every field with how it was found.

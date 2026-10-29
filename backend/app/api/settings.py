@@ -236,14 +236,6 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
                 date.fromisoformat(str(end))
             except ValueError as exc:
                 raise HTTPException(422, "premium_end_date must be a date (YYYY-MM-DD)") from exc
-        geos = body.value.get("geo_ids")
-        if geos is not None:
-            if not isinstance(geos, dict):
-                raise HTTPException(422, "geo_ids must map country codes to {id, verified}")
-            for code, g in geos.items():
-                gid = str((g or {}).get("id") or "").strip() if isinstance(g, dict) else None
-                if gid is None or (gid and not gid.isdigit()) or len(code) != 2:
-                    raise HTTPException(422, f"{code}: a geoId is digits only (or empty)")
     if key == "smtp":
         body.value = _check_smtp(body.value)
     if key == "models":

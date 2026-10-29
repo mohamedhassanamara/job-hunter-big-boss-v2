@@ -1711,22 +1711,21 @@ export interface CompanyResearch {
 
 // ---- LinkedIn (Phase 10) -------------------------------------------------------------------
 
-export interface LinkedInLink {
+/** One daily search: a sentence to paste into LinkedIn's job search box (LinkedIn has no search link). */
+export interface LinkedInPrompt {
   key: string
   role: string
   country: string
   country_name: string
-  geo_id: string
-  verified: boolean // you confirmed the country's geoId (Settings → LinkedIn)
-  url: string
-  opened_today: boolean
+  prompt: string
+  searched_today: boolean
 }
 
 export interface LinkedInLinks {
-  groups: { track: string; role: string; links: LinkedInLink[] }[]
+  groups: { track: string; role: string; items: LinkedInPrompt[] }[]
   total: number
-  opened: number
-  missing_geo: { code: string; name: string }[] // target countries without a geoId: no link
+  searched: number
+  open_url: string
 }
 
 /** A job captured on LinkedIn: `sources` says how each field was found. */

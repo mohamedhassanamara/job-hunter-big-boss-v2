@@ -830,15 +830,14 @@ def summary(s: Session) -> dict[str, Any]:
     jobs still to decide on, requests to send, follow-ups due, and today's request counter."""
     from app.models.enums import Source
 
-    found = linkedin.search_links(s)
-    links = [x for g in found.groups for x in g.links]
+    links = [x for g in linkedin.search_prompts(s) for x in g.items]
     new_imports = s.exec(select(Job, Application).join(
         Application, col(Application.job_id) == col(Job.id)).where(
         Job.source == Source.linkedin, Application.stage == Stage.new)
         .order_by(col(Job.discovered_at).desc())).all()
     cfg = linkedin.linkedin_settings(s)
     return {
-        "links_total": len(links), "links_unopened": sum(not x.opened_today for x in links),
+        "links_total": len(links), "links_unopened": sum(not x.searched_today for x in links),
         "to_decide": [{"job_id": j.id, "title": j.title,
                        "company": s.get(Company, j.company_id).name} for j, _ in new_imports[:5]],
         "to_decide_total": len(new_imports),

@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
-from urllib.parse import quote, urlsplit
+from urllib.parse import urlsplit
 
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
@@ -33,15 +33,8 @@ DEFAULT_LINKEDIN: dict[str, Any] = {
     "inmail_max_chars": 1000,  # a limit you choose: shorter than LinkedIn's own
     "premium_end_date": None,  # "YYYY-MM-DD"
     "premium_remind_days": 14,  # show the reminder this many days before it ends
-    # LinkedIn's location id per target country (a text location can resolve to the wrong place:
-    # "Jordan" → Jordan, Pennsylvania). Seeded unverified; you confirm each in Settings → LinkedIn.
-    "geo_ids": {code: {"id": gid, "verified": False} for code, gid in {
-        "FR": "105015875", "DE": "101282230", "ES": "105646813", "IT": "103350119",
-        "PT": "100364837", "BE": "100565514", "AE": "104305776", "QA": "104170880",
-        "JO": "103710677", "BH": "100425729", "KW": "103239229", "TR": "102105699"}.items()},
 }
-JOBS_SEARCH = "https://www.linkedin.com/jobs/search/"
-PAST_24H = "r86400"
+JOBS_URL = "https://www.linkedin.com/jobs/"  # a plain page: LinkedIn has no search URL to land on
 REQUIRED = ("title", "company", "description")
 MIN_DESCRIPTION = 200
 # A login or bot wall instead of the listing (adapted from jobhunt-posting's wall check).
@@ -54,93 +47,73 @@ def linkedin_settings(s: Session) -> dict[str, Any]:
     from app.models import AppSetting
 
     row = s.exec(select(AppSetting).where(AppSetting.key == "linkedin")).first()
-    return {**DEFAULT_LINKEDIN, **(row.value if row else {})}
+    merged = {**DEFAULT_LINKEDIN, **(row.value if row else {})}
+    merged.pop("geo_ids", None)  # the old location ids: searches are prompts now
+    return merged
 
 
-# ------------------------------------------------------------------------------- search links
+# ---------------------------------------------------------------------------- daily searches
+# LinkedIn no longer lands on results from a link (it opens a "describe what you want" box), so the
+# daily routine is a checklist of prompts to paste there. The app never opens a search for you.
+
+_AMBIGUOUS = {"JO", "GE"}  # a country name that is also a place elsewhere (Jordan, Pennsylvania)
 
 
 @dataclass
-class SearchLink:
+class SearchPrompt:
     key: str
     role: str
     country: str  # ISO code
     country_name: str
-    geo_id: str
-    verified: bool  # you confirmed this country's geoId (Settings → LinkedIn)
-    url: str
-    opened_today: bool = False
+    prompt: str
+    searched_today: bool = False
 
 
 @dataclass
-class LinkGroup:
+class PromptGroup:
     track: str
     role: str
-    links: list[SearchLink] = field(default_factory=list)
+    items: list[SearchPrompt] = field(default_factory=list)
 
 
-@dataclass
-class Links:
-    groups: list[LinkGroup]
-    # Target countries without a geoId: no link at all (never a text-location fallback).
-    missing_geo: list[dict[str, str]]
+def prompt_key(role: str, country: str) -> str:
+    return f"{role.strip().lower()}|{country.lower()}"
 
 
-def link_key(role: str, country: str, remote: bool, easy: bool) -> str:
-    return f"{role.strip().lower()}|{country.lower()}|{'r' if remote else ''}{'e' if easy else ''}"
+def prompt_text(role: str, country_code: str, country_name: str, *, remote: bool = False) -> str:
+    """The sentence to paste into LinkedIn's job search box. The country is named in words, and
+    marked as the country where a place of the same name exists."""
+    where = f"{country_name} (the country)" if country_code.upper() in _AMBIGUOUS else country_name
+    text = f"{role} jobs in {where}, posted in the last 24 hours"
+    return text + (", remote only" if remote else "")
 
 
-def search_url(role: str, geo_id: str, *, remote: bool = False, easy: bool = False) -> str:
-    """One LinkedIn job search: this role in this country (LinkedIn's geoId, never a text
-    location), posted in the past 24 hours, newest first; optionally remote only (f_WT=2) and
-    Easy Apply only (f_AL=true)."""
-    params = [("keywords", role), ("geoId", geo_id), ("f_TPR", PAST_24H), ("sortBy", "DD")]
-    if remote:
-        params.append(("f_WT", "2"))
-    if easy:
-        params.append(("f_AL", "true"))
-    return JOBS_SEARCH + "?" + "&".join(f"{k}={quote(v, safe='')}" for k, v in params)
-
-
-def geo_ids(s: Session) -> dict[str, dict[str, Any]]:
-    """{ISO code: {id, verified}} (Settings → LinkedIn); a code without an id has no links."""
-    return {code.upper(): v for code, v in (linkedin_settings(s).get("geo_ids") or {}).items()
-            if isinstance(v, dict) and str(v.get("id") or "").strip()}
-
-
-def search_links(s: Session, *, remote: bool = False, easy: bool = False,
-                 today: date | None = None) -> Links:
-    """One link per role × target country (Settings → Search profile) that has a geoId,
-    grouped by role. Countries without one are listed apart, with no link."""
+def search_prompts(s: Session, *, remote: bool = False,
+                   today: date | None = None) -> list[PromptGroup]:
+    """One prompt per role × target country (Settings → Search profile), grouped by role, with
+    the ones you already searched today ticked."""
     from app.services.discovery import active_profile
     from app.services.geo import country_catalog
 
     _, profile = active_profile(s)
     names = {c["code"]: c["name"] for c in country_catalog()}
-    geos = geo_ids(s)
     day = today or local_midnight().date()
-    opened = set(s.exec(select(LinkedInLinkOpen.key).where(LinkedInLinkOpen.day == day)).all())
-    missing = [{"code": c.upper(), "name": names.get(c.upper(), c)} for c in profile.locations
-               if c.upper() not in geos]
+    done = set(s.exec(select(LinkedInLinkOpen.key).where(LinkedInLinkOpen.day == day)).all())
     groups = []
     for track in profile.tracks:
         for role in track.get("roles") or []:
             title = (role.get("title") or "").strip()
             if not title:
                 continue
-            group = LinkGroup(track=track.get("name") or "", role=title)
+            group = PromptGroup(track=track.get("name") or "", role=title)
             for code in profile.locations:
-                geo = geos.get(code.upper())
-                if geo is None:
-                    continue
-                key = link_key(title, code, remote, easy)
-                gid = str(geo["id"]).strip()
-                group.links.append(SearchLink(
-                    key, title, code.upper(), names.get(code.upper(), code), gid,
-                    bool(geo.get("verified")),
-                    search_url(title, gid, remote=remote, easy=easy), key in opened))
+                name = names.get(code.upper(), code)
+                key = prompt_key(title, code)
+                group.items.append(SearchPrompt(
+                    key, title, code.upper(), name,
+                    prompt_text(title, code, name, remote=remote), key in done))
             groups.append(group)
-    return Links(groups, missing)
+    return groups
 
 
 def mark_opened(s: Session, key: str, today: date | None = None) -> None:
