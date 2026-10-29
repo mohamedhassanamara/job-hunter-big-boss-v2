@@ -1,5 +1,4 @@
-import { ArrowRight, Check, Copy, ExternalLink, Search } from 'lucide-react'
-import { toast } from 'sonner'
+import { ArrowRight, Check, ExternalLink, Search, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router'
 import { FitBadge, StageBadge } from '@/components/app/badges'
 import { BookmarkInstall } from '@/components/app/linkedin/BookmarkInstall'
@@ -14,28 +13,19 @@ import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { relativeTime } from '@/lib/format'
 import { useJobs } from '@/lib/queries/jobs'
 import { useLinkedInLinks, useLinkedInSummary, useOpenLink } from '@/lib/queries/linkedin'
-import type { LinkedInPrompt } from '@/lib/types'
 import { LinkedInSummaryList } from '@/components/app/linkedin/LinkedInSummaryList'
 import { CapturedPeople } from '@/components/app/linkedin/CapturedPeople'
 import { ViewersCard } from '@/components/app/linkedin/ViewersCard'
 import { cn } from '@/lib/utils'
 
-/** Today's LinkedIn searches: one prompt per role × target country. LinkedIn no longer lands on
- * results from a link (it opens a "describe what you want" box), so you copy the sentence, paste it
- * there, and the row is ticked "searched today" (it resets tomorrow). The app never opens a search. */
+/** Today's LinkedIn searches: one per role × country, past 24 hours, newest first. Clicking
+ * opens LinkedIn in a new tab and marks the link "opened today" (it resets tomorrow). */
 function SearchLinks() {
   const url = useSearchParamState()
   const remote = url.get('remote') === '1'
-  const { data, isPending, error, refetch } = useLinkedInLinks(remote)
+  const easy = url.get('easy') === '1'
+  const { data, isPending, error, refetch } = useLinkedInLinks(remote, easy)
   const open = useOpenLink()
-  const copy = (item: LinkedInPrompt) =>
-    navigator.clipboard.writeText(item.prompt).then(
-      () => {
-        open.mutate(item.key)
-        toast.success('Prompt copied', { description: 'Paste it into LinkedIn’s job search box.' })
-      },
-      () => toast.error('Could not copy: select the text and copy it'),
-    )
   return (
     <Section
       title="Today's searches"
@@ -45,9 +35,13 @@ function SearchLinks() {
             <Switch checked={remote} onCheckedChange={(v) => url.set({ remote: v ? '1' : null })} aria-label="Remote only" />
             Remote only
           </label>
+          <label className="flex items-center gap-1.5">
+            <Switch checked={easy} onCheckedChange={(v) => url.set({ easy: v ? '1' : null })} aria-label="Easy Apply only" />
+            Easy Apply only
+          </label>
           {data && (
             <span className="tabular-nums">
-              {data.searched} / {data.total} searched today
+              {data.opened} / {data.total} opened today
             </span>
           )}
         </span>
@@ -58,7 +52,7 @@ function SearchLinks() {
           <SkeletonRows rows={4} />
         ) : error ? (
           <ErrorState compact error={error} onRetry={() => refetch()} />
-        ) : data.total === 0 ? (
+        ) : data.total === 0 && data.missing_geo.length === 0 ? (
           <EmptyState
             compact
             icon={Search}
@@ -72,33 +66,42 @@ function SearchLinks() {
           />
         ) : (
           <div className="space-y-3">
-            <p className="flex flex-wrap items-center gap-x-2 text-xs text-fg-subtle">
-              Click a country to copy its prompt, then paste it into LinkedIn’s job search.
-              <Button size="xs" variant="ghost" asChild>
-                <a href={data.open_url} target="_blank" rel="noreferrer">
-                  Open LinkedIn Jobs
-                  <ExternalLink />
-                </a>
-              </Button>
-            </p>
+            {data.missing_geo.length > 0 && (
+              <p className="flex items-start gap-2 rounded-md bg-warning-bg px-3 py-2 text-xs text-warning-fg">
+                <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  No LinkedIn location id for {data.missing_geo.map((c) => c.name).join(', ')}: no links there (a text location can land in the wrong place).{' '}
+                  <Link to="/settings?section=linkedin" className="font-medium underline-offset-2 hover:underline">
+                    Add it in Settings → LinkedIn
+                  </Link>
+                </span>
+              </p>
+            )}
+            <p className="text-xs text-fg-subtle">Each link is a LinkedIn job search, posted in the past 24 hours, newest first. You browse; the app never visits LinkedIn.</p>
             {data.groups.map((g) => (
               <div key={`${g.track}-${g.role}`} className="flex flex-wrap items-center gap-2">
                 <span className="w-56 shrink-0 truncate text-sm font-medium" title={g.track}>
                   {g.role}
                 </span>
-                {g.items.map((l) => (
-                  <Tooltip key={l.key} content={l.prompt}>
-                    <button
-                      type="button"
-                      onClick={() => void copy(l)}
+                {g.links.map((l) => (
+                  <Tooltip
+                    key={l.key}
+                    content={l.verified ? `geoId ${l.geo_id} (confirmed)` : `geoId ${l.geo_id} not confirmed yet: check where it lands, then confirm it in Settings → LinkedIn`}
+                  >
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => open.mutate(l.key)}
                       className={cn(
                         'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors duration-120',
-                        l.searched_today ? 'border-border bg-bg-subtle text-fg-subtle' : 'border-border-strong text-fg hover:bg-surface-hover',
+                        l.opened_today ? 'border-border bg-bg-subtle text-fg-subtle' : 'border-border-strong text-fg hover:bg-surface-hover',
                       )}
                     >
-                      {l.searched_today ? <Check className="size-3.5 text-success-fg" /> : <Copy className="size-3.5 text-fg-subtle" />}
+                      {l.opened_today ? <Check className="size-3.5 text-success-fg" /> : <ExternalLink className="size-3.5 text-fg-subtle" />}
                       {l.country_name}
-                    </button>
+                      {!l.verified && <span className="size-1.5 rounded-full bg-warning-dot" aria-label="unverified location" />}
+                    </a>
                   </Tooltip>
                 ))}
               </div>

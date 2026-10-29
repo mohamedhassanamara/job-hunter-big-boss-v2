@@ -3,10 +3,10 @@ import { api } from '@/lib/api'
 import type { CapturedPerson, DraftReview, ExtensionStatus, InMailCredits, LinkedInCapture, LinkedInGroup, LinkedInImport, LinkedInLinks, LinkedInPanel, LinkedInPerson, LinkedInStatus, LinkedInSummary, PremiumReminder, ViewerLead, ViewerResult } from '@/lib/types'
 import { invalidateWork } from './keys'
 
-export function useLinkedInLinks(remote: boolean) {
+export function useLinkedInLinks(remote: boolean, easy: boolean) {
   return useQuery({
-    queryKey: ['linkedin-links', remote],
-    queryFn: () => api.get<LinkedInLinks>(`/linkedin/links?remote=${remote}`),
+    queryKey: ['linkedin-links', remote, easy],
+    queryFn: () => api.get<LinkedInLinks>(`/linkedin/links?remote=${remote}&easy=${easy}`),
   })
 }
 

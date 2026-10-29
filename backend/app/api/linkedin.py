@@ -16,26 +16,28 @@ from app.services import linkedin
 router = APIRouter(tags=["linkedin"])
 
 
-class PromptOut(BaseModel):
+class LinkOut(BaseModel):
     key: str
     role: str
     country: str
     country_name: str
-    prompt: str  # the sentence to paste into LinkedIn's job search box
-    searched_today: bool
+    geo_id: str
+    verified: bool
+    url: str
+    opened_today: bool
 
 
-class PromptGroupOut(BaseModel):
+class LinkGroupOut(BaseModel):
     track: str
     role: str
-    items: list[PromptOut]
+    links: list[LinkOut]
 
 
-class PromptsOut(BaseModel):
-    groups: list[PromptGroupOut]
+class LinksOut(BaseModel):
+    groups: list[LinkGroupOut]
     total: int
-    searched: int
-    open_url: str  # LinkedIn Jobs: a plain page, you paste the prompt there
+    opened: int
+    missing_geo: list[dict[str, str]]  # target countries with no geoId: no link
 
 
 class OpenIn(BaseModel):
@@ -88,22 +90,20 @@ class ImportOut(BaseModel):
     scoring: str
 
 
-@router.get("/linkedin/links", response_model=PromptsOut)
-def links(session: SessionDep, remote: bool = False) -> PromptsOut:
-    """Today's searches: one prompt per role × target country to paste into LinkedIn's job search
-    (LinkedIn has no search link to land on results). Nothing here requests linkedin.com."""
-    found = linkedin.search_prompts(session, remote=remote)
-    every = [x for g in found for x in g.items]
-    return PromptsOut(
-        groups=[PromptGroupOut(track=g.track, role=g.role,
-                               items=[PromptOut(**vars(x)) for x in g.items]) for g in found],
-        total=len(every), searched=sum(x.searched_today for x in every),
-        open_url=linkedin.JOBS_URL)
+@router.get("/linkedin/links", response_model=LinksOut)
+def links(session: SessionDep, remote: bool = False, easy: bool = False) -> LinksOut:
+    """One LinkedIn job search per role × target country, past 24 hours, newest first."""
+    found = linkedin.search_links(session, remote=remote, easy=easy)
+    out = [LinkGroupOut(track=g.track, role=g.role,
+                        links=[LinkOut(**vars(x)) for x in g.links]) for g in found.groups]
+    every = [x for g in found.groups for x in g.links]
+    return LinksOut(groups=out, total=len(every), opened=sum(x.opened_today for x in every),
+                    missing_geo=found.missing_geo)
 
 
 @router.post("/linkedin/links/open", status_code=204)
 def open_link(body: OpenIn, session: SessionDep) -> None:
-    """You searched this one today (the mark resets tomorrow)."""
+    """You opened a search link today (the mark resets tomorrow)."""
     linkedin.mark_opened(session, body.key)
     session.commit()
 

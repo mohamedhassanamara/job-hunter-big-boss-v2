@@ -436,8 +436,8 @@ snapshot" removes the row and keeps the contact. `app_setting.extension_auth` ho
   status (pending | ok | failed), the lexical report.
 - `job.linkedin_job_id` (indexed), `job.capture` (how each field of an import was found, plus warnings);
   `source = linkedin` (never a discovery source).
-- Settings `linkedin` (also `inmail_monthly_credits` 5, `inmail_max_chars` 1000, `premium_end_date`, `premium_remind_days` 14): `note_max_chars` 200, `daily_requests` 10, `followup_days` 5, `gap_days` 3.
-  (The old `geo_ids` are gone: searches are prompts, `linkedin_link_open` keys are `role|country`.)
+- Settings `linkedin` (also `inmail_monthly_credits` 5, `inmail_max_chars` 1000, `premium_end_date`, `premium_remind_days` 14): `note_max_chars` 200, `daily_requests` 10, `followup_days` 5, `gap_days` 3,
+  `geo_ids` {ISO code: {id, verified}}.
 
 ### interview
 | Column | Type | Notes |
