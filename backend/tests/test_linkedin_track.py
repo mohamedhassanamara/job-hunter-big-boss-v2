@@ -240,3 +240,20 @@ def test_stats_per_channel_group_and_source(seeded: None, client) -> None:  # no
     alumni = next(g for g in out["linkedin_groups"] if g["group"] == "alumni")
     assert alumni["sent"] >= 1 and alumni["replied"]["count"] >= 1
     assert {o["group"] for o in out["by_origin"]} == {"linkedin_import", "discovery"}
+
+
+def test_the_panel_names_the_model_that_really_drafts(seeded: None, client) -> None:  # noqa: ANN001
+    """The draft buttons say which model writes (Settings → Models), never a hard-coded name."""
+    from app.api.linkedin import _drafting_model
+    from app.models import AppSetting
+
+    with Session(engine) as s:
+        assert _drafting_model(s) == "gemini-3.8-flash"  # the default: APInex, `free/` dropped
+        row = s.exec(select(AppSetting).where(AppSetting.key == "models")).first()
+        value = dict(row.value)
+        value["linkedin"] = {"model": "claude-sonnet-5-5"}
+        row.value = value
+        s.add(row)
+        s.flush()
+        assert _drafting_model(s) == "Claude"
+        s.rollback()

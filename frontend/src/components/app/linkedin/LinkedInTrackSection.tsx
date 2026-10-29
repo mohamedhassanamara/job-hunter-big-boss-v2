@@ -111,8 +111,8 @@ function VersionHistory({ person, kind, appId, draft }: { person: LinkedInPerson
   )
 }
 
-/** A note or follow-up: Claude drafts it, you edit (autosaved, checked again), copy, send. */
-function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; kind: 'note' | 'followup'; appId: number; max: number }) {
+/** A note or follow-up: the configured model drafts it, you edit (autosaved, checked again), copy, send. */
+function MessageEditor({ person, kind, appId, max, model }: { person: LinkedInPerson; kind: 'note' | 'followup'; appId: number; max: number; model: string }) {
   const draft = kind === 'note' ? person.note : person.followup
   const run = useDraftLinkedIn(appId)
   const edit = useEditLinkedIn(appId)
@@ -160,7 +160,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           aria-label={label}
         />
       ) : (
-        <p className="text-xs text-fg-muted">{kind === 'note' ? `Claude drafts a note under ${limit} characters for this person.` : 'One proof from your experience and one direct ask (a referral, or who to talk to).'}</p>
+        <p className="text-xs text-fg-muted">{kind === 'note' ? `${model} drafts a note under ${limit} characters for this person.` : 'One proof from your experience and one direct ask (a referral, or who to talk to).'}</p>
       )}
       {errors.length > 0 && (
         <ul className="space-y-0.5">
@@ -180,7 +180,7 @@ function MessageEditor({ person, kind, appId, max }: { person: LinkedInPerson; k
           onClick={() => (draft ? setRegen(true) : run.mutate({ id: person.id, kind }, { onSuccess: () => toast.success(`${label} drafted`), onError: (e) => toast.error(e.message) }))}
         >
           <Sparkles />
-          {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with Claude`}
+          {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with ${model}`}
         </Button>
         {draft && (
           <Tooltip content={!checked || (reviewed && !pendingEdit) ? null : 'Copy unlocks once you have clicked Review draft for this exact text'}>
@@ -288,7 +288,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
         </>
       ) : (
         <p className="text-xs text-fg-muted">
-          Claude drafts a subject and a body of up to {max} characters for this person: why them, one or two proofs from your experience, one ask. It is checked like the note.
+          {panel.drafting_model} drafts a subject and a body of up to {max} characters for this person: why them, one or two proofs from your experience, one ask. It is checked like the note.
           {person.source === 'viewed_profile' && ' It opens warmly and never mentions that they looked at your profile.'}
         </p>
       )}
@@ -317,7 +317,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
             onClick={() => (draft ? setRegen(true) : run.mutate({ id: person.id, kind: 'inmail' }, { onSuccess: () => toast.success('InMail drafted'), onError: (e) => toast.error(e.message) }))}
           >
             <Sparkles />
-            {run.isPending ? 'Drafting…' : draft ? 'Redraft' : 'Draft InMail with Claude'}
+            {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft InMail with ${panel.drafting_model}`}
           </Button>
         )}
         {draft && !already && (
@@ -476,10 +476,10 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
         </p>
       )}
       {(person.status === 'to_contact' || person.status === 'sent') && (
-        <MessageEditor key={`note-${person.note?.created_at}`} person={person} kind="note" appId={appId} max={panel.max_chars} />
+        <MessageEditor key={`note-${person.note?.created_at}`} person={person} kind="note" appId={appId} max={panel.max_chars} model={panel.drafting_model} />
       )}
       {(person.status === 'accepted' || person.status === 'messaged' || person.status === 'replied') && (!person.inmail_sent_at || person.followup) && (
-        <MessageEditor key={`followup-${person.followup?.created_at}`} person={person} kind="followup" appId={appId} max={panel.max_chars} />
+        <MessageEditor key={`followup-${person.followup?.created_at}`} person={person} kind="followup" appId={appId} max={panel.max_chars} model={panel.drafting_model} />
       )}
       {(person.status === 'to_contact' || person.status === 'sent' || person.inmail || person.inmail_sent_at) && (
         <InMailEditor key={`inmail-${person.inmail?.created_at}-${person.inmail_sent_at}`} person={person} appId={appId} panel={panel} />

@@ -1900,6 +1900,7 @@ export interface ViewerLead {
 }
 
 export interface LinkedInPanel {
+  drafting_model: string // the model that writes the messages (Settings → Models), for the labels
   application_id: number
   job_id: number
   company: string

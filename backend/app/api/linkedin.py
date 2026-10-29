@@ -200,6 +200,7 @@ class PanelOut(BaseModel):
     school: str | None
     max_chars: int
     inmail_max_chars: int = 1000
+    drafting_model: str = ""  # the model that writes the messages (Settings → Models)
     credits: dict[str, Any] = {}  # InMail credits this month (Premium)
     requests_today: int
     daily_limit: int
@@ -277,11 +278,20 @@ def _panel(s, app) -> PanelOut:  # noqa: ANN001
     return PanelOut(application_id=app.id, job_id=job.id,
                     company=s.get(Company, job.company_id).name, company_id=job.company_id,
                     school=lt.school(load_pool(s))[0], max_chars=int(cfg["note_max_chars"]),
-                    inmail_max_chars=int(cfg["inmail_max_chars"]), credits=lt.credits(s),
+                    inmail_max_chars=int(cfg["inmail_max_chars"]),
+                    drafting_model=_drafting_model(s), credits=lt.credits(s),
                     requests_today=lt.requests_today(s), daily_limit=int(cfg["daily_requests"]),
                     groups=[GroupOut(**g) for g in lt.suggestions(s, app)],
                     people=[_person(s, r) for r in people], order_hint=order,
                     agency=agency.signals(s.get(Company, job.company_id), job))
+
+
+def _drafting_model(s: Session) -> str:
+    """The model name shown on the draft buttons: what `models.linkedin` really uses."""
+    from app.services import model_choice
+
+    pick = model_choice.choice(s, "linkedin")
+    return "Claude" if pick["provider"] == "anthropic" else str(pick["model"]).removeprefix("free/")
 
 
 def _app(session, app_id: int):  # noqa: ANN001, ANN202
