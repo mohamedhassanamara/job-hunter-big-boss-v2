@@ -26,6 +26,7 @@ def list_jobs(
     min_score: int | None = None,
     posted_within: int | None = Query(None, description="days"),
     hide_duplicates: bool = True,
+    include_linkedin: bool = False,
     label: Literal["unlabeled", "good", "maybe", "no"] | None = None,
     flags: Literal["hide_hard", "only_flagged"] | None = None,
     track: Annotated[list[str] | None, Query()] = None,
@@ -57,6 +58,11 @@ def list_jobs(
         (job_id, title, src, sources, remote_type, country_code, matched, posted, discovered,
          user_label, dup, company, st) = r
         if stage == "new" and st != Stage.new:
+            return False
+        # Captured from LinkedIn and still New: they live in LinkedIn → Jobs until you act on
+        # them (shortlist, or ask for them with a source filter / "Include LinkedIn").
+        if (not include_linkedin and src == "linkedin" and st == Stage.new
+                and not (source and "linkedin" in source)):
             return False
         if stage == "open" and st == Stage.closed:
             return False

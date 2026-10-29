@@ -84,6 +84,7 @@ class NavCounts(BaseModel):
     ready_to_apply: int
     contacts_to_get: int = 0
     cvs_to_review: int = 0
+    linkedin_review: int = 0  # captured LinkedIn jobs / profiles with an unreviewed flag
 
 
 class SearchHit(BaseModel):

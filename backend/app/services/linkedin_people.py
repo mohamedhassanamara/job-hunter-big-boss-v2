@@ -13,7 +13,7 @@ from sqlmodel import Session, col, select
 from app.models import Application, Company, Contact, Job, LinkedInOutreach, LinkedInProfile
 from app.models.base import utcnow
 from app.models.enums import LinkedInGroup, Stage
-from app.services import contact_paste, dnc, linkedin, linkedin_page
+from app.services import capture_review, contact_paste, dnc, linkedin, linkedin_page
 from app.services.cv_pool import load_pool
 from app.services.ingest import _company
 from app.services.linkedin_track import school
@@ -74,6 +74,8 @@ def _resolve(s: Session, *, payload: dict[str, Any] | None, paste: str | None, u
              job_id: int | None) -> dict[str, Any]:
     f = _fields(payload, paste, url)
     company_name = (company or f.current_company or "").strip()
+    if company and company.strip() != (f.current_company or "").strip():
+        f.sources["company"] = "typed"
     short, full = school(load_pool(s))
     group, reasons = linkedin.persona(f.current_title, f.headline)
     auto_alum = linkedin_page.is_alum(f.education, short, full)
@@ -120,9 +122,17 @@ def _company_lookup(s: Session, name: str) -> Company | None:
         or resolve_alias(s, norm)
 
 
-def _out(r: dict[str, Any], saved: bool) -> dict[str, Any]:
+def _flags(f: linkedin_page.ProfileFields) -> list[dict[str, str]]:
+    return capture_review.person_flags(
+        headline=f.headline, current_title=f.current_title,
+        company_source=f.sources.get("company", ""),
+        has_dated_experience=bool(f.experience))
+
+
+def _out(r: dict[str, Any], saved: bool, undo: bool = False) -> dict[str, Any]:
     f: linkedin_page.ProfileFields = r["fields"]
     return {
+        "flags": _flags(f), "undo": undo,
         "saved": saved, "missing": r["missing"], "warnings": r["warnings"],
         "name": f.name, "headline": f.headline, "location": f.location,
         "current_title": f.current_title, "current_company": r["company"],
@@ -165,7 +175,8 @@ def save(s: Session, *, extension_version: str = "", **kw: Any) -> dict[str, Any
         f.about, f.badges
     prof.persona, prof.persona_source, prof.persona_reasons = group, r["persona_source"], \
         r["reasons"]
-    prof.is_alum, prof.capture_sources = bool(r["alumni"]), f.sources
+    review = capture_review.block(_flags(f), (prof.capture_sources or {}).get("review"))
+    prof.is_alum, prof.capture_sources = bool(r["alumni"]), {**f.sources, "review": review}
     prof.captured_at, prof.extension_version = utcnow(), extension_version
     s.add(prof)
     if r["job"]:
@@ -176,9 +187,10 @@ def save(s: Session, *, extension_version: str = "", **kw: Any) -> dict[str, Any
         if r["persona_source"] == "manual":
             row.group = group
         s.add(row)
+    created = r["contact"] is None
     s.commit()
     r["contact"], r["profile"] = contact, prof
-    return _out(r, saved=True)
+    return _out(r, saved=True, undo=created)
 
 
 def link_waiting(s: Session, app: Application, company_id: int) -> int:
@@ -260,8 +272,82 @@ def listing(s: Session) -> list[dict[str, Any]]:
             "company": company.name if company else "", "company_id": contact.company_id,
             "persona": str(prof.persona), "alumni": prof.is_alum,
             "degree": prof.connection_degree, "profile_url": prof.profile_url,
+            "flags": ((prof.capture_sources or {}).get("review") or {}).get("flags", []),
+            "reviewed_at": ((prof.capture_sources or {}).get("review") or {}).get("reviewed_at"),
             "captured_at": prof.captured_at,
             "jobs": [{"job_id": j.id, "title": j.title, "status": str(o.status)}
                      for j, o in jobs],
             "do_not_contact": bool(contact.do_not_contact)})
     return out
+
+
+# ------------------------------------------------------------------------------ safety net
+
+UNDO_MINUTES = 15
+
+
+def undo(s: Session, contact_id: int) -> None:
+    """Take back a capture that CREATED this person a moment ago (the panel's Undo). Refused when
+    the person already existed, or anything was done with them since (a drafted note, a status)."""
+    from datetime import timedelta
+
+    contact = s.get(Contact, contact_id)
+    prof = s.exec(select(LinkedInProfile).where(
+        LinkedInProfile.contact_id == contact_id)).first()
+    if contact is None or prof is None:
+        raise linkedin.CaptureError("Nothing to undo")
+    limit = utcnow() - timedelta(minutes=UNDO_MINUTES)
+    if contact.created_at < limit or str(contact.source) != "linkedin" or contact.email:
+        raise linkedin.CaptureError("This person was already in your list, or too long ago to undo")
+    rows = s.exec(select(LinkedInOutreach).where(
+        LinkedInOutreach.contact_id == contact_id)).all()
+    if any(r.note or r.followup or r.inmail or str(r.status) != "to_contact" for r in rows):
+        raise linkedin.CaptureError("You already worked on this person: undo is no longer possible")
+    if s.exec(select(Application).where(Application.contact_id == contact_id)).first():
+        raise linkedin.CaptureError("This person is the contact of a job: undo is not possible")
+    for r in rows:
+        s.delete(r)
+    s.delete(prof)
+    s.flush()
+    s.delete(contact)
+    s.commit()
+
+
+def undo_job(s: Session, job_id: int) -> None:
+    """Take back a job captured a moment ago: it is dismissed (closed), never deleted, because
+    scoring may already be running on it. Refused once it is past New or was not just captured."""
+    from datetime import timedelta
+
+    from app.models.enums import CloseReason
+    from app.services import tracking
+
+    job = s.get(Job, job_id)
+    app = s.exec(select(Application).where(Application.job_id == job_id)).first()
+    if job is None or app is None or not job.linkedin_job_id:
+        raise linkedin.CaptureError("Nothing to undo")
+    if job.discovered_at < utcnow() - timedelta(minutes=UNDO_MINUTES):
+        raise linkedin.CaptureError("This job was already in your list, or too long ago to undo")
+    if app.stage != Stage.new:
+        raise linkedin.CaptureError("You already moved this job: undo is no longer possible")
+    tracking.close(s, app, CloseReason.dismissed, "undone from the extension")
+    s.commit()
+
+
+def mark_reviewed(s: Session, contact_id: int) -> None:
+    prof = s.exec(select(LinkedInProfile).where(
+        LinkedInProfile.contact_id == contact_id)).first()
+    if prof is None:
+        raise linkedin.CaptureError("No captured profile for this person")
+    prof.capture_sources = {**(prof.capture_sources or {}),
+                            "review": capture_review.mark_reviewed(
+                                (prof.capture_sources or {}).get("review"))}
+    s.add(prof)
+    s.commit()
+
+
+def review_count(s: Session) -> int:
+    """Captured jobs and profiles with an unreviewed flag (the sidebar badge)."""
+    n = sum(capture_review.needs_review((p.capture_sources or {}).get("review"))
+            for p in s.exec(select(LinkedInProfile)).all())
+    jobs = s.exec(select(Job.capture).where(col(Job.linkedin_job_id).is_not(None))).all()
+    return n + sum(capture_review.needs_review((c or {}).get("review")) for c in jobs)

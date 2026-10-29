@@ -446,6 +446,11 @@ linkedin.com).
   the parameters its own results URL carries), optionally remote only (`f_WT=2`; no Easy Apply toggle). Countries
   are LinkedIn **geoIds** (Settings → LinkedIn, each Unverified until you Test and Confirm it), never a text
   location; a country without a geoId shows a warning and no link. A link you open is marked "opened today".
+- **Browser extension (one click):** the panel on a LinkedIn page shows one button, **Save job** or **Save profile**,
+  and saves on click (no review screen; the card reads back what was saved, with Undo for a new item). The app's
+  LinkedIn page has tabs **Today**, **LinkedIn Jobs** and **LinkedIn Profiles**: captured items are listed there,
+  flagged ones first ("Needs review", with reasons; "Looks right" clears it). A captured job still New is not in
+  Discover and captured people are not in a company's contact list until you act (switches bring them back).
 - **One-click import:** the "Save to Job Hunter" bookmark (Settings → LinkedIn) reads the job page you're on
   (JSON-LD JobPosting → LinkedIn's layout → headings → meta tags → the URL), opens the local `/import` window with
   the data in its URL fragment (postMessage as a second channel), and shows every field with how it was found.

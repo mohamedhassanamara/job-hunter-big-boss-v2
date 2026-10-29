@@ -119,13 +119,14 @@ def parse_job(payload: dict[str, Any]) -> dict[str, Any]:
     company = str(payload.get("company_parsed") or "").strip()
     header = _lines(payload.get("header"))
     location, workplace = _location_and_workplace(header, title, company)
-    company_href = next((x.get("href") for x in _links(payload, "company")
-                         if x.get("href") and x.get("text", "").strip().lower() == company.lower()),
-                        None) or next((x.get("href") for x in _links(payload, "company")
-                                       if x.get("href")), None)
+    exact = next((x.get("href") for x in _links(payload, "company")
+                  if x.get("href") and x.get("text", "").strip().lower() == company.lower()), None)
+    first = next((x.get("href") for x in _links(payload, "company") if x.get("href")), None)
+    company_href = exact or first
     sources = {"title": "title", "company": "title", "description": "page",
                "location": "page" if location else "missing",
-               "workplace": "page" if workplace else "missing"}
+               "workplace": "page" if workplace else "missing",
+               "company_url": "matched" if exact else "guessed" if first else "missing"}
     return {"url": payload.get("url") or "", "job_id": payload.get("job_id") or None,
             "title": title, "company": company, "company_url": company_href,
             "location": location, "workplace": workplace,

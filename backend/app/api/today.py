@@ -15,7 +15,7 @@ from app.models import (
     SendQueue,
     SendQueueItem,
 )
-from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, Stage
+from app.models.enums import CVStatus, DraftStatus, QueueItemStatus, Source, Stage
 from app.schemas.today import (
     CVReviewItem,
     DraftReviewItem,
@@ -28,7 +28,14 @@ from app.schemas.today import (
     UpcomingInterview,
 )
 from app.schemas.tracking import ReminderOut
-from app.services import cv_review, get_contact, linkedin_track, send_queue, tracking
+from app.services import (
+    cv_review,
+    get_contact,
+    linkedin_people,
+    linkedin_track,
+    send_queue,
+    tracking,
+)
 from app.services.views import new_high_fit, pipeline_cards
 
 router = APIRouter(tags=["today"])
@@ -188,8 +195,11 @@ def nav_counts(session: SessionDep) -> NavCounts:
         return session.exec(stmt).one()
 
     return NavCounts(
+        # (captured LinkedIn jobs wait in LinkedIn → Jobs, not in Discover, until you act)
         discover_new=count(
-            select(func.count()).select_from(Application).where(Application.stage == Stage.new)
+            select(func.count()).select_from(Application)
+            .join(Job, col(Job.id) == col(Application.job_id))
+            .where(Application.stage == Stage.new, Job.source != Source.linkedin)
         ),
         pipeline_active=count(
             select(func.count())
@@ -209,6 +219,7 @@ def nav_counts(session: SessionDep) -> NavCounts:
         ready_to_apply=len(tracking.ready_to_apply(session)),
         contacts_to_get=len(get_contact.queue(session)),
         cvs_to_review=len(cv_review.rows(session)),
+        linkedin_review=linkedin_people.review_count(session),
     )
 
 

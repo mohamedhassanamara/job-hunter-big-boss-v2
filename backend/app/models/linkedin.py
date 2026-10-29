@@ -84,7 +84,7 @@ class LinkedInProfile(TableBase, table=True):
     persona_source: str = "auto"  # auto | manual
     persona_reasons: list[str] = json_field(list)
     is_alum: bool = False  # a fact about the person, independent of their role
-    capture_sources: dict[str, str] = Field(default_factory=dict, sa_type=JSON)
+    capture_sources: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
     captured_at: datetime | None = dt_field()
     extension_version: str = ""
 

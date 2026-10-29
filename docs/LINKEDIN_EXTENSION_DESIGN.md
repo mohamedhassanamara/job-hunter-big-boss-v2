@@ -122,7 +122,7 @@ Why this is worth doing even on localhost: the rest of the API has no auth, and 
 
 Dev note: the backend must stay bound to `127.0.0.1` (verify the `make dev` uvicorn host).
 
-### 2.6 Review step without a separate window
+### 2.6 Review step without a separate window (superseded by §12: one click saves, flags and Undo replace the in-panel review)
 
 `ImportPage` showed every field + provenance before saving. Replacement, in the panel:
 
@@ -497,3 +497,28 @@ I will stop at the gate and report the result to you before any further build.
 ### 11.8 Migration 0038 applied; to do before persona auto-classification is relied on
 - **Applied** to the real DB on 2026-10-29 (backup `jobhunter-before-migrate-from-0037-20261029-104116.db`, revision 0038, integrity ok). Rows: 1 `recruiter` (hiring team), 2 `peer` + alumni (kept `peer` by decision), 3 `peer` (hiring team).
 - **Tighten `linkedin._LEAD` before the Phase 1 persona rules:** it matches the generic French word "Responsable" (and "manager", "director"…) on any title, so a non-technical "Responsable de gestion des exigences" reads as a team lead. The persona rule should require a leadership word together with an engineering/data/tech keyword (or the hiring-team flag), and a non-technical manager stays `peer`. Add a test with this title as the negative case.
+
+## 12. One-click interaction (product change, supersedes §2.6 and the preview step of §3/§5)
+
+**Requirement.** Fewer steps: open a job or profile, press ONE obvious button, it is saved. No review or import tab, no confirmation screen. Captured jobs and profiles each get their own section in the app.
+
+### 12.1 Panel
+- **Detection drives the button:** job (`/jobs/view/<id>` or `currentJobId`), profile (`/in/<slug>`), else other (live URL, re-read on hover, focus, `popstate` and the Navigation API). The pill reads **Save job** or **Save profile**; elsewhere it is a dimmed, non-actionable "Open a job or profile" that still re-checks the address on click (never hidden, so a missed SPA navigation is visible and recoverable).
+- **Click (or `Alt+Shift+S`) saves directly:** `POST /ext/job`, or `POST /ext/person` (role, alum flag and the job it joins are automatic; the preview endpoint is kept but unused). The only extra step is a required field the page did not give (job title / company / description, a person's company): nothing is saved and just those inputs appear, because a blank cannot be saved.
+- **After saving**, the card reads back what was saved and where each field came from (tab title, page, you), the flags, **Open in the app**, and **Undo** when this click created the item. A person's role and alum box are instant corrections (`PATCH`), not a second Save. Paste-text stays as a fallback shown after a failed read; Details (anchors, redacted copies) stays collapsed.
+
+### 12.2 Safety net (replaces ImportPage), tradeoffs and decision
+| Option | For | Against |
+|---|---|---|
+| A. Hold a second with an inline preview | Catches errors before they exist | Not one click; needs a timer (banned by the guard test) |
+| B. Undo after saving | Quick fix of a wrong save | Only helps if you look at once; a merged/updated job cannot be cleanly undone |
+| C. "Needs review" flags in the new sections | Non-blocking; catches errors you did not notice, hours later | Heuristic: cannot detect every wrong field |
+
+**Default: C + a passive read-back + B only for newly created items.**
+- **Flags** (`services/capture_review.py`, stored in `job.capture["review"]` / `linkedin_profile.capture_sources["review"]`, no migration). Job: collapsed ("… more") / summary-only / short (< 500 chars) description, no location, no country, company link only guessed. Person: company from the headline or typed, no headline, no dated experience, no title words. A recapture that raises nothing new keeps an earlier "Looks right".
+- **Undo** is guarded (15 minutes, extension-created, nothing done since). A **job is dismissed (closed), not deleted**, because scoring may already be running on it (a delete would race the worker); a **person** is removed (their profile snapshot, outreach rows and contact, only when the capture created them and no note was drafted).
+
+### 12.3 App
+- `/linkedin?view=today|jobs|profiles`: tabs **Today** (to do, viewers, searches), **LinkedIn Jobs** and **LinkedIn Profiles**, each with count and "to review" count; the sidebar LinkedIn entry shows the total to review (`nav-counts.linkedin_review`). Tabs, not new pages: one sidebar entry for one workflow, deep-linkable (`?view=jobs&job=<id>`).
+- **LinkedIn Jobs:** the job cards (stage, fit), flags, "Looks right", Shortlist / Dismiss; needs-review first, closed last. **LinkedIn Profiles:** role select and alum flag (editable), jobs they are on or "waiting", flags, "Looks right", Delete snapshot. Both have empty states and a tour.
+- **Hide until you act (decided):** a captured job still **New** is not in Discover's list (`GET /jobs` `include_linkedin`, default false; a `source=linkedin` filter or the "Include LinkedIn" switch shows it; the Discover count excludes it), and captured people are not in the company contact list (`GET /companies/{id}` `include_linkedin`, `hidden_linkedin` count with a "show them" link). Shortlisting moves a job into the normal pipeline. Today's cards are unchanged.

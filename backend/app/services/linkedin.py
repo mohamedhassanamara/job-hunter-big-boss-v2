@@ -312,6 +312,7 @@ class ImportResult:
     matched_track: str | None
     warnings: list[str]
     scoring: str  # queued | already scored | blocked: …
+    flags: list[dict[str, str]] = field(default_factory=list)  # capture_review: look at these
 
 
 def _external_id(c: Capture) -> str:
@@ -373,7 +374,17 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
             job.remote_type = raw.remote_type
             if matched:
                 job.matched_track, job.matched_role = matched
-        job.linkedin_job_id, job.capture = c.job_id, {**c.sources, "warnings": warnings}
+        from app.services import capture_review
+
+        review = capture_review.block(
+            capture_review.job_flags(
+                description=c.description, collapsed=c.collapsed,
+                description_source=c.sources.get("description", ""), location=c.location,
+                country=country, workplace=c.workplace,
+                company_url_source=c.sources.get("company_url", "")),
+            (job.capture or {}).get("review"))
+        job.linkedin_job_id = c.job_id
+        job.capture = {**c.sources, "warnings": warnings, "review": review}
         s.add(job)
         company = s.get(Company, job.company_id)
         if c.company_url and not company.linkedin_url:
@@ -404,7 +415,8 @@ def import_job(engine: Engine, c: Capture, *, workspace: str = "real") -> Import
     else:
         scoring = "queued" if queue.enqueue([job_id], front=True, trigger="linkedin") else \
             "already scored or queued"
-    return ImportResult(job_id, app_id, created, duplicate, track, warnings, scoring)
+    return ImportResult(job_id, app_id, created, duplicate, track, warnings, scoring,
+                        review["flags"])
 
 
 _RECRUITER = re.compile(r"recruit|talent|sourc|\bhr\b|human resources|people (?:partner|ops)|"

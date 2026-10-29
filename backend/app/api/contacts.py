@@ -17,6 +17,7 @@ from app.models import (
     ContactImport,
     DoNotContactRule,
     Job,
+    LinkedInProfile,
 )
 from app.models.enums import ContactSource, Stage
 from app.schemas.contacts import (
@@ -122,13 +123,18 @@ def list_companies(
 
 
 @router.get("/companies/{company_id}", response_model=CompanyDetail)
-def get_company(company_id: int, session: SessionDep) -> CompanyDetail:
+def get_company(company_id: int, session: SessionDep,
+                include_linkedin: bool = False) -> CompanyDetail:
     company = get_or_404(session, Company, company_id, "Company")
     base = _company_items(session, [company])[0]
     ranking = contacts.ranking_settings(session)
-    people = contacts.ranked(
-        list(session.exec(select(Contact).where(Contact.company_id == company.id)).all()),
-        ranking.order_for(company))
+    everyone = list(session.exec(select(Contact).where(Contact.company_id == company.id)).all())
+    # People captured with the extension live in LinkedIn → Profiles; they are not mixed in here
+    # unless asked ("Include LinkedIn").
+    captured = set(session.exec(select(LinkedInProfile.contact_id)).all())
+    hidden = [c for c in everyone if c.id in captured]
+    people = contacts.ranked([c for c in everyone if include_linkedin or c.id not in captured],
+                             ranking.order_for(company))
     rows = session.exec(
         select(Application, Job).join(Job, col(Job.id) == col(Application.job_id))
         .where(Job.company_id == company.id, col(Job.duplicate_of_id).is_(None))
@@ -137,6 +143,7 @@ def get_company(company_id: int, session: SessionDep) -> CompanyDetail:
     return CompanyDetail(
         **base.model_dump(), website=company.website,
         contacts=[contact_out(c, ranking.groups) for c in people],
+        hidden_linkedin=0 if include_linkedin else len(hidden),
         jobs=[CompanyJob(application_id=a.id, job_id=j.id, title=j.title, stage=a.stage,
                          stage_label=stage_label(a.stage), route=a.route,
                          contact_tier=a.contact_tier, contact_id=a.contact_id,

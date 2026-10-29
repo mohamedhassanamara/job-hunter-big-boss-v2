@@ -43,6 +43,7 @@ class CompanyDetail(CompanyListItem):
     website: str | None
     contacts: list[ContactOut]  # most relevant role first
     jobs: list[CompanyJob]
+    hidden_linkedin: int = 0  # captured from LinkedIn (own section): hidden unless asked
 
 
 class FilePreview(BaseModel):
