@@ -113,3 +113,39 @@ def test_paper_size_comes_from_the_template_config() -> None:
     template.config = {**template.config, "paper": "a4"}
     tex = render_tex(CVDocument(), CVProfile(full_name="A"), template)
     assert r"\documentclass[a4paper,10pt]" in tex and "letterpaper" not in tex
+
+
+# ------------------------------------------------------------ one point → narrative paragraph
+
+
+def _tex_with(roles: list[CVRole], template: str = "default") -> str:
+    doc, profile = sample()
+    doc = doc.model_copy(update={"roles": roles, "projects": []})
+    return render_tex(doc, profile, load_template(template))
+
+
+@pytest.mark.parametrize("template", ["default"])
+def test_single_point_renders_as_a_paragraph_and_several_as_bullets(template: str) -> None:
+    one = CVRole(title="Engineer", org="Acme", bullets=["Shipped the app to production."])
+    many = CVRole(title="Dev", org="Beta", bullets=["Built A.", "Built B."])
+    tex = _tex_with([one, many], template)
+    body = tex.split(r"\begin{document}")[1]
+    single, multi = body.split("Beta")[0], body.split("Beta")[1]
+    assert r"\resumeParagraph{Shipped the app to production.}" in single
+    assert r"\resumeItem{" not in single and r"\resumeItemListStart" not in single
+    assert multi.count(r"\resumeItem{") == 2 and r"\resumeItemListStart" in multi
+    assert r"\resumeParagraph{" not in multi
+
+
+def test_paragraph_style_is_unindented_justified_and_tight() -> None:
+    tex = _tex_with([CVRole(title="E", org="A", bullets=["One."])])
+    macro = tex[tex.index(r"\newcommand{\resumeParagraph}"):].split("\n\n")[0]
+    assert r"\parindent}{0pt}" in macro and r"\rightskip=0pt" in macro
+    assert r"\linespread{1.2}" in macro and r"\vspace{2pt}" in macro
+    assert r"\item" not in macro  # no bullet marker
+
+
+@needs_latex
+def test_paragraph_compiles(tmp_path: Path) -> None:
+    tex = _tex_with([CVRole(title="E", org="A", bullets=["Delivered x. " * 20])])
+    assert compile_tex(tex, tmp_path, "p").ok

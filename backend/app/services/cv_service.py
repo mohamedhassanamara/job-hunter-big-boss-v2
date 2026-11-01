@@ -107,6 +107,35 @@ def build_request(s: Session, app: Application, pool: Pool) -> CVRequest:
     )
 
 
+def build_track_request(s: Session, track: str | None, pool: Pool) -> CVRequest:
+    """A job-less request: a general CV for one registered track (`track` = its name) or the
+    all-purpose master (None). Same pool, facts, guide and emphasis as a job request."""
+    tracks = _tracks(s)
+    if track:
+        label = next((t.get("label") or t["name"] for t in tracks if t.get("name") == track), track)
+        title, note = f"{label} (general CV)", (
+            f"No specific job. Write the candidate's general CV for the '{track}' field: lead with "
+            "the experience, skills and projects most relevant to it.")
+    else:
+        title, note = "All-purpose CV", (
+            "No specific job and no single field. Write the candidate's balanced master CV: show "
+            "the strongest experience and skills across all tracks.")
+    return CVRequest(
+        job={"title": title, "company": "", "location": "", "description": note,
+             "matched_track": track or "(none)", "matched_role": None,
+             "strengths": [], "gaps": []},
+        pool=prompt_pool(pool),
+        emphasis=(cv_settings(s).get("track_emphasis") or {}).get(track or "", {}),
+        facts={"years": summary_years(years_facts(pool, tracks), track or ""),
+               **honesty_facts(tracks), **glossary.prompt_facts(pool.profile)},
+        guide=cv_rules.guide(cv_settings(s)) + (
+            "\nNever use these phrases: " + "; ".join(cv_rules.banned(cv_settings(s)))
+            if cv_rules.banned(cv_settings(s)) else ""),
+        style=cv_rules.style_exemplar(),
+        layout=layout_hints(pool, cv_rules.structure(cv_settings(s))),
+    )
+
+
 def honesty_facts(tracks: list[dict[str, Any]]) -> dict[str, Any]:
     """For the model: which tracks are professional and which are projects, and the years rule.
     For the checks: the tracks themselves (services/honesty.py)."""

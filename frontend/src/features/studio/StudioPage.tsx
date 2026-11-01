@@ -16,6 +16,7 @@ import { relativeTime } from '@/lib/format'
 import { studioHref, useStudioDocuments } from '@/lib/queries/studio'
 import type { StudioDocument, StudioKind } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { GenerateCVButton } from './GenerateCVButton'
 
 const KIND = {
   cv: { label: 'CV', icon: FileText },
@@ -56,7 +57,7 @@ export default function StudioPage() {
   const total = data ? data.counts.cv + data.counts.pdf + data.counts.form : 0
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Studio" description="Every tailored CV and cover letter, across jobs. Open one to review, edit or approve it." />
+      <PageHeader title="Studio" description="Every tailored CV and cover letter, across jobs. Open one to review, edit or approve it." actions={<GenerateCVButton />} />
       <div data-tour="studio-filters" className="flex flex-wrap items-center gap-4 border-b border-border px-6">
         <Tabs value={kind ?? 'all'} onValueChange={(v) => url.set({ type: v === 'all' ? null : v })}>
           <TabsList>

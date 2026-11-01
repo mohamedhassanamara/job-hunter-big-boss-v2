@@ -76,6 +76,37 @@ class CVGenerateIn(BaseModel):
     use: str | None = None  # "claude" | "gemini": this call only (after a failure)
 
 
+class TrackGenerateIn(BaseModel):
+    """Studio "Generate CV". `track`: "all_purpose" or a registered track name. With
+    `target_job_id` the CV is tailored to that job and saved to its studio; without, it is a
+    general CV that is never stored (download it, or it expires)."""
+    track: str = "all_purpose"
+    target_job_id: int | None = None
+    template: str | None = None
+    use: str | None = None
+
+
+class TrackOption(BaseModel):
+    value: str
+    label: str
+
+
+class TrackGenerateOut(BaseModel):
+    id: str | None = None  # the ephemeral CV (poll GET /cv/generate/{id})
+    track: str
+    status: str  # running | ready | failed
+    error: str | None = None
+    page_count: int | None = None
+    model: str | None = None
+    filename: str | None = None
+    issues: list[dict[str, Any]] = []
+    summary: str = ""
+    skills: list[str] = []
+    # Job-specific generation is saved like any CV: open it in that job's CV studio.
+    job_id: int | None = None
+    cv_id: int | None = None
+
+
 class CVPatch(BaseModel):
     """force_in / force_out: keys like "role:12:0", "project:7", "cert:3"; text: key → edited
     text ("summary" or a bullet key). Omit a field to keep the current value."""

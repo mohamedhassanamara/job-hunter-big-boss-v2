@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
+from starlette.background import BackgroundTask
 
 from app.api.deps import EngineDep, SessionDep, WorkspaceDep, get_or_404
 from app.models import Application, Company, CVVersion, Job
@@ -34,6 +35,9 @@ from app.schemas.cv import (
     SummaryRestoreIn,
     TemplateIn,
     TemplateOut,
+    TrackGenerateIn,
+    TrackGenerateOut,
+    TrackOption,
 )
 from app.services import (
     cv_fit,
@@ -42,6 +46,7 @@ from app.services import (
     cv_review,
     cv_service,
     cv_templates,
+    cv_track,
     model_choice,
     pipeline,
     verifier,
@@ -203,6 +208,72 @@ def generate_cv(
         # "Generate with Claude"; it never switches model by itself.
         raise HTTPException(503 if generation_failure(exc) else 422, str(exc)) from exc
     return _out(version)
+
+
+def _track_out(job: cv_track.TrackCV) -> TrackGenerateOut:
+    return TrackGenerateOut(
+        id=job.id, track=job.track, status=job.status, error=job.error,
+        page_count=job.page_count, model=job.model,
+        filename=job.filename if job.status == "ready" else None, issues=job.issues,
+        summary=job.summary, skills=job.skills)
+
+
+@router.get("/cv/tracks", response_model=list[TrackOption])
+def cv_track_options(engine: EngineDep) -> list[TrackOption]:
+    """The choices of Studio → Generate CV: All-Purpose, then every registered track."""
+    return [TrackOption(**o) for o in cv_track.options(engine)]
+
+
+@router.post("/cv/generate", response_model=TrackGenerateOut, status_code=202)
+def generate_track_cv(body: TrackGenerateIn, session: SessionDep, engine: EngineDep,
+                      workspace: WorkspaceDep) -> TrackGenerateOut:
+    """Without `target_job_id`: a general CV for the track, generated in the background and
+    never stored (poll `GET /cv/generate/{id}`). With it: the job's own CV flow (saved)."""
+    if body.use not in model_choice.USES:
+        raise HTTPException(422, "use must be empty, 'claude' or 'gemini'")
+    if body.target_job_id is not None:
+        app = session.exec(select(Application).where(
+            Application.job_id == body.target_job_id)).first()
+        if app is None:
+            raise HTTPException(404, "Job not found")
+        version = generate_cv(app.id, CVGenerateIn(template=body.template, use=body.use),
+                              session, engine, workspace)
+        return TrackGenerateOut(track=body.track, status="ready", job_id=body.target_job_id,
+                                cv_id=version.id, page_count=version.page_count,
+                                model=version.generator_model)
+    try:
+        cv_track.resolve(engine, body.track)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    generator = _generator(session, engine, workspace, body.use)
+    job = cv_track.start(engine, body.track, generator, body.template,
+                         verifier=verifier.for_workspace(session, workspace))
+    return _track_out(job)
+
+
+@router.get("/cv/generate/{job_id}", response_model=TrackGenerateOut)
+def track_cv_status(job_id: str) -> TrackGenerateOut:
+    job = cv_track.get(job_id)
+    if job is None:
+        raise HTTPException(404, "This CV is gone (generated CVs are not stored)")
+    return _track_out(job)
+
+
+@router.get("/cv/generate/{job_id}/pdf")
+def track_cv_pdf(job_id: str, download: bool = False):  # noqa: ANN201
+    """Preview inline; `download=true` sends it and then deletes it."""
+    job = cv_track.get(job_id)
+    if job is None or job.status != "ready" or not job.pdf_path or not job.pdf_path.exists():
+        raise HTTPException(404, "This CV is gone (generated CVs are not stored)")
+    return FileResponse(
+        job.pdf_path, media_type="application/pdf", filename=job.filename,
+        content_disposition_type="attachment" if download else "inline",
+        background=BackgroundTask(cv_track.discard, job_id) if download else None)
+
+
+@router.delete("/cv/generate/{job_id}", status_code=204)
+def discard_track_cv(job_id: str) -> None:
+    cv_track.discard(job_id)
 
 
 def _generator(session: Session, engine, workspace: str, use: str | None = None):  # noqa: ANN001, ANN202

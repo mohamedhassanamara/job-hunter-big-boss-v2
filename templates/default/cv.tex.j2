@@ -41,6 +41,14 @@
   \item\small{#1}
 }
 
+% A role/project with ONE point reads as a justified narrative paragraph: no bullet, no indent.
+\newcommand{\resumeParagraph}[1]{%
+  \par\vspace{2pt}%
+  {\small\linespread{1.2}\selectfont\setlength{\parindent}{0pt}\rightskip=0pt\relax
+   \noindent #1\par}%
+  \vspace{2pt}%
+}
+
 \newcommand{\resumeSubheading}[4]{
   \item
     \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
@@ -72,7 +80,9 @@
 \BLOCK{macro contact(item)}\faIcon{\VAR{item.icon|raw}} \BLOCK{if item.url}\href{\VAR{item.url|url}}{\underline{\VAR{item.label}}}\BLOCK{else}\VAR{item.label}\BLOCK{endif}\BLOCK{endmacro}
 \BLOCK{macro dates(e)}\VAR{e.start}\BLOCK{if e.start and e.end} -- \BLOCK{endif}\VAR{e.end}\BLOCK{endmacro}
 \BLOCK{macro bullets(items)}
-\BLOCK{if items}
+\BLOCK{if items|length == 1}
+      \resumeParagraph{\VAR{items[0]}}
+\BLOCK{elif items}
       \resumeItemListStart
 \BLOCK{for b in items}
         \resumeItem{\VAR{b}}

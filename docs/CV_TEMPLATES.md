@@ -48,6 +48,8 @@ Undefined variables are errors (`StrictUndefined`).
 | `skills` | `[{category, items[]}]` | Categories in the generator's order; empty ones removed |
 | `roles` | `[{title, org, location, start, end, bullets[]}]` | Every job in the pool, newest first. Each has ≥1 bullet when the pool has facts. `start` / `end` are like `Sep 2025` / `Present`, and either may be empty |
 | `projects` | `[{name, stack[], label, bullets[]}]` | `stack` is capped at `max_stack_items`; `label` is e.g. "Personal project" |
+
+An entry (role or project) with exactly **one** bullet is rendered as a justified narrative paragraph (no bullet marker, zero indent, 1.2 line spacing, 4 pt gap before the next entry); two or more render as an indented bullet list. Custom templates should do the same in their `bullets` macro (see `templates/default/cv.tex.j2`, `\resumeParagraph`).
 | `certifications` | `[{name, issuer, credential_id, url}]` | Any field except `name` may be empty |
 | `education` | `[{school, degree, location, start, end}]` | |
 | `volunteering` | same shape as `roles` | Only when the generator selects it |
