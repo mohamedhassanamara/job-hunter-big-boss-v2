@@ -290,13 +290,15 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     short, full = school(pool)
     cfg = linkedin.linkedin_settings(s)
     language = email_language(s, job, app)
-    max_chars = (int(cfg["note_max_chars"]) if kind == "note"
+    max_chars = (min(int(cfg["note_max_chars"]), lc.NOTE_HARD_MAX) if kind == "note"
                  else int(cfg["inmail_max_chars"]) if kind == "inmail" else FOLLOWUP_MAX_CHARS)
     warm = row.source == "viewed_profile"
     first = person.first_name or person.full_name.split(" ")[0]
     alumni = bool(row.alumni)
     group = LinkedInGroup(row.group)
     angle = "alumni" if alumni and group == LinkedInGroup.peer else ANGLE[group]
+    if angle == "lead" and group == LinkedInGroup.peer and kind == "note":
+        angle = "peer"  # a developer peer: connect on the work, never a call, CV or referral
     job_text = f"{job.title}\n{job.description or ''}"
     tools = matching_tools(pool, job_text)
     years = max((int(f["years"]) for f in facts), default=None)

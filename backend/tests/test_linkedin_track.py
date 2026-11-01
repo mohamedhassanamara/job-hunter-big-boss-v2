@@ -257,3 +257,29 @@ def test_the_panel_names_the_model_that_really_drafts(seeded: None, client) -> N
         s.flush()
         assert _drafting_model(s) == "Claude"
         s.rollback()
+
+
+def test_notes_never_pass_280_characters_whatever_the_setting(seeded: None) -> None:
+    long = "Hi Lea, " + "I build data pipelines. " * 14 + "Could we talk?"
+    assert 280 < len(long) <= 400
+    found = lc.check(long, ctx(max_chars=300))
+    assert "length" in {v["type"] for v in found if v["severity"] == "error"}
+    with Session(engine) as s:
+        app, _ = job_with_people(s)
+        for title, group in (("Head of Data", LinkedInGroup.lead),
+                             ("Senior Developer", LinkedInGroup.peer),
+                             ("Recruiter", LinkedInGroup.recruiter)):
+            row = lt.add(s, app, full_name=f"P {title}", title=title, linkedin_url=None,
+                         group=group)
+            s.commit()
+            note = lt.draft_note(engine, row.id, MockLinkedInDrafter()).note["text"]
+            assert len(note) <= 280
+
+
+@pytest.mark.parametrize("word", ["CV", "resume", "interview", "call", "referral"])
+def test_a_peer_note_never_asks_for_a_cv_a_call_or_a_referral(seeded: None, word: str) -> None:
+    text = f"Hi Lea, I applied for the role and can send my {word}."
+    peer = {v["type"] for v in lc.check(text, ctx(group="peer")) if v["severity"] == "error"}
+    assert "peer_ask" in peer
+    clean = "Hi Lea, saw your engineering work at Acme. I applied for the Data Engineer opening."
+    assert not lc.check(clean, ctx(group="peer"))

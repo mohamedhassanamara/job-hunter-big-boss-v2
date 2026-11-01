@@ -45,6 +45,9 @@ _VIEWED = re.compile(
 _GREETING = re.compile(r"^\W*(?:hi|hello|hey|dear|good (?:morning|afternoon|evening)|bonjour|"
                        r"bonsoir|salut|hola|hallo)\b", re.I)
 SUBJECT_MAX_CHARS = 80
+NOTE_HARD_MAX = 280  # a connection note never goes past this, whatever Settings says
+_PEER_ASK = re.compile(r"\b(?:cvs?|resumes?|r[ée]sum[ée]s?|interviews?|calls?|referrals?|refer)\b",
+                       re.I)
 INMAIL_MIN_CHARS = 250
 _EASY_ASK = re.compile(r"\b(?:cv|resume|résumé|send|share|envoyer|partager)\b", re.I)
 _CHAT = re.compile(r"\b(?:chat|call|talk|coffee|minutes|échanger|échange|appel|discuter)\b", re.I)
@@ -87,7 +90,10 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
     n = len(text)
     if not text:
         return [violation("empty", "The message is empty", "body", "error")]
-    if n > ctx.max_chars:
+    if ctx.kind == "note" and n > NOTE_HARD_MAX and ctx.max_chars > NOTE_HARD_MAX:
+        out.append(violation("length", f"{n} characters: a note never exceeds {NOTE_HARD_MAX}",
+                             "body", "error"))
+    elif n > ctx.max_chars:
         out.append(violation("length", f"{n} characters: the limit is {ctx.max_chars}"
                              + (" in a connection note" if ctx.kind == "note" else
                                 " for this InMail (Settings → LinkedIn)" if ctx.kind == "inmail"
@@ -103,7 +109,7 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
                              "body"))
     if _URL.search(text):
         out.append(violation("link", "No links in the message", "body", "error"))
-    if "?" not in text and not _ASK_WORDS.search(text):
+    if ctx.group != "peer" and "?" not in text and not _ASK_WORDS.search(text):
         out.append(violation("ask", "End with a simple ask (a question, or “I've attached my "
                              "CV, would you take a look?”)", "body"))
     if "!" in text:
@@ -229,6 +235,11 @@ def _group_rules(text: str, ctx: Context) -> list[dict[str, str]]:
                                  "body"))
         if ctx.kind in ("note", "inmail") and not _ADVICE.search(text):
             out.append(violation("ask", "Ask an alumnus for advice or a referral", "body"))
+    elif ctx.group == "peer":
+        if m := _PEER_ASK.search(text):
+            out.append(violation("peer_ask", f"“{m.group(0)}”: never ask a developer peer for a "
+                                 "call, a referral or to look at your CV; connect on their "
+                                 "work", "body", "error"))
     elif ctx.kind in ("note", "inmail") and not _CHAT.search(text):
         out.append(violation("ask", "Ask a team lead for a short chat", "body"))
     return out
