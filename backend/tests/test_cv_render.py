@@ -182,3 +182,27 @@ def test_paragraph_entry_takes_the_height_of_a_bulleted_entry(tmp_path: Path, mi
 def test_paragraph_compiles(tmp_path: Path) -> None:
     tex = _tex_with([CVRole(title="E", org="A", bullets=["Delivered x. " * 20])])
     assert compile_tex(tex, tmp_path, "p").ok
+
+
+@needs_latex
+def test_a_collapsed_entry_is_shorter_than_its_bullets(tmp_path: Path) -> None:
+    """The point of collapsing: the same facts as one paragraph take less height than as bullets."""
+    import pymupdf
+
+    from app.services.cv_build import join_paragraph
+
+    facts = ["Built the ingestion layer for 40 sources.", "Cut warehouse cost by a third.",
+             "Shipped the dashboards to the whole team."]
+    doc, profile = sample()
+
+    def next_entry_y(bullets: list[str], name: str) -> float:
+        roles = [CVRole(title="Alpha", org="OrgA", bullets=bullets),
+                 CVRole(title="Beta", org="OrgB", bullets=["Built B.", "Built C."])]
+        tex = render_tex(doc.model_copy(update={"roles": roles, "projects": []}), profile,
+                         load_template("default"))
+        result = compile_tex(tex, tmp_path, name)
+        assert result.ok
+        with pymupdf.open(result.pdf_path) as pdf:
+            return next(w[1] for w in pdf[0].get_text("words") if w[4] == "Beta")
+
+    assert next_entry_y([join_paragraph(facts)], "c") < next_entry_y(facts, "b")

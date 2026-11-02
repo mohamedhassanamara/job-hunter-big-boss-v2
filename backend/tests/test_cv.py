@@ -21,7 +21,7 @@ from app.providers.base import (
 )
 from app.providers.claude_cv import ClaudeCVGenerator, plan_schema
 from app.providers.mock import MockCVGenerator
-from app.services import cv_build, cv_service
+from app.services import cv_build, cv_rules, cv_service
 from app.services.cv_build import FitState, build_document, fit_to_page, initial_state
 from app.services.cv_check import check_plan
 from app.services.cv_pool import load_pool, prompt_pool, readiness
@@ -362,3 +362,59 @@ def test_a_collapsed_project_may_be_one_paragraph_but_a_plain_one_never_one_bull
     assert key not in hidden.collapsed  # a collapse only applies to a shown entry
     doc = build_document(plan, pool, FitState(counts={key: 2}, collapsed={key}))
     assert len(doc.projects) == 1 and len(doc.projects[0].bullets) == 1
+
+
+def paragraph_compiler(capacity: int, calls: list):
+    """Like fake_compiler, but a paragraph is 3 lines however many facts it joins (a bullet: 2)."""
+    def compile_tex(tex: str, out_dir: Path, name: str = "cv") -> CompileResult:
+        lines = (tex.count(r"\resumeItem{") * 2 + tex.count(r"\resumeParagraph{") * 3
+                 + tex.count(r"\section{") * 2 + 4)
+        calls.append(lines)
+        pages = 1 + (lines - 1) // capacity
+        fill = (lines - (pages - 1) * capacity) / capacity
+        return CompileResult(True, out_dir / f"{name}.pdf", pages, fill)
+    return compile_tex
+
+
+def test_collapse_goes_by_relevance_project_first_on_a_tie_and_spares_the_current_role(
+        pool) -> None:  # noqa: ANN001
+    plan = plan_for(pool)
+    lay = cv_build.layout(plan, pool)
+    entries = cv_build._entries(plan)
+    state = FitState(counts={k: 3 for k, _e, _keep in entries})
+    low = next(e for k, e, keep in entries if keep)
+    low.relevance = 1  # the lowest of all
+    expected = cv_build._key("role", low)
+    order = []
+    while cv_build.collapse_one(plan, pool, state, lay):
+        order.append(next(k for k in state.collapsed if k not in order))
+    assert len(order) == len(set(order))
+    current = [k for k, e, keep in entries if keep and cv_rules.role_type(
+        pool.get(e.item_id), lay.rules) == "current"]
+    assert not set(current) & state.collapsed  # never the current role
+    if expected not in current:
+        assert order[0] == expected
+    rel = {k: e.relevance for k, e, _keep in entries}
+    assert [rel[k] for k in order] == sorted(rel[k] for k in order)  # lowest relevance first
+
+
+def test_overflow_collapses_before_dropping_a_project_or_cutting_a_role(
+        pool, monkeypatch, tmp_path) -> None:  # noqa: ANN001
+    plan = plan_for(pool)
+    profile, template = CVProfile(full_name="Ada"), load_template("default")
+    calls: list = []
+    monkeypatch.setattr(cv_build, "compile_tex", paragraph_compiler(capacity=10_000, calls=calls))
+    base = fit_to_page(plan, pool, profile, template, tmp_path)
+    full = calls[0]  # lines of the first (initial-state) render
+    shown_projects = len(base.document.projects)
+    # one page that is a few lines too small for the initial layout
+    calls.clear()
+    monkeypatch.setattr(cv_build, "compile_tex",
+                        paragraph_compiler(capacity=full - 1, calls=calls))
+    plan = plan_for(pool)
+    result = fit_to_page(plan, pool, profile, template, tmp_path)
+    assert result.compiled.pages == 1
+    assert result.state.collapsed  # tried before the short summary or any entry was dropped
+    assert not result.state.short_summary
+    assert len(result.document.projects) == shown_projects
+    assert len(result.document.roles) == len(pool.of("job"))

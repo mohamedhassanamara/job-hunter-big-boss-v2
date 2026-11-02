@@ -9,8 +9,10 @@ Underfill (below the fill target, 98%): add the next strongest bullet within the
 beyond them; then, still under target, the rated leftovers (`plan.extras`) one at a time in
 relevance order, each checked first (`fill_by_relevance`); a CV that can't reach the target stays
 shorter rather than padded.
-Overflow, in order: trim entries back to their minimum → drop the weaker project → the short
-summary → drop volunteering → below the minimums (roles keep one bullet, projects never one).
+Overflow, in order: trim entries back to their minimum → collapse entries into one paragraph
+(lowest relevance first, a project before a role on a tie, never the current role: the facts stay,
+only the bullet layout goes) → drop the weaker project → the short summary → drop volunteering →
+below the minimums (roles keep one bullet, projects never one).
 """
 
 import math
@@ -342,6 +344,24 @@ def shrink(plan: CVPlan, state: FitState, n: int, lay: Layout, floor: bool = Tru
     return removed
 
 
+def collapse_one(plan: CVPlan, pool: Pool | None, state: FitState, lay: Layout) -> bool:
+    """Join the bullets of the least relevant entry still showing 2+ into one paragraph. The
+    kind of entry has no tier of its own: lowest relevance first, a project (or volunteering)
+    before a role on a tie. The current role is never collapsed. True when one was collapsed."""
+    candidates = []
+    for k, e, keep in _entries(plan):
+        if k in state.collapsed or state.counts.get(k, 0) < 2:
+            continue
+        item = pool.get(e.item_id) if pool else None
+        if keep and item is not None and cv_rules.role_type(item, lay.rules) == "current":
+            continue
+        candidates.append((e.relevance, 1 if keep else 0, k))
+    if not candidates:
+        return False
+    state.collapsed.add(min(candidates)[2])
+    return True
+
+
 def drop_entry(plan: CVPlan, state: FitState, kind: str) -> bool:
     """Remove the least relevant visible project (or volunteering entry)."""
     candidates = [(e.relevance, k) for k, e, keep in _entries(plan)
@@ -598,6 +618,8 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
             need = max(1, math.ceil(overflow_lines / LINES_PER_BULLET))
             is_minor = overflow_lines < 3.0
             removed = shrink(plan, state, need, lay, floor=True)
+            while removed < need and collapse_one(plan, pool, state, lay):
+                removed += 1  # the facts stay; a paragraph saves part of a bullet's space
             while removed < need and stage < 5:
                 if stage == 0:
                     stage = 1
