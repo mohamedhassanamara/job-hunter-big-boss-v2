@@ -41,14 +41,6 @@
   \item\small{#1}
 }
 
-% A role/project with ONE point reads as a justified narrative paragraph: no bullet, no indent.
-\newcommand{\resumeParagraph}[1]{%
-  \par\vspace{2pt}%
-  {\small\linespread{1.2}\selectfont\setlength{\parindent}{0pt}\rightskip=0pt\relax
-   \noindent #1\par}%
-  \vspace{2pt}%
-}
-
 \newcommand{\resumeSubheading}[4]{
   \item
     \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
@@ -69,11 +61,15 @@
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=2.2pt plus 1.5pt minus 0.5pt, topsep=2.5pt plus 1.5pt minus 1pt, parsep=0pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}}
+% ONE point = a justified paragraph (no bullet, no indent). Same list parameters as the bullet
+% list above, so it takes exactly the vertical space of a bulleted entry.
+\newcommand{\resumeParagraph}[1]{\begin{itemize}[leftmargin=0pt, label={}, itemsep=0pt, topsep=2.5pt plus 1.5pt minus 1pt, parsep=0pt]\item\small\setlength{\parindent}{0pt}\rightskip=0pt\relax #1\end{itemize}}
 \BLOCK{else}
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0pt, label={}, itemsep=4pt plus 2pt minus 1pt, topsep=2pt plus 1pt]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=14pt, itemsep=1.5pt plus 1pt minus 0.5pt, topsep=2pt plus 1pt minus 1pt, parsep=0pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}}
+\newcommand{\resumeParagraph}[1]{\begin{itemize}[leftmargin=0pt, label={}, itemsep=0pt, topsep=2pt plus 1pt minus 1pt, parsep=0pt]\item\small\setlength{\parindent}{0pt}\rightskip=0pt\relax #1\end{itemize}}
 \BLOCK{endif}
 
 \#{ ---------------------------------------------------------------- macros }

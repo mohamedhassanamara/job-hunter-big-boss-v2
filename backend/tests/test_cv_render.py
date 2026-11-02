@@ -1,6 +1,7 @@
 """CV templates: style golden test, escaping, optional header fields, empty sections."""
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -137,12 +138,44 @@ def test_single_point_renders_as_a_paragraph_and_several_as_bullets(template: st
     assert r"\resumeParagraph{" not in multi
 
 
-def test_paragraph_style_is_unindented_justified_and_tight() -> None:
+def test_paragraph_style_is_unindented_justified_and_uses_the_bullet_list_spacing() -> None:
     tex = _tex_with([CVRole(title="E", org="A", bullets=["One."])])
-    macro = tex[tex.index(r"\newcommand{\resumeParagraph}"):].split("\n\n")[0]
+    macro = tex[tex.index(r"\newcommand{\resumeParagraph}"):].split("\n")[0]
     assert r"\parindent}{0pt}" in macro and r"\rightskip=0pt" in macro
-    assert r"\linespread{1.2}" in macro and r"\vspace{2pt}" in macro
-    assert r"\item" not in macro  # no bullet marker
+    assert "parsep=0pt" in macro and "itemsep=0pt" in macro and "leftmargin=0pt" in macro
+    assert r"\linespread" not in macro and r"\vspace" not in macro
+    assert not re.search(r"\\par(?![a-z])", macro)
+    bullet_list = tex[tex.index(r"\newcommand{\resumeItemListStart}"):].split("\n")[0]
+    topsep = lambda line: line.split("topsep=")[1].split(",")[0].rstrip("]}")  # noqa: E731
+    assert topsep(macro) == topsep(bullet_list)  # same space above as a bullet list
+
+
+@needs_latex
+@pytest.mark.parametrize("micro", [False, True])
+def test_paragraph_entry_takes_the_height_of_a_bulleted_entry(tmp_path: Path, micro: bool) -> None:
+    """Same text, same line count: a one-point paragraph entry must start the next entry at the
+    same height as the one-bullet itemize it replaces (no inflated gaps)."""
+    import pymupdf
+
+    text = "Shipped it."  # one line either way
+    doc, profile = sample()
+    roles = [CVRole(title="Alpha", org="OrgA", bullets=[text]),
+             CVRole(title="Beta", org="OrgB", bullets=["Built B.", "Built C."])]
+    doc = doc.model_copy(update={"roles": roles, "projects": []})
+    tpl = load_template("default")
+    para = render_tex(doc, profile, tpl, micro_spacing=micro)
+    as_list = para.replace(r"\resumeParagraph{" + text + "}",
+                           r"\resumeItemListStart\resumeItem{" + text + r"}\resumeItemListEnd")
+    assert as_list != para
+
+    def beta_minus_alpha(tex: str, name: str) -> float:
+        result = compile_tex(tex, tmp_path, name)
+        assert result.ok
+        with pymupdf.open(result.pdf_path) as pdf:
+            y = {w[4]: w[1] for w in pdf[0].get_text("words") if w[4] in ("Alpha", "Beta")}
+        return y["Beta"] - y["Alpha"]
+
+    assert abs(beta_minus_alpha(para, "p") - beta_minus_alpha(as_list, "l")) < 0.5
 
 
 @needs_latex
