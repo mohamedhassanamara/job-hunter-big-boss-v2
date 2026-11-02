@@ -27,6 +27,7 @@ export type TourId =
   | 'letter'
   | 'interview'
   | 'glossary'
+  | 'visibility'
   | 'listing-flags'
   | 'questions'
   | 'copilot'
@@ -210,6 +211,16 @@ export const TOURS: Record<TourId, Tour> = {
     steps: [
       { target: 'listing-flags', title: 'Read in code, no model', body: 'Three hints from the listing itself: no salary or pay range anywhere in the text, hype wording that stands in for the work (rockstar, ninja, "like a family"), and a posting older than 90 days (it may be filled, or an evergreen ad). A truncated listing can never prove a missing salary, so that flag waits for the full description.', placement: 'left' },
       { target: 'listing-flags', title: 'Hints, not verdicts', body: 'They never change the fit score and never hide a job: a missing salary is normal in some countries, and an old ad may still be open. They are there so you ask the right question before you spend an application on it.', placement: 'left' },
+    ],
+  },
+  visibility: {
+    id: 'visibility',
+    title: 'Visibility on documents',
+    description: 'Hide your phone number or location on what you send',
+    resolveRoute: async () => '/settings?section=candidate',
+    steps: [
+      { target: 'settings-visibility', title: 'Two independent switches', body: 'Show phone number and Show location each decide what your CV header, cover letters and email signature print. Both are on until you turn them off, and the email signature phone also needs its own switch in Settings → Email.', placement: 'left' },
+      { target: 'settings-visibility', title: 'Display only', body: 'Fit scoring, country matching and every check keep using the values you saved in Candidate. A hidden location is also kept out of what the cover letter may say about you. Existing drafts keep their old header until you press Refresh headers on the Review CVs page; locked CVs never change.', placement: 'left' },
     ],
   },
   glossary: {

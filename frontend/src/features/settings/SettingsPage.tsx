@@ -16,6 +16,7 @@ import {
 import { CVSettingsSection, TemplatesSection } from './CVSections'
 import { CVWritingSection } from './CVWritingSection'
 import { CandidateSection, ScoringSection } from './ScoringSections'
+import { VisibilityCard } from './VisibilityCard'
 import { ContactsSection } from './ContactsSection'
 import { CoverLetterSection } from './CoverLetterSection'
 import { WritingSection } from './WritingSection'
@@ -79,7 +80,10 @@ export default function SettingsPage() {
                 <Skeleton className="h-64" />
               </div>
             ) : section === 'candidate' ? (
-              <CandidateSection key={JSON.stringify(settings.data.values.profile)} settings={settings.data} />
+              <div className="space-y-6">
+                <CandidateSection key={JSON.stringify(settings.data.values.profile)} settings={settings.data} />
+                <VisibilityCard key={`v-${JSON.stringify(settings.data.values.output_visibility)}`} settings={settings.data} />
+              </div>
             ) : section === 'scoring' ? (
               <ScoringSection key={JSON.stringify(settings.data.values.scoring)} settings={settings.data} />
             ) : section === 'cv' ? (
