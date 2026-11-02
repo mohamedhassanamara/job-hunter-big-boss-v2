@@ -193,6 +193,8 @@ Undo restores `before` (and is itself a row).
 | result_id | int | The CV version or the draft it produced |
 Inserted in-session by `services/generation` hooks (`pipeline.transition`, CV approval, a contact becoming verified), run by one worker thread (real workspace only), recovered at startup (running → queued). Settings: `app_setting.generation = {auto_cv, auto_email}`; `models.cv` / `models.email` = `{provider, model, thinking_level}`.
 
+`app_setting.output_visibility = {show_phone, show_location}` (both true by default; a missing key means shown). Display only: `cv_pool.load_pool` carries it on `Pool.visibility`, `cv_profile` blanks the hidden field for the CV and letter header, the French letter place line and the letter's candidate facts, and `outreach.full_body` hides the signature phone. Hiding can never reveal the phone while the email signature's own `show_contacts`/`show_phone` are off. Scoring, matching and the checkers read `profile.phone`/`based_in` directly and ignore it; saving it never runs `recompute_all`.
+
 ### scoring_run / scoring_task (persistent queue)
 | Table | Columns | Notes |
 |---|---|---|

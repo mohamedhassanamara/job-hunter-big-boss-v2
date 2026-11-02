@@ -191,6 +191,7 @@ versions; Mark applied can record either (both locked).
   same isolation and subscription check as the CV). Input: the listing, the approved CV's items, the years facts
   (exact statement, and its French wording), the language, the writing guide and banned phrases. Output: 3-4
   paragraphs of cited sentences (or sentences marked as about the listing) and one closing ask.
+- **Visibility on documents** (Settings → Candidate): two switches, Show phone number and Show location, both on by default. They only change what is printed (CV and letter header, the place on French letters, the email signature phone); a hidden location is also kept out of what a letter may state. Fit scoring and country matching keep using the stored values. Existing drafts keep their old header until Review CVs → Refresh headers; locked CVs never change.
 - **Language:** the listing's (a stop-word vote, `services/text.detect_language`), or Settings → Cover letter, or
   the job's own choice in the studio ("Language of the next letter").
 - **Code adds** the CV template's header, the place and date in the letter's language ("Tunis, le 30 septembre

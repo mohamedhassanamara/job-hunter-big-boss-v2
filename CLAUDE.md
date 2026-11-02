@@ -376,6 +376,10 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Contact ranking: `contacts.exclude_keywords` (default business development, sales, account) is injected into every
   group by `with_exclude`, so `rank()` skips titles containing them.
 
+## Visibility on documents (services/visibility.py)
+
+- `app_setting.output_visibility = {show_phone, show_location}` (default both true, Settings → Candidate) is print-only. Apply it where a document is built (`cv_pool.cv_profile`, the letter place line and `_facts_text`/`LetterRequest.candidate`, `outreach.signature_block(show_phone=)`), never to `pool.profile`: scoring, matching, `outreach._places`, the verifier and `check_private` need the real values. It can only hide, never reveal what the email signature settings keep off. It never triggers `recompute_all` or a rescore; the Refresh headers button is the only way to update existing drafts.
+
 ## Honesty and LinkedIn readers
 
 - `search_profile.tracks[].experience` is `professional` | `projects`. `services/honesty.py` flags years attached to a
