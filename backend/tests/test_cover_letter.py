@@ -670,3 +670,53 @@ def test_the_sandbox_has_a_letter_and_answers_for_the_tours(seeded: None, client
     assert len(with_letter) == 1
     answers = client.get(f"/api/applications/{with_letter[0]['application_id']}/answers").json()
     assert len(answers) == 2 and all(a["sentences"] for a in answers)
+
+
+def _set_profile_and_visibility(*, show_location: bool, show_phone: bool = True) -> None:
+    with Session(engine) as s:
+        for key, patch in (("profile", {"based_in": "Tunis, Tunisia", "phone": "+216 11 222 333"}),
+                           ("output_visibility", {"show_location": show_location,
+                                                  "show_phone": show_phone})):
+            row = s.exec(select(AppSetting).where(AppSetting.key == key)).first() \
+                or AppSetting(key=key, value={})
+            row.value = {**(row.value or {}), **patch}
+            s.add(row)
+        s.commit()
+
+
+@pytest.mark.parametrize("show_location", [True, False])
+def test_location_visibility_on_the_letter(web_job: dict, show_location: bool) -> None:
+    """Header, the French place line and the model's candidate facts follow the setting."""
+    _set_profile_and_visibility(show_location=show_location)
+    try:
+        drafter = Script(good_plan(web_job))
+        letter = cl.generate(engine, web_job["app"], drafter)
+        request = drafter.requests[0]
+        assert ("Tunis, Tunisia" in letter.tex) is show_location  # header line
+        assert ("Tunis, le " in letter.tex) is show_location  # French place and date
+        assert request.candidate["based_in"] == ("Tunis, Tunisia" if show_location else "")
+        with Session(engine) as s:
+            facts = cl._facts_text(load_pool(s))
+        assert ("Tunis" in facts) is show_location
+        assert "+216 11 222 333" in letter.tex  # phone is its own switch
+    finally:
+        _set_profile_and_visibility(show_location=True)
+        with Session(engine) as s:
+            row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
+            row.value = {**row.value, "based_in": "", "phone": ""}
+            s.add(row)
+            s.commit()
+
+
+def test_phone_hidden_leaves_it_off_the_letter_header(web_job: dict) -> None:
+    _set_profile_and_visibility(show_location=True, show_phone=False)
+    try:
+        letter = cl.generate(engine, web_job["app"], Script(good_plan(web_job)))
+        assert "+216 11 222 333" not in letter.tex and "Tunis, Tunisia" in letter.tex
+    finally:
+        _set_profile_and_visibility(show_location=True)
+        with Session(engine) as s:
+            row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
+            row.value = {**row.value, "based_in": "", "phone": ""}
+            s.add(row)
+            s.commit()

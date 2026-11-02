@@ -199,7 +199,9 @@ def _facts_text(pool: Pool, authorization: bool = False, reason: str = "") -> st
     p = pool.profile
     langs = ", ".join(f"{x.get('language')} ({x.get('level')})" for x in p.get("languages") or [])
     auth = _AUTHORIZATION.get(p.get("work_authorization") or "", "") if authorization else ""
-    return " ".join(x for x in (p.get("based_in") or "", p.get("nationality") or "", auth,
+    # Hidden location (Settings → Candidate → Visibility): the letter may not state it either.
+    where = (p.get("based_in") or "") if pool.visibility["show_location"] else ""
+    return " ".join(x for x in (where, p.get("nationality") or "", auth,
                                 langs, reason.strip()) if x)
 
 
@@ -255,7 +257,8 @@ def build_request(s: Session, app: Application, cv: CVVersion, pool: Pool, langu
     return LetterRequest(
         job={"title": job.title, "company": company.name, "location": job.location,
              "description": (job.description or "")[:8000]},
-        candidate={"based_in": profile.get("based_in", ""),
+        candidate={"based_in": profile.get("based_in", "")
+                   if pool.visibility["show_location"] else "",
                    "work_authorization": profile.get("work_authorization", "")
                    if ctx_words.mention_authorization else None,
                    "company_reason": ctx_words.company_reason or None,
@@ -331,7 +334,8 @@ def document(s: Session, letter: CoverLetter, pool: Pool) -> LetterDocument:
     contact = s.get(Contact, app.contact_id) if app.contact_id else None
     fr = letter.language == "fr"
     day = format_date((letter.created_at or utcnow()).date(), letter.language)
-    city = (pool.profile.get("based_in") or "").split(",")[0].strip()
+    city = ((pool.profile.get("based_in") or "").split(",")[0].strip()
+            if pool.visibility["show_location"] else "")
     place_date = (f"{city}, le {day}" if city else day) if fr else day
     attention = ""
     if contact:
