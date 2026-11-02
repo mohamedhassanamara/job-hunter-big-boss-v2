@@ -47,17 +47,44 @@ class FitState:
     counts: dict[str, int] = field(default_factory=dict)  # "role:12" → visible bullets
     short_summary: bool = False
     micro_spacing: bool = False
+    # Entry keys ("role:12", "project:7") whose shown bullets are joined into one paragraph.
+    collapsed: set[str] = field(default_factory=set)
 
     def to_dict(self) -> dict[str, Any]:
         return {"counts": dict(self.counts), "short_summary": self.short_summary,
-                "micro_spacing": self.micro_spacing}
+                "micro_spacing": self.micro_spacing, "collapsed": sorted(self.collapsed)}
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "FitState":
         data = data or {}
         return cls(counts=dict(data.get("counts") or {}),
                    short_summary=bool(data.get("short_summary")),
-                   micro_spacing=bool(data.get("micro_spacing")))
+                   micro_spacing=bool(data.get("micro_spacing")),
+                   collapsed=set(data.get("collapsed") or []))
+
+
+PARAGRAPH_MAX_WORDS = 60
+
+
+def join_paragraph(texts: list[str], max_words: int = PARAGRAPH_MAX_WORDS) -> str:
+    """One entry's shown bullets as a single paragraph: the bullet texts as they are (the pool's
+    own words, or your edits), in rank order, each ended with a full stop and joined by a space.
+    Bullets are added while the paragraph stays within `max_words`; the first always goes in."""
+    parts: list[str] = []
+    words = 0
+    for text in (t.strip() for t in texts):
+        if not text:
+            continue
+        n = len(text.split())
+        if parts and words + n > max_words:
+            break
+        parts.append(text if text[-1] in ".!?" else text + ".")
+        words += n
+    return " ".join(parts)
+
+
+def _paragraph(texts: list[str], key: str, state: FitState) -> list[str]:
+    return [join_paragraph(texts)] if key in state.collapsed and len(texts) > 1 else texts
 
 
 def _key(kind: str, entry: PlanEntry) -> str:
@@ -134,9 +161,10 @@ def clamp(plan: CVPlan, state: FitState, lay: Layout) -> FitState:
             count = min(out.counts.get(key, 0), hi)
             if kind == "role":
                 count = max(count, 1)
-            elif kind == "project" and count == 1:
-                count = 0
+            elif kind == "project" and count == 1 and key not in out.collapsed:
+                count = 0  # a lone fact is a paragraph only when the entry was collapsed
             out.counts[key] = count
+    out.collapsed = {k for k in out.collapsed if out.counts.get(k, 0) > 0}  # only shown entries
     for kind, cap, entries in (("project", int(lay.rules["projects_max"]), plan.projects),
                                ("volunteering", int(lay.rules["volunteering_max"]),
                                 plan.volunteering)):
@@ -213,7 +241,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         bullets = _visible(e, key, state.counts.get(key, 1), overrides, keep_one=True, pool=pool)
         roles.append(CVRole(item_id=item.id, title=item.title, org=item.org or "",
                             location=item.location or "", start=start, end=end,
-                            bullets=[t for _, t in bullets]))
+                            bullets=_paragraph([t for _, t in bullets], key, state)))
     projects = []
     for p in plan.projects:
         item = pool.get(p.item_id, "project")
@@ -223,13 +251,15 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         count = state.counts.get(key, 0)
         if count <= 0 and key not in forced_in:
             continue
-        bullets = _visible(p, key, max(count, 2), overrides, keep_one=False, pool=pool)
-        if len(bullets) < 2 and key not in forced_in:
-            continue  # never a 1-bullet project
+        collapsed = key in state.collapsed
+        bullets = _visible(p, key, count if collapsed else max(count, 2), overrides,
+                           keep_one=False, pool=pool)
+        if len(bullets) < 2 and key not in forced_in and not collapsed:
+            continue  # never a 1-bullet project (a collapsed one is a paragraph, not a bullet)
         stack = [_spell(x, pool) for x in (list(p.stack) or item.tags)[:max_stack]]
         projects.append(CVProject(item_id=item.id, name=item.title,
                                   stack=stack, label=item.org or "",
-                                  bullets=[t for _, t in bullets]))
+                                  bullets=_paragraph([t for _, t in bullets], key, state)))
     volunteering = []
     for v in plan.volunteering:
         item = pool.get(v.item_id, "volunteering")
@@ -242,7 +272,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
                            pool=pool)
         volunteering.append(CVRole(item_id=item.id, title=item.title, org=item.org or "",
                                    location=item.location or "", start=start, end=end,
-                                   bullets=[t for _, t in bullets]))
+                                   bullets=_paragraph([t for _, t in bullets], key, state)))
     certs = [i for i in plan.certification_ids if f"cert:{i}" not in forced_out]
     certs += [int(k.split(":")[1]) for k in forced_in
               if k.startswith("cert:") and int(k.split(":")[1]) not in certs]

@@ -11,7 +11,14 @@ from sqlmodel import Session, select
 
 from app.db import engine
 from app.models import Application, AppSetting, CVVersion, ExperienceItem
-from app.providers.base import CVGenerationFailed, CVPlan, CVRequest, PlanBullet, PlanEntry
+from app.providers.base import (
+    CVGenerationFailed,
+    CVPlan,
+    CVRequest,
+    PlanBullet,
+    PlanEntry,
+    PlanProject,
+)
 from app.providers.claude_cv import ClaudeCVGenerator, plan_schema
 from app.providers.mock import MockCVGenerator
 from app.services import cv_build, cv_service
@@ -291,3 +298,67 @@ def test_experience_items_keep_their_new_fields(client) -> None:  # noqa: ANN001
     assert item["credential_id"] == "ID-1" and item["url"] == "https://example.com/c/1"
     with Session(engine) as s:
         assert s.get(ExperienceItem, item["id"]).credential_id == "ID-1"
+
+
+# ------------------------------------------------------------ collapse: bullets → one paragraph
+
+
+def test_join_paragraph_keeps_the_texts_ends_sentences_and_caps_the_words() -> None:
+    assert cv_build.join_paragraph(["Built A", "Shipped B.", "  ", "Ran C!"]) == (
+        "Built A. Shipped B. Ran C!")
+    long = " ".join(["word"] * 40)
+    assert cv_build.join_paragraph([long, long], max_words=60) == long + "."  # 2nd would pass 60
+    assert cv_build.join_paragraph([long + " " + long], max_words=10).endswith(".")  # first stays
+    assert cv_build.join_paragraph([]) == ""
+
+
+def test_fit_state_round_trips_collapsed_and_old_states_load() -> None:
+    state = FitState(counts={"role:1": 2}, collapsed={"role:1", "project:3"})
+    assert FitState.from_dict(state.to_dict()).collapsed == {"role:1", "project:3"}
+    assert FitState.from_dict({"counts": {"role:1": 2}}).collapsed == set()
+
+
+def test_a_collapsed_entry_shows_its_bullets_as_one_paragraph(pool) -> None:  # noqa: ANN001
+    plan = plan_for(pool)
+    role = next(r for r in plan.roles if len(r.bullets) >= 2)
+    key = f"role:{role.item_id}"
+    state = FitState(counts={**initial_state(plan).counts, key: 2})
+
+    def shown(st: FitState, overrides: dict | None = None) -> list[str]:
+        doc = build_document(plan, pool, st, overrides)
+        return next(r for r in doc.roles if r.item_id == role.item_id).bullets
+
+    plain = shown(state)
+    assert len(plain) == 2
+    collapsed = shown(FitState(counts=state.counts, collapsed={key}))
+    assert collapsed == [cv_build.join_paragraph(plain)]
+    # your edit in CV Studio is what gets joined
+    first = cv_build.ordered(role)[0]
+    edited = shown(FitState(counts=state.counts, collapsed={key}),
+                   {"text": {f"{key}:{first.source_index}": "My own words."}})
+    assert edited[0].startswith("My own words.")
+    # one shown bullet stays as it is (nothing to join)
+    one = shown(FitState(counts={**state.counts, key: 1}, collapsed={key}))
+    assert one == shown(FitState(counts={**state.counts, key: 1}))
+
+
+def test_a_collapsed_project_may_be_one_paragraph_but_a_plain_one_never_one_bullet(
+        pool) -> None:  # noqa: ANN001
+    projects = [p for p in pool.of("project") if len(pool.facts(p)) >= 2]
+    if not projects:
+        pytest.skip("the seed has no project with two facts")
+    item = projects[0]
+    plan = CVPlan(summary="S", summary_short="S", roles=[], education_ids=[],
+                  projects=[PlanProject(item_id=item.id, relevance=9, bullets=[
+                      PlanBullet(source_index=i, text=t, priority=i + 1)
+                      for i, t in enumerate(pool.facts(item))])])
+    key = f"project:{item.id}"
+    lay = cv_build.layout(plan, pool)
+    plain = cv_build.clamp(plan, FitState(counts={key: 1}), lay)
+    assert plain.counts[key] == 0  # the old rule: never a 1-bullet project
+    kept = cv_build.clamp(plan, FitState(counts={key: 1}, collapsed={key}), lay)
+    assert kept.counts[key] == 1 and key in kept.collapsed
+    hidden = cv_build.clamp(plan, FitState(counts={key: 0}, collapsed={key}), lay)
+    assert key not in hidden.collapsed  # a collapse only applies to a shown entry
+    doc = build_document(plan, pool, FitState(counts={key: 2}, collapsed={key}))
+    assert len(doc.projects) == 1 and len(doc.projects[0].bullets) == 1
