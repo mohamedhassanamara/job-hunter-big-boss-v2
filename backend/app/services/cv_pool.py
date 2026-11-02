@@ -13,7 +13,7 @@ from typing import Any
 from sqlmodel import Session, col, select
 
 from app.models import AppSetting, ExperienceItem
-from app.services import glossary
+from app.services import glossary, visibility
 from app.services.cv_render import CVLink, CVProfile
 
 
@@ -37,6 +37,8 @@ class Pool:
     items: dict[int, ExperienceItem]
     profile: dict[str, Any]
     by_kind: dict[str, list[ExperienceItem]] = field(default_factory=dict)
+    # Settings → Candidate → Visibility on documents: print-only flags (see services/visibility)
+    visibility: dict[str, bool] = field(default_factory=lambda: dict(visibility.DEFAULTS))
 
     def of(self, kind: str) -> list[ExperienceItem]:
         return self.by_kind.get(kind, [])
@@ -76,7 +78,7 @@ def load_pool(s: Session) -> Pool:
     ).all()
     row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
     pool = Pool(items={i.id: i for i in items if i.id is not None},
-                profile=dict(row.value) if row else {})
+                profile=dict(row.value) if row else {}, visibility=visibility.load(s))
     for item in items:
         pool.by_kind.setdefault(item.kind, []).append(item)
     # Roles newest first (the CV timeline order), whatever their position on the screen.
@@ -146,8 +148,9 @@ def cv_profile(pool: Pool) -> CVProfile:
     p = pool.profile
     return CVProfile(
         full_name=(p.get("full_name") or "").strip(),
-        location=(p.get("based_in") or "").strip(),
-        phone=(p.get("phone") or "").strip(),
+        # What is printed only: scoring, matching and the checkers read pool.profile itself.
+        location=(p.get("based_in") or "").strip() if pool.visibility["show_location"] else "",
+        phone=(p.get("phone") or "").strip() if pool.visibility["show_phone"] else "",
         email=(p.get("email") or "").strip(),
         links=[CVLink(**{k: str(v or "") for k, v in link.items() if k in ("type", "label", "url")})
                for link in p.get("links") or [] if (link.get("url") or "").strip()],
