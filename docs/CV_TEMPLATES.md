@@ -48,11 +48,13 @@ Undefined variables are errors (`StrictUndefined`).
 | `skills` | `[{category, items[]}]` | Categories in the generator's order; empty ones removed |
 | `roles` | `[{title, org, location, start, end, bullets[]}]` | Every job in the pool, newest first. Each has ≥1 bullet when the pool has facts. `start` / `end` are like `Sep 2025` / `Present`, and either may be empty |
 | `projects` | `[{name, stack[], label, bullets[]}]` | `stack` is capped at `max_stack_items`; `label` is e.g. "Personal project" |
-
-An entry (role or project) with exactly **one** bullet is rendered as a justified narrative paragraph (no bullet marker, zero indent, 1.2 line spacing, 4 pt gap before the next entry); two or more render as an indented bullet list. Custom templates should do the same in their `bullets` macro (see `templates/default/cv.tex.j2`, `\resumeParagraph`).
 | `certifications` | `[{name, issuer, credential_id, url}]` | Any field except `name` may be empty |
 | `education` | `[{school, degree, location, start, end}]` | |
 | `volunteering` | same shape as `roles` | Only when the generator selects it |
+
+An entry (role or project) with exactly **one** bullet is rendered as a justified narrative paragraph: no bullet marker, no indent, and the same vertical spacing as a bulleted entry (it is a one-item list with the bullet list's `topsep` and zero `itemsep`/`parsep`, so a paragraph entry is as tall as the bullet entry with the same number of lines); two or more render as an indented bullet list. Custom templates should do the same in their `bullets` macro (see `templates/default/cv.tex.j2`, `\resumeParagraph`).
+
+The fit loop uses this to save space: when a page overflows, after trimming entries to their minimum and before dropping a project, the short summary or cutting a role to one bullet, it collapses the least relevant entries showing 2+ bullets into one paragraph (`cv_build.collapse_one`: lowest relevance first, a project before a role on a tie, never the current role). The paragraph is the entry's shown bullets joined in rank order (your CV Studio edits applied, at most ~60 words), written by code and never by the model; the facts stay on the CV. Prompt `cv_generate` v14 asks only for ranked, self-contained bullets.
 
 ## Config (`cv.config.yaml`)
 
