@@ -12,6 +12,7 @@ from sqlmodel import Session, select
 from app.db import engine
 from app.models import (
     Application,
+    AppSetting,
     Company,
     Contact,
     CVVersion,
@@ -240,6 +241,30 @@ def test_generate_retries_once_with_the_problems_then_stores_the_draft(job_ready
     with Session(engine) as s:
         body = outreach.full_body(s, s.get(OutreachDraft, draft.id))
     assert "Alex Sample" in body.rstrip().splitlines()[-2:]  # name, then the links line
+
+
+def test_full_body_phone_follows_both_switches(job_ready: dict) -> None:
+    """Contacts + email phone on: the visibility switch decides; off: nothing reveals it."""
+    draft = outreach.generate(engine, job_ready["app"], Script(good_plan(job_ready)))
+
+    def body_with(show_phone: bool) -> str:
+        with Session(engine) as s:
+            visibility = {"show_phone": show_phone, "show_location": True}
+            for key, patch in (("outreach", None), ("output_visibility", visibility)):
+                row = s.exec(select(AppSetting).where(AppSetting.key == key)).one_or_none() \
+                    or AppSetting(key=key, value={})
+                if key == "outreach":
+                    sig = {**(row.value.get("signature") or {}), "phone": "+1 555 0100",
+                           "show_contacts": True, "show_phone": True}
+                    row.value = {**row.value, "signature": sig}
+                else:
+                    row.value = patch
+                s.add(row)
+            s.commit()
+            return outreach.full_body(s, s.get(OutreachDraft, draft.id))
+
+    assert "+1 555 0100" in body_with(True)
+    assert "+1 555 0100" not in body_with(False)
 
 
 def test_a_still_failing_draft_is_kept_with_its_problems_and_cant_be_approved(
@@ -490,6 +515,20 @@ def test_the_signature_ends_with_the_name_unless_contacts_are_on() -> None:
     assert "+1 555" not in block and "linkedin.com/in/alex" in block and "a@x.test" in block
     cfg["signature"]["show_phone"] = True
     assert "+1 555" in outreach.signature_block(cfg, "en", links)
+
+
+def test_document_visibility_can_hide_the_signature_phone_but_never_reveal_it() -> None:
+    sig = {"name": "Alex", "email": "a@x.test", "phone": "+1 555", "show_contacts": True,
+           "show_phone": True}
+    cfg = {"sign_off": "Best regards,", "signature": sig}
+    assert "+1 555" in outreach.signature_block(cfg, "en", "")  # on / on
+    assert "+1 555" in outreach.signature_block(cfg, "en", "", show_phone=True)
+    hidden = outreach.signature_block(cfg, "en", "", show_phone=False)  # visibility off
+    assert "+1 555" not in hidden and "a@x.test" in hidden
+    sig["show_phone"] = False  # the email setting is off: the global switch can't reveal it
+    assert "+1 555" not in outreach.signature_block(cfg, "en", "", show_phone=True)
+    sig["show_phone"], sig["show_contacts"] = True, False  # contacts off: nothing is revealed
+    assert "+1 555" not in outreach.signature_block(cfg, "en", "", show_phone=True)
 
 
 def test_the_phone_toggle_saves_from_settings(client) -> None:  # noqa: ANN001

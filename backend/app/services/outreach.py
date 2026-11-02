@@ -39,7 +39,7 @@ from app.providers.base import (
     SendFailed,
 )
 from app.services import applied_check as ac
-from app.services import get_contact, pipeline
+from app.services import get_contact, pipeline, visibility
 from app.services import intro_check as ic
 from app.services import outreach_check as oc
 from app.services.contacts import ranking_settings
@@ -311,9 +311,11 @@ def candidate_links(cfg: dict[str, Any], profile_links: list[dict[str, Any]]) ->
 
 
 def signature_block(cfg: dict[str, Any], language: str = "en",
-                    links: str = "") -> str:
+                    links: str = "", show_phone: bool = True) -> str:
     """Sign-off, your name, then your links on one line (the email carries no attachment, so
-    this is where they live). Title, email and phone are opt-in (Settings → Email)."""
+    this is where they live). Title, email and phone are opt-in (Settings → Email). `show_phone`
+    is the document-wide switch (Settings → Candidate → Visibility): it can only hide the phone,
+    never reveal one the email settings keep off."""
     sig = cfg["signature"]
     sign_off = (cfg.get("sign_off_fr") if language == "fr" else None) or cfg.get("sign_off") \
         or "Best regards,"
@@ -323,7 +325,7 @@ def signature_block(cfg: dict[str, Any], language: str = "en",
     if sig.get("title"):
         lines.append(sig["title"])
     # The phone number reveals the country code: off unless you turn it on (Settings → Email).
-    phone = sig.get("phone") if sig.get("show_phone") else ""
+    phone = sig.get("phone") if sig.get("show_phone") and show_phone else ""
     reach = " · ".join(x for x in (sig.get("email"), phone) if x)
     if reach:
         lines.append(reach)
@@ -335,7 +337,8 @@ def full_body(s: Session, draft: OutreachDraft) -> str:
     cfg = outreach_settings(s)
     language = (draft.plan or {}).get("language") or "en"
     links = candidate_links(cfg, _setting(s, "profile").get("links") or [])
-    parts = [draft.body.strip(), signature_block(cfg, language, links)]
+    parts = [draft.body.strip(),
+             signature_block(cfg, language, links, visibility.load(s)["show_phone"])]
     opt_out = (cfg.get("opt_out_fr") if language == "fr" else None) or cfg.get("opt_out")
     if opt_out:
         parts.append(opt_out)
