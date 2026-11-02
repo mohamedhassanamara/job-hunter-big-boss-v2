@@ -449,6 +449,7 @@ export interface CVTemplateInfo {
   pages: number | null
   error: string | null
   is_default: boolean
+  warnings: string[]
 }
 
 export interface CVStudio {

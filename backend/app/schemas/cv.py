@@ -53,6 +53,7 @@ class TemplateOut(BaseModel):
     pages: int | None
     error: str | None
     is_default: bool = False
+    warnings: list[str] = []
 
 
 class CVStudio(BaseModel):

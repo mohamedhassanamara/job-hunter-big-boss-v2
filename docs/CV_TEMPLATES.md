@@ -56,6 +56,8 @@ An entry (role or project) with exactly **one** bullet is rendered as a justifie
 
 The fit loop uses this to save space: when a page overflows, after trimming entries to their minimum and before dropping a project, the short summary or cutting a role to one bullet, it collapses the least relevant entries showing 2+ bullets into one paragraph (`cv_build.collapse_one`: lowest relevance first, a project before a role on a tie, never the current role). The paragraph is the entry's shown bullets joined in rank order (your CV Studio edits applied, at most ~60 words), written by code and never by the model; the facts stay on the CV. Prompt `cv_generate` v14 asks only for ranked, self-contained bullets.
 
+A template whose `\resumeParagraph` still uses `\par`, `\vspace` or `\linespread` (the first version, which added ~12 pt around every one-point entry) is flagged: `TemplateStatus.warnings` / `TemplateOut.warnings` (Settings → CV shows it under the template, generating a CV logs it). It is advice only: the template stays valid and usable. Copy `\resumeParagraph` from `templates/default/cv.tex.j2` to clear it.
+
 ## Config (`cv.config.yaml`)
 
 ```yaml

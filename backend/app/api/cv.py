@@ -74,7 +74,7 @@ def _templates(session: Session) -> list[TemplateOut]:
     default = cv_service.cv_settings(session)["default_template"]
     return [TemplateOut(name=t.name, description=t.description, paper=t.paper,
                         builtin=t.builtin, valid=t.valid, pages=t.pages, error=t.error,
-                        is_default=t.name == default)
+                        is_default=t.name == default, warnings=t.warnings)
             for t in cv_templates.list_templates()]
 
 

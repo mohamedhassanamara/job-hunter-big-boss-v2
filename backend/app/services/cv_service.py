@@ -1,6 +1,7 @@
 """CV versions: generate (one Claude call), re-render after user changes (no Claude call),
 lazy PDFs for sandbox versions, download names. Rendering and fitting: cv_build / cv_render."""
 
+import logging
 import re
 import time
 from pathlib import Path
@@ -78,6 +79,8 @@ def _template(name: str | None, s: Session) -> str:
     status = validate(name)
     if not status.valid:
         raise CVError(f"Template '{name}' can't be used yet: {status.error}")
+    for warning in status.warnings:  # advice only: the CV is still made
+        logging.getLogger(__name__).warning("CV template '%s': %s", name, warning)
     return name
 
 

@@ -9,7 +9,7 @@ import hashlib
 import json
 import re
 import shutil
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +36,28 @@ class TemplateStatus:
     pages: int | None
     error: str | None
     hash: str
+    warnings: list[str] = field(default_factory=list)  # advice only: never blocks a template
+
+
+STALE_PARAGRAPH_MESSAGE = (
+    "Its \\resumeParagraph macro is out of date (it uses \\par, \\vspace or \\linespread), so an "
+    "entry with one point gets extra white space around it. Replace it with the one in "
+    "templates/default/cv.tex.j2: a one-item list with the same topsep as your bullet list, "
+    "itemsep and parsep 0pt.")
+
+
+def template_warnings(source: str) -> list[str]:
+    """Non-blocking advice from reading the template text (never a LaTeX run). The old
+    `\\resumeParagraph` (commit 2a92a7c: `\\par` + `\\vspace` + `\\linespread`) inflated every
+    one-point entry by ~12pt; a template copied from the default before the fix still has it."""
+    start = source.find("\\newcommand{\\resumeParagraph}")
+    if start < 0:
+        return []
+    ends = [i for i in (source.find(marker, start + 1)
+                        for marker in ("\n\n", "\n\\newcommand", "\n\\BLOCK")) if i >= 0]
+    macro = source[start:min(ends) if ends else len(source)]
+    return [STALE_PARAGRAPH_MESSAGE] if re.search(
+        r"\\par(?![a-zA-Z])|\\vspace|\\linespread", macro) else []
 
 
 def _hash(path: Path) -> str:
@@ -78,8 +100,9 @@ def validate(name: str, *, force: bool = False) -> TemplateStatus:
     digest = _hash(template.path)
     cache = _cache()
     cached = cache.get(name)
+    warnings = template_warnings((template.path / "cv.tex.j2").read_text())
     if cached and cached.get("hash") == digest and not force:
-        return TemplateStatus(**cached)
+        return TemplateStatus(**{**cached, "warnings": warnings})  # read from the text each time
     errors = check_config(template.config)
     pages = None
     if not errors:
@@ -97,7 +120,7 @@ def validate(name: str, *, force: bool = False) -> TemplateStatus:
     status = TemplateStatus(
         name=name, description=str(template.config.get("description") or ""),
         paper=template.paper, builtin=template.builtin, valid=not errors, pages=pages,
-        error="; ".join(errors) or None, hash=digest,
+        error="; ".join(errors) or None, hash=digest, warnings=warnings,
     )
     cache[name] = asdict(status)
     _save_cache(cache)

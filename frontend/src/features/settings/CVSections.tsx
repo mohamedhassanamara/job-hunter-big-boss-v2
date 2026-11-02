@@ -168,6 +168,12 @@ export function TemplatesSection({ settings }: { settings: SettingsView }) {
                   {t.valid ? <CircleCheck className="size-3.5" /> : <CircleAlert className="size-3.5" />}
                   {t.valid ? 'Compiles to one page with sample data' : t.error}
                 </p>
+                {t.warnings.map((w) => (
+                  <p key={w} role="status" className="mt-1 flex items-start gap-1.5 rounded-md bg-warning-bg px-2 py-1.5 text-xs text-warning-fg">
+                    <CircleAlert className="mt-0.5 size-3.5 shrink-0" />
+                    {w}
+                  </p>
+                ))}
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 {t.valid && (
