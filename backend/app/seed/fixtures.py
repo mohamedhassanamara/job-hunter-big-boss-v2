@@ -553,6 +553,9 @@ SETTINGS: dict[str, dict] = {
     # Automatic drafting (never approves anything): the CV when you shortlist a job, the email
     # when a verified contact AND an approved CV both exist. The email one starts off.
     "generation": {"auto_cv": True, "auto_email": True},
+    # What documents print (CV/letter header, signature): phone and location, each on or off.
+    # Display only: matching and scoring read the stored profile.
+    "output_visibility": {"show_phone": True, "show_location": True},
     "smtp": {"address": "", "from_name": "", "gap_min_minutes": 4, "gap_max_minutes": 7,
              "max_per_queue": 20},
     "schedule": {"enabled": True, "times": ["07:00", "15:00"], "weekdays_only": True},

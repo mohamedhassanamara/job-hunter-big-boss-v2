@@ -17,7 +17,7 @@ from app.schemas.settings import (
     SourceRunOut,
 )
 from app.seed.seed import reset_sandbox, seed
-from app.services import contacts, model_choice, scheduler
+from app.services import contacts, model_choice, scheduler, visibility
 from app.services.discovery import is_running
 from app.services.geo import country_catalog
 from app.services.roles import all_titles, suggest_variants, with_suggested_variants
@@ -28,7 +28,7 @@ router = APIRouter(tags=["settings"])
 EDITABLE_KEYS = {
     "sources", "models", "smtp", "schedule", "lookup", "profile", "scoring", "company_boards",
     "cv", "tracking", "contacts", "outreach", "cover_letter", "writing", "research", "linkedin",
-    "motivation", "providers", "generation", "gemini", "usage_log",
+    "motivation", "providers", "generation", "gemini", "usage_log", "output_visibility",
 }
 
 
@@ -216,6 +216,11 @@ def put_setting(key: str, body: SettingValue, session: SessionDep) -> SettingsOu
         _check_providers(body.value)
     if key == "profile":
         _check_profile(body.value)
+    if key == "output_visibility":
+        try:
+            visibility.check(body.value)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
     if key == "outreach":
         _check_outreach(body.value)
     if key == "cover_letter":
