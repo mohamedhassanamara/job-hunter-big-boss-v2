@@ -193,26 +193,41 @@ def load_template(name: str) -> CVTemplate:
 # ------------------------------------------------------------------------------------ context
 
 
+def header_line_sizes(n: int) -> list[int]:
+    """How many items go on each header line: up to 3 on one line, else balanced rows of at most
+    3 with the longer row first (4 -> 2+2, 5 -> 3+2, 6 -> 3+3)."""
+    if n <= 3:
+        return [n] if n else []
+    rows = -(-n // 3)
+    base, extra = divmod(n, rows)
+    return [base + (1 if i < extra else 0) for i in range(rows)]
+
+
 def header_lines(profile: CVProfile, config: dict[str, Any]) -> list[list[dict[str, Any]]]:
-    """Two header lines (contact, links) with only the filled items; empty lines dropped."""
+    """The header items (location, phone, email, then links; only the filled ones) grouped into
+    balanced lines, whichever of them are shown (see `header_line_sizes`)."""
     icons = config.get("icons") or {}
     link_icons = icons.get("links") or {}
-    contact = []
+    items = []
     if profile.location.strip():
-        contact.append({"icon": icons.get("location", "map-marker-alt"),
-                        "label": profile.location.strip(), "url": ""})
+        items.append({"icon": icons.get("location", "map-marker-alt"),
+                      "label": profile.location.strip(), "url": ""})
     if profile.phone.strip():
-        contact.append({"icon": icons.get("phone", "phone"), "label": profile.phone.strip(),
-                        "url": ""})
+        items.append({"icon": icons.get("phone", "phone"), "label": profile.phone.strip(),
+                      "url": ""})
     if profile.email.strip():
-        contact.append({"icon": icons.get("email", "envelope"), "label": profile.email.strip(),
-                        "url": f"mailto:{profile.email.strip()}"})
-    links = [
+        items.append({"icon": icons.get("email", "envelope"), "label": profile.email.strip(),
+                      "url": f"mailto:{profile.email.strip()}"})
+    items += [
         {"icon": link_icons.get(link.type, link_icons.get("other", "link")),
          "label": link.label.strip() or _display_url(link.url), "url": link.url.strip()}
         for link in profile.links if link.url.strip()
     ]
-    return [line for line in (contact, links) if line]
+    lines, start = [], 0
+    for size in header_line_sizes(len(items)):
+        lines.append(items[start:start + size])
+        start += size
+    return lines
 
 
 def _display_url(url: str) -> str:

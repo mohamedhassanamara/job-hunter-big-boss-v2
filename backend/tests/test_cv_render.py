@@ -14,6 +14,7 @@ from app.services.cv_render import (
     CVProfile,
     CVRole,
     compile_tex,
+    header_line_sizes,
     latex_escape,
     load_template,
     render_tex,
@@ -79,7 +80,7 @@ def test_missing_header_fields_leave_no_icon_or_separator() -> None:
     assert "faIcon{phone}" not in header and "map-marker-alt" not in header
     assert "faIcon{github}" not in header
     assert "faIcon{envelope}" in header and "faIcon{linkedin}" in header
-    assert header.count("$|$") == 0  # one item per line: nothing to separate
+    assert header.count("$|$") == 1  # two items share one line
     assert r"\underline{linkedin.com/in/ada}" in header  # label derived from the URL
 
 
@@ -95,7 +96,8 @@ def test_variable_number_of_links(n: int) -> None:
     profile = CVProfile(full_name="Ada", phone="+1 555", links=links)
     header = _header(render_tex(CVDocument(), profile, load_template("default")))
     assert header.count(r"\href{https://example.com/") == n
-    assert header.count("$|$") == max(0, n - 1)  # separators only between links
+    items = n + 1  # the phone and the links share balanced lines (header_line_sizes)
+    assert header.count("$|$") == items - len(header_line_sizes(items))
     if n:
         assert r"\faIcon{globe}" in header or n < 2
 

@@ -18,7 +18,7 @@ sections:
     title: Education
   - key: volunteering
     title: Volunteering & Leadership
-# Header: first line = location, phone, email; second line = links. Empty items are skipped.
+# Header: location, phone, email, then links, in balanced lines of at most 3 (see header_lines).
 icons:
   location: map-marker-alt
   phone: phone
