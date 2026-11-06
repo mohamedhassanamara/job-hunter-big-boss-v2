@@ -66,7 +66,7 @@ def test_email_drafter_uses_the_isolated_subscription_call() -> None:
                                             "structured_output": plan().model_dump()},
                                            calls=calls))
     out = d.draft(REQUEST, feedback="- too long")
-    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v22"
+    assert out.greeting == "Hi Ana," and d.prompt_version == "outreach/v24"
     cmd, kw = calls[0]
     assert cmd[cmd.index("--tools") + 1] == "" and "--strict-mcp-config" in cmd
     assert "REJECTED DRAFT PROBLEMS" in kw["input"] and "EXPERIENCE POOL" in kw["input"]
@@ -373,7 +373,11 @@ def test_test_send_goes_to_you_as_plain_text_and_changes_nothing(job_ready: dict
     assert email.to != job_ready["email"]
     from app.providers import smtp_mailer
     msg = smtp_mailer.plain_message(email, "me@example.test")
-    assert not list(msg.iter_attachments()) and msg.get_content_type() == "text/plain"
+    parts = list(msg.iter_attachments())  # the CV is the only attachment; the body is text/plain
+    assert len(parts) == 1 and parts[0].get_content_type() == "application/pdf"
+    assert parts[0].get_filename().endswith("_CV.pdf")
+    assert msg.get_body(("plain",)).get_content_type() == "text/plain"
+    assert not any(p.get_content_type() == "text/html" for p in msg.walk())
     assert smtp_mailer.email_problem(email) is None
     assert "Best regards," in email.body
     with Session(engine) as s:
@@ -405,7 +409,7 @@ def test_one_send_per_interval_then_tracking_without_a_cv_lock(job_ready: dict,
     with Session(engine) as s:
         app = s.get(Application, job_ready["app"])
         assert (app.stage, app.applied_method) == (Stage.done, "email")
-        assert s.get(CVVersion, job_ready["cv"]).locked_at is None  # nothing was attached
+        assert s.get(CVVersion, job_ready["cv"]).locked_at is None  # sending doesn't lock the CV
         assert s.get(OutreachDraft, draft_id).status == DraftStatus.sent
         assert s.exec(select(SendLog).where(SendLog.draft_id == draft_id,
                                             SendLog.kind == "real")).one().status == "sent"
@@ -557,3 +561,26 @@ def test_gaps_fall_in_the_configured_range_and_are_not_all_identical() -> None:
     assert len({g.total_seconds() for g in gaps}) > 20
     narrow = [send_queue.draw_gap(2, 2.5) for _ in range(50)]
     assert all(timedelta(minutes=2) <= g <= timedelta(minutes=2.5) for g in narrow)
+
+
+def test_a_generated_applied_email_is_one_prose_paragraph_naming_the_company_and_the_cv(
+        job_ready: dict) -> None:
+    """The conversion format: company in the opening, a bullet-free proof, the attached-CV
+    call-out in the closing, under 110 words, and the CV PDF really attached."""
+    from app.providers.mock import MockEmailDrafter
+    from app.providers import smtp_mailer
+    d = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
+    with Session(engine) as s:
+        body = outreach.full_body(s, d)
+        company = s.get(Company, s.get(Job, s.get(Application, job_ready["app"]).job_id)
+                        .company_id)
+        email = outreach.outgoing(s, engine, d)
+    paragraphs = body.split("\n\n")
+    assert not any(ch in body for ch in ("•", "*")) and not any(
+        line.lstrip().startswith("-") for line in body.splitlines())
+    assert company.name.split()[0] in paragraphs[1]  # the opening names the company
+    assert "attached my CV" in body
+    assert len(body.split()) < 110
+    msg = smtp_mailer.plain_message(email, "me@example.test")
+    assert [a.get_content_type() for a in msg.iter_attachments()] == ["application/pdf"]
+    assert smtp_mailer.email_problem(email) is None

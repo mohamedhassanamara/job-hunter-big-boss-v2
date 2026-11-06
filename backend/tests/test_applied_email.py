@@ -146,13 +146,11 @@ def test_what_the_old_rules_blocked_is_now_allowed(job_ready: dict) -> None:  # 
     assert "length" not in warnings(found)  # well under 110 words
 
 
-@pytest.mark.parametrize("sentence", [
-    "I've attached my CV.", "Please find my CV attached.", "I have attached my resume.",
-    "Mon CV est ci-joint."])
-def test_attachment_wording_is_a_blocking_error(job_ready: dict, sentence: str) -> None:  # noqa: F811
-    found = ac.check_text("S - Alex Doe", good_body(job_ready) + " " + sentence,
+def test_attachment_wording_is_allowed_because_the_cv_is_attached(job_ready: dict) -> None:  # noqa: F811
+    found = ac.check_text("S - Alex Doe",
+                          good_body(job_ready) + " I have attached my CV for quick review.",
                           ctx_for(job_ready))
-    assert "attachment" in errors(found), found
+    assert "attachment" not in errors(found), found
 
 
 def test_visa_and_sponsorship_mentions_are_strictly_banned_errors(job_ready: dict) -> None:  # noqa: F811
@@ -453,7 +451,7 @@ def test_a_company_fact_paragraph_may_use_the_words(job_ready: dict) -> None:  #
     ctx = ctx_for(job_ready, signals={7: fact})
     text = good_body(job_ready) + f"\n\n{fact}."
     assert "visa_disclaimer_banned" not in {v["type"] for v in ac.check_text("Role", text, ctx)}
-    edited = text.replace("next few days?", "next few days? I need a visa.")
+    edited = text.replace("this week?", "this week? I need a visa.")
     assert "visa_disclaimer_banned" in errors(ac.check_text("Role", edited, ctx))
 
 
@@ -506,15 +504,17 @@ def test_the_closing_has_three_wordings_a_call_for_recruiters_and_never_next_wee
                 for weekday in range(7):
                     line = ac.cta_line(lang, recruiter, v, weekday)
                     assert "next week" not in line and "prochaine" not in line
-    assert "quick 10-minute technical chat in the next few days" in ac.cta_line("en", False, 0)
-    assert ac.cta_line("en", True, 0, 0) == (
+    cv = "I have attached my CV for quick review. "
+    assert "brief 10-minute introductory call in the next few days" in ac.cta_line(
+        "en", False, 0, 4)
+    assert ac.cta_line("en", True, 0, 0) == cv + (
         "If my background aligns with what you're screening for, I'd welcome a brief "
         "10-minute introductory call this week.")
-    assert ac.cta_line("en", False, 0, 0) == (
-        "Would you be open to a quick 10-minute technical chat in the next few days?")
-    assert ac.cta_line("en", False, 1, 0) == (
+    assert ac.cta_line("en", False, 0, 0) == cv + (
+        "Would you be open to a brief 10-minute introductory call this week?")
+    assert ac.cta_line("en", False, 1, 0) == cv + (
         "Do you have 10 minutes for a brief technical call this week?")
-    assert ac.cta_line("en", False, 2, 0) == (
+    assert ac.cta_line("en", False, 2, 0) == cv + (
         "Happy to hop on a 10-minute call this week if you'd like to connect.")
     assert ac.cta_line("en", True, 0, 4).endswith("introductory call in the next few days.")
     assert ac.cta_line("en", True, 1, 0) == ac.cta_line("en", True, 2, 0)

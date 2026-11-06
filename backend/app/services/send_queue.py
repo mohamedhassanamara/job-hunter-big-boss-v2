@@ -11,7 +11,7 @@ Safety rules:
   (check Gmail's Sent folder, then mark it sent or retry it).
 - Every attempt is written to `send_log`. A failure is visible and retryable; an auth/config
   failure also pauses the queue.
-- Every message is text/plain with no attachment (`smtp_mailer.email_problem`); a draft written
+- Every message is a text/plain body with the CV PDF as its only attachment (`smtp_mailer.email_problem`); a draft written
   under the old rules (CV attached) or that breaks the current ones goes back to review.
 - A sent email moves a job that wasn't applied yet to Sent (done) with method = email, so
   follow-ups, replies and stats work as for web applications. It never locks a CV.
@@ -234,12 +234,10 @@ def _mark_sent(s: Session, item: SendQueueItem, draft: OutreachDraft, at: dateti
 
 
 def legacy_reason(s: Session, draft: OutreachDraft) -> str | None:
-    """Why a queued or approved draft may no longer go out: written for the old format (the CV
-    attached), or its text breaks a current rule. None when it still follows the rules."""
-    if (draft.plan or {}).get("delivery") != "text":
-        return "It was written for the old format (CV attached): emails are plain text now"
-    if found := outreach_check.attachment_violations(outreach.full_body(s, draft)):
-        return found[0]["message"]
+    """Why a queued or approved draft may no longer go out: written for the old plain-text
+    format (its closing doesn't mention the attached CV), or it breaks a current rule."""
+    if (draft.plan or {}).get("delivery") != "cv":
+        return "It was written for the old format (no CV attached): regenerate it"
     return outreach.draft_gate(s, draft)
 
 
@@ -335,7 +333,7 @@ def tick(engine: Engine, mailer_for: Callable[[Session], Mailer],
                 _back_to_review(s, item, draft, entry, f"do not contact: {reason}", now)
                 return "blocked"
             # The final gate: exactly the text that was approved and verified, as a plain-text
-            # message with no attachment, and a draft that still follows the current rules.
+            # message (text body + the CV PDF), and a draft that still follows the current rules.
             if reason := (legacy_reason(s, draft) or smtp_mailer.email_problem(email)
                           or verifier.send_gate(draft, email.subject, email.body, email.to)):
                 _back_to_review(s, item, draft, entry, reason, now)

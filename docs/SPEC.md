@@ -405,7 +405,7 @@ j/k and Enter open the CV studio or the letter studio (form tab for form texts).
   location. Warning: more than 110 words. Without a posting the email stays manual ("Quick intro | <Role> at
   <Company>"), also plain text.
 - **Queue tab:** Running / Paused / Idle, next send countdown and time, estimated finish (at the average gap), the gap range, max 20 per queue. The worker
-  sends one email at a time through Gmail SMTP, a random gap apart (uniform between Settings → Email's minimum and maximum, default 4 and 7 minutes, drawn fresh after every send and stored as `next_send_at` so a restart keeps the schedule) (`SMTP_APP_PASSWORD` in `.env`), as `text/plain` with no attachment, no HTML part and no image (the send gate
+  sends one email at a time through Gmail SMTP, a random gap apart (uniform between Settings → Email's minimum and maximum, default 4 and 7 minutes, drawn fresh after every send and stored as `next_send_at` so a restart keeps the schedule) (`SMTP_APP_PASSWORD` in `.env`), as a `text/plain` body with the CV PDF (`First_Last_CV.pdf`) as the only attachment, no HTML part and no image (the send gate
   checks the text hash, the recipient and that the message has zero attachments; an email written under the old
   rules, or one that breaks the current ones, goes back to review with the reason and is listed for you). Failures are shown with Retry; a login/config failure pauses the queue. An email caught
   mid-send by a restart becomes "Check Gmail" (never resent blindly): Retry or "I found it in Sent". Every attempt

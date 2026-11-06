@@ -270,7 +270,7 @@ def save_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifie
     draft = OutreachDraft(
         application_id=app_id, contact_id=contact.id, subject=checked["subject"],
         body=checked["body"], model="external AI (pasted)", cv_version_id=cv.id if cv else None,
-        plan={"delivery": "text", "format": _format(mode), "mode": mode, "source": "external",
+        plan={"delivery": "cv", "format": _format(mode), "mode": mode, "source": "external",
               "plan": {},
               "attempts": 1, "language": checked["language"]["language"],
               "language_choice": checked["language"], "intro_line": "", "signals": [],

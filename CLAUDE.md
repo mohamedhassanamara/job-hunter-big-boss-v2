@@ -207,16 +207,18 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 
 ## Outreach (services/outreach.py, outreach_check.py, send_queue.py)
 
-- **v17 (portal-first, plain text; supersedes older wording below where they differ):** every outbound email is `text/plain`
-  only: no attachment, no HTML part, no image, no tracking (`smtp_mailer.plain_message` is the one builder;
-  `smtp_mailer.email_problem` is part of the send gate with `verifier.send_gate` (text hash + recipient) and
-  `send_queue.legacy_reason`). Drafts carry `plan.delivery == "text"`; a queued/approved draft without it, or whose text
-  has attachment wording, or that fails the portal gate, goes back to review with the reason (`send_queue.pull_back_legacy`,
-  sends nothing; also used by `tick`). Sending never locks a CV (Mark applied does). A job with a posting gets its email only
+- **v17 (portal-first; v23 re-attaches the CV; supersedes older wording below where they differ):** every outbound email has a `text/plain`
+  body (no HTML part, no image, no tracking) and exactly ONE attachment, the application's CV PDF named `First_Last_CV.pdf` from the profile
+  (`outreach.outgoing` → `cv_attachment`: the applied CV, else the newest approved, re-rendered if its file is gone; no file = the send stops;
+  `smtp_mailer.plain_message` is the one builder; `smtp_mailer.email_problem` allows a single PDF and is part of the send gate with
+  `verifier.send_gate` (text hash + recipient) and `send_queue.legacy_reason`). The closing is code-built and starts "I have attached my CV for
+  quick review." (`applied_check.cta_line`); the model never writes about the CV (the attachment-wording check is gone). Drafts carry
+  `plan.delivery == "cv"`; a queued/approved draft without it (written for the plain-text-only v17) or that fails the portal gate goes back to
+  review with the reason (`send_queue.pull_back_legacy`, sends nothing; also used by `tick`). Sending never locks a CV (Mark applied does). A job with a posting gets its email only
   after Mark applied through company_site / job_board / linkedin (`outreach.applied_gate`, `draft_gate`: drafting, approval,
   unverified approval, queueing, copy-for-another-AI); `generation.email_ready` = that gate + a ready contact + no live draft,
   triggered from `tracking.mark_applied` (undo cancels it) and a contact becoming ready. The proof is written from
-  `outreach.source_cv` (the CV the application was sent with), never attached. Code builds everything but the proof
+  `outreach.source_cv` (the CV the application was sent with), which is also the attachment. Code builds everything but the proof
   (`outreach.complete_applied`, `applied_check.opening_line / cta_line / subject_line / speculative_subject`): the opening says
   how and when from the application record (a board is never named: only "a job board"; "today" / "yesterday" / "on Monday" / a date;
   four wordings rotate per draft count, no filler tail: v19), the closing is one of three 10-minute chat/call wordings (`applied_check.cta_line`, rotated

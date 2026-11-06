@@ -332,7 +332,8 @@ V19_BANNED = (
     "passionate", "thrilled", "esteemed", "humbled", "moves fast", "without hand-holding",
     "without supervision", "rock-solid", "zero-regression", "engineering discipline",
     "ui assembly", "i'd love to grab", "so here is the part that matters",
-    "i'd rather say that up front")
+    "i'd rather say that up front", "i also", "additionally i", "furthermore", "moreover",
+    "seamlessly", "successfully")
 SCENARIO_BANNED = {
     "years_gap": ("despite my lack of", "even though i only have", "rather than ticket-taking",
                   "high-velocity"),
@@ -359,10 +360,16 @@ def cta_variant(previous: int | None, seed: int) -> int:
 
 
 def cta_line(language: str, recruiter: bool = False, variant: int = 0, weekday: int = 0) -> str:
-    """The closing question, built by code: a 10-minute technical chat (for HR and recruiters
-    always the same introductory-call line). Never "next week" and never a date. The
-    wordings say "this week" only on Monday to Wednesday (`weekday` 0-2, in your timezone),
-    else "in the next few days"."""
+    """The closing, built by code: the attached-CV call-out, then a 10-minute call question
+    (for HR and recruiters always the same introductory-call line). Never "next week" and
+    never a date. The wordings say "this week" only on Monday to Wednesday (`weekday` 0-2, in
+    your timezone), else "in the next few days"."""
+    callout = ("Je joins mon CV pour un aperçu rapide. " if language == "fr"
+               else "I have attached my CV for quick review. ")
+    return callout + _call_question(language, recruiter, variant, weekday)
+
+
+def _call_question(language: str, recruiter: bool, variant: int, weekday: int) -> str:
     fr, v = language == "fr", variant % CTA_VARIANTS
     early = weekday <= 2
     if fr:
@@ -381,7 +388,7 @@ def cta_line(language: str, recruiter: bool = False, variant: int = 0, weekday: 
         return ("If my background aligns with what you're screening for, I'd welcome a brief "
                 f"10-minute introductory call {when}.")
     if v == 0:
-        return "Would you be open to a quick 10-minute technical chat in the next few days?"
+        return f"Would you be open to a brief 10-minute introductory call {when}?"
     if v == 1:
         return f"Do you have 10 minutes for a brief technical call {when}?"
     return f"Happy to hop on a 10-minute call {when} if you'd like to connect."
@@ -560,7 +567,6 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     out: list[dict[str, str]] = []
     folded = oc.fold(text)
     everything = f"{subject}\n{text}"
-    out += oc.attachment_violations(everything)
     if v17:
         out += v17_violations(text)
         out += banlist_violations(text, ctx.scenario)

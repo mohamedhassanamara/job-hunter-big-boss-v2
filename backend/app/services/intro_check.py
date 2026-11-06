@@ -166,7 +166,6 @@ def text_rules(subject: str, text: str, ctx: Context) -> list[dict[str, str]]:
     """The rules any version of the email must pass (generated or edited by you)."""
     out: list[dict[str, str]] = []
     everything = f"{subject}\n{text}"
-    out += oc.attachment_violations(everything)
     for m in _LISTING.finditer(text):
         out.append(violation("listing", f"“{m.group(0)}”: the email never mentions the listing "
                              "or the role (it's an introduction)", "body", "error"))

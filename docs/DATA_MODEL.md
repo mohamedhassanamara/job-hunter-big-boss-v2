@@ -392,7 +392,7 @@ years wording), `duration_ms`, `error`.
 - `outreach_draft.verification`, `cover_letter.verification`, `application_answer.verification` (JSON; LinkedIn keeps it
   inside `note` / `followup`): status passed | failed | error, claims [{sentence, claim, about, verdict, source_id,
   source_quote, reason, quote_not_found?, skipped?}], blocking, hash (sha256 of the exact text; emails: "Subject: …"
-  + the body as sent), attachment_sha256 (always null for emails: they carry no attachment), model, prompt_version, duration_ms, at.
+  + the body as sent), attachment_sha256 (null for emails: the text hash and recipient are the gate; the CV PDF is attached at send time), model, prompt_version, duration_ms, at.
 - `email_example.kind` gains `must_fail` (the verifier's regression set; `inputs.case`, `inputs.expect`).
 
 ### Motivation (Phase 11, migration 0020)

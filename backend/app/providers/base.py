@@ -668,7 +668,9 @@ class SendFailed(RuntimeError):
 class OutgoingEmail(BaseModel):
     to: str
     subject: str
-    body: str  # text/plain only: no HTML part, no image, no attachment
+    body: str  # text/plain only: no HTML part, no image, no tracking
+    attachment_path: str | None = None  # the one allowed attachment: the CV PDF
+    attachment_name: str | None = None
 
 
 class Mailer(Protocol):

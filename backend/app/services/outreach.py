@@ -8,6 +8,7 @@ signature and the opt-out line come from Settings → Email and are added at pre
 
 import re
 import threading
+from pathlib import Path
 import time
 from datetime import datetime
 from typing import Any
@@ -173,7 +174,7 @@ def draft_gate(s: Session, draft: OutreachDraft) -> str | None:
 
 def source_cv(s: Session, app: Application) -> CVVersion | None:
     """The CV the proof sentences come from: the one the application was sent with, else the
-    newest approved one. It is never attached."""
+    newest approved one. It is attached to the email."""
     if app.applied_cv_version_id:
         cv = s.get(CVVersion, app.applied_cv_version_id)
         if cv is not None:
@@ -312,8 +313,8 @@ def candidate_links(cfg: dict[str, Any], profile_links: list[dict[str, Any]]) ->
 
 def signature_block(cfg: dict[str, Any], language: str = "en",
                     links: str = "", show_phone: bool = True) -> str:
-    """Sign-off, your name, then your links on one line (the email carries no attachment, so
-    this is where they live). Title, email and phone are opt-in (Settings → Email). `show_phone`
+    """Sign-off, your name, then your links on one line (the only attachment is the CV, so
+    the links live here). Title, email and phone are opt-in (Settings → Email). `show_phone`
     is the document-wide switch (Settings → Candidate → Visibility): it can only hide the phone,
     never reveal one the email settings keep off."""
     sig = cfg["signature"]
@@ -440,7 +441,7 @@ def generate(engine: Engine, app_id: int, drafter: EmailDrafter, *, researcher: 
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
                 body=body, model=drafter.model, cv_version_id=cv.id,
-                plan={"delivery": "text", "plan": plan.model_dump(), "attempts": attempts,
+                plan={"delivery": "cv", "plan": plan.model_dump(), "attempts": attempts,
                       "application_mention": mention,
                       "language": request.rules.get("language"),
                       "via": getattr(drafter, "via", "mock"),
@@ -551,7 +552,7 @@ def generate_intro(engine: Engine, app_id: int, drafter: EmailDrafter, *, resear
                 application_id=app_id, contact_id=app.contact_id, subject=plan.subject.strip(),
                 body=ic.body(plan, intro), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
-                plan={"delivery": "text", "format": "intro", "mode": "speculative",
+                plan={"delivery": "cv", "format": "intro", "mode": "speculative",
                       "plan": plan.model_dump(),
                       "attempts": attempts, "intro_line": intro, "language": language,
                       "language_choice": choice.as_dict(),
@@ -1044,7 +1045,7 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                                         company.name),
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
-                plan={"delivery": "text", "format": "applied", "mode": "applied",
+                plan={"delivery": "cv", "format": "applied", "mode": "applied",
                       "cta_variant": cta, "guidance": guidance, "plan": plan.model_dump(),
                       "attempts": attempts, "language": language,
                       "language_choice": choice.as_dict(),
@@ -1079,13 +1080,37 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
 
 def outgoing(s: Session, engine: Engine, draft: OutreachDraft, *, to: str | None = None,
              test: bool = False) -> OutgoingEmail:
-    """The email exactly as it will go out: text/plain, no attachment, no image."""
+    """The email exactly as it will go out: a text/plain body (no image, no HTML) with the
+    application's CV as its one PDF attachment."""
     contact = s.get(Contact, draft.contact_id) if draft.contact_id else None
     recipient = to or (contact.email if contact else None)
     if not recipient:
         raise OutreachError("No recipient email address")
+    path, name = cv_attachment(s, engine, draft)
     return OutgoingEmail(to=recipient, subject=("[TEST] " if test else "") + draft.subject,
-                         body=full_body(s, draft))
+                         body=full_body(s, draft), attachment_path=path, attachment_name=name)
+
+
+def cv_file_name(s: Session) -> str:
+    """"First_Last_CV.pdf" from the profile's name (data, never code)."""
+    name = (_setting(s, "profile").get("full_name") or "").split()
+    return "_".join([*name, "CV"]) + ".pdf" if name else "CV.pdf"
+
+
+def cv_attachment(s: Session, engine: Engine, draft: OutreachDraft) -> tuple[str, str]:
+    """(path, file name) of the CV this email carries: the one the application was sent with,
+    else the newest approved one (re-rendered if its file is gone). No file stops the send."""
+    from app.services import cv_service  # local: cv_service imports this module's neighbours
+
+    app = s.get(Application, draft.application_id)
+    cv = source_cv(s, app) if app is not None else None
+    path = None
+    if cv is not None:
+        path = Path(cv.pdf_path) if cv.pdf_path and Path(cv.pdf_path).is_file() \
+            else cv_service.ensure_pdf(engine, cv)
+    if path is None or not Path(path).is_file():
+        raise OutreachError("No CV file to attach: approve or re-render this job's CV first")
+    return str(path), cv_file_name(s)
 
 
 def own_address(s: Session) -> str:
