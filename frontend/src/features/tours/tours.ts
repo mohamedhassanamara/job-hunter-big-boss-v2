@@ -219,7 +219,7 @@ export const TOURS: Record<TourId, Tour> = {
     description: 'Hide your phone number or location on what you send',
     resolveRoute: async () => '/settings?section=candidate',
     steps: [
-      { target: 'settings-visibility', title: 'Two independent switches', body: 'Show phone number and Show location each decide what your CV header, cover letters and email signature print. Both are on until you turn them off, and the email signature phone also needs its own switch in Settings → Email.', placement: 'left' },
+      { target: 'settings-visibility', title: 'Independent switches', body: 'Show phone number and Show location each decide what your CV header, cover letters and email signature print, and they are on until you turn them off. Show graduation year is off by default: it prints the dates of your Education entries on the CV. and the email signature phone also needs its own switch in Settings → Email.', placement: 'left' },
       { target: 'settings-visibility', title: 'Display only', body: 'Fit scoring, country matching and every check keep using the values you saved in Candidate. A hidden location is also kept out of what the cover letter may say about you. Existing drafts keep their old header until you press Refresh headers on the Review CVs page; locked CVs never change.', placement: 'left' },
     ],
   },

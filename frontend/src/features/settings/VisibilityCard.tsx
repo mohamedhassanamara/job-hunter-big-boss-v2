@@ -8,12 +8,13 @@ import { Card, Field } from './sections'
 interface OutputVisibility {
   show_phone: boolean
   show_location: boolean
+  show_graduation_year: boolean
 }
 
 /** What documents print. Display only: matching and scoring keep using the stored values. */
 export function VisibilityCard({ settings }: { settings: SettingsView }) {
   const stored = settings.values.output_visibility as Partial<OutputVisibility> | undefined
-  const value: OutputVisibility = { show_phone: stored?.show_phone !== false, show_location: stored?.show_location !== false }
+  const value: OutputVisibility = { show_phone: stored?.show_phone !== false, show_location: stored?.show_location !== false, show_graduation_year: stored?.show_graduation_year === true }
   const save = useSaveSetting()
   const toggle = (patch: Partial<OutputVisibility>) =>
     save.mutate(
@@ -26,7 +27,7 @@ export function VisibilityCard({ settings }: { settings: SettingsView }) {
   return (
     <Card
       title="Visibility on documents"
-      description="Choose what your CV header, cover letters and email signature print. Both are shown unless you turn them off."
+      description="Choose what your CV header, cover letters and email signature print. Phone and location are shown unless you turn them off. Education dates are hidden unless you turn them on."
     >
       <div data-tour="settings-visibility" className="space-y-4">
         <Field label="Show phone number" hint="CV and letter header, email signature">
@@ -39,6 +40,12 @@ export function VisibilityCard({ settings }: { settings: SettingsView }) {
           <label className="flex items-center gap-2 text-sm">
             <Switch checked={value.show_location} disabled={save.isPending} onCheckedChange={(v) => toggle({ show_location: v })} aria-label="Show the location on documents" />
             {value.show_location ? 'Printed where your location is used' : 'Hidden on every document, letters never state it'}
+          </label>
+        </Field>
+        <Field label="Show graduation year" hint="The dates of each Education entry on the CV">
+          <label className="flex items-center gap-2 text-sm">
+            <Switch checked={value.show_graduation_year} disabled={save.isPending} onCheckedChange={(v) => toggle({ show_graduation_year: v })} aria-label="Show the education dates on the CV" />
+            {value.show_graduation_year ? 'Education dates printed' : 'Education dates hidden (the whole range)'}
           </label>
         </Field>
         <p className="flex flex-wrap items-center gap-2 text-xs text-fg-subtle">

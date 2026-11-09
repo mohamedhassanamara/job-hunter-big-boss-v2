@@ -290,6 +290,8 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
         item = pool.get(eid, "education")
         if item:
             start, end = span(item)
+            if not pool.visibility.get("show_graduation_year"):
+                start = end = ""  # print-only: the whole date range goes, the pool keeps it
             education.append(CVEducation(item_id=item.id, school=item.org or "",
                                          degree=item.title, location=item.location or "",
                                          start=start, end=end))

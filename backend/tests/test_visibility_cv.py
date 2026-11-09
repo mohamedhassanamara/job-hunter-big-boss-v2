@@ -55,12 +55,14 @@ def test_load_pool_reads_the_setting(client) -> None:
     from app.services.cv_pool import load_pool
 
     with Session(engine) as s:
-        assert load_pool(s).visibility == {"show_phone": True, "show_location": True}
+        assert load_pool(s).visibility == {"show_phone": True, "show_location": True,
+                                           "show_graduation_year": False}
     client.put("/api/settings/output_visibility",
                json={"value": {"show_phone": False, "show_location": True}})
     with Session(engine) as s:
         p = load_pool(s)
-        assert p.visibility == {"show_phone": False, "show_location": True}
+        assert p.visibility == {"show_phone": False, "show_location": True,
+                                "show_graduation_year": False}
         shown = cv_profile(p)
         assert shown.phone == ""
         assert shown.location == (p.profile.get("based_in") or "").strip()
@@ -119,3 +121,57 @@ def test_rendered_header_has_the_expected_number_of_text_lines(
             rows.append(w[1])
     expected = len(cv_render.header_lines(cv_profile(p), load_template("default").config))
     assert len(rows) == 1 + expected, rows  # the name, then one text row per grouped line
+
+
+# ------------------------------------------------------------ graduation year (education dates)
+
+
+def _education_pool(show_year: bool) -> Pool:
+    from app.models import ExperienceItem
+
+    items = [
+        ExperienceItem(id=1, kind="education", title="BSc Computer Science", org="Uni X",
+                       location="Tunis", date_label="Sep 2020 – June 2025", bullets=[], tags=[],
+                       tracks=[]),
+        ExperienceItem(id=2, kind="job", title="Dev", org="Acme", date_label="Jan 2024 – Present",
+                       bullets=["Built x"], tags=[], tracks=[]),
+    ]
+    p = Pool(items={i.id: i for i in items}, profile=dict(PROFILE),
+             visibility={"show_phone": True, "show_location": True,
+                         "show_graduation_year": show_year})
+    for i in items:
+        p.by_kind.setdefault(i.kind, []).append(i)
+    return p
+
+
+def _education_doc(show_year: bool):  # noqa: ANN202
+    from app.providers.base import CVPlan
+    from app.services import cv_build
+
+    p = _education_pool(show_year)
+    plan = CVPlan(summary="S", summary_short="S", roles=[], education_ids=[1])
+    return cv_build.build_document(plan, p, cv_build.FitState())
+
+
+@pytest.mark.parametrize("template", TEMPLATES)
+def test_education_dates_are_hidden_by_default(template: str) -> None:
+    doc = _education_doc(False)
+    assert (doc.education[0].start, doc.education[0].end) == ("", "")
+    tex = render_tex(doc, cv_profile(_education_pool(False)), load_template(template))
+    assert "Uni X" in tex and "BSc Computer Science" in tex
+    assert "2020" not in tex and "2025" not in tex
+
+
+@pytest.mark.parametrize("template", TEMPLATES)
+def test_education_dates_print_when_on(template: str) -> None:
+    doc = _education_doc(True)
+    assert (doc.education[0].start, doc.education[0].end) == ("Sep 2020", "June 2025")
+    tex = render_tex(doc, cv_profile(_education_pool(True)), load_template(template))
+    assert "Sep 2020" in tex and "June 2025" in tex
+
+
+def test_hiding_the_year_leaves_the_pool_and_other_dates_alone() -> None:
+    p = _education_pool(False)
+    doc = _education_doc(False)
+    assert p.items[1].date_label == "Sep 2020 – June 2025"  # data untouched
+    assert doc.education and not doc.education[0].end
