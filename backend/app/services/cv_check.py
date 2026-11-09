@@ -230,10 +230,12 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
 
 def shown_skills(plan: CVPlan) -> list[str]:
     """The skills a CV prints that count as things you have done (the summary may name them).
-    A flat job list includes skills backed only by a small project or a certification: those are
-    on the page for the listing, not something the summary may claim, so only tier 1 counts."""
-    if plan.skills_mode == "flat":
-        return [str(s["skill"]) for s in plan.skill_list if s.get("tier") == 1]
+    A flat job list includes skills backed only by a small project or a certification, and soft
+    skills: those are on the page for the listing, not something the summary may claim, so only
+    tier 1 technical skills count."""
+    if plan.skills_mode == "flat":  # soft skills are on the page for the listing, never "done"
+        return [str(s["skill"]) for s in plan.skill_list
+                if s.get("tier") == 1 and s.get("kind") != "soft"]
     return [x for g in plan.skills for x in g.items]
 
 

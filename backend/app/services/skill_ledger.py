@@ -31,7 +31,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.services import cv_check, fit_lexical
+from app.services import cv_check, fit_lexical, soft_skills
 from app.services.cv_pool import Pool, norm, terms_of
 
 T_EXPERIENCE, T_PROOF, T_STUDY = 1, 2, 3
@@ -64,12 +64,13 @@ class SelectedSkill:
     skill: str
     tier: int
     item_ids: list[int]
-    reason: str  # "jd" (the listing names it) | "cooc" | "pin" | "fill"
+    reason: str  # "jd" (the listing names it) | "cooc" | "pin" | "fill" | "soft"
     score: int = 0
+    kind: str = "technical"  # "soft": backed by a bullet of a job or volunteering item
 
     def to_dict(self) -> dict[str, Any]:
         return {"skill": self.skill, "tier": self.tier, "item_ids": self.item_ids,
-                "reason": self.reason}
+                "reason": self.reason, "kind": self.kind}
 
 
 @dataclass
@@ -78,7 +79,8 @@ class SkillSelection:
     gaps: list[str]  # the listing's checkable terms none of your evidence backs
     enough: bool = True  # False: under the minimum even after the fill (keep the grouped list)
     target: int = 0  # how many of `skills` a page shows before the line fit adjusts it
-    cut_order: list[int] = field(default_factory=list)  # indexes of `skills`, first cut first
+    # indexes of `skills`, first cut first: filler, then soft skills, then listing matches
+    cut_order: list[int] = field(default_factory=list)
 
     @property
     def display(self) -> list[str]:
@@ -223,6 +225,11 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
         if score:
             scored.append((-score, entry.tier, pos, order, entry, hit))
     scored.sort(key=lambda x: x[:4])
+    # soft skills: named by the listing AND backed by a bullet of your pool; they print last,
+    # inside the same line, and are counted in the ceiling
+    soft = soft_skills.select(pool, title, description)
+    ceiling = max_items
+    max_items = max(0, max_items - len(soft))
 
     chosen: list[SelectedSkill] = []
     claimed: set[str] = set()  # a name two entries answer to is shown once, by the best of them
@@ -273,10 +280,19 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
         fill([by_term[norm(p)] for p in pins if norm(p) in by_term], "pin")
         fill(tier1, "fill")
 
+    technical = len(chosen)
+    chosen += [SelectedSkill(s.display, T_EXPERIENCE, list(s.item_ids), "soft", s.score, "soft")
+               for s in soft]
+    # cut order: filler (tail first), then soft skills (tail first), then the listing's matches
+    # (least relevant first); display order is matches, filler, soft skills
+    filler = [i for i in range(technical - 1, -1, -1) if chosen[i].reason != "jd"]
+    matches = [i for i in range(technical - 1, -1, -1) if chosen[i].reason == "jd"]
+    softs = list(range(len(chosen) - 1, technical - 1, -1))
     return SkillSelection(skills=chosen, gaps=_gaps(pool, ledger, title, description, lines,
                                                     company, location),
-                          enough=len(chosen) >= min_items, target=min(target, len(chosen)),
-                          cut_order=list(range(len(chosen) - 1, -1, -1)))  # tail first
+                          enough=len(chosen) >= min_items,
+                          target=min(target + len(soft), len(chosen), ceiling),
+                          cut_order=[*filler, *softs, *matches])
 
 
 # ------------------------------------------------------------------------------------- gaps

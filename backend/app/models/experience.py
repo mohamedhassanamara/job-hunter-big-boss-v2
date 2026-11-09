@@ -21,6 +21,9 @@ class ExperienceItem(TableBase, table=True):
     tags: list[str] = json_field()
     # Projects: the track names it is meant for (empty = every track). Read by the CV fill only.
     tracks: list[str] = json_field()
+    # Soft skills this item supports (job, volunteering): read ONLY by the job CV's skills list
+    # (services/skill_ledger). Never a tag, never printed in a section, never "something you did".
+    soft_skills: list[str] = json_field()
     position: int = 0
     is_active: bool = True
     # Test-CV data the user asked for; shown with a warning and removable in one click.

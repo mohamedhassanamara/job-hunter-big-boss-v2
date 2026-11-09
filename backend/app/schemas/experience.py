@@ -14,6 +14,7 @@ class ExperienceIn(BaseModel):
     bullets: list[str] = []
     tags: list[str] = []
     tracks: list[str] = []
+    soft_skills: list[str] = []
     is_active: bool = True
     url: str | None = None
     credential_id: str | None = None
@@ -31,6 +32,7 @@ class ExperiencePatch(BaseModel):
     bullets: list[str] | None = None
     tags: list[str] | None = None
     tracks: list[str] | None = None
+    soft_skills: list[str] | None = None
     is_active: bool | None = None
     url: str | None = None
     credential_id: str | None = None

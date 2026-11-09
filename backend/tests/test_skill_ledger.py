@@ -218,7 +218,7 @@ def test_selection_dict_is_storable(index: int) -> None:
     out = only_jd(pick(pool, index, min_items=0))
     stored = [s.to_dict() for s in out.skills]
     assert json.loads(json.dumps(stored)) == stored
-    assert all(set(d) == {"skill", "tier", "item_ids", "reason"} for d in stored)
+    assert all(set(d) == {"skill", "tier", "item_ids", "reason", "kind"} for d in stored)
 
 
 @pytest.mark.parametrize("word", ["S3", "C++", "C#", "Node.js", "D3.js", ".NET", "DP-600",

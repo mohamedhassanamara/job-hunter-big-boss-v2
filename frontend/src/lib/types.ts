@@ -735,6 +735,8 @@ export interface ExperienceInput {
   tags: string[]
   /** Projects: track names it is meant for; empty = every track. */
   tracks?: string[]
+  /** Jobs and volunteering: soft skills the job CV's skills list may show when a listing names them (needs a bullet). */
+  soft_skills?: string[]
   is_active: boolean
   url?: string | null
   credential_id?: string | null
