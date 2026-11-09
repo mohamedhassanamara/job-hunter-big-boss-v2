@@ -285,3 +285,30 @@ def test_switching_template_measures_the_skills_again(
         out[which] = res.document.skills_flat
         assert sf.template_key(template) in {p.stem for p in sf.CACHE_DIR.glob("*.json")}
     assert out["default"] and out["sans"]  # each template got a list that fits its own font
+
+
+@pytest.mark.skipif(shutil.which("latexmk") is None, reason="LaTeX not installed")
+@pytest.mark.parametrize("which", ["default", "sans"])
+def test_the_relevance_order_still_meets_the_line_rule(
+        which: str, seeded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from tests import test_skill_cooccurrence as co
+
+    if which == "sans" and not HAS_SANS:
+        pytest.skip("Source Sans Pro is not installed")
+    monkeypatch.setitem(cv_service.cv_rules.DEFAULT_STRUCTURE, "skills_max", 30)
+    template = load_template("default") if which == "default" else sans_template(tmp_path)
+    with Session(engine) as s:
+        pool = load_pool(s)
+        job = Job(title="Developer", company_id=1, location="Berlin",
+                  description=co.BACKEND_LISTING * 3)
+        # the roles come from the seeded pool; the skills from the co-occurrence pool
+        plan = cv_service.with_job_skills(s, plan_for(pool), co.pool(), job, "Acme")
+    assert plan.skills_mode == "flat"
+    assert [x["reason"] for x in plan.skill_list][:3] == ["jd", "jd", "jd"]
+    result = fit_to_page(plan, pool, cv_profile(pool), template, tmp_path / "out",
+                         state=FitState())
+    assert result.compiled.ok and result.compiled.pages == 1
+    printed = result.document.skills_flat
+    assert printed == [x["skill"] for x in plan.skill_list][:len(printed)]
+    lines, last = measured(result, template)
+    assert 2 <= lines <= 3 and last >= 0.74

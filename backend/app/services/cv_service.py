@@ -195,6 +195,7 @@ def with_job_skills(s: Session, plan: CVPlan, pool: Pool, job: Job | None,
     picked = skill_ledger.select_skills(
         pool, title=job.title or "", description=text, company=company,
         location=job.location or "", keep=cv_rules.skill_keep(settings, job.matched_track or ""),
+        emphasis=cv_rules.track_emphasis(settings, job.matched_track or ""),
         max_items=int(rules["skills_max"]), min_items=int(rules["skills_min"]),
         target_items=int(rules["skills_target"]))
     # no listing match at all (a snippet, another field): nothing to rank by, so a fill would only

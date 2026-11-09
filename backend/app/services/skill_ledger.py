@@ -15,11 +15,15 @@ A skill takes the best tier any of its sources has. Tiers 2 and 3 enter the list
 listing names them. The list is built in this order, up to the target size,
 and on to the max so the page's line fit can add or cut at the tail (JD matches are cut last):
   1  the listing's matches (any tier), most relevant first: title, requirement lines, frequency
-  2  tier 1 skills pinned in `cv.skill_keep` (a boost, where a track has pins)
-  3  tier 1 skills in the same skill group as a matched skill, in group order (same field)
-  4  the remaining tier 1 skills, in group order
-Steps 2-4 only ever draw on your skill groups: never a tag, a skill proof, a certification topic
-or a term from the listing. Under the minimum the caller keeps the grouped list.
+  2  tier 1 skills that appear in the same job or project as a matched skill ("cooc"), ranked by
+     how many matched skills they appear with, then by the items they share
+  3  tier 1 skills pinned for the track ("pin"): `cv.skill_keep`, then the track's
+     `cv.track_emphasis` tags
+  4  the remaining tier 1 skills ("fill"): the track's emphasized skill groups first, in your
+     order, then the other groups in pool order
+Group membership alone promotes nothing in steps 1-3. Steps 2-4 only ever draw on your skill
+groups: never a tag, a skill proof, a certification topic or a term from the listing. Under the
+minimum the caller keeps the grouped list.
 """
 from __future__ import annotations
 
@@ -60,7 +64,7 @@ class SelectedSkill:
     skill: str
     tier: int
     item_ids: list[int]
-    reason: str  # "jd" (the listing names it) | "pin" | "group" (same group as a match) | "fill"
+    reason: str  # "jd" (the listing names it) | "cooc" | "pin" | "fill"
     score: int = 0
 
     def to_dict(self) -> dict[str, Any]:
@@ -123,6 +127,38 @@ def _mentions(text: str, term: str) -> bool:
     return fit_lexical.has_term(text, term)
 
 
+def _boundary(term: str) -> tuple[str, str]:
+    """Lookarounds for a whole-word match. Short or ambiguous terms (Git, R, Go) also refuse a
+    hyphenated phrase ("Go-to-market"), and a one-letter term refuses "R&D" and "C/C++"."""
+    short = len(norm(term)) <= 3 or norm(term) in AMBIGUOUS
+    left, right = r"(?<![A-Za-z0-9])", r"(?![A-Za-z0-9])"
+    if short:
+        left, right = r"(?<![A-Za-z0-9-])", r"(?![A-Za-z0-9]|-[A-Za-z])"
+    if len(norm(term)) <= 1:
+        left, right = r"(?<![A-Za-z0-9&/.+#-])", r"(?![A-Za-z0-9&/.+#-])"
+    return left, right
+
+
+def word_exact(text: str, term: str) -> bool:
+    """`term` as you wrote it (same case), as a whole word: bullet evidence."""
+    left, right = _boundary(term)
+    return re.search(left + re.escape(term) + right, text) is not None
+
+
+def word_any_case(text: str, term: str) -> bool:
+    """`term` in any case, as a whole word: your tags are working labels in lower case."""
+    left, right = _boundary(term)
+    return re.search(left + re.escape(term) + right, text, re.I) is not None
+
+
+def item_mentions(item: Any, entry: LedgerEntry, facts: list[str]) -> bool:
+    """Does this job or project use the skill: it is a tag (any case) or it is written in a
+    bullet exactly as you spell it (whole word, same case, so "providers" is not "Provider")."""
+    tags = "\n".join(item.tags or [])
+    bullets = "\n".join([item.title or "", *facts])
+    return any(word_any_case(tags, t) or word_exact(bullets, t) for t in entry.terms)
+
+
 def _first_pos(text: str, term: str) -> int:
     m = re.search(rf"(?<![A-Za-z0-9]){re.escape(term)}", text, re.I)
     return m.start() if m else len(text)
@@ -148,8 +184,33 @@ def _score(entry: LedgerEntry, title: str, lines: list[str], description: str
     return score, min(_first_pos(description, t) for t in hit), hit
 
 
+def _cooccurring(pool: Pool, seeds: list[LedgerEntry], candidates: list[LedgerEntry]
+                 ) -> list[LedgerEntry]:
+    """Candidates that share a job or project with a matched skill, best first: the number of
+    matched skills they appear with, then the number of items they share."""
+    items = [(item, pool.facts(item)) for kind in ("job", "project") for item in pool.of(kind)]
+    uses = {id(item): {norm(e.display) for e in [*seeds, *candidates]
+                       if item_mentions(item, e, facts)} for item, facts in items}
+    scored = []
+    for order, cand in enumerate(candidates):
+        together: set[str] = set()
+        shared = 0
+        for item, _facts in items:
+            have = uses[id(item)]
+            if norm(cand.display) not in have:
+                continue
+            seeds_here = {norm(s.display) for s in seeds} & have
+            if seeds_here:
+                shared += 1
+                together |= seeds_here
+        if together:
+            scored.append((-len(together), -shared, order, cand))
+    return [c for *_key, c in sorted(scored, key=lambda x: x[:3])]
+
+
 def select_skills(pool: Pool, *, title: str, description: str, company: str = "",
                   location: str = "", keep: dict[str, list[str]] | None = None,
+                  emphasis: dict[str, list[str]] | None = None,
                   max_items: int = DEFAULT_MAX, min_items: int = DEFAULT_MIN,
                   target_items: int = DEFAULT_TARGET) -> SkillSelection:
     """The flat skills list for one listing, most relevant first (see the module docstring).
@@ -165,6 +226,7 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
 
     chosen: list[SelectedSkill] = []
     claimed: set[str] = set()  # a name two entries answer to is shown once, by the best of them
+    by_display: dict[str, LedgerEntry] = {norm(e.display): e for e in ledger}
 
     def take(entry: LedgerEntry, reason: str, score: int = 0) -> None:
         claimed.update(norm(t) for t in entry.terms)
@@ -183,9 +245,14 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
     n_jd = len(chosen)
     target = min(max(target_items, min_items, n_jd), max_items)
     if len(chosen) < max_items:  # candidates up to the max: the line fit may add or cut at the tail
-        by_key = {norm(e.display): e for e in ledger}
-        groups = [[by_key[k] for tag in item.tags if (k := norm(tag)) in by_key
-                   and by_key[k].tier == T_EXPERIENCE] for item in pool.of("skill")]
+        # your skill groups, the emphasized ones first (in your order), then the rest as stored
+        wanted = [norm(g) for g in (emphasis or {}).get("skill_groups", [])]
+        stored = list(pool.of("skill"))
+        ordered = [g for w in wanted for g in stored if norm(g.title) == w]
+        ordered += [g for g in stored if g not in ordered]
+        groups = [[by_display[k] for tag in item.tags if (k := norm(tag)) in by_display
+                   and by_display[k].tier == T_EXPERIENCE] for item in ordered]
+        tier1 = [e for g in groups for e in g]
 
         def free(entry: LedgerEntry) -> bool:
             return norm(entry.display) not in {norm(s.skill) for s in chosen} \
@@ -198,15 +265,13 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
                 if free(entry):
                     take(entry, reason)
 
-        by_term = {norm(t): e for g in groups for e in g for t in e.terms}
-        fill([by_term[norm(p)] for grp in (keep or {}).values() for p in grp
-              if norm(p) in by_term], "pin")
-        matched = {norm(s.skill) for s in chosen if s.reason == "jd"}
-        for group in groups:  # same field as a matched skill, in group order
-            if any(norm(e.display) in matched for e in group):
-                fill(group, "group")
-        for group in groups:  # then everything else you have, in group order
-            fill(group, "fill")
+        seeds = [by_display[norm(s.skill)] for s in chosen]
+        fill(_cooccurring(pool, seeds, [e for e in tier1 if free(e)]), "cooc")
+        by_term = {norm(t): e for e in tier1 for t in e.terms}
+        pins = [p for grp in (keep or {}).values() for p in grp] + list(
+            (emphasis or {}).get("tags", []))
+        fill([by_term[norm(p)] for p in pins if norm(p) in by_term], "pin")
+        fill(tier1, "fill")
 
     return SkillSelection(skills=chosen, gaps=_gaps(pool, ledger, title, description, lines,
                                                     company, location),

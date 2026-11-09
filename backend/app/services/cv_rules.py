@@ -160,6 +160,14 @@ def skill_keep(cv_settings: dict[str, Any], track: str) -> dict[str, list[str]]:
         (v for k, v in table.items() if _norm(k) == _norm(track)), {}).items()}
 
 
+def track_emphasis(cv_settings: dict[str, Any], track: str) -> dict[str, list[str]]:
+    """Settings → CV → track emphasis for a track: {"skill_groups": [...], "tags": [...]}."""
+    table = cv_settings.get("track_emphasis") or {}
+    found = next((v for k, v in table.items() if _norm(k) == _norm(track)), None) or {}
+    return {"skill_groups": [str(x) for x in found.get("skill_groups") or []],
+            "tags": [str(x) for x in found.get("tags") or []]}
+
+
 def pin(category: str, items: list[str], pool_tags: list[str],
         keep: dict[str, list[str]]) -> list[str]:
     """The group's items with the track's pinned skills first (only skills the pool group

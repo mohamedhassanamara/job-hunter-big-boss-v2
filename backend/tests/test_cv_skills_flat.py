@@ -160,11 +160,13 @@ def test_the_cap_target_and_minimum_come_from_settings(seeded: None) -> None:
     short = run(("Data engineer wanted. " * 12) + "You know Python.", track="no-pins")
     assert short.skill_list[0]["skill"] == "python" and len(short.skill_list) == 18
     assert short.skills_target == 14
-    # a pinned skill goes ahead of the same-group fill
-    save({}, {"data-ai": {"Cloud": ["terraform"]}})
+    # the order is: the listing's matches, co-occurring skills, pins, the rest
+    save({}, {"data-ai": {"Cloud": ["gcp"]}})
     pinned = run(("Data engineer wanted. " * 12) + "You know Python.", track="data-ai")
-    assert [x["reason"] for x in pinned.skill_list[:2]] == ["jd", "pin"]
-    assert pinned.skill_list[1]["skill"] == "terraform"
+    reasons = [x["reason"] for x in pinned.skill_list]
+    assert reasons == sorted(reasons, key=["jd", "cooc", "pin", "fill"].index)
+    assert {x["skill"]: x["reason"] for x in pinned.skill_list}["gcp"] == "pin"
+    assert reasons[0] == "jd" and "cooc" in reasons and "fill" in reasons
     # a listing that names none of your skills: nothing to rank by, the grouped list is kept
     none = run("Marketing manager wanted for brand campaigns and events. " * 6)
     assert none.skills_mode == "grouped" and none.skill_list == []

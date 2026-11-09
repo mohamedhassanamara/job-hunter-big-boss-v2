@@ -132,11 +132,12 @@ def test_a_short_match_is_filled_to_the_target_from_your_skill_groups() -> None:
     assert {"Zebra Stack", "Quokka DB", "mentoring", "web"}.isdisjoint(shown)
 
 
-def test_same_group_skills_come_before_the_rest() -> None:
+def test_group_membership_alone_promotes_nothing() -> None:
     pool = make_pool(groups=[["Rust", "Haskell"], ["Python", "SQL", "Go"], ["Dart", "Swift"]])
     out = sel(pool, max_items=5, min_items=1)
+    # Go shares a group with the matched Python and SQL, but nothing else ties it to them
     assert [(s.skill, s.reason) for s in out.skills] == [
-        ("Python", "jd"), ("SQL", "jd"), ("Go", "group"), ("Rust", "fill"), ("Haskell", "fill")]
+        ("Python", "jd"), ("SQL", "jd"), ("Rust", "fill"), ("Haskell", "fill"), ("Go", "fill")]
 
 
 def test_pins_boost_ahead_of_the_fill() -> None:
