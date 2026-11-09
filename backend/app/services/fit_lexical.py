@@ -161,8 +161,8 @@ def cv_text(content: dict[str, Any]) -> tuple[str, str]:
     """(first screen, everything) of a tailored CV document."""
     roles = content.get("roles") or []
     bullets = [b for r in roles for b in (r.get("bullets") or [])]
-    skills = " ".join([x for g in content.get("skills") or [] for x in (g.get("items") or [])]
-                      + list(content.get("skills_flat") or []))
+    skills = " ".join(content.get("skills_flat") or [
+        x for g in content.get("skills") or [] for x in (g.get("items") or [])])
     titles = " ".join(f"{r.get('title', '')} {r.get('org', '')}" for r in roles)
     skim = "\n".join([content.get("summary") or "", skills, titles, *bullets[:10]])
     rest = []

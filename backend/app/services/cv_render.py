@@ -252,11 +252,11 @@ def _has_flat_skills(template: CVTemplate) -> bool:
 
 
 def _skills_context(doc: CVDocument, template: CVTemplate) -> list[dict[str, Any]]:
-    """The groups to print. A flat list goes to a template that knows `skills_flat`; an older
-    custom template without it gets the same skills as one group, so nothing disappears."""
-    if doc.skills_flat:
-        return [] if _has_flat_skills(template) else [{"category": "Skills",
-                                                       "items": list(doc.skills_flat)}]
+    """The groups to print. A flat list goes to a template that knows `skills_flat`; a custom
+    template without that branch prints the grouped skills the plan also carries, as before
+    (template validation warns about it)."""
+    if doc.skills_flat and _has_flat_skills(template):
+        return []
     return [g.model_dump() for g in doc.skills if g.items]
 
 

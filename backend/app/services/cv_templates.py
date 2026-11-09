@@ -46,18 +46,28 @@ STALE_PARAGRAPH_MESSAGE = (
     "itemsep and parsep 0pt.")
 
 
+NO_FLAT_SKILLS_MESSAGE = (
+    "It has no `skills_flat` branch, so a CV made for a job prints your grouped skills in it "
+    "instead of the one listing-ordered line. Copy the `\\BLOCK{if skills_flat}` block of the "
+    "skills section from templates/default/cv.tex.j2.")
+
+
 def template_warnings(source: str) -> list[str]:
     """Non-blocking advice from reading the template text (never a LaTeX run). The old
     `\\resumeParagraph` (commit 2a92a7c: `\\par` + `\\vspace` + `\\linespread`) inflated every
-    one-point entry by ~12pt; a template copied from the default before the fix still has it."""
+    one-point entry by ~12pt; a template copied from the default before the fix still has it.
+    A template with a skills section but no `skills_flat` branch can't print the job CV's line."""
+    out: list[str] = []
     start = source.find("\\newcommand{\\resumeParagraph}")
-    if start < 0:
-        return []
-    ends = [i for i in (source.find(marker, start + 1)
-                        for marker in ("\n\n", "\n\\newcommand", "\n\\BLOCK")) if i >= 0]
-    macro = source[start:min(ends) if ends else len(source)]
-    return [STALE_PARAGRAPH_MESSAGE] if re.search(
-        r"\\par(?![a-zA-Z])|\\vspace|\\linespread", macro) else []
+    if start >= 0:
+        ends = [i for i in (source.find(marker, start + 1)
+                            for marker in ("\n\n", "\n\\newcommand", "\n\\BLOCK")) if i >= 0]
+        macro = source[start:min(ends) if ends else len(source)]
+        if re.search(r"\\par(?![a-zA-Z])|\\vspace|\\linespread", macro):
+            out.append(STALE_PARAGRAPH_MESSAGE)
+    if re.search(r"s\.key\s*==\s*'skills'", source) and "skills_flat" not in source:
+        out.append(NO_FLAT_SKILLS_MESSAGE)
+    return out
 
 
 def _hash(path: Path) -> str:

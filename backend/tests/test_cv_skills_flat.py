@@ -32,16 +32,16 @@ def pool_stub():  # noqa: ANN201
 
 def test_a_flat_list_is_one_ungrouped_line() -> None:
     out = tex(CVDocument(skills_flat=["Python", "SQL", "Airflow"]))
-    assert r"\section{Technical Skills}" in out
+    assert r"\section{Skills}" in out
     assert "Python, SQL, Airflow" in out
-    body = out.split(r"\section{Technical Skills}")[1].split(r"\end{itemize}")[0]
+    body = out.split(r"\section{Skills}")[1].split(r"\end{itemize}")[0]
     assert r"\textbf" not in body and "\\\\" not in body  # no category, no line break
 
 
 def test_the_grouped_list_still_renders_as_before() -> None:
     doc = CVDocument(skills=[CVSkillGroup(category="Languages", items=["Python", "SQL"]),
                              CVSkillGroup(category="Cloud", items=["AWS"])])
-    body = tex(doc).split(r"\section{Technical Skills}")[1].split(r"\end{itemize}")[0]
+    body = tex(doc).split(r"\section{Skills}")[1].split(r"\end{itemize}")[0]
     assert r"\textbf{Languages}{: Python, SQL}" in body and r"\textbf{Cloud}{: AWS}" in body
 
 
@@ -49,22 +49,25 @@ def test_flat_skills_are_escaped_like_any_text() -> None:
     assert r"R\&D" in tex(CVDocument(skills_flat=["R&D tooling", "C#"]))
 
 
-def test_a_template_without_flat_support_gets_one_group_instead(tmp_path: Path) -> None:
+def test_a_template_without_flat_support_prints_the_grouped_skills(tmp_path: Path) -> None:
     src = load_template("default")
     path = tmp_path / "old"
     shutil.copytree(src.path, path)
     text = (path / "cv.tex.j2").read_text().replace("skills_flat", "no_flat_here")
     (path / "cv.tex.j2").write_text(text)
     old = cv_render.CVTemplate(name="old", path=path, config=src.config, builtin=False)
-    ctx = cv_render.build_context(CVDocument(skills_flat=["Python", "SQL"]), cv_profile(
-        pool_stub()), old)
-    assert ctx["skills"] == [{"category": "Skills", "items": ["Python", "SQL"]}]
+    doc = CVDocument(skills=[CVSkillGroup(category="Languages", items=["Python"])],
+                     skills_flat=["Python", "SQL"])
+    ctx = cv_render.build_context(doc, cv_profile(pool_stub()), old)
+    assert ctx["skills"] == [{"category": "Languages", "items": ["Python"]}]  # as before
     assert ctx["skills_flat"] == []
+    new = cv_render.build_context(doc, cv_profile(pool_stub()), src)
+    assert new["skills"] == [] and new["skills_flat"] == ["Python", "SQL"]
 
 
 def test_a_section_with_only_a_flat_list_is_not_empty() -> None:
-    assert r"\section{Technical Skills}" in tex(CVDocument(skills_flat=["Python"]))
-    assert r"\section{Technical Skills}" not in tex(CVDocument())
+    assert r"\section{Skills}" in tex(CVDocument(skills_flat=["Python"]))
+    assert r"\section{Skills}" not in tex(CVDocument())
 
 
 # -------------------------------------------------------------------------- build_document
@@ -83,7 +86,8 @@ def test_build_document_prints_the_flat_list_in_order_and_no_groups(seeded: None
                      skill_list=[{"skill": "Zed", "tier": 3, "item_ids": [], "reason": "jd"},
                                  {"skill": "Alpha", "tier": 1, "item_ids": [1], "reason": "jd"}])
     doc = cv_build.build_document(plan, pool, cv_build.FitState())
-    assert doc.skills == [] and doc.skills_flat == ["Zed", "Alpha"]  # tiers are not printed
+    assert doc.skills_flat == ["Zed", "Alpha"]  # tiers are not printed
+    assert doc.skills  # the grouped skills stay for a template without a flat branch
     grouped = cv_build.build_document(plan.model_copy(update={"skills_mode": "grouped"}), pool,
                                       cv_build.FitState())
     assert grouped.skills and grouped.skills_flat == []
@@ -191,6 +195,15 @@ def test_only_tier_one_skills_count_as_things_you_did() -> None:
 # ------------------------------------------------------------------------------ end to end
 
 
+def new_tex_skills(client, app_id: int) -> str:  # noqa: ANN001
+    version = client.get(f"/api/applications/{app_id}/cv").json()["versions"][0]
+    with Session(engine) as s:
+        from app.models import CVVersion
+
+        tex = s.get(CVVersion, version["id"]).tex
+    return tex.split(r"\section{Skills}")[1].split(r"\end{itemize}")[0]
+
+
 @pytest.mark.parametrize("title", ["LLM Engineer"])
 def test_generating_a_job_cv_prints_a_flat_one_page_list(client, title: str) -> None:
     items = client.get("/api/jobs?stage=all").json()["items"]
@@ -201,9 +214,22 @@ def test_generating_a_job_cv_prints_a_flat_one_page_list(client, title: str) -> 
     content = new["content"]
     plan = client.get(f"/api/applications/{app_id}/cv").json()["versions"][0]
     assert plan["id"] == new["id"]
-    assert content["skills_flat"] and content["skills"] == []
+    assert content["skills_flat"]  # the grouped skills stay for a template without the branch
+    assert r"\textbf" not in new_tex_skills(client, app_id)
     # every printed skill is one of your own spellings
     with Session(engine) as s:
         pool = load_pool(s)
         own = {t for i in pool.items.values() for t in i.tags}
     assert set(content["skills_flat"]) <= own
+
+
+def test_validation_warns_about_a_template_without_the_flat_branch() -> None:
+    from app.services import cv_templates
+    from app.services.cv_render import ROOT
+
+    default = (ROOT / "templates/default/cv.tex.j2").read_text()
+    assert cv_templates.NO_FLAT_SKILLS_MESSAGE not in cv_templates.template_warnings(default)
+    old = default.replace("skills_flat", "no_flat_here")
+    assert cv_templates.NO_FLAT_SKILLS_MESSAGE in cv_templates.template_warnings(old)
+    # a template with no skills section has nothing to warn about
+    assert cv_templates.template_warnings(r"\section{Summary}") == []

@@ -106,10 +106,11 @@ def messages(s: Session, thread_id: int) -> list[CopilotMessage]:
 def _cv_text(cv: CVVersion) -> str:
     doc = cv.content or {}
     lines = [f"Summary: {doc.get('summary', '')}"]
-    for g in doc.get("skills") or []:
-        lines.append(f"Skills, {g.get('category')}: {', '.join(g.get('items') or [])}")
     if doc.get("skills_flat"):
         lines.append(f"Skills: {', '.join(doc['skills_flat'])}")
+    else:
+        for g in doc.get("skills") or []:
+            lines.append(f"Skills, {g.get('category')}: {', '.join(g.get('items') or [])}")
     for kind in ("roles", "projects", "volunteering"):
         for e in doc.get(kind) or []:
             head = " · ".join(x for x in (e.get("title"), e.get("org"), e.get("start"),

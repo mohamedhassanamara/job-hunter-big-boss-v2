@@ -106,7 +106,7 @@ def test_empty_sections_are_omitted_entirely() -> None:
     doc = CVDocument(summary="Hi", roles=[CVRole(title="Dev", org="Acme", bullets=["Did x"])])
     tex = render_tex(doc, CVProfile(full_name="Ada"), load_template("default"))
     assert r"\section{Summary}" in tex and r"\section{Professional Experience}" in tex
-    for title in ("Technical Skills", "Projects", "Certifications", "Education", "Volunteering"):
+    for title in ("Skills", "Projects", "Certifications", "Education", "Volunteering"):
         assert f"section{{{title}" not in tex
 
 

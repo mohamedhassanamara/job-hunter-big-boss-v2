@@ -66,7 +66,7 @@ description: One column, small caps section titles…
 paper: letter            # letter | a4
 sections:                # order + titles; unknown keys are rejected
   - {key: summary, title: Summary}
-  - {key: skills, title: Technical Skills}
+  - {key: skills, title: Skills}
   - {key: experience, title: Professional Experience}
   - {key: projects, title: Projects}
   - {key: certifications, title: Certifications}

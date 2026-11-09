@@ -305,8 +305,8 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
     skills = [CVSkillGroup(category=lay.display.get(c, c), items=items)
               for c, items in cv_rules.shape_skills(groups, lay.rules, [])]  # no merging
     flat = [s["skill"] for s in plan.skill_list] if plan.skills_mode == "flat" else []
-    if flat:
-        skills = []  # a job CV prints the flat list; the grouped plan stays for the readers
+    # a job CV prints the flat list; the grouped skills stay on the document for a template
+    # that has no `skills_flat` branch
     return CVDocument(summary=summary, skills=skills, skills_flat=flat, roles=roles,
                       projects=projects,
                       certifications=certifications, education=education,
