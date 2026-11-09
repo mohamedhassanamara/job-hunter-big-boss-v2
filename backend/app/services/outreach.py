@@ -8,9 +8,9 @@ signature and the opt-out line come from Settings → Email and are added at pre
 
 import re
 import threading
-from pathlib import Path
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Engine

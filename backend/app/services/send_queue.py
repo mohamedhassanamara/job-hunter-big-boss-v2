@@ -11,8 +11,9 @@ Safety rules:
   (check Gmail's Sent folder, then mark it sent or retry it).
 - Every attempt is written to `send_log`. A failure is visible and retryable; an auth/config
   failure also pauses the queue.
-- Every message is a text/plain body with the CV PDF as its only attachment (`smtp_mailer.email_problem`); a draft written
-  under the old rules (CV attached) or that breaks the current ones goes back to review.
+- Every message is a text/plain body with the CV PDF as its only attachment
+  (`smtp_mailer.email_problem`); a draft written under the old rules (CV attached) or that breaks
+  the current ones goes back to review.
 - A sent email moves a job that wasn't applied yet to Sent (done) with method = email, so
   follow-ups, replies and stats work as for web applications. It never locks a CV.
 """
@@ -48,7 +49,7 @@ from app.models.enums import (
 )
 from app.providers import smtp_mailer
 from app.providers.base import Mailer, SendFailed
-from app.services import dnc, outreach, outreach_check, pipeline, verifier
+from app.services import dnc, outreach, pipeline, verifier
 from app.services.cv_check import violation
 
 log = logging.getLogger("send_queue")

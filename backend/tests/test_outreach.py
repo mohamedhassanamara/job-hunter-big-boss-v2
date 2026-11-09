@@ -567,8 +567,8 @@ def test_a_generated_applied_email_is_one_prose_paragraph_naming_the_company_and
         job_ready: dict) -> None:
     """The conversion format: company in the opening, a bullet-free proof, the attached-CV
     call-out in the closing, under 110 words, and the CV PDF really attached."""
-    from app.providers.mock import MockEmailDrafter
     from app.providers import smtp_mailer
+    from app.providers.mock import MockEmailDrafter
     d = outreach.generate_applied(engine, job_ready["app"], MockEmailDrafter())
     with Session(engine) as s:
         body = outreach.full_body(s, d)

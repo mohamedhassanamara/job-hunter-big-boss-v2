@@ -2,12 +2,11 @@
 (no HTML part, no image, no tracking) and the only attachment is the CV PDF. Nothing here
 retries: the send queue decides, and logs every attempt."""
 
-from pathlib import Path
-
 import smtplib
 import ssl
 from email.message import EmailMessage
 from email.utils import formataddr, make_msgid
+from pathlib import Path
 
 from app.providers.base import OutgoingEmail, SendFailed
 
