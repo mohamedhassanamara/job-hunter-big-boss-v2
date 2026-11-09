@@ -106,6 +106,16 @@ def _has(text: str, term: str) -> bool:
         is not None
 
 
+def has_term(text: str, term: str) -> bool:
+    """Public name for the whole-word, case-insensitive term check."""
+    return _has(text, term)
+
+
+def has_cue(line: str) -> bool:
+    """True when the line states a requirement (must, required, experience with, …)."""
+    return _CUE.search(line) is not None
+
+
 def _profile_places(pool: Pool) -> list[tuple[str, str, str]]:
     """(where, strength, text) across your experience, strongest first."""
     out: list[tuple[str, str, str]] = []
