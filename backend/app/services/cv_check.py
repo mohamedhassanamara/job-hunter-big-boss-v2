@@ -17,7 +17,7 @@ import re
 from typing import Any
 
 from app.providers.base import CVPlan, PlanBullet, PlanEntry, SummarySentence
-from app.services import glossary
+from app.services import fit_lexical, glossary
 from app.services.cv_claims import (
     Canon,
     Vocabulary,
@@ -228,6 +228,15 @@ def sentence_problems(sentence: SummarySentence, pool: Pool, allowed_years: set[
     return problems
 
 
+def shown_skills(plan: CVPlan) -> list[str]:
+    """The skills a CV prints that count as things you have done (the summary may name them).
+    A flat job list includes skills backed only by a small project or a certification: those are
+    on the page for the listing, not something the summary may claim, so only tier 1 counts."""
+    if plan.skills_mode == "flat":
+        return [str(s["skill"]) for s in plan.skill_list if s.get("tier") == 1]
+    return [x for g in plan.skills for x in g.items]
+
+
 def summary_support(summary: str, plan: CVPlan, pool: Pool, qualifiers: list[str]) -> list[str]:
     """Warnings: the summary names something the CV page doesn't show. A tool, project or concept
     of your pool that no included bullet, role or skill carries, and a qualifier ("scalable",
@@ -239,10 +248,14 @@ def summary_support(summary: str, plan: CVPlan, pool: Pool, qualifiers: list[str
     page = "\n".join(
         [p for i in shown if i is not None for p in (i.title, i.org or "")]
         + [b.text for e in [*plan.roles, *plan.projects, *plan.volunteering] for b in e.bullets]
-        + [x for g in plan.skills for x in g.items]
+        + shown_skills(plan)
         + [c.title for c in (pool.get(i, "certification") for i in plan.certification_ids) if c])
     page = glossary.expand(page, pool.profile)
     problems: list[str] = []
+    if asked := [g for g in plan.skill_gaps if fit_lexical.has_term(summary, g)]:
+        problems.append(f"names {', '.join(f'“{g}”' for g in asked[:3])}, which the listing asks "
+                        "for but nothing in your experience backs (say it as transferable "
+                        "experience, never as a skill you have)")
     if page.strip():  # nothing on the page yet (a bare plan): nothing to compare with
         seen = bullet_tailor.pool_terms_in(page, pool)
         named = sorted(bullet_tailor.pool_terms_in(summary, pool) - seen, key=str.lower)

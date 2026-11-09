@@ -117,10 +117,14 @@
 \section{\VAR{s.title}}
  \begin{itemize}[leftmargin=0pt, label={}, itemsep=1.5pt, topsep=1pt]
     \small{\item{
+\BLOCK{if skills_flat}
+     \VAR{skills_flat|join(', ')}
+\BLOCK{else}
 \BLOCK{for g in skills}
      \textbf{\VAR{g.category}}{: \VAR{g['items']|join(', ')}}\BLOCK{if not loop.last} \\\BLOCK{endif}
 
 \BLOCK{endfor}
+\BLOCK{endif}
     }}
  \end{itemize}
 

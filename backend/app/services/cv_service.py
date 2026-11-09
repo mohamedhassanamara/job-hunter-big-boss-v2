@@ -28,6 +28,7 @@ from app.services.cv_check import (
     check_plan,
     feedback,
     ground_sentences,
+    shown_skills,
     summary_support,
     verbatim_skills,
 )
@@ -177,6 +178,34 @@ def layout_hints(pool: Pool, rules: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+MIN_LISTING_CHARS = 200  # below this there is no listing to match: the grouped list stays
+
+
+def with_job_skills(s: Session, plan: CVPlan, pool: Pool, job: Job | None,
+                    company: str = "") -> CVPlan:
+    """A job CV prints the skills its listing names that you can back (services/skill_ledger),
+    one ungrouped line in listing-relevance order. No listing text: the grouped skills stay."""
+    from app.services import skill_ledger
+
+    text = (job.description or "").strip() if job else ""
+    if job is None or len(text) < MIN_LISTING_CHARS:
+        return plan
+    settings = cv_settings(s)
+    rules = cv_rules.structure(settings)
+    picked = skill_ledger.select_skills(
+        pool, title=job.title or "", description=text, company=company,
+        location=job.location or "", keep=cv_rules.skill_keep(settings, job.matched_track or ""),
+        max_items=int(rules["skills_max"]), min_items=int(rules["skills_min"]),
+        target_items=int(rules["skills_target"]))
+    # no listing match at all (a snippet, another field): nothing to rank by, so a fill would only
+    # be your groups in stored order; and too few skills even after the fill: the grouped list
+    # (tailored by the model to the track) reads better in both cases
+    if not picked.enough or not any(x.reason == "jd" for x in picked.skills):
+        return plan.model_copy(update={"skill_gaps": picked.gaps})
+    return plan.model_copy(update={"skills_mode": "flat", "skill_gaps": picked.gaps,
+                                   "skill_list": [x.to_dict() for x in picked.skills]})
+
+
 def track_of(s: Session, app_id: int) -> str:
     app = s.get(Application, app_id)
     job = s.get(Job, app.job_id) if app else None
@@ -210,7 +239,7 @@ def summary_style(plan: CVPlan, pool: Pool, rules: dict[str, Any],
     bullets = [b.text for e in [*plan.roles, *plan.projects] for b in e.bullets]
     internships = [i for i in pool.of("job") if cv_rules.role_type(i, rules) == "internship"]
     tools = {t for i in pool.items.values() for t in i.tags if len(t) > 2}
-    tools |= {x for g in plan.skills for x in g.items if len(x) > 2}
+    tools |= {x for x in shown_skills(plan) if len(x) > 2}
     # Anything on the CV counts as "something you built" (grounding is checked separately).
     on_cv = [pool.get(e.item_id) for e in [*plan.roles, *plan.projects]]
     cited_texts = [p for i in on_cv if i is not None for p in [i.title, *i.bullets]]
@@ -284,12 +313,17 @@ def generate(engine: Engine, app_id: int, generator: CVGenerator | None = None,
             raise CVError(" ".join(blockers))
         template_name = _template(template, s)
         request = build_request(s, app, pool)
+        job = s.get(Job, app.job_id)
+        owner = s.get(Company, job.company_id) if job else None
+        company_name = owner.name if owner else ""
         rules = {**cv_rules.structure(cv_settings(s)),
                  "_qualifiers": cv_rules.qualifiers(cv_settings(s))}  # runtime only
         banned = cv_rules.banned(cv_settings(s))
     try:
         plan = generator.generate(request)
         plan = verbatim_skills(canonicalize(plan, pool), pool)
+        with Session(engine) as s:  # before the summary checks: they read the skills and gaps
+            plan = with_job_skills(s, plan, pool, job, company_name)
         plan, issues, tailoring = bullet_tailor.enforce(plan, pool)
         plan, verifier_issues, verification = bullet_tailor.verify(plan, pool, verifier)
         issues += verifier_issues

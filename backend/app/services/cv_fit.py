@@ -46,6 +46,8 @@ def tailored_text(content: dict[str, Any]) -> str:
                          f"{e.get('org') or e.get('school', '')}")
     for g in content.get("skills") or []:
         lines.append(f"- [skill] {g.get('category', '')}: {', '.join(g.get('items') or [])}")
+    if content.get("skills_flat"):
+        lines.append(f"- [skill] {', '.join(content['skills_flat'])}")
     return "\n".join(lines)
 
 

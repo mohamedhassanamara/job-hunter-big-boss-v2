@@ -22,6 +22,9 @@ interface Structure {
   volunteering_max: number
   skill_groups_max: number
   skill_items_max: number
+  skills_max: number
+  skills_target: number
+  skills_min: number
   fill_min: number
   summary_max_words: number
   summary_max_sentences: number
@@ -127,7 +130,12 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
           relevance {num('project_min_relevance', 'Project minimum relevance', { min: 0, max: 10 })}+, {num('project_other_track_relevance', 'Other-track project relevance', { min: 0, max: 10 })}+ for other tracks
         </span>
       </Field>
-      <Field label="Skills">
+      <Field label="Skills (CV for a job)" hint="One flat line, most relevant first: the skills the listing names that you can back, then your pinned skills, then skills from the same groups, then the rest of your skill groups, up to the target. Under the minimum, the grouped list is kept. Skills the listing asks for and you can't back are never shown.">
+        <span className="inline-flex items-center gap-1.5 text-sm">
+          target {num('skills_target', 'Skills target', { min: 4, max: 30 })}, at least {num('skills_min', 'Skills minimum', { min: 0, max: 30 })}, at most {num('skills_max', 'Skills max', { min: 4, max: 40 })}
+        </span>
+      </Field>
+      <Field label="Skills (general and all-purpose CVs)" hint="No listing to match, so the grouped list stays.">
         <span className="inline-flex items-center gap-1.5 text-sm">
           at most {num('skill_groups_max', 'Skill groups max', { min: 1, max: 8 })} groups of {num('skill_items_max', 'Skills per group', { min: 3, max: 15 })} skills
         </span>

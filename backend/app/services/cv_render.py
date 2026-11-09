@@ -74,6 +74,7 @@ class CVDocument(BaseModel):
 
     summary: str = ""
     skills: list[CVSkillGroup] = []
+    skills_flat: list[str] = []  # a job CV's ungrouped skills line; empty = print `skills` groups
     roles: list[CVRole] = []
     projects: list[CVProject] = []
     certifications: list[CVCertification] = []
@@ -239,8 +240,24 @@ def _non_empty(doc: CVDocument, key: str) -> bool:
     if key == "summary":
         return bool((value or "").strip())
     if key == "skills":
-        return any(g.items for g in value or [])
+        return any(g.items for g in value or []) or bool(doc.skills_flat)
     return bool(value)
+
+
+def _has_flat_skills(template: CVTemplate) -> bool:
+    try:
+        return "skills_flat" in (template.path / "cv.tex.j2").read_text()
+    except OSError:
+        return False
+
+
+def _skills_context(doc: CVDocument, template: CVTemplate) -> list[dict[str, Any]]:
+    """The groups to print. A flat list goes to a template that knows `skills_flat`; an older
+    custom template without it gets the same skills as one group, so nothing disappears."""
+    if doc.skills_flat:
+        return [] if _has_flat_skills(template) else [{"category": "Skills",
+                                                       "items": list(doc.skills_flat)}]
+    return [g.model_dump() for g in doc.skills if g.items]
 
 
 def build_context(doc: CVDocument, profile: CVProfile, template: CVTemplate,
@@ -258,7 +275,8 @@ def build_context(doc: CVDocument, profile: CVProfile, template: CVTemplate,
         "header_lines": header_lines(profile, config),
         "sections": sections,
         "summary": doc.summary.strip(),
-        "skills": [g.model_dump() for g in doc.skills if g.items],
+        "skills": _skills_context(doc, template),
+        "skills_flat": doc.skills_flat if _has_flat_skills(template) else [],
         "roles": [r.model_dump() for r in doc.roles],
         "projects": [p.model_dump() for p in doc.projects],
         "certifications": [c.model_dump() for c in doc.certifications],

@@ -315,6 +315,11 @@ class CVPlan(BaseModel):
     extras: list[PlanExtra] = []  # not yet on the page; consumed by fill_by_relevance
     extras_rated: list[PlanExtra] = []  # every rated leftover, kept after the fill (Left out)
     fill_log: list[dict[str, Any]] = []  # what fill_by_relevance added or skipped, and why
+    # "flat": a job CV prints `skill_list` as one ungrouped line (services/skill_ledger); the
+    # grouped `skills` stay for everything that reads groups. "grouped": no listing to match.
+    skills_mode: Literal["grouped", "flat"] = "grouped"
+    skill_list: list[dict[str, Any]] = []  # {skill, tier, item_ids, reason}: tier is never printed
+    skill_gaps: list[str] = []  # listing tools nothing of yours backs (never shown, never named)
 
 
 def plan_from_draft(draft: "CVPlanDraft") -> "CVPlan":

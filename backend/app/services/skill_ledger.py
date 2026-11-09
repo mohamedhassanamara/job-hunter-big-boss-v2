@@ -6,11 +6,19 @@ in `gaps`, for the summary prompt's "do not name these" rule and the "JD asks fo
 pool" hint). Nothing is inferred: no synonym, no glossary mapping, no "related" skill.
 
 Evidence tiers (internal gating only: the CV never shows which tier a skill came from):
-  1  your own skills inventory and the tags of your real jobs, projects, volunteering, education
+  1  your skills inventory (the `skill` groups in Experience: curated and spelled by you, which is
+     also what a CV printed before). The free-form tags on jobs and projects are working labels
+     ("mentoring", "web"), not skills: they are not read
   2  `skill_proof` items (small real projects, never printed in Experience)
   3  tags of your certifications (studied, not necessarily built with)
 A skill takes the best tier any of its sources has. Tiers 2 and 3 enter the list only when the
-listing names them; padding (a short match) uses tier 1 skills pinned in `cv.skill_keep` only.
+listing names them. The list is built in this order, up to the target size:
+  1  the listing's matches (any tier), most relevant first: title, requirement lines, frequency
+  2  tier 1 skills pinned in `cv.skill_keep` (a boost, where a track has pins)
+  3  tier 1 skills in the same skill group as a matched skill, in group order (same field)
+  4  the remaining tier 1 skills, in group order
+Steps 2-4 only ever draw on your skill groups: never a tag, a skill proof, a certification topic
+or a term from the listing. Under the minimum the caller keeps the grouped list.
 """
 from __future__ import annotations
 
@@ -23,15 +31,18 @@ from app.services.cv_pool import Pool, norm, terms_of
 
 T_EXPERIENCE, T_PROOF, T_STUDY = 1, 2, 3
 DEFAULT_MAX = 18
-DEFAULT_MIN = 8
+DEFAULT_TARGET = 14
+DEFAULT_MIN = 10
 TITLE_BONUS = 20
 CUE_LINE = 3  # a hit on a line that states a requirement
 PLAIN_LINE = 1
 # English words that are also skill names: matched only as written in your pool (case-sensitive)
-_HEADINGS = {"about", "ready", "make", "role", "team", "what", "your", "join", "who", "why"}
 # S3, C++, C#, Node.js, D3.js, .NET, DP-600: a letter first, then a digit or a tool suffix
-_SYMBOLIC = re.compile(r"[A-Za-z]+\d+[A-Za-z0-9]*(?:\.js)?|[A-Za-z]+\+\+|[A-Za-z]+#|"
-                       r"[A-Za-z]+\.js|\.NET|[A-Z]{2,3}-\d{2,4}")
+_SYMBOLIC = re.compile(r"[A-Za-z]{1,6}\d{1,3}(?:\.js)?|[A-Za-z]{1,10}\+\+|[A-Za-z]#|"
+                       r"[A-Za-z]{2,10}\.js|\.NET|[A-Z]{2,3}-\d{2,4}")
+# shouted words that are tools; any other ALL-CAPS word is a heading, a currency or a unit
+_ACRONYMS = {"sql", "aws", "gcp", "rest", "grpc", "sap", "jvm", "css", "html", "yaml", "json",
+             "xml", "orm", "oauth", "jwt", "sso"}
 AMBIGUOUS = {"go", "swift", "ray", "chef", "puppet", "flow", "spark", "dash", "rust", "r", "c"}
 
 
@@ -48,7 +59,7 @@ class SelectedSkill:
     skill: str
     tier: int
     item_ids: list[int]
-    reason: str  # "jd" (the listing names it) | "pad" (tier 1, pinned for the track)
+    reason: str  # "jd" (the listing names it) | "pin" | "group" (same group as a match) | "fill"
     score: int = 0
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,6 +71,7 @@ class SelectedSkill:
 class SkillSelection:
     skills: list[SelectedSkill]
     gaps: list[str]  # the listing's checkable terms none of your evidence backs
+    enough: bool = True  # False: under the minimum even after the fill (keep the grouped list)
 
     @property
     def display(self) -> list[str]:
@@ -71,7 +83,7 @@ class SkillSelection:
 
 def build_ledger(pool: Pool) -> list[LedgerEntry]:
     """Every claimable skill with its best tier. Spelling comes from the first source: your skill
-    groups, then your roles' and projects' tags, then skill proofs, then certification topics."""
+    groups, then skill proofs, then certification topics."""
     entries: dict[str, LedgerEntry] = {}
 
     def add(tags: list[str], tier: int, item_id: int | None) -> None:
@@ -89,9 +101,6 @@ def build_ledger(pool: Pool) -> list[LedgerEntry]:
 
     for item in pool.of("skill"):
         add(item.tags, T_EXPERIENCE, item.id)
-    for kind in ("job", "project", "volunteering", "education"):
-        for item in pool.of(kind):
-            add(item.tags, T_EXPERIENCE, item.id)
     for item in pool.skill_proofs:
         add(item.tags, T_PROOF, item.id)
     for item_id, tags in pool.study_tags.items():
@@ -138,8 +147,10 @@ def _score(entry: LedgerEntry, title: str, lines: list[str], description: str
 
 def select_skills(pool: Pool, *, title: str, description: str, company: str = "",
                   location: str = "", keep: dict[str, list[str]] | None = None,
-                  max_items: int = DEFAULT_MAX, min_items: int = DEFAULT_MIN) -> SkillSelection:
-    """The flat skills list for one listing, most relevant first (see the module docstring)."""
+                  max_items: int = DEFAULT_MAX, min_items: int = DEFAULT_MIN,
+                  target_items: int = DEFAULT_TARGET) -> SkillSelection:
+    """The flat skills list for one listing, most relevant first (see the module docstring).
+    `enough` is False when even the fill stays under `min_items`."""
     ledger = build_ledger(pool)
     lines = fit_lexical.requirement_lines(description)
     scored = []
@@ -151,6 +162,12 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
 
     chosen: list[SelectedSkill] = []
     claimed: set[str] = set()  # a name two entries answer to is shown once, by the best of them
+
+    def take(entry: LedgerEntry, reason: str, score: int = 0) -> None:
+        claimed.update(norm(t) for t in entry.terms)
+        chosen.append(SelectedSkill(entry.display, entry.tier, list(entry.item_ids), reason,
+                                    score))
+
     for neg, _tier, _pos, _order, entry, hit in scored:
         names = {norm(t) for t in hit}
         if names <= claimed:
@@ -160,18 +177,36 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
         if len(chosen) >= max_items:
             break
 
-    if len(chosen) < min_items:  # a short match: pinned tier 1 skills only, never tier 2 or 3
-        by_term = {norm(t): e for e in ledger if e.tier == T_EXPERIENCE for t in e.terms}
-        shown = {norm(s.skill) for s in chosen}
-        for pinned in [p for group in (keep or {}).values() for p in group]:
-            entry = by_term.get(norm(pinned))
-            if entry is None or norm(entry.display) in shown or len(chosen) >= min_items:
-                continue
-            shown.add(norm(entry.display))
-            chosen.append(SelectedSkill(entry.display, entry.tier, list(entry.item_ids), "pad"))
+    target = min(max(target_items, min_items), max_items)
+    if len(chosen) < target:
+        by_key = {norm(e.display): e for e in ledger}
+        groups = [[by_key[k] for tag in item.tags if (k := norm(tag)) in by_key
+                   and by_key[k].tier == T_EXPERIENCE] for item in pool.of("skill")]
+
+        def free(entry: LedgerEntry) -> bool:
+            return norm(entry.display) not in {norm(s.skill) for s in chosen} \
+                and not {norm(t) for t in entry.terms} & claimed
+
+        def fill(entries: list[LedgerEntry], reason: str) -> None:
+            for entry in entries:
+                if len(chosen) >= target:
+                    return
+                if free(entry):
+                    take(entry, reason)
+
+        by_term = {norm(t): e for g in groups for e in g for t in e.terms}
+        fill([by_term[norm(p)] for grp in (keep or {}).values() for p in grp
+              if norm(p) in by_term], "pin")
+        matched = {norm(s.skill) for s in chosen if s.reason == "jd"}
+        for group in groups:  # same field as a matched skill, in group order
+            if any(norm(e.display) in matched for e in group):
+                fill(group, "group")
+        for group in groups:  # then everything else you have, in group order
+            fill(group, "fill")
 
     return SkillSelection(skills=chosen, gaps=_gaps(pool, ledger, title, description, lines,
-                                                    company, location))
+                                                    company, location),
+                          enough=len(chosen) >= min_items)
 
 
 # ------------------------------------------------------------------------------------- gaps
@@ -208,5 +243,5 @@ def _tool_shaped(word: str) -> bool:
     if low in cv_check._TOOLS:
         return True
     if word.isalpha() and word.isupper():
-        return 2 <= len(word) <= 5 and low not in _HEADINGS
+        return low in _ACRONYMS
     return _SYMBOLIC.fullmatch(word) is not None
