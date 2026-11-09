@@ -39,6 +39,12 @@ class Pool:
     by_kind: dict[str, list[ExperienceItem]] = field(default_factory=dict)
     # Settings → Candidate → Visibility on documents: print-only flags (see services/visibility)
     visibility: dict[str, bool] = field(default_factory=lambda: dict(visibility.DEFAULTS))
+    # Evidence tiers 2 and 3 for the skills list ONLY (services/skill_ledger). `skill_proof` items
+    # are not in `items`/`by_kind`, so no CV section, citation, fill or check can reach them
+    # (`get` answers None), and a certification's tags are not in its `items` copy: they are the
+    # "studied, not built" tier and live here.
+    skill_proofs: list[ExperienceItem] = field(default_factory=list)
+    study_tags: dict[int, list[str]] = field(default_factory=dict)
 
     def of(self, kind: str) -> list[ExperienceItem]:
         return self.by_kind.get(kind, [])
@@ -77,9 +83,18 @@ def load_pool(s: Session) -> Pool:
         .order_by(col(ExperienceItem.position), col(ExperienceItem.id))
     ).all()
     row = s.exec(select(AppSetting).where(AppSetting.key == "profile")).first()
-    pool = Pool(items={i.id: i for i in items if i.id is not None},
+    pool = Pool(items={i.id: i for i in items if i.id is not None and i.kind != "skill_proof"},
                 profile=dict(row.value) if row else {}, visibility=visibility.load(s))
     for item in items:
+        if item.kind == "skill_proof":
+            pool.skill_proofs.append(item)
+            continue
+        if item.kind == "certification" and item.tags and item.id is not None:
+            pool.study_tags[item.id] = list(item.tags)
+            # a detached copy (never added to a session) without its tags: every reader that
+            # scans tags for "what you have done" sees none, only the skills list reads study_tags
+            item = _without_tags(item)
+            pool.items[item.id] = item  # type: ignore[index]
         pool.by_kind.setdefault(item.kind, []).append(item)
     # Roles newest first (the CV timeline order), whatever their position on the screen.
     for kind in ("job", "volunteering", "education"):
@@ -87,6 +102,12 @@ def load_pool(s: Session) -> Pool:
             key=lambda i: (i.end_date is not None, -(i.end_date or i.start_date or date.min)
                            .toordinal(), -(i.start_date or date.min).toordinal()))
     return pool
+
+
+def _without_tags(item: ExperienceItem) -> ExperienceItem:
+    """A read-only view of `item` with no tags. `model_copy(update=)` writes the copy's own field
+    dict (no instrumented setter), so nothing is marked dirty and the stored row is untouched."""
+    return item.model_copy(update={"tags": []})
 
 
 def role_years(pool: Pool, today: date | None = None) -> float:

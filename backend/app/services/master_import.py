@@ -149,7 +149,9 @@ def plan(s: Session, items: list[dict[str, Any]], mapping: dict[str, Any]) -> di
     """What applying would do: per document entry the pool item it replaces (or None = new), and
     the old items the document doesn't contain (to archive). Writes nothing."""
     match = mapping.get("match", {})
-    existing = {i.id: i for i in s.exec(select(ExperienceItem)).all() if i.kind != "summary"}
+    # skill proofs are added by hand, not in the master document: never matched or archived
+    existing = {i.id: i for i in s.exec(select(ExperienceItem)).all()
+                if i.kind not in ("summary", "skill_proof")}
     rows, used = [], set()
     for it in items:
         old_id = match.get(_key(it["kind"], it["key"]))
@@ -181,6 +183,8 @@ def fields(it: dict[str, Any], old: ExperienceItem | None, mapping: dict[str, An
         out["org"] = (old.org if old else None) or mapping.get("project_label") or None
     if it["kind"] == "certification":
         out["credential_id"] = it.get("credential_id")
+        if old is not None and old.tags and not out["tags"]:
+            out["tags"] = list(old.tags)  # topics you added by hand (skills tier 3) survive
     return out
 
 

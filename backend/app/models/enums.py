@@ -80,6 +80,9 @@ class ExperienceKind(StrEnum):
     education = "education"
     certification = "certification"
     volunteering = "volunteering"
+    # A small project that proves skills, too small for an Experience entry: never printed
+    # in Experience/Projects, never cited; only the skills list draws on it (skill_ledger).
+    skill_proof = "skill_proof"
     summary = "summary"  # short summary snippets the CV generator picks from and rewords
 
 
