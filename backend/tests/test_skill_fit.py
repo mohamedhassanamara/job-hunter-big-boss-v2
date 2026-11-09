@@ -243,10 +243,11 @@ def test_the_printed_skills_block_meets_the_rule_on_the_real_page(
     assert len(report) <= 3  # the first fit plus at most two corrections
     sim = report[-1]["simulated"]
     assert sim[0] == lines and sim[1] == pytest.approx(last, abs=0.03)
-    # JD matches are never what is cut while filler is printed: the printed list is a prefix
-    # of the ranked list, so every match kept comes before every skill cut
+    # what is cut goes in the plan's cut order (filler, then soft skills, then matches): every
+    # skill that prints is later in that order than every skill that was cut
     ranked = [x["skill"] for x in plan.skill_list]
-    assert printed == ranked[:len(printed)]
+    assert_cut_in_order(plan, printed)
+    assert [s for s in ranked if s in printed] == printed  # display order is kept
     # no skill is split across lines: each prints whole inside one PDF line
     with pymupdf.open(result.compiled.pdf_path) as pdf:
         rows = [" ".join("".join(sp["text"] for sp in ln["spans"]).split())
@@ -265,6 +266,13 @@ def test_no_length_that_fits_prints_the_grouped_skills(
                          tmp_path / "out", state=FitState())
     assert result.document.skills_flat == []  # four skills never make two lines
     assert report_of(result)[-1]["grouped"]
+
+
+def assert_cut_in_order(plan, printed: list[str]) -> None:  # noqa: ANN001
+    position = {plan.skill_list[i]["skill"]: n for n, i in enumerate(plan.skill_cut_order)}
+    cut = [position[s["skill"]] for s in plan.skill_list if s["skill"] not in printed]
+    kept = [position[s] for s in printed]
+    assert not cut or not kept or max(cut) < min(kept)
 
 
 def report_of(result):  # noqa: ANN001, ANN201
@@ -309,6 +317,6 @@ def test_the_relevance_order_still_meets_the_line_rule(
                          state=FitState())
     assert result.compiled.ok and result.compiled.pages == 1
     printed = result.document.skills_flat
-    assert printed == [x["skill"] for x in plan.skill_list][:len(printed)]
+    assert_cut_in_order(plan, printed)
     lines, last = measured(result, template)
     assert 2 <= lines <= 3 and last >= 0.74

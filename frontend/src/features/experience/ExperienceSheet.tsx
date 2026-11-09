@@ -44,6 +44,7 @@ export function ExperienceSheet({
       summary: null,
       bullets: [],
       tags: [],
+      soft_skills: [],
       is_active: true,
     },
   )
@@ -51,11 +52,15 @@ export function ExperienceSheet({
   const set = (patch: Partial<ExperienceInput>) => setForm((f) => ({ ...f, ...patch }))
   const meta = KIND_META[form.kind]
   const k = form.kind
-  const datesApply = k !== 'skill' && k !== 'summary'
-  const bulletsApply = k !== 'skill' && k !== 'certification' && k !== 'summary'
-  const orgApply = k !== 'skill' && k !== 'summary'
+  const proof = k === 'skill_proof'
+  const datesApply = k !== 'skill' && k !== 'summary' && !proof
+  const bulletsApply = k !== 'skill' && k !== 'certification' && k !== 'summary' && !proof
+  const orgApply = k !== 'skill' && k !== 'summary' && !proof
+  const softApply = k === 'job' || k === 'volunteering'
+  const keepCase = k === 'skill' || k === 'project' || k === 'certification' || proof
+  const realBullets = form.bullets.map((b) => b.trim()).filter(Boolean)
   const locationApply = k === 'job' || k === 'education' || k === 'volunteering'
-  const titleLabel = { skill: 'Group name', summary: 'Name (only you see it)', certification: 'Certificate', project: 'Project name', education: 'Degree' }[k as string] ?? 'Title'
+  const titleLabel = { skill: 'Group name', skill_proof: 'What you built', summary: 'Name (only you see it)', certification: 'Certificate', project: 'Project name', education: 'Degree' }[k as string] ?? 'Title'
   const orgLabel = { education: 'School', project: 'Label (e.g. Personal project)', certification: 'Issuer', job: 'Company' }[k as string] ?? 'Organisation'
 
 
@@ -65,6 +70,7 @@ export function ExperienceSheet({
       title: form.title.trim(),
       end_date: present ? null : form.end_date,
       bullets: form.bullets.map((b) => b.trim()).filter(Boolean),
+      soft_skills: softApply ? (form.soft_skills ?? []) : [],
     })
 
   return (
@@ -123,6 +129,12 @@ export function ExperienceSheet({
               placeholder={form.kind === 'job' ? 'Senior Data Engineer' : form.kind === 'skill' ? 'Data engineering' : ''}
             />
           </div>
+          {proof && (
+            <p className="rounded-md bg-bg-subtle px-3 py-2 text-xs leading-5 text-fg-muted" data-tour="skill-proof-note">
+              Never printed in Experience, Projects or any other section, and never counted as a job or an achievement. Only the skills line of a job CV can use the skills you tag
+              here, and only when a listing names them.
+            </p>
+          )}
           {orgApply && (
             <div className="grid grid-cols-2 gap-3">
               <div className={cn('space-y-1.5', !locationApply && 'col-span-2')}>
@@ -141,7 +153,7 @@ export function ExperienceSheet({
               )}
             </div>
           )}
-          {(k === 'certification' || k === 'project') && (
+          {(k === 'certification' || k === 'project' || proof) && (
             <div className="grid grid-cols-2 gap-3">
               {k === 'certification' && (
                 <div className="space-y-1.5">
@@ -149,8 +161,8 @@ export function ExperienceSheet({
                   <Input id="credential" value={form.credential_id ?? ''} onChange={(e) => set({ credential_id: e.target.value || null })} />
                 </div>
               )}
-              <div className={cn('space-y-1.5', k === 'project' && 'col-span-2')}>
-                <Label htmlFor="url">{k === 'certification' ? 'Verification URL' : 'Link (repo or demo)'}</Label>
+              <div className={cn('space-y-1.5', k !== 'certification' && 'col-span-2')}>
+                <Label htmlFor="url">{k === 'certification' ? 'Verification URL' : 'Link (repo or demo, optional)'}</Label>
                 <Input id="url" type="url" value={form.url ?? ''} onChange={(e) => set({ url: e.target.value || null })} placeholder="https://" />
               </div>
             </div>
@@ -198,7 +210,7 @@ export function ExperienceSheet({
           )}
           {k !== 'skill' && (
             <div className="space-y-1.5">
-              <Label htmlFor="summary">{k === 'summary' ? 'Snippet' : 'Summary'}</Label>
+              <Label htmlFor="summary">{k === 'summary' ? 'Snippet' : proof ? 'What you did (a sentence or two)' : 'Summary'}</Label>
               {k === 'summary' && (
                 <p className="text-xs text-fg-subtle">
                   A few sentences about you. The CV generator picks the snippet that best fits each job and may reword it, never adding facts.
@@ -274,10 +286,48 @@ export function ExperienceSheet({
             </div>
           )}
           <div className="space-y-1.5">
-            <Label>{k === 'skill' ? 'Skills' : k === 'project' ? 'Tech stack' : 'Tags'}</Label>
+            <Label>{k === 'skill' ? 'Skills' : k === 'project' ? 'Tech stack' : proof ? 'Skills it proves' : k === 'certification' ? 'Skills it covers' : 'Tags'}</Label>
+            {k === 'certification' && (
+              <p className="text-xs text-fg-subtle" data-tour="cert-skills">
+                Certification skills only count as <em>studied</em>, never as things you did: they can appear in a job CV&apos;s skills line when a listing names them, and are never claimed in the summary, bullets, letters or emails.
+              </p>
+            )}
+            {proof && <p className="text-xs text-fg-subtle">Spell each skill the way it should print ("PostgreSQL"). It counts as something you built, but only in the skills line.</p>}
             {/* Skills and stacks appear on the CV as typed: keep their casing ("PostgreSQL"). */}
-            <TagInput tags={form.tags} onChange={(tags) => set({ tags })} lowercase={k !== 'skill' && k !== 'project'} />
+            <TagInput tags={form.tags} onChange={(tags) => set({ tags })} lowercase={!keepCase} />
           </div>
+          {softApply && (
+            <div className="space-y-1.5" data-tour="soft-skills">
+              <Label>Soft skills</Label>
+              <p className="text-xs text-fg-subtle">
+                Listed only when a listing names them. They print as ordinary entries at the end of the skills line, never as a separate group, and never count as something you did.
+              </p>
+              <TagInput
+                tags={form.soft_skills ?? []}
+                onChange={(soft_skills) => set({ soft_skills })}
+                lowercase={false}
+                placeholder="Teamwork, Mentoring… (Enter to add)"
+              />
+              <div className="rounded-md border border-border bg-bg-subtle px-3 py-2">
+                <p className="mb-1 text-2xs font-medium tracking-wide text-fg-muted uppercase">What backs it: this item&apos;s own bullets</p>
+                {realBullets.length > 0 ? (
+                  <ul className="space-y-1 text-xs leading-5 text-fg-muted">
+                    {realBullets.map((b, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-2 size-1 shrink-0 rounded-full bg-fg-subtle" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-warning-fg">No bullets yet: a soft skill is only used when this item has at least one bullet, so add one above first.</p>
+                )}
+                {(form.soft_skills ?? []).length > 0 && realBullets.length > 0 && (
+                  <p className="mt-1.5 text-2xs text-fg-subtle">Tag only what these words support: you may be asked about it.</p>
+                )}
+              </div>
+            </div>
+          )}
           {k === 'project' && (
             <div className="space-y-1.5">
               <Label>Tracks</Label>
@@ -294,7 +344,7 @@ export function ExperienceSheet({
 
 const FIELD_LABEL: Record<string, string> = {
   title: 'Title', org: 'Organisation', location: 'Location', start_date: 'Start', end_date: 'End', date_label: 'Dates as written',
-  summary: 'Summary', bullets: 'Bullets', tags: 'Tags', tracks: 'Tracks', url: 'Link', credential_id: 'Credential ID', is_active: 'In use', kind: 'Type',
+  summary: 'Summary', bullets: 'Bullets', tags: 'Tags', tracks: 'Tracks', soft_skills: 'Soft skills', url: 'Link', credential_id: 'Credential ID', is_active: 'In use', kind: 'Type',
 }
 
 /** What changed in this item's text, newest first. Every change can be undone; Undo is itself recorded. */

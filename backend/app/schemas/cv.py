@@ -108,6 +108,40 @@ class TrackGenerateOut(BaseModel):
     cv_id: int | None = None
 
 
+class SkillsPatch(BaseModel):
+    """Studio chips: take skills off the line, put some back (from your ledger), or go back to
+    the automatic list."""
+
+    remove: list[str] = []
+    add: list[str] = []
+    reset: bool = False
+
+
+class SkillChipOut(BaseModel):
+    skill: str
+    kind: str  # technical | soft
+    tier: int
+    source: str
+
+
+class SkillsFitOut(BaseModel):
+    count: int
+    minimum: int
+    lines: int | None = None
+    last_fill: float | None = None
+    ok: bool
+    problems: list[str] = []
+    manual: bool = False
+    grouped: bool = False
+
+
+class CVSkillsOut(BaseModel):
+    mode: str  # flat | grouped
+    printed: list[SkillChipOut] = []
+    available: list[SkillChipOut] = []
+    fit: SkillsFitOut
+
+
 class CVPatch(BaseModel):
     """force_in / force_out: keys like "role:12:0", "project:7", "cert:3"; text: key → edited
     text ("summary" or a bullet key). Omit a field to keep the current value."""
@@ -120,6 +154,7 @@ class CVPatch(BaseModel):
     # this CV uses the pool's bullets exactly as written, no adaptation anywhere
     original_only: bool | None = None
     template: str | None = None
+    skills: SkillsPatch | None = None
 
 
 class CVApproveResult(BaseModel):

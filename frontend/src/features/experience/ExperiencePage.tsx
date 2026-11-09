@@ -97,6 +97,16 @@ function Row({
             </span>
           ))}
           {item.tags.length > 7 && <span className="text-2xs text-fg-subtle">+{item.tags.length - 7}</span>}
+          {(item.soft_skills ?? []).length > 0 && (
+            <span className="ml-1 inline-flex flex-wrap items-center gap-1.5">
+              <span className="text-2xs text-fg-subtle">Soft skills</span>
+              {(item.soft_skills ?? []).map((t) => (
+                <span key={t} className="rounded-sm border border-dashed border-border-strong px-1.5 text-2xs leading-5 text-fg-muted">
+                  {t}
+                </span>
+              ))}
+            </span>
+          )}
         </div>
       </button>
       {item.bullets.length > 0 && (
@@ -263,12 +273,12 @@ export default function ExperiencePage() {
               )}
 
               <div data-tour="experience-groups" className="space-y-6">
-              {KINDS.map(({ kind, label, singular, icon: Icon }) => {
+              {KINDS.map(({ kind, label, singular, icon: Icon, note }) => {
                 const group = items.filter((i) => i.kind === kind)
                 const shown = group.filter(visible)
                 if (tagFilter.length && !shown.length) return null
                 return (
-                  <section key={kind}>
+                  <section key={kind} data-tour={kind === 'skill_proof' ? 'experience-skill-proofs' : undefined}>
                     <div className="mb-2 flex items-center gap-2">
                       <Icon className="size-4 text-fg-subtle" strokeWidth={1.75} />
                       <h2 className="text-sm font-semibold">{label}</h2>
@@ -278,7 +288,19 @@ export default function ExperiencePage() {
                         Add {singular.toLowerCase()}
                       </Button>
                     </div>
-                    {shown.length === 0 ? (
+                    {note && <p className="mb-2 text-xs text-fg-subtle">{note}</p>}
+                    {shown.length === 0 && kind === 'skill_proof' ? (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-dashed border-border-strong px-4 py-4 text-sm text-fg-muted">
+                        <span className="min-w-0 flex-1">
+                          No skill proofs yet. Add a small real project (a script, a prototype) that proves a skill you don&apos;t want as an Experience entry.
+                        </span>
+                        <Button size="sm" variant="default" onClick={() => setCreatingKind(kind)}>
+                          <Plus />
+                          Add skill proof
+                        </Button>
+                        <TourButton tour="skill-proofs" />
+                      </div>
+                    ) : shown.length === 0 ? (
                       <button
                         onClick={() => setCreatingKind(kind)}
                         className="w-full rounded-lg border border-dashed border-border-strong px-4 py-5 text-sm text-fg-muted hover:bg-surface-hover"

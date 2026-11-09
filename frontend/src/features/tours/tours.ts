@@ -42,6 +42,7 @@ export type TourId =
   | 'outreach'
   | 'contacts'
   | 'experience'
+  | 'skill-proofs'
   | 'settings'
   | 'motivation'
 
@@ -173,6 +174,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'review-cvs-list', title: 'Every draft in one list', body: 'The CV drafts of your shortlisted jobs, written in the background after you shortlist. Each row shows the checks that matter for approval: one page, no bullet, skill, number or tool error, and how full the page is. J and K move.', placement: 'right' },
       { target: 'review-cvs-select', title: 'Regenerate several at once', body: 'Tick CVs with the checkboxes (X ticks the current row, shift-click picks a range, or Select all) and press Shift+R. One box takes optional feedback for all of them and whether to rewrite the whole CV or only the summary, and shows about how many requests it will use. They run in the background and each row shows queued, running, done or failed with Retry. Every result is a new draft: an approved CV stays approved until you approve the new one.', placement: 'right' },
       { target: 'review-cvs-left-out', title: 'What the CV left out', body: 'Left out (n) lists the bullets and projects of your experience that are not on this CV, each with the relevance the model gave it for the job and why it is out. A switch adds one (or takes it out again): the page is re-fitted in code with the same checks, no model call.', placement: 'right' },
+      { target: 'skills-line', title: 'The skills line', body: 'A job CV prints one line: the listing\'s skills that you can back, most relevant first, then your other skills, and soft skills last. The page picks the length so the line takes 2 to 3 lines with the last one at least 75% full. Remove a skill or put one back from your own skills (never free text): once you edit it, the CV prints exactly your list and the line rule is only reported.', placement: 'right' },
       { target: 'cv-preview', title: 'The real PDF', body: 'The page you would send. The editor next to it works as in CV Studio: toggle or edit, and the page re-fits in code.', placement: 'left' },
       { target: 'review-cvs-approve', title: 'A approves and moves on', body: 'A approves the selected CV (only when it passes the same checks as CV Studio) and selects the next one. R regenerates with feedback, E jumps into the summary, S skips. Nothing is approved for you.', placement: 'bottom' },
     ],
@@ -444,6 +446,17 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'experience-tags', title: 'Tags', body: 'Tags power filtering here and let the CV generator match your experience to each job.' },
       { target: 'experience-row', title: 'Edit, reorder, include', body: 'Click to edit, drag to reorder. The switch excludes an item from CVs without deleting it.' },
       { target: 'experience-add', title: 'Add items', body: 'Add roles, projects, volunteering, skills, education and certifications with concrete, quantified bullets.', placement: 'left' },
+    ],
+  },
+  'skill-proofs': {
+    id: 'skill-proofs',
+    title: 'Skill proofs, certification skills and soft skills',
+    description: 'Evidence for the skills line of a job CV',
+    resolveRoute: async () => '/experience',
+    steps: [
+      { target: 'experience-skill-proofs', title: 'Skill proofs', body: 'A small real project (a script, a prototype) that proves a skill but is too small for an Experience entry. It is never printed in Experience or Projects: only the skills line of a job CV can use the skills you tag, and only when the listing names them.', placement: 'top' },
+      { target: 'experience-groups', title: 'Three kinds of evidence', body: 'Your skill groups, jobs and projects count as things you did. A skill proof counts as built, only in the skills line. A certification\'s skills count as studied. Open a job or volunteering item to add soft skills: they need a bullet that backs them.', placement: 'top' },
+      { target: 'experience-add', title: 'Nothing is guessed', body: 'A skill the listing asks for that none of this backs is never shown on the CV. If you really have it, add a skill proof; if you only studied it, tag the certification.', placement: 'left' },
     ],
   },
   settings: {

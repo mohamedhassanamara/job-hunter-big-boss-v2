@@ -24,12 +24,16 @@ from app.schemas.cv import (
     CVRegenOut,
     CVRegenRetryIn,
     CVReviewRow,
+    CVSkillsOut,
     CVStudio,
     CVVersionOut,
     HeaderPreviewRow,
     HeaderRefreshIn,
     HeaderResult,
     ReadinessItem,
+    SkillChipOut,
+    SkillsFitOut,
+    SkillsPatch,
     SummaryCheckIn,
     SummaryIn,
     SummaryRestoreIn,
@@ -44,14 +48,16 @@ from app.services import (
     cv_header,
     cv_regen,
     cv_review,
+    cv_rules,
     cv_service,
     cv_templates,
     cv_track,
     model_choice,
     pipeline,
+    skill_editor,
     verifier,
 )
-from app.services.cv_pool import load_pool, readiness
+from app.services.cv_pool import load_pool, norm, readiness
 
 router = APIRouter(tags=["cv"])
 
@@ -295,11 +301,60 @@ def patch_cv(cv_id: int, body: CVPatch, session: SessionDep, engine: EngineDep) 
         value = getattr(body, key)
         if value is not None:
             overrides[key] = value
+    if body.skills is not None:
+        _edit_skills(session, v, body.skills, overrides)
     try:
         version = cv_service.rerender(engine, cv_id, overrides=overrides, template=body.template)
     except cv_service.CVError as exc:
         raise HTTPException(422, str(exc)) from exc
     return _out(version)
+
+
+def _flat_plan(v: CVVersion) -> CVPlan:
+    plan = CVPlan.model_validate((v.plan or {}).get("plan") or {"summary": "", "summary_short": ""})
+    return plan
+
+
+def _edit_skills(session: Session, v: CVVersion, patch: SkillsPatch,
+                 overrides: dict[str, Any]) -> None:
+    """Studio chips: your list (from the ledger only) replaces the automatic one."""
+    if _flat_plan(v).skills_mode != "flat":
+        raise HTTPException(422, "This CV prints the grouped skills: there is no line to edit")
+    if patch.reset:
+        overrides.pop("skills", None)
+        return
+    known = skill_editor.chips(load_pool(session))
+    current = list((overrides.get("skills") or {}).get("list")
+                   or (v.content or {}).get("skills_flat") or [])
+    try:
+        overrides["skills"] = {"list": skill_editor.apply(current, patch.remove, patch.add, known)}
+    except skill_editor.SkillEditError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@router.get("/cv/{cv_id}/skills", response_model=CVSkillsOut)
+def cv_skills(cv_id: int, session: SessionDep) -> CVSkillsOut:
+    """The skills line of a job CV as chips: what prints, what you could put back, and whether
+    the line still meets the 2-3 line rule."""
+    v = get_or_404(session, CVVersion, cv_id, "CV version")
+    plan = _flat_plan(v)
+    pool = load_pool(session)
+    known = skill_editor.chips(pool)
+    minimum = int(cv_rules.structure(cv_service.cv_settings(session))["skills_min"])
+    printed_names = list((v.content or {}).get("skills_flat") or [])
+    editable = plan.skills_mode == "flat"  # a listing matched: there is a line to edit
+    printed = skill_editor.describe(printed_names, known, plan.skill_list)
+    shown = {norm(c.skill) for c in printed}
+
+    def out(c: skill_editor.Chip) -> SkillChipOut:
+        return SkillChipOut(skill=c.skill, kind=c.kind, tier=c.tier, source=c.source)
+
+    available = [out(c) for key, c in known.items() if key not in shown] if editable else []
+    # the groups print when the plan is grouped, or when no automatic length fit the rule
+    fit = skill_editor.fit_report((v.plan or {}).get("history") or [], len(printed), minimum,
+                                  not printed_names)
+    return CVSkillsOut(mode="flat" if editable else "grouped", printed=[out(c) for c in printed],
+                       available=available, fit=SkillsFitOut(**fit))
 
 
 @router.get("/cv/{cv_id}/pdf")

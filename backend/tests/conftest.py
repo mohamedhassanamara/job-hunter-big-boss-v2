@@ -21,9 +21,11 @@ for _name in ("HUNTER_API_KEYS", "PROSPEO_API_KEYS", "APOLLO_API_KEYS", "APIFY_T
 # Rendered CVs, letters and uploads go to the throwaway folder too, never into data/.
 from app.services import cover_letter as _cover_letter  # noqa: E402
 from app.services import cv_service as _cv_service  # noqa: E402
+from app.services import skill_fit as _skill_fit  # noqa: E402
 from app.services.motivation import files as _motivation_files  # noqa: E402
 
 _cv_service.CV_DIR = _tmp / "cv"
+_skill_fit.CACHE_DIR = _tmp / "skill_metrics"
 _cover_letter.LETTER_DIR = _tmp / "letters"
 _motivation_files.ROOT = _tmp / "motivation"
 

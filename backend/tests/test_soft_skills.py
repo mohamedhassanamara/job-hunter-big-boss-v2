@@ -322,12 +322,12 @@ def test_the_api_saves_it_with_history_and_the_master_import_keeps_it(
         client, seeded: None) -> None:
     items = client.get("/api/experience").json()
     vol = next(i for i in items if i["kind"] == "volunteering")
-    assert vol["soft_skills"] == []
+    assert vol["soft_skills"] == ["Mentoring"]  # the sandbox sample for the tour
     done = client.patch(f"/api/experience/{vol['id']}", json={"soft_skills": ["Teamwork"]})
     assert done.status_code == 200 and done.json()["soft_skills"] == ["Teamwork"]
     history = client.get(f"/api/experience/{vol['id']}/history").json()
     assert history[0]["after"]["soft_skills"] == ["Teamwork"] and history[0]["before"][
-        "soft_skills"] == []
+        "soft_skills"] == ["Mentoring"]
     from app.services import master_import
 
     doc = master_import.parse("## Volunteering & Leadership Experience\n"

@@ -63,7 +63,7 @@ export type ApplyMethod = 'company_site' | 'job_board' | 'email' | 'linkedin' | 
 export type ResponseKind = 'positive' | 'rejection' | 'other' | 'do_not_contact'
 export type InterviewType = 'hr' | 'technical' | 'take_home' | 'final' | 'other'
 export type InterviewOutcome = 'pending' | 'passed' | 'failed' | 'cancelled'
-export type ExperienceKind = 'job' | 'project' | 'skill' | 'education' | 'certification' | 'volunteering' | 'summary'
+export type ExperienceKind = 'job' | 'project' | 'skill' | 'skill_proof' | 'education' | 'certification' | 'volunteering' | 'summary'
 
 export interface CompanyRef {
   id: number
@@ -477,6 +477,34 @@ export interface CVPatchInput {
   /** This CV uses your bullets exactly as written. */
   original_only?: boolean
   template?: string
+  /** Studio skills chips: take skills off the line, put some back (your own only), or go back to automatic. */
+  skills?: { remove?: string[]; add?: string[]; reset?: boolean }
+}
+
+/** One skill of the job CV's skills line, as a chip. `kind: 'soft'` = a soft skill your pool backs. */
+export interface SkillChip {
+  skill: string
+  kind: 'technical' | 'soft'
+  tier: number
+  source: string
+}
+
+export interface CVSkillsFit {
+  count: number
+  minimum: number
+  lines: number | null
+  last_fill: number | null
+  ok: boolean
+  problems: string[]
+  manual: boolean
+  grouped: boolean
+}
+
+export interface CVSkills {
+  mode: 'flat' | 'grouped'
+  printed: SkillChip[]
+  available: SkillChip[]
+  fit: CVSkillsFit
 }
 
 export interface CVApproveResult {

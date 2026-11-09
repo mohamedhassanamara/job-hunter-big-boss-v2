@@ -603,6 +603,20 @@ def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTempla
 
     if lay is None:
         lay = layout(plan, pool)
+    manual = ((overrides or {}).get("skills") or {}).get("list")
+    if manual and plan.skills_mode == "flat" and skill_fit.supports_flat(template):
+        # Studio chips: you edited the line, so it prints exactly your list. No cutting or
+        # adding: the page is fitted around it and the line rule is only reported.
+        lay.skill_choice, lay.skills_grouped = [str(x) for x in manual], False
+        result = _fit_pass(plan, pool, profile, template, out_dir, state=state,
+                           overrides=overrides, lay=lay)
+        metrics = skill_fit.metrics_for(template, lay.skill_choice)
+        measured = skill_fit.measure_block(result.compiled.pdf_path, template, metrics.linewidth) \
+            if metrics and result.compiled.ok and result.compiled.pdf_path else None
+        result.history.append({"skill_fit": [{"skills": len(lay.skill_choice), "grouped": False,
+                                              "manual": True, "simulated": None,
+                                              "measured": list(measured) if measured else None}]})
+        return result
     flat = plan.skills_mode == "flat" and bool(plan.skill_list) and skill_fit.supports_flat(
         template)
     metrics = skill_fit.metrics_for(template, [str(s["skill"]) for s in plan.skill_list]) \

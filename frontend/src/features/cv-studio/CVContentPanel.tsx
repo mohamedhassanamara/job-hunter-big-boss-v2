@@ -9,6 +9,7 @@ import { useRestoreSummary, useSummaryCheck } from '@/lib/queries/workflow'
 import type { CVPatchInput, CVUsage, CVUsageEntry, CVVersion, CVViolation, ReadinessItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { wordDiff } from '@/lib/wordDiff'
+import { SkillsChips } from './SkillsChips'
 
 /** Left side of CV Studio: what the CV uses from your experience pool and what it leaves out.
  * Toggling or editing re-fits the page in code (no Claude call). */
@@ -59,6 +60,12 @@ export function CVContentPanel({
 
       <Section title="Summary" hint="Each sentence cites the experience it comes from (hover). The checks below are information: they never stop you approving.">
         <SummaryBlock version={version} usage={usage} readOnly={readOnly} onSave={(text) => onPatch({ text: { summary: text } })} />
+      </Section>
+
+      <Section title="Skills" hint="The listing's skills that you can back, most relevant first, then your other skills; soft skills close the line. Remove or put back your own skills only: once you edit it, the CV prints exactly your list.">
+        <div data-tour="skills-line">
+          <SkillsChips cvId={version.id} readOnly={readOnly} busy={busy} onPatch={onPatch} />
+        </div>
       </Section>
 
       <Section title="Experience" hint="Every role stays on the CV (no gaps); choose which bullets show. Bullets may be lightly adapted to the job; your pool text is never changed.">

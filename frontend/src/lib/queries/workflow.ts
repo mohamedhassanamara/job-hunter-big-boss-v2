@@ -7,6 +7,7 @@ import type {
   HeaderPreviewRow,
   HeaderResult,
   CVLeftOut,
+  CVSkills,
   CVRegenEstimate,
   CVRegenMode,
   CVRegenResult,
@@ -155,8 +156,14 @@ export function usePatchCV() {
       void qc.invalidateQueries({ queryKey: keys.cv(version.application_id) })
       void qc.invalidateQueries({ queryKey: keys.cvReview })
       void qc.invalidateQueries({ queryKey: ['cv', 'left-out'] })
+      void qc.invalidateQueries({ queryKey: ['cv', 'skills'] })
     },
   })
+}
+
+/** The skills line of a job CV as chips, with whether it still meets the 2-3 line rule. */
+export function useCVSkills(cvId: number, enabled = true) {
+  return useQuery({ queryKey: keys.cvSkills(cvId), queryFn: () => api.get<CVSkills>(`/cv/${cvId}/skills`), enabled })
 }
 
 export function useCVTemplates() {

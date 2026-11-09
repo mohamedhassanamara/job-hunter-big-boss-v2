@@ -465,6 +465,12 @@ EXPERIENCE: list[dict] = [
         "tags": ["ml", "streaming", "fastapi"],
     },
     {
+        "kind": "skill_proof", "title": "Event-sourced ledger prototype", "org": None,
+        "location": None, "start_date": None, "end_date": None,
+        "summary": "Built a small event-sourced ledger over a weekend to learn the pattern.",
+        "bullets": [], "tags": ["Event Sourcing", "Go"],
+    },
+    {
         "kind": "skill", "title": "Data engineering", "org": None, "location": None,
         "start_date": None, "end_date": None, "summary": None, "bullets": [],
         "tags": ["spark", "dbt", "airflow", "kafka", "flink", "dagster", "iceberg", "sql"],
@@ -495,6 +501,8 @@ EXPERIENCE: list[dict] = [
         "summary": None,
         "bullets": ["Mentor 4 career switchers a year through their first data pipeline project"],
         "tags": ["mentoring", "sql", "python"],
+        # sample for the "Skill proofs, certification skills and soft skills" tour
+        "soft_skills": ["Mentoring"],
     },
     {
         "kind": "certification", "title": "AWS Certified Data Engineer, Associate",
