@@ -15,6 +15,7 @@ only the bullet layout goes) → drop the weaker project → the short summary �
 below the minimums (roles keep one bullet, projects never one).
 """
 
+import copy
 import math
 from dataclasses import dataclass, field
 from datetime import date
@@ -104,6 +105,10 @@ class Layout:
     keep: dict[str, list[str]] = field(default_factory=dict)  # skill group → pinned skills (track)
     honesty: Any = None  # services/honesty.Rules, for the checks on bullets added to fill
     track: str = ""  # the job's matched track (project track tags in the fill)
+    # The flat skills the page prints (the line fit's choice for this template); None = the
+    # plan's target cut from the tail; skills_grouped = no length fits, print the groups.
+    skill_choice: list[str] | None = None
+    skills_grouped: bool = False
 
 
 def layout(plan: CVPlan, pool: Pool | None, rules: dict[str, Any] | None = None,
@@ -224,6 +229,16 @@ def _spell(term: str, pool: Pool) -> str:
     return cv_rules.display(term, canon.word(term))
 
 
+def _flat_skills(plan: CVPlan, lay: Layout) -> list[str]:
+    if lay.skills_grouped:
+        return []
+    if lay.skill_choice is not None:
+        return list(lay.skill_choice)
+    total = len(plan.skill_list)
+    cut = set(plan.skill_cut_order[:max(0, total - (plan.skills_target or total))])
+    return [str(s["skill"]) for i, s in enumerate(plan.skill_list) if i not in cut]
+
+
 def build_document(plan: CVPlan, pool: Pool, state: FitState,
                    overrides: dict[str, Any] | None = None, max_stack: int = 6,
                    lay: Layout | None = None) -> CVDocument:
@@ -304,7 +319,7 @@ def build_document(plan: CVPlan, pool: Pool, state: FitState,
                                                     lay.keep)))
     skills = [CVSkillGroup(category=lay.display.get(c, c), items=items)
               for c, items in cv_rules.shape_skills(groups, lay.rules, [])]  # no merging
-    flat = [s["skill"] for s in plan.skill_list] if plan.skills_mode == "flat" else []
+    flat = _flat_skills(plan, lay) if plan.skills_mode == "flat" else []
     # a job CV prints the flat list; the grouped skills stay on the document for a template
     # that has no `skills_flat` branch
     return CVDocument(summary=summary, skills=skills, skills_flat=flat, roles=roles,
@@ -579,6 +594,55 @@ def fill_by_relevance(plan: CVPlan, pool: Pool, profile: CVProfile, template: CV
 
 
 def fit_to_page(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTemplate,
+                out_dir: Path, *, state: FitState | None = None,
+                overrides: dict[str, Any] | None = None, lay: Layout | None = None) -> FitResult:
+    """The page fit (`_fit_pass`), after choosing the flat skills line for this template: 2-3
+    lines, the last one at least 75% full (services/skill_fit). The real page is measured and the
+    choice corrected at most twice; if no length fits, the grouped skills are printed."""
+    from app.services import skill_fit
+
+    if lay is None:
+        lay = layout(plan, pool)
+    flat = plan.skills_mode == "flat" and bool(plan.skill_list) and skill_fit.supports_flat(
+        template)
+    metrics = skill_fit.metrics_for(template, [str(s["skill"]) for s in plan.skill_list]) \
+        if flat else None
+    if metrics is None:  # grouped plan, no flat branch or no LaTeX: nothing to fit
+        return _fit_pass(plan, pool, profile, template, out_dir, state=state,
+                         overrides=overrides, lay=lay)
+    skills = [str(s["skill"]) for s in plan.skill_list]
+    cut_order = plan.skill_cut_order or list(range(len(skills) - 1, -1, -1))
+    target = plan.skills_target or len(skills)
+    floor = int(lay.rules.get("skills_min") or 1)
+    snapshot = plan.model_copy(deep=True)
+    state0 = FitState.from_dict(state.to_dict()) if state is not None else None
+    rejected: set[int] = set()
+    report: list[dict[str, Any]] = []
+    result: FitResult | None = None
+    for attempt in range(3):  # the first fit, then at most two corrections
+        choice = skill_fit.choose(skills, cut_order, target, metrics, floor=floor,
+                                  rejected=rejected)
+        lay.skill_choice, lay.skills_grouped = (choice.skills, False) if choice else (None, True)
+        result = _fit_pass(plan, pool, profile, template, out_dir, state=state,
+                           overrides=overrides, lay=lay)
+        measured = skill_fit.measure_block(result.compiled.pdf_path, template,
+                                           metrics.linewidth) \
+            if choice and result.compiled.ok and result.compiled.pdf_path else None
+        report.append({"skills": len(choice.skills) if choice else 0, "grouped": choice is None,
+                       "simulated": [choice.lines, choice.last_fill] if choice else None,
+                       "measured": list(measured) if measured else None})
+        if choice is None or not result.compiled.ok or skill_fit.block_ok(measured) \
+                or attempt == 2:
+            break
+        rejected.add(choice.cut)  # the page disagreed with the simulation: try the next length
+        plan.__dict__.update(copy.deepcopy(snapshot.__dict__))  # the pass changed it: start again
+        state = FitState.from_dict(state0.to_dict()) if state0 is not None else None
+    assert result is not None
+    result.history.append({"skill_fit": report})
+    return result
+
+
+def _fit_pass(plan: CVPlan, pool: Pool, profile: CVProfile, template: CVTemplate,
                 out_dir: Path, *, state: FitState | None = None,
                 overrides: dict[str, Any] | None = None, lay: Layout | None = None) -> FitResult:
     """Compile, measure, adjust, up to MAX_PASSES adjustments. Grows only while under the fill

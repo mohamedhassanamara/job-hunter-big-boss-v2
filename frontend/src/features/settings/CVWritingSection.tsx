@@ -130,7 +130,7 @@ export function CVWritingSection({ settings }: { settings: SettingsView }) {
           relevance {num('project_min_relevance', 'Project minimum relevance', { min: 0, max: 10 })}+, {num('project_other_track_relevance', 'Other-track project relevance', { min: 0, max: 10 })}+ for other tracks
         </span>
       </Field>
-      <Field label="Skills (CV for a job)" hint="One flat line, most relevant first: the skills the listing names that you can back, then your pinned skills, then skills from the same groups, then the rest of your skill groups, up to the target. Under the minimum, the grouped list is kept. Skills the listing asks for and you can't back are never shown.">
+      <Field label="Skills (CV for a job)" hint="One flat line of 2-3 lines, most relevant first: the skills the listing names that you can back, then your pinned skills, then skills from the same groups, then the rest of your skill groups. The max is a ceiling: the page picks the shortest list near the target whose last line is at least 75% full, cutting from the end (listing matches last). Under the minimum, or when no length fits, the grouped list is kept. Skills the listing asks for and you can't back are never shown.">
         <span className="inline-flex items-center gap-1.5 text-sm">
           target {num('skills_target', 'Skills target', { min: 4, max: 30 })}, at least {num('skills_min', 'Skills minimum', { min: 0, max: 30 })}, at most {num('skills_max', 'Skills max', { min: 4, max: 40 })}
         </span>

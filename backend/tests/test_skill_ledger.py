@@ -39,9 +39,14 @@ def make_pool(*, groups=(), jobs=(), proofs=(), study=()) -> Pool:  # noqa: ANN0
     return pool
 
 
+def only_jd(out):  # noqa: ANN001, ANN201
+    """The listing's matches only (the fill after them is tested separately)."""
+    out.skills = [s for s in out.skills if s.reason == "jd"]
+    return out
+
+
 def jd_only(pool: Pool, index: int = 9):  # noqa: ANN201
-    """Only the listing's matches: no fill."""
-    return pick(pool, index, min_items=0, target_items=0)
+    return only_jd(pick(pool, index, min_items=0))
 
 
 def pick(pool: Pool, index: int, **kw):  # noqa: ANN003, ANN201
@@ -129,13 +134,13 @@ def test_a_short_match_is_filled_to_the_target_from_your_skill_groups() -> None:
 
 def test_same_group_skills_come_before_the_rest() -> None:
     pool = make_pool(groups=[["Rust", "Haskell"], ["Python", "SQL", "Go"], ["Dart", "Swift"]])
-    out = sel(pool, target_items=5, min_items=1)
+    out = sel(pool, max_items=5, min_items=1)
     assert [(s.skill, s.reason) for s in out.skills] == [
         ("Python", "jd"), ("SQL", "jd"), ("Go", "group"), ("Rust", "fill"), ("Haskell", "fill")]
 
 
 def test_pins_boost_ahead_of_the_fill() -> None:
-    out = sel(make_pool(groups=GROUPS), target_items=6, min_items=1,
+    out = sel(make_pool(groups=GROUPS), max_items=6, min_items=1,
               keep={"x": ["Kotlin", "Zebra", "Terraform"]})
     assert [(s.skill, s.reason) for s in out.skills][4:] == [("Kotlin", "pin"),
                                                               ("Terraform", "pin")]
@@ -169,18 +174,19 @@ def test_matches_beyond_the_target_are_kept_up_to_the_cap() -> None:
 
 def test_the_cap_keeps_the_most_relevant() -> None:
     pool = make_pool(groups=[["Python", "SQL", "Power BI", "Azure", "Spark", "CI/CD"]])
-    capped = pick(pool, 9, max_items=2, min_items=0, target_items=0)
-    full = pick(pool, 9, max_items=18, min_items=0, target_items=0)
+    capped = only_jd(pick(pool, 9, max_items=2, min_items=0))
+    full = only_jd(pick(pool, 9, max_items=18, min_items=0))
     assert capped.display == full.display[:2] and len(full.display) > 2
 
 
 def test_an_ambiguous_word_is_not_matched_inside_ordinary_prose() -> None:
     # Arbeitnow #22 is a sales role: "Sales and Go-to-Market" must not give you Go.
     pool = make_pool(groups=[["Go", "Python"]])
-    assert "Go" not in pick(pool, 22, min_items=0, target_items=0).display
+    assert "Go" not in only_jd(pick(pool, 22, min_items=0)).display
     pool = make_pool(groups=[["Go"]])
-    out = sl.select_skills(pool, title="Backend Engineer", description="You write Go services. "
-                           "Experience with Go is required.", min_items=0, target_items=0)
+    out = only_jd(sl.select_skills(pool, title="Backend Engineer", min_items=0,
+                                   description="You write Go services. "
+                                               "Experience with Go is required."))
     assert out.display == ["Go"]
 
 
@@ -197,7 +203,7 @@ def test_nothing_in_the_ledger_leaks_from_the_listing_text() -> None:
     own = ["Python", "SQL", "Docker", "AWS", "Airflow", "dbt", "Kubernetes", "TypeScript"]
     pool = make_pool(groups=[own[:4], own[4:]])
     for index in (1, 3, 8, 9, 10, 11, 16, 26):
-        out = pick(pool, index, min_items=0, target_items=0)
+        out = only_jd(pick(pool, index, min_items=0))
         assert set(out.display) <= set(own)
         title, text, _ = listing(index)
         for skill in out.display:
@@ -208,7 +214,7 @@ def test_nothing_in_the_ledger_leaks_from_the_listing_text() -> None:
 @pytest.mark.parametrize("index", [9, 8, 10])
 def test_selection_dict_is_storable(index: int) -> None:
     pool = make_pool(groups=[["Python", "SQL", "Airflow", "dbt"]], study=[["Spark"]])
-    out = pick(pool, index, min_items=0, target_items=0)
+    out = only_jd(pick(pool, index, min_items=0))
     stored = [s.to_dict() for s in out.skills]
     assert json.loads(json.dumps(stored)) == stored
     assert all(set(d) == {"skill", "tier", "item_ids", "reason"} for d in stored)

@@ -12,7 +12,8 @@ Evidence tiers (internal gating only: the CV never shows which tier a skill came
   2  `skill_proof` items (small real projects, never printed in Experience)
   3  tags of your certifications (studied, not necessarily built with)
 A skill takes the best tier any of its sources has. Tiers 2 and 3 enter the list only when the
-listing names them. The list is built in this order, up to the target size:
+listing names them. The list is built in this order, up to the target size,
+and on to the max so the page's line fit can add or cut at the tail (JD matches are cut last):
   1  the listing's matches (any tier), most relevant first: title, requirement lines, frequency
   2  tier 1 skills pinned in `cv.skill_keep` (a boost, where a track has pins)
   3  tier 1 skills in the same skill group as a matched skill, in group order (same field)
@@ -30,7 +31,7 @@ from app.services import cv_check, fit_lexical
 from app.services.cv_pool import Pool, norm, terms_of
 
 T_EXPERIENCE, T_PROOF, T_STUDY = 1, 2, 3
-DEFAULT_MAX = 18
+DEFAULT_MAX = 30
 DEFAULT_TARGET = 14
 DEFAULT_MIN = 10
 TITLE_BONUS = 20
@@ -69,9 +70,11 @@ class SelectedSkill:
 
 @dataclass
 class SkillSelection:
-    skills: list[SelectedSkill]
+    skills: list[SelectedSkill]  # every candidate up to the max, in display order
     gaps: list[str]  # the listing's checkable terms none of your evidence backs
     enough: bool = True  # False: under the minimum even after the fill (keep the grouped list)
+    target: int = 0  # how many of `skills` a page shows before the line fit adjusts it
+    cut_order: list[int] = field(default_factory=list)  # indexes of `skills`, first cut first
 
     @property
     def display(self) -> list[str]:
@@ -177,8 +180,9 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
         if len(chosen) >= max_items:
             break
 
-    target = min(max(target_items, min_items), max_items)
-    if len(chosen) < target:
+    n_jd = len(chosen)
+    target = min(max(target_items, min_items, n_jd), max_items)
+    if len(chosen) < max_items:  # candidates up to the max: the line fit may add or cut at the tail
         by_key = {norm(e.display): e for e in ledger}
         groups = [[by_key[k] for tag in item.tags if (k := norm(tag)) in by_key
                    and by_key[k].tier == T_EXPERIENCE] for item in pool.of("skill")]
@@ -189,7 +193,7 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
 
         def fill(entries: list[LedgerEntry], reason: str) -> None:
             for entry in entries:
-                if len(chosen) >= target:
+                if len(chosen) >= max_items:
                     return
                 if free(entry):
                     take(entry, reason)
@@ -206,7 +210,8 @@ def select_skills(pool: Pool, *, title: str, description: str, company: str = ""
 
     return SkillSelection(skills=chosen, gaps=_gaps(pool, ledger, title, description, lines,
                                                     company, location),
-                          enough=len(chosen) >= min_items)
+                          enough=len(chosen) >= min_items, target=min(target, len(chosen)),
+                          cut_order=list(range(len(chosen) - 1, -1, -1)))  # tail first
 
 
 # ------------------------------------------------------------------------------------- gaps

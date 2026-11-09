@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from app.db import engine
 from app.models import Job
 from app.providers.base import CVPlan, PlanSkillGroup
-from app.services import cv_build, cv_check, cv_render, cv_service
+from app.services import cv_build, cv_check, cv_render, cv_rules, cv_service
 from app.services.cv_pool import cv_profile, load_pool
 from app.services.cv_render import CVDocument, CVSkillGroup, load_template, render_tex
 
@@ -33,7 +33,7 @@ def pool_stub():  # noqa: ANN201
 def test_a_flat_list_is_one_ungrouped_line() -> None:
     out = tex(CVDocument(skills_flat=["Python", "SQL", "Airflow"]))
     assert r"\section{Skills}" in out
-    assert "Python, SQL, Airflow" in out
+    assert r"\mbox{Python}, \mbox{SQL}, \mbox{Airflow}" in out
     body = out.split(r"\section{Skills}")[1].split(r"\end{itemize}")[0]
     assert r"\textbf" not in body and "\\\\" not in body  # no category, no line break
 
@@ -86,7 +86,7 @@ def test_build_document_prints_the_flat_list_in_order_and_no_groups(seeded: None
                      skill_list=[{"skill": "Zed", "tier": 3, "item_ids": [], "reason": "jd"},
                                  {"skill": "Alpha", "tier": 1, "item_ids": [1], "reason": "jd"}])
     doc = cv_build.build_document(plan, pool, cv_build.FitState())
-    assert doc.skills_flat == ["Zed", "Alpha"]  # tiers are not printed
+    assert doc.skills_flat == ["Zed", "Alpha"]  # tiers are not printed; no cut: all of them
     assert doc.skills  # the grouped skills stay for a template without a flat branch
     grouped = cv_build.build_document(plan.model_copy(update={"skills_mode": "grouped"}), pool,
                                       cv_build.FitState())
@@ -106,7 +106,9 @@ def test_a_job_with_a_listing_gets_a_flat_list_from_your_evidence(seeded: None) 
         pool = load_pool(s)
         out = cv_service.with_job_skills(s, make_plan(), pool, job(LISTING), "Acme")
         groups = {t for g in pool.of("skill") for t in g.tags}
-    assert out.skills_mode == "flat" and len(out.skill_list) == 14  # the default target
+    # every candidate up to the ceiling (30; the seeded pool has 26 skills); the page prints the
+    # target (14) before the line fit
+    assert out.skills_mode == "flat" and len(out.skill_list) == 26 and out.skills_target == 14
     jd = [x["skill"] for x in out.skill_list if x["reason"] == "jd"]
     assert set(jd) == {"python", "sql", "airflow", "kubernetes"}
     assert [x["reason"] for x in out.skill_list[:4]] == ["jd"] * 4  # matches come first
@@ -145,17 +147,19 @@ def test_the_cap_target_and_minimum_come_from_settings(seeded: None) -> None:
                                               job(description, track))
 
     full = [x["skill"] for x in run().skill_list]
-    assert len(full) == 14
+    assert len(full) == 26 and run().skills_target == 14
     save({"skills_target": 6, "skills_min": 6})
-    assert [x["skill"] for x in run().skill_list] == full[:6]  # the fill stops at the target
+    assert run().skills_target == 6  # what prints before the line fit
+    assert [x["skill"] for x in run().skill_list] == full  # the candidates are unchanged
     save({"skills_target": 6})  # a target under the minimum is raised to it
-    assert len(run().skill_list) == 10
+    assert run().skills_target == 10
     save({"skills_max": 2, "skills_min": 0, "skills_target": 0})
     assert [x["skill"] for x in run().skill_list] == full[:2]  # the most relevant two
     # one listing skill and no pins: the fill still reaches the target, from your groups only
     save({"skills_max": 18, "skills_min": 10, "skills_target": 14})
     short = run(("Data engineer wanted. " * 12) + "You know Python.", track="no-pins")
-    assert short.skill_list[0]["skill"] == "python" and len(short.skill_list) == 14
+    assert short.skill_list[0]["skill"] == "python" and len(short.skill_list) == 18
+    assert short.skills_target == 14
     # a pinned skill goes ahead of the same-group fill
     save({}, {"data-ai": {"Cloud": ["terraform"]}})
     pinned = run(("Data engineer wanted. " * 12) + "You know Python.", track="data-ai")
@@ -205,7 +209,10 @@ def new_tex_skills(client, app_id: int) -> str:  # noqa: ANN001
 
 
 @pytest.mark.parametrize("title", ["LLM Engineer"])
-def test_generating_a_job_cv_prints_a_flat_one_page_list(client, title: str) -> None:
+def test_generating_a_job_cv_prints_a_flat_one_page_list(client, title: str,
+                                                          monkeypatch) -> None:  # noqa: ANN001
+    # the 2-3 line rule needs room: with the default max of 18, short skills can't fill two lines
+    monkeypatch.setitem(cv_rules.DEFAULT_STRUCTURE, "skills_max", 30)
     items = client.get("/api/jobs?stage=all").json()["items"]
     job_row = next(i for i in items if i["title"] == title)
     app_id = job_row["application"]["id"]
@@ -214,12 +221,22 @@ def test_generating_a_job_cv_prints_a_flat_one_page_list(client, title: str) -> 
     content = new["content"]
     plan = client.get(f"/api/applications/{app_id}/cv").json()["versions"][0]
     assert plan["id"] == new["id"]
-    assert content["skills_flat"]  # the grouped skills stay for a template without the branch
-    assert r"\textbf" not in new_tex_skills(client, app_id)
+    with Session(engine) as s:
+        from app.models import CVVersion
+
+        row = s.get(CVVersion, new["id"])
+        report = next(h["skill_fit"] for h in row.plan["history"] if "skill_fit" in h)
+    if content["skills_flat"]:  # a length met the rule: 2-3 lines, the last one 75% full
+        assert not report[-1]["grouped"]
+        lines, last = report[-1]["measured"]
+        assert 2 <= lines <= 3 and last >= 0.74
+        assert r"\mbox{" in new_tex_skills(client, app_id)
+    else:  # the seeded skills are very short: no length fits two lines, the groups print
+        assert report[-1]["grouped"] and content["skills"]
+        assert r"\textbf" in new_tex_skills(client, app_id)
     # every printed skill is one of your own spellings
     with Session(engine) as s:
-        pool = load_pool(s)
-        own = {t for i in pool.items.values() for t in i.tags}
+        own = {t for g in load_pool(s).of("skill") for t in g.tags}
     assert set(content["skills_flat"]) <= own
 
 

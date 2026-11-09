@@ -99,7 +99,7 @@ DEFAULT_STRUCTURE: dict[str, Any] = {
     "volunteering_max": 1,
     "skill_groups_max": 4,
     "skill_items_max": 8,
-    "skills_max": 18,         # a job CV's flat skills list: at most this many
+    "skills_max": 30,         # a job CV's flat skills list: a ceiling (the line fit picks)
     "skills_target": 14,      # the fill (same-group, then the rest of your skills) stops here
     "skills_min": 10,         # under this even after the fill: the grouped list is kept
     "fill_min": 0.98,         # target 98%-100% vertical page fullness

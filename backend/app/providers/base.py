@@ -319,6 +319,8 @@ class CVPlan(BaseModel):
     # grouped `skills` stay for everything that reads groups. "grouped": no listing to match.
     skills_mode: Literal["grouped", "flat"] = "grouped"
     skill_list: list[dict[str, Any]] = []  # {skill, tier, item_ids, reason}: tier is never printed
+    skills_target: int = 0  # how many of skill_list print before the line fit adjusts it
+    skill_cut_order: list[int] = []  # indexes of skill_list, the first one to cut first
     skill_gaps: list[str] = []  # listing tools nothing of yours backs (never shown, never named)
 
 

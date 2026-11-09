@@ -203,7 +203,9 @@ def with_job_skills(s: Session, plan: CVPlan, pool: Pool, job: Job | None,
     if not picked.enough or not any(x.reason == "jd" for x in picked.skills):
         return plan.model_copy(update={"skill_gaps": picked.gaps})
     return plan.model_copy(update={"skills_mode": "flat", "skill_gaps": picked.gaps,
-                                   "skill_list": [x.to_dict() for x in picked.skills]})
+                                   "skill_list": [x.to_dict() for x in picked.skills],
+                                   "skills_target": picked.target,
+                                   "skill_cut_order": picked.cut_order})
 
 
 def track_of(s: Session, app_id: int) -> str:

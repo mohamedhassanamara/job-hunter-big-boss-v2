@@ -140,6 +140,11 @@ def _raw(value: Any) -> Raw:
     return Raw(str(value))
 
 
+def skill_line(skills: list[str]) -> Raw:
+    """A flat skills line: each skill an unbreakable box, so a line breaks only after ", "."""
+    return Raw(", ".join("\\mbox{" + latex_escape(s) + "}" for s in skills))
+
+
 def jinja_env(template_dir: Path) -> jinja2.Environment:
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(str(template_dir)),
@@ -151,6 +156,7 @@ def jinja_env(template_dir: Path) -> jinja2.Environment:
         finalize=latex_escape,
     )
     env.filters["raw"] = _raw
+    env.filters["skill_line"] = skill_line
     env.filters["url"] = latex_url
     return env
 
