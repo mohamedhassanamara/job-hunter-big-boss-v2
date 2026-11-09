@@ -49,9 +49,13 @@
     \end{tabular*}
 }
 
+% The heading wraps when the stack is long (an `l` column never does): the left cell is as
+% wide as the page minus the label and a 1em gap, so the label is never pushed off the page.
+\newlength{\rphlabel}
 \newcommand{\resumeProjectHeading}[2]{
   \item
-    \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+    \settowidth{\rphlabel}{#2}%
+    \begin{tabular*}{\textwidth}{@{}>{\raggedright\arraybackslash}p{\dimexpr\textwidth-\rphlabel-1em\relax}@{\extracolsep{\fill}}r@{}}
       #1 & #2 \\
     \end{tabular*}
 }
