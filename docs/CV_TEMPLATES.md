@@ -45,7 +45,8 @@ Undefined variables are errors (`StrictUndefined`).
 | `header_lines` | `[[{icon, label, url}]]` | Only the filled header items, grouped into lines: line 1 = location, phone, email; line 2 = links. Empty lines are dropped. Join items with your separator only inside a line (`loop.last`) |
 | `sections` | `[{key, title}]` | Config order, **only the non-empty sections**. Loop over it and dispatch on `key` |
 | `summary` | `str` | |
-| `skills` | `[{category, items[]}]` | Categories in the generator's order; empty ones removed |
+| `skills` | `[{category, items[]}]` | Categories in the generator's order; empty ones removed. Printed when `skills_flat` is empty, or when the template has no `skills_flat` branch |
+| `skills_flat` | `[str]` | A CV made for a job: one ungrouped, listing-ordered line (your skills as you spell them). Print it with `\VAR{skills_flat\|skill_line}`: each skill becomes an unbreakable `\mbox`, so lines break only after ", ". Empty for a general CV. Section title in the config: `Skills` |
 | `roles` | `[{title, org, location, start, end, bullets[]}]` | Every job in the pool, newest first. Each has ≥1 bullet when the pool has facts. `start` / `end` are like `Sep 2025` / `Present`, and either may be empty |
 | `projects` | `[{name, stack[], label, bullets[]}]` | `stack` is capped at `max_stack_items`; `label` is e.g. "Personal project" |
 | `certifications` | `[{name, issuer, credential_id, url}]` | Any field except `name` may be empty |
@@ -55,6 +56,8 @@ Undefined variables are errors (`StrictUndefined`).
 An entry (role or project) with exactly **one** bullet is rendered as a justified narrative paragraph: no bullet marker, no indent, and the same vertical spacing as a bulleted entry (it is a one-item list with the bullet list's `topsep` and zero `itemsep`/`parsep`, so a paragraph entry is as tall as the bullet entry with the same number of lines); two or more render as an indented bullet list. Custom templates should do the same in their `bullets` macro (see `templates/default/cv.tex.j2`, `\resumeParagraph`).
 
 The fit loop uses this to save space: when a page overflows, after trimming entries to their minimum and before dropping a project, the short summary or cutting a role to one bullet, it collapses the least relevant entries showing 2+ bullets into one paragraph (`cv_build.collapse_one`: lowest relevance first, a project before a role on a tie, never the current role). The paragraph is the entry's shown bullets joined in rank order (your CV Studio edits applied, at most ~60 words), written by code and never by the model; the facts stay on the CV. Prompt `cv_generate` v14 asks only for ranked, self-contained bullets.
+
+`\resumeProjectHeading` must wrap a long tech stack instead of running past the margin: the left cell is a `p` column as wide as `\textwidth` minus the label's width minus 1em (the default template's macro; the old `l` column never wrapped and pushed the label off the page). A template with a skills section but no `skills_flat` branch gets a validation warning and prints the grouped skills for job CVs. The flat line's length is chosen by `services/skill_fit.py` from widths TeX measures with your template's own preamble and skills markup (cached by template content), so a custom template needs the standard `\small{\item{…}}` list around the skills text.
 
 A template whose `\resumeParagraph` still uses `\par`, `\vspace` or `\linespread` (the first version, which added ~12 pt around every one-point entry) is flagged: `TemplateStatus.warnings` / `TemplateOut.warnings` (Settings → CV shows it under the template, generating a CV logs it). It is advice only: the template stays valid and usable. Copy `\resumeParagraph` from `templates/default/cv.tex.j2` to clear it.
 

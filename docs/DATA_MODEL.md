@@ -149,7 +149,7 @@ One Apollo CSV import run (background, batches of 500).
 The master experience that CVs are generated from.
 | Column | Type | Notes |
 |---|---|---|
-| kind | enum `job \| project \| skill \| education \| certification \| volunteering \| summary` | `summary` = summary snippets the CV generator picks from |
+| kind | enum `job \| project \| skill \| skill_proof \| education \| certification \| volunteering \| summary` | `summary` = summary snippets the CV generator picks from; `skill_proof` = a small real project that proves skills, never printed in a section (see below) |
 | url / credential_id | str? | Certifications (verification link, ID) and projects (link) |
 | title | str | Role, project name, skill group, degree |
 | org | str? | Company, school |
@@ -157,11 +157,14 @@ The master experience that CVs are generated from.
 | start_date / end_date | date? | `end_date` null = present |
 | summary | text? | |
 | bullets | JSON list[str] | Achievement bullets (the CV generator picks from these) |
-| tags | JSON list[str] | "spark", "llm", "gcp", "leadership"… |
+| tags | JSON list[str] | "spark", "llm", "gcp", "leadership"… For a `skill` group: its skills as they print. For a `skill_proof`: the skills it proves. For a `certification`: the skills it covers (studied, not built) |
+| soft_skills | JSON list[str] | Jobs and volunteering only (migration 0039): soft skills the item supports, usable only when the item has ≥1 bullet. Read only by `services/soft_skills.py`; a guarded pool field (`experience_write.TEXT_FIELDS`), so edits keep history and undo |
 | position | int | Manual order within a kind |
 | is_active | bool | Inactive items are never used in CVs or scoring |
 | date_label | str? | The dates exactly as written ("Sep 2020 – June 2025", "2020"); CVs print it as is (migration 0022) |
 | is_placeholder | bool | Test-CV data. Warned about in the UI and removable in one click. Editing an item makes it yours |
+
+**Evidence tiers for the job CV's skills list** (`services/skill_ledger.py`). Tier 1: your `skill` groups (curated, spelled by you; the free-form tags on jobs and projects are working labels and are not skills). Tier 2: `skill_proof` tags. Tier 3: certification tags. A skill takes its best tier. `cv_pool.load_pool` keeps tiers 2 and 3 out of everything else by construction: `skill_proof` items are in `Pool.skill_proofs` only (not in `items`/`by_kind`, so no section, citation, page fill, check or prompt can reach them and `Pool.get` answers None), and a certification's tags are not on its pool copy (`Pool.study_tags` holds them), so they are not "things you did" for the checkers. `master_import` never matches or archives a `skill_proof` and keeps a certification's hand-added tags.
 
 ### experience_history (migration 0022)
 One row per change of an item's text, written only by `services/experience_write.py`.
@@ -192,6 +195,8 @@ Undo restores `before` (and is itself a row).
 | attempts, not_before, error, warning, retryable | | Task-level retry (one more after 3 min), quota-reset wait, the failure text, the skip reason ("pool incomplete") |
 | result_id | int | The CV version or the draft it produced |
 Inserted in-session by `services/generation` hooks (`pipeline.transition`, CV approval, a contact becoming verified), run by one worker thread (real workspace only), recovered at startup (running → queued). Settings: `app_setting.generation = {auto_cv, auto_email}`; `models.cv` / `models.email` = `{provider, model, thinking_level}`.
+
+**Job CV skills line, plan fields** (`CVPlan`, in `cv_version.plan.plan`): `skills_mode` (`flat` when the listing names skills of yours, else `grouped`), `skill_list` (`[{skill, tier, item_ids, reason, kind}]`: every candidate up to `skills_max`, in display order; `reason` = jd, cooc, pin, fill or soft; `kind` = technical or soft; the tier is never printed), `skills_target`, `skill_cut_order` (indexes, first cut first: filler, then soft skills, then listing matches), `skill_gaps` (tool-shaped listing terms nothing of yours backs: never shown, the summary may not name them). `plan.history` gets `{skill_fit: [{skills, grouped, manual, simulated, measured}]}`. Settings → CV `structure`: `skills_max` (ceiling, 30), `skills_target` (14), `skills_min` (10). `skill_width` metrics are cached by template content in `data/cv/.skill_metrics/` (a cache, safe to delete).
 
 `app_setting.output_visibility = {show_phone, show_location, show_graduation_year}` (phone and location true by default and a missing key means shown; `show_graduation_year` is false by default and on only for an explicit true: when off, `cv_build.build_document` prints no dates on Education entries, the whole range, nothing else changes). Display only: `cv_pool.load_pool` carries it on `Pool.visibility`, `cv_profile` blanks the hidden field for the CV and letter header, the French letter place line and the letter's candidate facts, and `outreach.full_body` hides the signature phone. Hiding can never reveal the phone while the email signature's own `show_contacts`/`show_phone` are off. Scoring, matching and the checkers read `profile.phone`/`based_in` directly and ignore it; saving it never runs `recompute_all`.
 
@@ -287,9 +292,9 @@ Timeline and stage history.
 |---|---|---|
 | application_id | FK | |
 | version | int | 1, 2, 3… per application |
-| content | JSON | The rendered CVDocument: `{summary, skills[{category, items}], roles[], projects[], certifications[], education[], volunteering[]}` (see docs/CV_TEMPLATES.md) |
+| content | JSON | The rendered CVDocument: `{summary, skills[{category, items}], skills_flat[], roles[], projects[], certifications[], education[], volunteering[]}` (see docs/CV_TEMPLATES.md). A job CV prints `skills_flat` (one ungrouped line) in a template that has the branch, the grouped `skills` otherwise |
 | plan | JSON | `{plan: CVPlan (pool ids, ranked bullets: each the pool fact or a checked light adaptation, with `adapted`/`fallback`), tailoring: {adapted, original, fallbacks, verifier}, fit: {counts, short_summary}, history, prompt_version, cost_usd, generation_ms}` |
-| overrides | JSON | `{force_in[], force_out[], text{key: edited}}`; keys like `role:12:0`, `project:7`, `cert:3`, `summary` |
+| overrides | JSON | `{force_in[], force_out[], text{key: edited}, skills{list[]}}`; keys like `role:12:0`, `project:7`, `cert:3`, `summary`. `skills.list` = the skills line you edited in CV Studio (chips): the CV prints exactly it, the page fit only reports against the line rule |
 | template | str | Template used (templates/ or data/templates/) |
 | tex | text? | Rendered LaTeX |
 | pdf_path | str? | Under `data/cv/<application>/v<n>/` |

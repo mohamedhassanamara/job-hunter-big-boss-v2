@@ -161,8 +161,19 @@ docs/                    SPEC, DATA_MODEL, DESIGN
 - Personal data never goes in templates or source: `tests/test_no_personal_data.py` derives tokens from the reference.
 - The style golden test (`tests/test_cv_render.py`) compiles the default template against the reference: keep it pixel-equal.
 
+## Job CV skills line (services/skill_ledger.py, skill_fit.py, soft_skills.py, skill_editor.py)
+
+- A CV made for a job prints ONE flat skills line (`plan.skills_mode == "flat"`, `CVDocument.skills_flat`, template `\VAR{skills_flat|skill_line}`, heading "Skills", no label, no groups); a general or all-purpose CV, a listing under `cv_service.MIN_LISTING_CHARS`, no match, or no length that fits keeps the grouped list. All deterministic, no model call. The list is YOUR skills as you spell them: a listing term nothing backs is never shown (`plan.skill_gaps`: tool-shaped terms only; the summary check warns when it names one) and nothing is inferred (no glossary mapping, no synonyms).
+- Evidence tiers (`skill_ledger.build_ledger`, internal only, never printed): 1 your `skill` groups (the free-form tags on jobs and projects are working labels, not skills), 2 `skill_proof` items, 3 certification tags (studied). Tiers 2 and 3 enter only when the listing names them, never as filler. Soft skills (`experience_item.soft_skills` on jobs/volunteering, needs ≥1 bullet; `soft_skills.py`: equivalence groups only in EN/FR/DE, never implication, your spelling prints, max 4) go last in the same line. Only tier 1 technical skills count as things you did (`cv_check.shown_skills`).
+- Order (`select_skills`): the listing's matches (title, requirement lines, frequency), then tier-1 skills that share a job or project with a match ("cooc": tags in any case, bullets exactly as written and as a whole word), then pins (`cv.skill_keep` + the track's `cv.track_emphasis` tags), then the rest (emphasized groups first). Group membership alone promotes nothing. Candidates run to `skills_max` (ceiling 30); `skills_target` 14, `skills_min` 10 (Settings → CV).
+- Line fit (`skill_fit`, `cv_build.fit_to_page`): 2-3 lines, last line ≥ 75% full, each skill an unbreakable `\mbox`. One metrics compile per template (cached by template content in `data/cv/.skill_metrics/`; tests redirect it) gives exact widths; TeX-style line breaking (ragged or justified, read from `\rightskip`) picks the length around the target; the real PDF is measured with PyMuPDF and corrected at most twice. Cut order: filler first, then soft skills, then matches. No length fits: grouped list.
+- Studio chips (`skill_editor`, `GET /cv/:id/skills`, `PATCH /cv/:id {skills}`): remove or re-add from the ledger only, no free text. `overrides.skills.list` then prints exactly your list; the fit only reports (minimum, lines, last-line fill); "Back to automatic" drops it. A custom template without a `skills_flat` branch prints the grouped skills and `cv_templates.template_warnings` says so.
+- `output_visibility.show_graduation_year` (default off) drops the whole date range of Education entries on CVs.
+- Eval runs that write (the verifier eval adds must-fail rows) go on a COPY of the database, never the real one.
+
 ## Experience pool (protected: services/experience_write.py, master_import.py, bullet_tailor.py)
 
+- `skill_proof` items and a certification's tags are kept out of `Pool.items`/`by_kind` (`Pool.skill_proofs`, `Pool.study_tags`): only the skills ledger reads them, so no section, citation, fill or checker can reach them. `soft_skills` is a guarded pool field too (history and undo apply), read only by `soft_skills.py`.
 - The pool is the user's own text. **No automated process may change it.** Every write to an `ExperienceItem` text
   field or a delete goes through `services/experience_write.py` (the Experience screen = source `user`, the explicit
   master import, Undo). A `before_flush` guard raises `PoolWriteError` for anything else; seeds of the tour sandbox
@@ -440,6 +451,7 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   "Relocation" lines no longer populate for job-linked emails: the visa ban keeps them out of the text); the listing is a source for job-linked emails. The regression set includes
   `mode: applied` must-pass and `must_fail` emails (`data/eval/email_examples.json`, `--import`).
 - Suggested fixes (`services/claim_fix.py`, prompt v7): each blocking claim gets a `fix` from the same call (no extra request, no Gemini); code repairs first, every candidate re-checked in code, failing ones become "remove"; `POST /claim-fixes/apply` edits via the normal edit path and re-verifies only the changed sentences. It never changes what blocks.
+- Prompt v9 adds the certification rule: an item of kind certification supports only "certified / completed / studied", never building, running or years of experience in what it covers (that is "exaggerated"); the must-fail case `certification_as_practice` is in `app/eval/verifier.py`.
 - Tests and the sandbox use `MockVerifier`. `make eval-verifier` runs the must-pass / must-fail set (email_example
   kinds reference_good / approved / must_fail). Any edit to `prompts/verify.md` needs a version bump.
 

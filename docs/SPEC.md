@@ -145,8 +145,15 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
     setting (Settings → CV, default 7), never while a role bullet of the same or higher relevance is left out for
     lack of room, and 9+ when the project's `tracks` tag (Experience → project → Tracks) excludes the job's track.
     A CV that can't reach the target stays shorter (never filler);
-  - skills: at most 4 groups of ~8, most relevant first, known pairs merged ("LLMs (Mistral, Ollama)",
-    "LocalStack (S3)", "Linux/Bash"), nothing repeated across groups, tools spelled as usual;
+  - skills, a CV made for a job: one flat line under "Skills" (no groups, no label): the listing's skills that
+    your evidence backs, most relevant first (`skill_ledger`, no model call), then skills that share a job or
+    project with a matched one, your pins (`skill_keep`, the track's emphasis tags), the rest of your skill
+    groups (the track's emphasized groups first), and soft skills the listing names and your pool backs last
+    (max 4). Each skill is an unbreakable box; the page picks the length so the line takes 2-3 lines with the last
+    one at least 75% full (`skill_fit`, measured per template and checked on the real PDF), cutting filler first,
+    then soft skills, then matches. No length fits, no listing text or no skill matched: the grouped list (at most
+    4 groups of ~8, known pairs merged, nothing repeated) prints. A listing skill nothing backs is never shown; it
+    is reported as a gap and the summary may not name it;
   - summary: at most 2 sentences, ~45 words, no numbers from the bullets, no certifications, no internships, no
     tool lists; checked in code and regenerated once, then shown as warnings if still off (see "Summary
     workflow" below). Data/AI jobs may frame a move ("now focused on data engineering"): years stay with mobile
@@ -174,6 +181,8 @@ Shortcuts are ignored while focus is in an input, textarea, or contenteditable.
   strengths the CV left out, claims your experience doesn't back, the years note.
 - **Critique** (CV, letters, emails, LinkedIn messages): one `claude -p` call listing what's still weak from the
   reader's side; never a rewrite (`app/prompts/critique.md`).
+
+**Skills line (chips):** in a flat CV the Studio's Skills section shows the line as chips with a fit line ("20 skills · 2 lines · last line 84% full"). × takes a skill off, "Add one of your skills" puts one back (your ledger only: skills, small projects, certifications, soft skills; no free text; hover shows the source). Once edited the CV prints exactly your list; the page is re-fitted and a warning names what breaks the rule (under the minimum, not 2-3 lines, last line under 75%), it never undoes your edit. "Back to automatic" removes it. A grouped CV shows an empty state with the tour. `GET /cv/:id/skills`, `PATCH /cv/:id` `{skills: {remove, add, reset}}`.
 
 ### 3.5b Cover letter studio (`/jobs/:id/letter`)
 *Purpose:* a cover letter for a web application, from the approved CV, in two formats (tabs, `?format=form`):
@@ -591,7 +600,9 @@ redirects to Outreach → Contacts to get).
 
 ### 3.8 Experience (`/experience`)
 *Purpose:* maintain the master experience, which is the source for all CVs and scoring.
-- Grouped by kind (Work, Projects, Volunteering & leadership, Skills, Education, Certifications; volunteering matters most for juniors with little paid experience) with a count per group. Tag filter chips appear at the top.
+- Grouped by kind (Work, Projects, Volunteering & leadership, Skills, Skill proofs, Education, Certifications; volunteering matters most for juniors with little paid experience) with a count per group. Tag filter chips appear at the top.
+- **Skill proofs** ("never printed in Experience"): small real projects that prove skills but are too small for an entry. Only the skills line of a job CV can use the skills you tag, only when a listing names them. *Empty:* explanation, "Add skill proof" and "See how it works".
+- **Certifications** list the skills they cover ("studied", never things you did). **Jobs and volunteering** have a Soft skills input next to the item's own bullets (a soft skill needs at least one bullet; listed only when a listing names it; shown as ordinary entries at the end of the skills line).
 - Each item row shows the title, org, dates, tags, and bullet count. Rows can be dragged to reorder within a group (with ↑/↓ buttons as a keyboard-accessible alternative), and an active toggle is available.
 - **Add / Edit** opens a side sheet with fields matching the kind: title, org, location, dates (with a "present" toggle), summary, bullets (add/remove/reorder), and tags (token input).
 - Delete offers Undo in the toast. An item's sheet has **History**: every change to its text (yours, the master import, an undo) with Undo. Nothing else ever edits this text.
