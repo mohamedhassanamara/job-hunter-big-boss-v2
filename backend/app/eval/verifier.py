@@ -44,6 +44,12 @@ MUST_FAIL = [
                  "building data pipelines"),
      "note": "Must fail: your 3 years are professional mobile and backend; data pipelines are "
              "projects."},
+    # a certification only says you hold it or studied it (never that you built or ran anything)
+    {"case": "certification_as_practice",
+     "replace": ("with dbt and Airflow projects", "with production data pipeline experience "
+                 "from my data engineering certification"),
+     "note": "Must fail: a certification supports 'certified' or 'studied', never hands-on or "
+             "production experience in what it covers."},
 ]
 
 
