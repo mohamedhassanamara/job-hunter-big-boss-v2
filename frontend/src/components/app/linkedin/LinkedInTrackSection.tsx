@@ -129,7 +129,9 @@ function MessageEditor({ person, kind, appId, max, model }: { person: LinkedInPe
   }
   const limit = draft?.max_chars ?? (kind === 'note' ? max : 600)
   const errors = (draft?.violations ?? []).filter((v) => v.severity === 'error')
-  const label = kind === 'note' ? 'Connection note' : 'Follow-up message'
+  const label = kind === 'note' ? 'Connection note' : 'First message'
+  // The first message after they accept stays under 65 words (the server blocks 65+).
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0
   // A 300-character note is short enough to check yourself: Copy is never locked for it, but you can still ask for a review.
   const checked = kind !== 'note'
   const { review, reviewed } = reviewFor(linkedinKey(person.id, kind), text)
@@ -145,8 +147,8 @@ function MessageEditor({ person, kind, appId, max, model }: { person: LinkedInPe
             {draft.via === 'claude -p' ? `${draft.model} via claude -p${draft.auth === 'none' ? ' · subscription' : ''}` : draft.model} · {relativeTime(draft.created_at)}
           </span>
         )}
-        <span className={cn('ml-auto text-2xs tabular-nums', text.length > limit ? 'text-danger-fg' : 'text-fg-subtle')}>
-          {text.length} / {limit}
+        <span className={cn('ml-auto text-2xs tabular-nums', (kind === 'note' ? text.length > limit : words >= 65) ? 'text-danger-fg' : 'text-fg-subtle')}>
+          {kind === 'note' ? `${text.length} / ${limit}` : `${words} / under 65 words`}
         </span>
       </div>
       {draft ? (
@@ -180,7 +182,7 @@ function MessageEditor({ person, kind, appId, max, model }: { person: LinkedInPe
           onClick={() => (draft ? setRegen(true) : run.mutate({ id: person.id, kind }, { onSuccess: () => toast.success(`${label} drafted`), onError: (e) => toast.error(e.message) }))}
         >
           <Sparkles />
-          {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'follow-up'} with ${model}`}
+          {run.isPending ? 'Drafting…' : draft ? 'Redraft' : `Draft ${kind === 'note' ? 'note' : 'first message'} with ${model}`}
         </Button>
         {draft && (
           <Tooltip content={!checked || (reviewed && !pendingEdit) ? null : 'Copy unlocks once you have clicked Review draft for this exact text'}>
@@ -216,7 +218,7 @@ function MessageEditor({ person, kind, appId, max, model }: { person: LinkedInPe
       <RegenerateDialog
         open={regen}
         onClose={() => setRegen(false)}
-        title={`Redraft the ${kind === 'note' ? 'note' : 'follow-up'}`}
+        title={`Redraft the ${kind === 'note' ? 'note' : 'first message'}`}
         pending={run.isPending}
         onSubmit={(feedback) => {
           setRegen(false)
@@ -495,13 +497,13 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
           </Tooltip>
         )}
         {person.status === 'sent' && (
-          <Button size="sm" variant="outline" onClick={() => move('accepted', `${person.full_name} accepted: draft the follow-up`)}>
+          <Button size="sm" variant="outline" onClick={() => move('accepted', `${person.full_name} accepted: the first message is being drafted`)}>
             They accepted
           </Button>
         )}
         {person.status === 'accepted' && (
-          <Button size="sm" variant="outline" disabled={!person.followup || !reviewFor(linkedinKey(person.id, 'followup'), person.followup.text).reviewed} onClick={() => move('messaged', `Follow-up to ${person.full_name} marked sent`)}>
-            I sent the follow-up
+          <Button size="sm" variant="outline" disabled={!person.followup || !reviewFor(linkedinKey(person.id, 'followup'), person.followup.text).reviewed} onClick={() => move('messaged', `First message to ${person.full_name} marked sent`)}>
+            I sent the message
           </Button>
         )}
         {(person.status === 'sent' || person.status === 'messaged') && (

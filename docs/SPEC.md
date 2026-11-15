@@ -476,8 +476,12 @@ linkedin.com).
   `linkedin.note_max_chars` (200 on a free account), different per group; the school angle is for alumni only and
   only on LinkedIn. Messages are tied to a job (prompt `linkedin.md` v4): naming the role and the listing is fine,
   and when the listing states a requirement you don't meet an InMail or follow-up says it once, plainly, from
-  FACTS.logistics (a 200-character note has no room for it). After "accepted", a follow-up: one proof, one direct ask (a referral, or
-  who to talk to); company research is reused, or run only at that step. Checks on every message: length, no links,
+  FACTS.logistics (a 200-character note has no room for it). After "accepted" (your "They accepted" click, or an extension capture of
+  that person showing a 1st-degree connection while the invite is `sent`; never polled), the **first message**
+  (stored in `followup`, prompt section `linkedin_dm`, linkedin v7) is drafted in the background: strictly under 65
+  words, thanks, the application, one grounded line, a routing question, never a call or meeting ask, no dashes. Persona
+  (peer, lead, recruiter) and alumni come from the row. Em/en-dashes and 65+ words block; banned connectors, subject or
+  sign-off, a call ask, no closing question or no role name warn. Drafting only: Review draft and your copy and "I sent the message" stay yours. Checks on every message: length, no links,
   grounding of numbers and tools, years and honesty, no links, no hint of a profile visit (these block); a simple
   ask, banned phrases, jargon, a reference note's wording and location/visa when the listing states no requirement
   are warnings. Statuses to contact →
