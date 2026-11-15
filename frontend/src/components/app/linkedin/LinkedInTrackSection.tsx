@@ -1,7 +1,7 @@
 import { useSyncFromServer } from '@/hooks/useSyncFromServer'
 import { ClipboardPaste, Copy, ExternalLink, Mail, MessageSquareText, Search, Sparkles, TriangleAlert, Undo2, UserPlus, X } from 'lucide-react'
 import { CritiqueButton } from '@/components/app/CritiqueButton'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ToneBadge, type Tone } from '@/components/app/badges'
 import { Section } from '@/components/app/PageHeader'
@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { relativeTime } from '@/lib/format'
 import { useAgencyAction } from '@/hooks/useAgencyAction'
+import { useSearchParamState } from '@/hooks/useSearchParamState'
 import { LINKEDIN_TRACK } from '@/lib/linkedin'
 import { useParsePaste } from '@/lib/queries/getContact'
 import { RegenerateDialog } from '@/components/app/RegenerateDialog'
@@ -390,7 +391,7 @@ function InMailEditor({ person, appId, panel }: { person: LinkedInPerson; appId:
   )
 }
 
-function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedInPanel }) {
+function PersonCard({ person, panel, focused = false }: { person: LinkedInPerson; panel: LinkedInPanel; focused?: boolean }) {
   const appId = panel.application_id
   const status = useLinkedInStatus(appId)
   const remove = useRemoveLinkedInPerson(appId)
@@ -408,8 +409,18 @@ function PersonCard({ person, panel }: { person: LinkedInPerson; panel: LinkedIn
     )
   }
   const atLimit = panel.requests_today >= panel.daily_limit
+  const card = useRef<HTMLDivElement>(null)
+  // Opened from the browser extension (?person=<id>): bring this person's card into view once. Nothing changes.
+  useEffect(() => {
+    if (focused) card.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focused])
   return (
-    <div className="space-y-3 rounded-lg border border-border bg-surface p-3.5" data-tour="linkedin-person">
+    <div
+      ref={card}
+      id={`person-${person.id}`}
+      className={cn('space-y-3 rounded-lg border bg-surface p-3.5', focused ? 'border-primary ring-3 ring-ring' : 'border-border')}
+      data-tour="linkedin-person"
+    >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">{person.full_name}</span>
         {person.title && <span className="text-sm text-fg-muted">· {person.title}</span>}
@@ -553,7 +564,9 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
   const { data, isPending, error, refetch } = useLinkedInPanel(appId)
   const [adding, setAdding] = useState<LinkedInGroup | null>(null)
   const agency = useAgencyAction()
-  if (job.application.stage === 'new') return null
+  const person = Number(useSearchParamState().get('person')) || null
+  // A job still in New has no LinkedIn section, unless a link from the extension points at a person.
+  if (job.application.stage === 'new' && !person) return null
   return (
     <Section
       title="LinkedIn messages"
@@ -642,7 +655,7 @@ export function LinkedInTrackSection({ job }: { job: JobDetail }) {
             ) : (
               <div className="space-y-3">
                 {data.people.map((p) => (
-                  <PersonCard key={p.id} person={p} panel={data} />
+                  <PersonCard key={p.id} person={p} panel={data} focused={p.id === person} />
                 ))}
               </div>
             )}
