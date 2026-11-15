@@ -12,8 +12,9 @@ from sqlmodel import Session, col, select
 
 from app.models import Application, Company, Contact, Job, LinkedInOutreach, LinkedInProfile
 from app.models.base import utcnow
-from app.models.enums import LinkedInGroup, Stage
+from app.models.enums import LinkedInGroup, LinkedInStatus, Stage
 from app.services import capture_review, contact_paste, dnc, linkedin, linkedin_page
+from app.services import linkedin_track as lt
 from app.services.cv_pool import load_pool
 from app.services.ingest import _company
 from app.services.linkedin_track import school
@@ -155,6 +156,7 @@ def save(s: Session, *, extension_version: str = "", **kw: Any) -> dict[str, Any
     if r["missing"]:
         return _out(r, saved=False)
     f: linkedin_page.ProfileFields = r["fields"]
+    accepted_row: LinkedInOutreach | None = None
     company = _company(s, r["company"])
     if company.linkedin_url is None and f.company_url:
         company.linkedin_url = f.company_url
@@ -187,10 +189,17 @@ def save(s: Session, *, extension_version: str = "", **kw: Any) -> dict[str, Any
         if r["persona_source"] == "manual":
             row.group = group
         s.add(row)
+        if f.degree == 1 and LinkedInStatus(row.status) == LinkedInStatus.sent:
+            # Your click on the capture button showed a 1st-degree connection: the invite was
+            # accepted. Only `sent` moves (never a message you haven't sent, never backwards).
+            lt.set_status(s, row, LinkedInStatus.accepted)
+            accepted_row = row
     created = r["contact"] is None
     s.commit()
     r["contact"], r["profile"] = contact, prof
-    return _out(r, saved=True, undo=created)
+    out = _out(r, saved=True, undo=created)
+    out["accepted_row_id"] = accepted_row.id if accepted_row is not None else None
+    return out
 
 
 def link_waiting(s: Session, app: Application, company_id: int) -> int:

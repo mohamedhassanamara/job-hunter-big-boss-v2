@@ -2,11 +2,18 @@
 every check has a failing case. Offline, no model."""
 
 import pytest
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.db import engine
+from app.models import LinkedInOutreach
+from app.models.enums import LinkedInGroup, LinkedInStatus
+from app.providers.mock import MockLinkedInDrafter
 from app.services import linkedin_check as lc
+from app.services import linkedin_track as lt
 from app.services.cv_pool import load_pool
+from tests.test_ext_people import _h, _profile
+from tests.test_linkedin_page import job_payload
+from tests.test_linkedin_track import job_with_people
 
 ROLE, COMPANY, FIRST, SCHOOL = "Mobile Engineer", "Acme", "Lea", "INSAT"
 
@@ -108,3 +115,109 @@ def test_the_ceiling_is_strictly_under_65_words(seeded: None) -> None:
     pad = lambda n: base + " " + " ".join(["word"] * (n - len(base.split()) - 2)) + " ok, who?"  # noqa: E731
     assert len(pad(64).split()) == 64 and "length" not in kinds(pad(64))
     assert len(pad(65).split()) == 65 and kinds(pad(65)).get("length") == "error"
+
+
+# ---------------------------------------------------------------- the draft on acceptance
+
+@pytest.mark.parametrize(("group", "alumni"), [
+    (g, a) for g in (LinkedInGroup.peer, LinkedInGroup.lead, LinkedInGroup.recruiter)
+    for a in (False, True)])
+def test_the_mock_dm_passes_the_checks_for_all_six_variants(seeded: None, group: LinkedInGroup,
+                                                            alumni: bool) -> None:
+    with Session(engine) as s:
+        app, _ = job_with_people(s)
+        row = lt.add(s, app, full_name="Lea Dm", title="Engineer", linkedin_url=None,
+                     group=group, alumni=alumni)
+        row.status = LinkedInStatus.accepted
+        s.commit()
+        rid = row.id
+        school = lt.school(load_pool(s))[0]
+    done = lt.draft_followup(engine, rid, MockLinkedInDrafter())
+    text = done.followup["text"]
+    assert not [v for v in done.followup["violations"] if v["severity"] == "error"], done.followup
+    assert (school in text) is alumni
+    assert len(text.split()) < lc.DM_MAX_WORDS and "—" not in text and text.endswith("?")
+
+
+def _make_row(status: LinkedInStatus) -> int:
+    with Session(engine) as s:
+        app, _ = job_with_people(s)
+        row = lt.add(s, app, full_name="Pat Accept", title="Recruiter", linkedin_url=None,
+                     group=LinkedInGroup.recruiter)
+        row.status = status
+        s.commit()
+        return row.id
+
+
+def test_your_click_on_they_accepted_drafts_the_dm_and_sends_nothing(seeded: None,
+                                                                     client) -> None:  # noqa: ANN001
+    rid = _make_row(LinkedInStatus.sent)
+    out = client.post(f"/api/linkedin/people/{rid}/status", json={"status": "accepted"}).json()
+    assert out["status"] == "accepted"
+    with Session(engine) as s:
+        row = s.get(LinkedInOutreach, rid)
+        assert row.followup and row.followup["text"] and row.messaged_at is None
+        assert row.status == LinkedInStatus.accepted  # drafted, never marked as sent
+
+
+def test_other_statuses_draft_nothing(seeded: None, client) -> None:  # noqa: ANN001
+    rid = _make_row(LinkedInStatus.to_contact)
+    client.post(f"/api/linkedin/people/{rid}/status", json={"status": "sent"})
+    with Session(engine) as s:
+        assert not s.get(LinkedInOutreach, rid).followup
+
+
+def test_an_existing_dm_is_not_redrafted(seeded: None) -> None:
+    rid = _make_row(LinkedInStatus.accepted)
+    with Session(engine) as s:
+        row = s.get(LinkedInOutreach, rid)
+        row.followup = {"text": "my own words?"}
+        s.commit()
+    assert lt.auto_draft_dm(engine, rid, MockLinkedInDrafter()) is False
+    with Session(engine) as s:
+        assert s.get(LinkedInOutreach, rid).followup["text"] == "my own words?"
+
+
+def test_a_first_degree_capture_accepts_a_sent_invite_and_drafts(client) -> None:  # noqa: ANN001
+    h = _h(client)
+    company = "Acceptco Phase3"
+    client.post("/api/ext/job", json={"payload": job_payload(
+        url="https://www.linkedin.com/jobs/view/4099999911/", job_id="4099999911",
+        title_parsed="Data Engineer", company_parsed=company,
+        about={"lines": ["We build data pipelines with Spark and Airflow. " * 6]})}, headers=h)
+    second = _profile(company, slug="sam-accept", name="Sam Accept")
+    saved = client.post("/api/ext/person", json={"payload": second}, headers=h).json()
+    assert saved["job"]
+    with Session(engine) as s:
+        row = s.exec(select(LinkedInOutreach).where(
+            LinkedInOutreach.contact_id == saved["contact_id"])).one()
+        rid = row.id
+        assert row.status == LinkedInStatus.to_contact
+    # a capture that still shows 2nd degree changes nothing
+    client.post("/api/ext/person", json={"payload": second}, headers=h)
+    with Session(engine) as s:
+        assert s.get(LinkedInOutreach, rid).status == LinkedInStatus.to_contact
+    client.post(f"/api/linkedin/people/{rid}/status", json={"status": "sent"})
+    first = _profile(company, slug="sam-accept", name="Sam Accept")
+    first["regions"][0]["lines"][1] = "· 1st"
+    client.post("/api/ext/person", json={"payload": first}, headers=h)
+    with Session(engine) as s:
+        row = s.get(LinkedInOutreach, rid)
+        assert row.status == LinkedInStatus.accepted and row.accepted_at
+        assert row.followup and row.followup["text"] and row.messaged_at is None
+
+
+def test_a_first_degree_capture_never_moves_other_statuses(client) -> None:  # noqa: ANN001
+    h = _h(client)
+    company = "Stillco Phase3"
+    client.post("/api/ext/job", json={"payload": job_payload(
+        url="https://www.linkedin.com/jobs/view/4099999922/", job_id="4099999922",
+        title_parsed="Data Engineer", company_parsed=company,
+        about={"lines": ["We build data pipelines with Spark and Airflow. " * 6]})}, headers=h)
+    prof = _profile(company, slug="kim-still", name="Kim Still")
+    prof["regions"][0]["lines"][1] = "· 1st"
+    saved = client.post("/api/ext/person", json={"payload": prof}, headers=h).json()
+    with Session(engine) as s:  # a new row (to_contact) stays: you haven't sent an invite
+        row = s.exec(select(LinkedInOutreach).where(
+            LinkedInOutreach.contact_id == saved["contact_id"])).one()
+        assert row.status == LinkedInStatus.to_contact and not row.followup

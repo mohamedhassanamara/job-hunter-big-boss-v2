@@ -477,6 +477,23 @@ def draft_followup(engine: Engine, row_id: int, drafter: Any, *, researcher: Any
         return row
 
 
+def auto_draft_dm(engine: Engine, row_id: int, drafter: Any) -> bool:
+    """They just accepted (your click, or an extension capture that shows a 1st-degree
+    connection): draft the first DM so it waits for Review draft. Drafting only: nothing is sent
+    and nothing is approved. Never raises (a failed draft leaves the manual Draft button).
+    Skipped when the row isn't accepted any more or already has a message."""
+    with Session(engine) as s:
+        row = s.get(LinkedInOutreach, row_id)
+        if (row is None or LinkedInStatus(row.status) != LinkedInStatus.accepted
+                or (row.followup or {}).get("text")):
+            return False
+    try:
+        draft_followup(engine, row_id, drafter)
+    except Exception:  # noqa: BLE001 - a background draft must never break the click
+        return False
+    return True
+
+
 def restore_version(s: Session, row: LinkedInOutreach, which: str,
                     index: int) -> LinkedInOutreach:
     """Go back to an earlier version of the note, follow-up or InMail: it becomes the current

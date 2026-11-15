@@ -10,7 +10,7 @@ Two groups:
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 from sqlmodel import Session, col, func, select
 
@@ -263,12 +263,18 @@ def preview_person(body: PersonIn, session: ExtSession) -> ExtPersonOut:
 
 
 @ext.post("/person", response_model=ExtPersonOut)
-def save_person(body: PersonIn, session: ExtSession) -> ExtPersonOut:
+def save_person(body: PersonIn, session: ExtSession, background: BackgroundTasks) -> ExtPersonOut:
+    from app.api.linkedin import _drafter
+    from app.services import linkedin_track
+
     try:
         out = linkedin_people.save(session, extension_version=body.extension_version,
                                    **_person_args(body))
     except linkedin.CaptureError as exc:
         raise HTTPException(422, str(exc)) from exc
+    if out.get("accepted_row_id"):  # a 1st-degree capture of a `sent` invite: draft the DM
+        background.add_task(linkedin_track.auto_draft_dm, engine, out["accepted_row_id"],
+                            _drafter("real", session, engine))
     return ExtPersonOut(**out)
 
 

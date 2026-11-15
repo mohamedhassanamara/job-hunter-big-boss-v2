@@ -4,7 +4,7 @@ page you capture with the bookmark. Nothing here requests linkedin.com."""
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import Engine
 from sqlmodel import Session
@@ -363,8 +363,10 @@ def remove_person(row_id: int, session: SessionDep) -> None:
 
 
 @router.post("/linkedin/people/{row_id}/status", response_model=PersonOut)
-def set_status(row_id: int, body: StatusIn, session: SessionDep) -> PersonOut:
-    """You did it on LinkedIn (sent, accepted, messaged, replied): recorded here."""
+def set_status(row_id: int, body: StatusIn, session: SessionDep, engine: EngineDep,
+               workspace: WorkspaceDep, background: BackgroundTasks) -> PersonOut:
+    """You did it on LinkedIn (sent, accepted, messaged, replied): recorded here. "They
+    accepted" also queues the first DM draft (drafting only, after the response)."""
     from app.models.enums import LinkedInStatus
     from app.services import linkedin_track as lt
 
@@ -373,9 +375,12 @@ def set_status(row_id: int, body: StatusIn, session: SessionDep) -> PersonOut:
         status = LinkedInStatus(body.status)
     except ValueError as exc:
         raise HTTPException(422, "Unknown status") from exc
+    was = LinkedInStatus(row.status)
     lt.set_status(session, row, status)
     session.commit()
     session.refresh(row)
+    if status == LinkedInStatus.accepted and was != status:
+        background.add_task(lt.auto_draft_dm, engine, row_id, _drafter(workspace, session, engine))
     return _person(session, row)
 
 
