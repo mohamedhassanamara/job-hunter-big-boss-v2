@@ -606,12 +606,24 @@ _BYPASS = re.compile(
     r"au lieu (?:du|de votre) (?:portail|site))\b", re.I)
 
 
-def v17_violations(text: str) -> list[dict[str, str]]:
+def without_company_name(text: str, company: str = "") -> str:
+    """`text` with the target company's own name (as written, and without its legal form) blanked
+    out, so a name that looks like a domain ("Accurat.ai") is not taken for a link. Only a bare
+    mention: the name inside a URL, a subdomain, an email address or followed by a path stays,
+    so real links are still caught."""
+    names = {n for n in (" ".join((company or "").split()), display_company(company)) if n}
+    for name in sorted(names, key=len, reverse=True):
+        text = re.sub(r"(?<![\w./@:-])" + re.escape(name) + r"(?![\w-]|/|\.\w|@)", " ", text,
+                      flags=re.I)
+    return text
+
+
+def v17_violations(text: str, company: str = "") -> list[dict[str, str]]:
     """Blocking rules of the portal-first follow-up: no link or domain in the body (links live
-    in the signature), no apology or defensive wording, no asking whether they hire and no
-    wording about going around the portal."""
+    in the signature; the company's own name is not one), no apology or defensive wording, no
+    asking whether they hire and no wording about going around the portal."""
     out: list[dict[str, str]] = []
-    if m := _DOMAIN.search(text):
+    if m := _DOMAIN.search(without_company_name(text, company)):
         out.append(violation("url", f"“{m.group(0)}”: no link or domain in the body (your links "
                              "are in the signature)", "body", "error"))
     if m := _APOLOGY.search(text):
@@ -654,7 +666,7 @@ def text_rules(subject: str, text: str, ctx: ic.Context, *,
     folded = oc.fold(text)
     everything = f"{subject}\n{text}"
     if v17:
-        out += v17_violations(text)
+        out += v17_violations(text, ctx.company)
         out += banlist_violations(text, ctx.scenario)
         closing = (text.strip().split("\n\n") or [""])[-1]
         if _NEXT_WEEK.search(closing):

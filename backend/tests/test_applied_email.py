@@ -895,3 +895,29 @@ def test_run_on_dashes_and_then_glue_are_blocking() -> None:
     assert ac.scraped_title_violations("x", "Développeur/Développeuse Flutter")
     assert ac.scraped_title_violations("(m/w/d) x", "")
     assert ac.scraped_title_violations("Dev application - Acme", "I applied for the Dev role") == []
+
+
+@pytest.mark.parametrize("company", ["Accurat.ai", "Lodgify.io", "Acme.AI Inc.", "Nextlane.io GmbH",
+                                     "Zaion.ai"])
+def test_a_company_name_that_looks_like_a_domain_is_not_a_link(company: str) -> None:
+    short = ac.display_company(company)
+    text = (f"I applied for the Data Engineer role at {company} this week. "
+            f"What {short} builds with data is close to my work. {short}'s team came up too.")
+    assert ac.v17_violations(text, company) == []
+
+
+@pytest.mark.parametrize("text", [
+    "I applied at Accurat.ai. Details on https://accurat.ai/careers",  # a real URL
+    "I applied at Accurat.ai. See www.accurat.ai",
+    "I applied at Accurat.ai. My site is portfolio.dev",  # a different domain
+    "I applied at Accurat.ai. Write to jobs@accurat.ai",  # the company's own address
+    "I applied at Accurat.ai. See accurat.ai/careers",
+    "I applied at Accurat.ai. See careers.accurat.ai",
+])
+def test_real_links_and_other_domains_still_fail_next_to_the_company_name(text: str) -> None:
+    found = ac.v17_violations(text, "Accurat.ai")
+    assert [v["type"] for v in found] == ["url"] and found[0]["severity"] == "error"
+
+
+def test_without_a_company_the_rule_is_unchanged() -> None:
+    assert ac.v17_violations("I applied at Accurat.ai.")  # no company given: still flagged
