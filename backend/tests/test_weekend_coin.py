@@ -94,6 +94,28 @@ def test_the_streak_is_unchanged_by_the_coin(seeded: None, monkeypatch) -> None:
         s.rollback()
 
 
+def test_a_failing_award_logs_a_warning_and_never_breaks_mark_applied(
+        seeded: None, monkeypatch, caplog) -> None:  # noqa: ANN001
+    def boom(*_a, **_k):  # noqa: ANN002, ANN003, ANN202
+        raise RuntimeError("ledger exploded")
+
+    with Session(engine) as s:
+        monkeypatch.setattr(weekend, "utcnow", lambda: SAT_NOON)
+        monkeypatch.setattr(weekend, "TokenEntry", boom)
+        # the migration fixture's alembic logging config disables loggers created before it ran
+        monkeypatch.setattr(weekend.log, "disabled", False)
+        app = make_app(s)
+        with caplog.at_level("WARNING", logger=weekend.log.name):
+            done = tracking.mark_applied(s, app, applied_on=None,
+                                         method=ApplyMethod.company_site)
+        assert done.web_applied_at is not None  # the application went through
+        records = [r for r in caplog.records if r.name == weekend.log.name]
+        assert len(records) == 1 and records[0].levelname == "WARNING"
+        assert f"application {app.id}" in records[0].getMessage()
+        assert _coins(s) == 0
+        s.rollback()
+
+
 @pytest.mark.parametrize(("at", "expected"), [
     (datetime(2026, 10, 2, 22, 59, tzinfo=UTC), False),  # Fri 23:59 Tunis
     (datetime(2026, 10, 2, 23, 1, tzinfo=UTC), True),    # Sat 00:01 Tunis

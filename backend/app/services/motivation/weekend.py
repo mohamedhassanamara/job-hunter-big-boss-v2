@@ -48,6 +48,6 @@ def award(s: Session, app: Application, at: datetime | None = None) -> bool:
         return True
     except IntegrityError:
         return False
-    except Exception:  # noqa: BLE001
-        log.exception("weekend coin failed for application %s", app.id)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("weekend coin failed for application %s: %s", app.id, exc, exc_info=True)
         return False
