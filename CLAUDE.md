@@ -462,6 +462,13 @@ docs/                    SPEC, DATA_MODEL, DESIGN
   flow depend on it; `motivation.enabled` hides it everywhere (sidebar entry has `feature: 'motivation'`).
 - The streak is computed from history every request (`streak.compute`, pure, tested); never store a counter.
   Days are local (`motivation.timezone`). Chests subtract each opened chest's own cost; tokens are a ledger.
+- Weekend coin (`services/motivation/weekend.py`, called at the end of `tracking.mark_applied`, guarded: a failure
+  logs a warning with the application id and never breaks Mark applied): +1 token for a job marked Applied on a
+  Saturday/Sunday (click day via `mv.local_day`), no other check, one per job ever (`weekend_coin.application_id`
+  unique). Streak freezes (`services/motivation/freezes.py`, `streak_freeze`, `compute(frozen=)`): bought with
+  tokens (`motivation.freeze_price`, default 10, price stored per row, cap 2, one ledger entry + one row in one
+  commit), used for today only, on a weekday, not at the goal, once a day, no tokens move on use; the streak and
+  history take frozen days from `freezes.used_days`. Don't add other places that award tokens without a unique key.
 - Uploads: `files.check` (extension + magic bytes, size limit), stored under data/motivation/<workspace>/, served
   by name only (uuid names). Undo for "Mark applied" is `tracking.undo_applied` (+ `pipeline.revert`).
 

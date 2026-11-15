@@ -406,6 +406,10 @@ years wording), `duration_ms`, `error`.
   emoji, image_name, archived, position), `purchase` (item_id, name/price/emoji as bought, bought_at,
   redeemed_at), `woop`, `win_entry`, `goal_tile` (kind image | video, file_name under data/motivation/<ws>/,
   mime, size, caption, position).
+- Migration 0040 `weekend_coin` (application_id unique, day, awarded_at, token_entry_id): one +1 token per job
+  marked Applied on a weekend. Migration 0041 `streak_freeze` (bought_at, price paid, `used_on` date unique and
+  nullable, purchase_entry_id): owned = `used_on` empty (cap 2), used = the frozen day. `token_entry.kind` also
+  takes `weekend` and `freeze`. Setting `motivation.freeze_price` (default 10).
 - The streak is never stored: `services/motivation/streak.compute` over `activity.per_day` (applied jobs by
   their latest `applied` event, optional sent emails and LinkedIn requests).
 - Setting `motivation`: enabled, daily_goal 5, count_emails, count_linkedin, chest_goal 30, timezone

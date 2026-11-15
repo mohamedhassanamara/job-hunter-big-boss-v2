@@ -564,6 +564,17 @@ or blocks a step, and Settings → Motivation → "Show motivation features" hid
   workday resets to 0 the next day; today is in progress until midnight; Saturday and Sunday add 1 only while a
   streak is running. Top bar: flame + streak + today x/goal, and the token balance. Today: a Streak card
   (current, longest, 8-week calendar) and a Chest card.
+- **Streak freeze:** bought in the Shop (a built-in card, always first; price `motivation.freeze_price`, default 10,
+  a positive whole number, recorded on each freeze; at most 2 held; they never expire). Hover or focus the streak in
+  the top bar and click "Freeze streak" (drop icon; with none owned it shows the price and opens the shop card).
+  Allowed only today, on a workday, while today's goal is not met and today isn't frozen already; it uses one
+  freeze, moves no tokens, and counts the day as completed (+1), shown as "freeze" in the calendar. A frozen day
+  that also reaches the goal counts once. Disabled states say why (weekend, goal met, already used).
+- **Weekend coin:** a job marked Applied on a Saturday or Sunday (click day, `motivation.timezone`) pays +1 token,
+  once per job ever (`weekend_coin`, unique per application; undo and re-mark never pay again), with no other
+  check (contact, verification, email and the sent-only setting are ignored). It never changes the streak or the
+  goal; weekend applications still count toward chest progress. A failed award logs a warning and never blocks
+  Mark applied.
 - **Chests:** every `chest_goal` (30) applications since the feature started; opening draws 1-10 tokens on the
   server, with a short skippable animation. Extras carry over, several can wait, nothing is taken back, and a
   goal change never re-awards (each chest keeps its cost).
