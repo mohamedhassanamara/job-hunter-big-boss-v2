@@ -1,7 +1,7 @@
 """Streak freezes: purchase, the cap of 2, the price rules, the unique frozen day, and how a frozen
 day counts in the streak. No model calls; the real workspace is never touched (temp DB)."""
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -144,8 +144,9 @@ def test_the_shop_lists_the_freeze_even_with_no_shop_items(client: TestClient) -
     with Session(engine) as s:
         _fund(s, 3)
     shop = client.get("/api/motivation/shop").json()
-    assert shop["freeze"] == {"price": 10, "owned": 0, "cap": 2, "can_buy": False,
-                              "reason": "7 more tokens needed"}
+    freeze = shop["freeze"]
+    assert (freeze["price"], freeze["owned"], freeze["cap"], freeze["can_buy"],
+            freeze["reason"]) == (10, 0, 2, False, "7 more tokens needed")
 
 
 def test_buying_a_freeze_through_the_api(client: TestClient) -> None:
@@ -172,3 +173,53 @@ def test_the_price_is_a_validated_setting(client: TestClient) -> None:
         _fund(s, 50)
     assert client.get("/api/motivation/shop").json()["freeze"]["price"] == 12
     client.put("/api/settings/motivation", json={"value": current})  # put it back
+
+
+# ------------------------------------------------------------------------------- using one
+
+NOW_WED = datetime(2026, 9, 30, 12, tzinfo=UTC)
+NOW_SAT = datetime(2026, 10, 3, 12, tzinfo=UTC)
+
+
+def _history(s: Session) -> dict:
+    counts = {WED - timedelta(days=1): 5}
+    return {d.day: d for d in compute(counts, WED, 5, frozen=freezes.used_days(s)).calendar}
+
+
+def test_using_a_freeze_costs_nothing_more_and_counts_the_day_as_a_freeze(seeded: None) -> None:
+    with Session(engine) as s:
+        _fund(s, 25)
+        freezes.buy(s, CFG)
+        assert rewards.balance(s) == 15  # the tokens went at purchase
+        entries = _rows(s)[1]
+        row = freezes.use(s, CFG, NOW_WED)
+        assert row.used_on == WED and freezes.owned(s) == 0
+        assert rewards.balance(s) == 15 and _rows(s)[1] == entries  # nothing deducted twice
+        before = compute({WED - timedelta(days=1): 5}, WED, 5)
+        after = compute({WED - timedelta(days=1): 5}, WED, 5, frozen=freezes.used_days(s))
+        assert after.current == before.current + 1 and after.today_state == "freeze"
+        assert _history(s)[WED].state == "freeze"
+
+
+@pytest.mark.parametrize("why", ["weekend", "goal_met", "used_today", "none_owned"])
+def test_refused_uses_change_nothing(seeded: None, monkeypatch, why: str) -> None:  # noqa: ANN001
+    with Session(engine) as s:
+        _fund(s, 50)
+        freezes.buy(s, CFG)
+        freezes.buy(s, CFG)
+        now = NOW_SAT if why == "weekend" else NOW_WED
+        if why == "goal_met":
+            monkeypatch.setattr(freezes.activity, "per_day", lambda *_a: {WED: 5})
+        if why == "used_today":
+            freezes.use(s, CFG, now)
+        if why == "none_owned":
+            for f in s.exec(select(StreakFreeze)).all():
+                f.used_on = WED - timedelta(days=7 + f.id)
+                s.add(f)
+            s.commit()
+        owned, balance, used = freezes.owned(s), rewards.balance(s), freezes.used_days(s)
+        assert freezes.use_state(s, CFG, now)[0] == why
+        with pytest.raises(RewardError):
+            freezes.use(s, CFG, now)
+        assert (freezes.owned(s), rewards.balance(s), freezes.used_days(s)) == (owned, balance,
+                                                                               used)

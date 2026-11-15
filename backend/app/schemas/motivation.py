@@ -28,11 +28,24 @@ class ChestsOut(BaseModel):
     since: date
 
 
+class FreezeOut(BaseModel):
+    """The built-in streak freeze listed first in the shop (not a `shop_item` row)."""
+
+    price: int
+    owned: int
+    cap: int
+    can_buy: bool
+    reason: str | None = None
+    use: str  # available | none_owned | used_today | goal_met | weekend
+    use_reason: str | None = None
+
+
 class SummaryOut(BaseModel):
     enabled: bool
     streak: StreakOut
     tokens: int
     chests: ChestsOut
+    freeze: FreezeOut
 
 
 class ChestOpenOut(BaseModel):
@@ -94,16 +107,6 @@ class PurchaseOut(BaseModel):
     emoji: str | None
     bought_at: datetime
     redeemed_at: datetime | None
-
-
-class FreezeOut(BaseModel):
-    """The built-in streak freeze listed first in the shop (not a `shop_item` row)."""
-
-    price: int
-    owned: int
-    cap: int
-    can_buy: bool
-    reason: str | None = None
 
 
 class ShopOut(BaseModel):

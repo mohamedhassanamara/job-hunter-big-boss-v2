@@ -60,7 +60,18 @@ def summary(session: SessionDep) -> SummaryOut:
     """The top bar and Today: streak, today's progress, tokens, chests."""
     cfg = mv.settings(session)
     return SummaryOut(enabled=bool(cfg["enabled"]), streak=_streak(session, cfg, True),
-                      tokens=rewards.balance(session), chests=_chests(session, cfg))
+                      tokens=rewards.balance(session), chests=_chests(session, cfg),
+                      freeze=_out(FreezeOut, freezes.state(session, cfg)))
+
+
+@router.post("/motivation/freeze/use", response_model=SummaryOut)
+def use_freeze(session: SessionDep) -> SummaryOut:
+    """Freeze today: counts as a completed workday (today only, never at the goal, once a day)."""
+    try:
+        freezes.use(session, mv.settings(session))
+    except rewards.RewardError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return summary(session)
 
 
 @router.get("/motivation/chests", response_model=list[ChestOpenOut])
