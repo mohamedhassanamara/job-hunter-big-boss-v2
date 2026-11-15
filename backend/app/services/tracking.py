@@ -165,6 +165,9 @@ def mark_applied(s: Session, app: Application, *, applied_on: date | None,
     from app.services import generation
 
     generation.maybe_enqueue_email(s, app, "applied")  # drafts only: nothing is approved
+    from app.services.motivation import weekend
+
+    weekend.award(s, app)  # +1 token on a weekend, once per job; never fails the application
     return app
 
 

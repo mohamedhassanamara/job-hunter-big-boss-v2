@@ -4,7 +4,7 @@ A separate module: it only reads application data (services/motivation/activity.
 writes these tables. The streak is never stored: it's computed from the history every time.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import Text
 from sqlmodel import Field
@@ -31,7 +31,7 @@ class TokenEntry(TableBase, table=True):
 
     at: datetime = dt_field(default_factory=utcnow)
     amount: int  # + earned, - spent
-    kind: str = Field(sa_type=Text)  # chest | purchase | refund | adjust
+    kind: str = Field(sa_type=Text)  # chest | purchase | refund | adjust | weekend | freeze
     ref_id: int | None = None
     note: str = Field(default="", sa_type=Text)
 
@@ -85,3 +85,15 @@ class GoalTile(TableBase, table=True):
     size: int
     caption: str = Field(default="", sa_type=Text)
     position: int = 0
+
+
+class WeekendCoin(TableBase, table=True):
+    """The +1 token for a job marked Applied on a Saturday or Sunday. `application_id` is unique:
+    one coin per job, ever, even after Undo and a second Mark applied."""
+
+    __tablename__ = "weekend_coin"
+
+    application_id: int = Field(foreign_key="application.id", unique=True, index=True)
+    day: date  # the local weekend day of the click
+    awarded_at: datetime = dt_field(default_factory=utcnow)
+    token_entry_id: int | None = Field(default=None, foreign_key="token_entry.id")

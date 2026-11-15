@@ -34,6 +34,7 @@ from app.models.motivation import (
     Purchase,
     ShopItem,
     TokenEntry,
+    WeekendCoin,
     WinEntry,
     Woop,
 )
@@ -64,6 +65,7 @@ __all__ = [
     "ProviderKeyState",
     "ProviderUsage",
     "ChestOpen",
+    "WeekendCoin",
     "GoalTile",
     "Purchase",
     "ShopItem",
