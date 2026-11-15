@@ -57,6 +57,9 @@ export function MotivationSection({ settings }: { settings: SettingsView }) {
       <Field label="Chest goal" hint={`Applications per chest (1 to 10 tokens each). Counting since ${value.chests_since ?? 'today'}.`}>
         <Input type="number" min={1} max={1000} value={value.chest_goal} onChange={num('chest_goal')} className="w-24" aria-label="Chest goal" />
       </Field>
+      <Field label="Freeze price" hint="Tokens per streak freeze (a whole number, 1 or more). Freezes you already own keep the price you paid.">
+        <Input type="number" min={1} max={10000} step={1} value={value.freeze_price} onChange={num('freeze_price')} className="w-24" aria-label="Freeze price" aria-invalid={!Number.isInteger(value.freeze_price) || value.freeze_price < 1} />
+      </Field>
       <Field label="Timezone" hint="When your day ends (midnight) for the streak">
         <Input value={value.timezone} onChange={(e) => setValue({ ...value, timezone: e.target.value })} className="w-56" aria-label="Timezone" />
       </Field>

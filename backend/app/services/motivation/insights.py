@@ -17,7 +17,7 @@ from app.models import (
 )
 from app.models.base import utcnow
 from app.models.enums import CVStatus, ResponseKind, Stage
-from app.services.motivation import activity, local_day, today
+from app.services.motivation import activity, freezes, local_day, today
 from app.services.motivation.streak import compute
 
 REJECTION_DAYS = 14  # a rejection this recent shows the "volume beats any single result" note
@@ -77,7 +77,8 @@ def wins(s: Session, cfg: dict[str, Any]) -> dict[str, Any]:
                                    .where(ApplicationResponse.kind == ResponseKind.positive)
                                    ).one(),
         "interviews": s.exec(select(func.count()).select_from(Interview)).one(),
-        "longest_streak": compute(counts, day, cfg["daily_goal"]).longest,
+        "longest_streak": compute(counts, day, cfg["daily_goal"],
+                                  frozen=freezes.used_days(s)).longest,
         "chests_opened": s.exec(select(func.count()).select_from(ChestOpen)).one(),
         "recent_rejection": recent,
     }

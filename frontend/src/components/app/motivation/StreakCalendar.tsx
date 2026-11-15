@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 
 const CELL: Record<StreakDayState, string> = {
   met: 'bg-tone-amber-dot',
+  freeze: 'bg-tone-blue-dot',
   weekend: 'bg-tone-amber-bg border border-tone-amber-border',
   missed: 'bg-surface-hover',
   in_progress: 'bg-bg-subtle ring-1 ring-primary',
@@ -45,6 +46,7 @@ export function StreakCalendar({ days }: { days: StreakDay[] }) {
 export function CalendarLegend() {
   const items: [StreakDayState, string][] = [
     ['met', 'Goal reached'],
+    ['freeze', 'Freeze'],
     ['weekend', 'Weekend, counted'],
     ['missed', 'Missed'],
     ['in_progress', 'Today'],

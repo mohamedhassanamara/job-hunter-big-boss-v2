@@ -7,7 +7,7 @@
   streak, they never start or revive one.
 """
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -18,7 +18,7 @@ WEEKS = 8  # the calendar on Today
 class Day:
     day: date
     count: int
-    state: str  # met | missed | in_progress | weekend | weekend_idle | idle | future
+    state: str  # met | freeze | missed | in_progress | weekend | weekend_idle | idle | future
     streak: int  # the streak at the end of that day
 
 
@@ -28,22 +28,27 @@ class Streak:
     longest: int
     today_count: int
     goal: int
-    today_state: str  # met | in_progress | weekend | weekend_idle
+    today_state: str  # met | freeze | in_progress | weekend | weekend_idle
     calendar: list[Day] = field(default_factory=list)
 
 
-def compute(counts: Mapping[date, int], today: date, goal: int, weeks: int = WEEKS) -> Streak:
+def compute(counts: Mapping[date, int], today: date, goal: int, weeks: int = WEEKS,
+            frozen: Collection[date] = ()) -> Streak:
     goal = max(1, int(goal))
-    first = min((d for d, n in counts.items() if n > 0), default=today)
+    frozen = {f for f in frozen if f.weekday() < 5}  # a freeze only ever covers a workday
+    first = min([d for d, n in counts.items() if n > 0] + list(frozen), default=today)
     days: dict[date, Day] = {}
     streak = longest = 0
     d = min(first, today)
     while d <= today:
         n = counts.get(d, 0)
         if d.weekday() < 5:
-            if n >= goal:
+            if n >= goal:  # a frozen day that also reaches the goal counts once, as "met"
                 streak += 1
                 state = "met"
+            elif d in frozen:
+                streak += 1
+                state = "freeze"
             elif d == today:
                 state = "in_progress"  # until midnight: the streak shown is yesterday's
             else:

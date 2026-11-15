@@ -87,6 +87,20 @@ class GoalTile(TableBase, table=True):
     position: int = 0
 
 
+class StreakFreeze(TableBase, table=True):
+    """A streak freeze you bought. Owned = `used_on` is empty (nothing expires); using one sets
+    `used_on` to that local day, which then counts as a completed workday. `price` is what was
+    paid, so a later price change never touches existing rows. `used_on` is unique: a day can be
+    frozen once (SQLite lets any number of unused rows coexist, NULLs are distinct)."""
+
+    __tablename__ = "streak_freeze"
+
+    bought_at: datetime = dt_field(default_factory=utcnow)
+    price: int
+    used_on: date | None = Field(default=None, unique=True, index=True)
+    purchase_entry_id: int | None = Field(default=None, foreign_key="token_entry.id")
+
+
 class WeekendCoin(TableBase, table=True):
     """The +1 token for a job marked Applied on a Saturday or Sunday. `application_id` is unique:
     one coin per job, ever, even after Undo and a second Mark applied."""

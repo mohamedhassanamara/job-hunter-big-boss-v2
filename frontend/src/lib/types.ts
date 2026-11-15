@@ -2001,7 +2001,7 @@ export interface CVFit {
 
 // ------------------------------------------------------------------- motivation (Phase 11)
 
-export type StreakDayState = 'met' | 'missed' | 'in_progress' | 'weekend' | 'weekend_idle' | 'idle' | 'future'
+export type StreakDayState = 'met' | 'freeze' | 'missed' | 'in_progress' | 'weekend' | 'weekend_idle' | 'idle' | 'future'
 
 export interface StreakDay {
   day: string
@@ -2015,7 +2015,7 @@ export interface Streak {
   longest: number
   today_count: number
   goal: number
-  today_state: 'met' | 'in_progress' | 'weekend' | 'weekend_idle'
+  today_state: 'met' | 'freeze' | 'in_progress' | 'weekend' | 'weekend_idle'
   calendar: StreakDay[]
 }
 
@@ -2070,10 +2070,19 @@ export interface Purchase {
   redeemed_at: string | null
 }
 
+export interface FreezeShop {
+  price: number
+  owned: number
+  cap: number
+  can_buy: boolean
+  reason: string | null
+}
+
 export interface Shop {
   balance: number
   items: ShopItem[]
   purchases: Purchase[]
+  freeze: FreezeShop
 }
 
 export interface Woop {
@@ -2126,6 +2135,7 @@ export interface MotivationSettings {
   count_emails: boolean
   count_linkedin: boolean
   chest_goal: number
+  freeze_price: number
   timezone: string
   max_upload_mb: number
   chests_since: string | null

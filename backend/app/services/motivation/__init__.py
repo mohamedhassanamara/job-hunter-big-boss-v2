@@ -20,6 +20,7 @@ DEFAULT_MOTIVATION: dict[str, Any] = {
     "count_emails": False,  # also count sent cold emails
     "count_linkedin": False,  # also count sent LinkedIn requests
     "chest_goal": 30,
+    "freeze_price": 10,  # tokens per streak freeze (positive integer)
     "timezone": "Africa/Tunis",
     "max_upload_mb": 100,
     "chests_since": None,  # set once (the day the feature started): chests count from then

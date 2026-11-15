@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, Coins, ImagePlus, Package, Pencil, Plus, ShoppingBag, X } from 'lucide-react'
+import { Archive, ArchiveRestore, Coins, Droplet, ImagePlus, Package, Pencil, Plus, ShoppingBag, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ChestDialog } from '@/components/app/motivation/ChestDialog'
@@ -15,6 +15,7 @@ import { plural } from '@/lib/motivation'
 import {
   motivationFile,
   useBuy,
+  useBuyFreeze,
   useChestHistory,
   useMotivation,
   useRedeem,
@@ -23,7 +24,7 @@ import {
   useTokens,
   useUploadImage,
 } from '@/lib/queries/motivation'
-import type { ShopItem } from '@/lib/types'
+import type { FreezeShop, ShopItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 function ItemVisual({ item, className }: { item: Pick<ShopItem, 'emoji' | 'image_name' | 'name'>; className?: string }) {
@@ -138,6 +139,57 @@ function BuyDialog({ item, balance, onClose }: { item: ShopItem | null; balance:
   )
 }
 
+/** The built-in streak freeze: always the first card, whether or not you added rewards. */
+function FreezeCard({ freeze, balance }: { freeze: FreezeShop; balance: number }) {
+  const buy = useBuyFreeze()
+  const [open, setOpen] = useState(false)
+  return (
+    <div id="freeze" data-tour="shop-freeze" className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3">
+      <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-tone-blue-bg text-tone-blue-fg">
+        <Droplet className="size-6" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm leading-snug font-medium">Streak freeze</p>
+        <p className="text-sm text-fg-muted">Counts one workday as completed when you can't reach your goal. You hold {freeze.owned} of {freeze.cap}; they never expire.</p>
+      </div>
+      <span className="flex items-center gap-1 text-sm tabular-nums">
+        <Coins className="size-3.5 text-tone-violet-dot" />
+        {freeze.price}
+      </span>
+      <Tooltip content={freeze.reason}>
+        <span>
+          <Button size="sm" variant="secondary" disabled={!freeze.can_buy} onClick={() => setOpen(true)}>
+            Buy
+          </Button>
+        </span>
+      </Tooltip>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent title="Buy a streak freeze" className="max-w-sm">
+          <div className="space-y-4 p-5">
+            <p className="text-sm">
+              {plural(freeze.price, 'token')} · balance after: {balance - freeze.price}
+            </p>
+            <p className="text-sm text-fg-muted">Use it from the streak in the top bar on a workday when your goal is out of reach. It never expires.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                autoFocus
+                disabled={buy.isPending}
+                onClick={() => buy.mutate(undefined, { onSuccess: () => (toast.success('Streak freeze: bought'), setOpen(false)), onError: (e) => toast.error(e.message) })}
+              >
+                Buy for {freeze.price}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
 /** The shop: rewards you set yourself, bought with the tokens from chests. */
 export function ShopTab() {
   const shop = useShop()
@@ -184,6 +236,7 @@ export function ShopTab() {
             New reward
           </Button>
         </div>
+        {shop.data && <FreezeCard freeze={shop.data.freeze} balance={balance} />}
         {shop.isPending ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {Array.from({ length: 3 }, (_, i) => (

@@ -90,6 +90,16 @@ export function useBuy() {
   })
 }
 
+export function useBuyFreeze() {
+  const qc = useQueryClient()
+  const invalidate = useInvalidateMotivation()
+  return useMutation({
+    mutationFn: () => api.post<Shop>('/motivation/freeze/buy'),
+    onSuccess: (shop) => qc.setQueryData(motivationKeys.shop, shop),
+    onSettled: invalidate,
+  })
+}
+
 export function useRedeem() {
   const qc = useQueryClient()
   return useMutation({

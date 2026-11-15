@@ -330,7 +330,7 @@ def _check_motivation(session: Session, value: dict) -> None:
     from app.services import motivation
 
     for name, lo, hi in (("daily_goal", 1, 50), ("chest_goal", 1, 1000),
-                         ("max_upload_mb", 1, 2000)):
+                         ("max_upload_mb", 1, 2000), ("freeze_price", 1, 10_000)):
         v = value.get(name)
         if not isinstance(v, int) or isinstance(v, bool) or not lo <= v <= hi:
             raise HTTPException(422, f"{name} must be between {lo} and {hi}")

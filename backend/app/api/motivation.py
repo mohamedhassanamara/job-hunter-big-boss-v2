@@ -10,6 +10,7 @@ from app.models import GoalTile, Purchase, ShopItem, WinEntry, Woop
 from app.schemas.motivation import (
     ChestOpenOut,
     ChestsOut,
+    FreezeOut,
     GoalTileOut,
     GoalTilePatch,
     ImageOut,
@@ -33,7 +34,7 @@ from app.schemas.motivation import (
     WoopOut,
 )
 from app.services import motivation as mv
-from app.services.motivation import activity, files, insights, rewards
+from app.services.motivation import activity, files, freezes, insights, rewards
 from app.services.motivation.streak import compute
 
 router = APIRouter(tags=["motivation"])
@@ -44,7 +45,8 @@ def _out(model, row):  # noqa: ANN001, ANN202
 
 
 def _streak(session, cfg: dict, calendar: bool) -> StreakOut:  # noqa: ANN001
-    st = compute(activity.per_day(session, cfg), mv.today(cfg), cfg["daily_goal"])
+    st = compute(activity.per_day(session, cfg), mv.today(cfg), cfg["daily_goal"],
+                 frozen=freezes.used_days(session))
     out = StreakOut.model_validate(st, from_attributes=True)
     return out if calendar else out.model_copy(update={"calendar": []})
 
@@ -87,9 +89,21 @@ def tokens(session: SessionDep) -> TokensOut:
 
 
 def _shop(session) -> ShopOut:  # noqa: ANN001
+    cfg = mv.settings(session)
     return ShopOut(balance=rewards.balance(session),
                    items=[_out(ShopItemOut, i) for i in rewards.items(session, archived=True)],
-                   purchases=[_out(PurchaseOut, p) for p in rewards.purchases(session)])
+                   purchases=[_out(PurchaseOut, p) for p in rewards.purchases(session)],
+                   freeze=_out(FreezeOut, freezes.state(session, cfg)))
+
+
+@router.post("/motivation/freeze/buy", response_model=ShopOut)
+def buy_freeze(session: SessionDep) -> ShopOut:
+    """Buy a streak freeze at the current price (at most 2 held, never below 0 tokens)."""
+    try:
+        freezes.buy(session, mv.settings(session))
+    except rewards.RewardError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return _shop(session)
 
 
 @router.get("/motivation/shop", response_model=ShopOut)

@@ -15,7 +15,7 @@ class StreakOut(BaseModel):
     longest: int
     today_count: int
     goal: int
-    today_state: str  # met | in_progress | weekend | weekend_idle
+    today_state: str  # met | freeze | in_progress | weekend | weekend_idle
     calendar: list[StreakDayOut] = []
 
 
@@ -96,10 +96,21 @@ class PurchaseOut(BaseModel):
     redeemed_at: datetime | None
 
 
+class FreezeOut(BaseModel):
+    """The built-in streak freeze listed first in the shop (not a `shop_item` row)."""
+
+    price: int
+    owned: int
+    cap: int
+    can_buy: bool
+    reason: str | None = None
+
+
 class ShopOut(BaseModel):
     balance: int
     items: list[ShopItemOut]
     purchases: list[PurchaseOut]
+    freeze: FreezeOut
 
 
 class RedeemIn(BaseModel):

@@ -5,6 +5,8 @@ export function todayLine(s: Streak): string {
   switch (s.today_state) {
     case 'met':
       return `Today's goal reached: ${s.today_count} of ${s.goal}.`
+    case 'freeze':
+      return 'Today is frozen: it counts as a completed day.'
     case 'in_progress':
       return `${s.today_count} of ${s.goal} today. Today counts until midnight.`
     case 'weekend':
@@ -16,6 +18,7 @@ export function todayLine(s: Streak): string {
 
 export const DAY_LABEL: Record<StreakDayState, string> = {
   met: 'goal reached',
+  freeze: 'freeze',
   missed: 'goal missed',
   in_progress: 'today, in progress',
   weekend: 'weekend, counted',
