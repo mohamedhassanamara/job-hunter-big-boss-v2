@@ -49,6 +49,16 @@ NOTE_HARD_MAX = 280  # a connection note never goes past this, whatever Settings
 _PEER_ASK = re.compile(r"\b(?:cvs?|resumes?|r[ée]sum[ée]s?|interviews?|calls?|referrals?|refer)\b",
                        re.I)
 INMAIL_MIN_CHARS = 250
+DM_MAX_WORDS = 65  # a post-acceptance DM stays strictly under this many words
+_DASHES = re.compile("[—–]")  # em-dash, en-dash
+DM_BANNED = ["i also", "additionally i", "furthermore", "moreover", "seamlessly", "successfully"]
+_SUBJECT_LINE = re.compile(r"^\s*(?:subject|objet|re)\s*:", re.I)
+_SIGN_OFF = re.compile(
+    r"(?:^|\n)\s*(?:best(?: regards| wishes)?|kind regards|warm regards|regards|sincerely|"
+    r"cheers|thanks|thank you|cordialement|bien cordialement)\s*[,.!]?\s*(?:\n|$)", re.I)
+_MEETING_ASK = re.compile(
+    r"\b(?:calls?|meetings?|meet(?: up)?|calendar|calendly|zoom|schedule|slot|coffee|"
+    r"catch up|phone|appel|r[ée]union|rendez-vous|(?:10|15|20|30) minutes)\b", re.I)
 _EASY_ASK = re.compile(r"\b(?:cv|resume|résumé|send|share|envoyer|partager)\b", re.I)
 _CHAT = re.compile(r"\b(?:chat|call|talk|coffee|minutes|échanger|échange|appel|discuter)\b", re.I)
 _ADVICE = re.compile(r"\b(?:advice|tips|refer\w*|recommend\w*|conseil\w*|recommand\w*|"
@@ -68,7 +78,7 @@ class Context:
     allowed_years: set[int]
     job_text: str  # title + listing (+ signals for a follow-up)
     company: str
-    kind: str  # note | followup
+    kind: str  # note | followup | inmail | dm (the first message after they accept)
     max_chars: int
     alumni: bool
     school: str | None  # the short school name ("INSAT")
@@ -82,6 +92,7 @@ class Context:
     group: str = "lead"  # the note's angle: recruiter | lead | alumni
     matching_tools: list[str] = field(default_factory=list)  # listing tools you have
     warm: bool = False  # they found you first (viewed your profile): a warm opener, no mention
+    role: str = ""  # the job title (a DM must name the role)
 
 
 def check(text: str, ctx: Context) -> list[dict[str, str]]:
@@ -98,6 +109,8 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
                              + (" in a connection note" if ctx.kind == "note" else
                                 " for this InMail (Settings → LinkedIn)" if ctx.kind == "inmail"
                                 else ""), "body", "error"))
+    if ctx.kind == "dm":
+        out += _dm_rules(text, ctx)
     if ctx.kind == "inmail" and n < INMAIL_MIN_CHARS:
         out.append(violation("short", f"{n} characters is short for an InMail: give them a "
                              "reason to reply (why them, one proof, one ask)", "body"))
@@ -112,7 +125,7 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
     if ctx.group != "peer" and "?" not in text and not _ASK_WORDS.search(text):
         out.append(violation("ask", "End with a simple ask (a question, or “I've attached my "
                              "CV, would you take a look?”)", "body"))
-    if "!" in text:
+    if "!" in text and ctx.kind != "dm":
         out.append(violation("tone", "Exclamation mark", "body"))
     folded = oc.fold(text)
     # The school: allowed only for alumni (and then it's not a location claim).
@@ -130,7 +143,8 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
         if key and re.search(rf"\b{re.escape(key)}\b", oc.fold(text.replace("’", "'"))):
             out.append(violation("banned", f"Banned phrase: “{phrase}”", "body"))
             break
-    if ctx.first_name and oc.fold(ctx.first_name) not in folded and ctx.kind in ("note", "inmail"):
+    if (ctx.first_name and oc.fold(ctx.first_name) not in folded
+            and ctx.kind in ("note", "inmail", "dm")):
         out.append(violation("name", f"Address {ctx.first_name} by name", "body"))
     email_ctx = oc.Context(pool=ctx.pool, allowed_years=ctx.allowed_years,
                            job_text=ctx.job_text, company=ctx.company, first_name="")
@@ -150,6 +164,47 @@ def check(text: str, ctx: Context) -> list[dict[str, str]]:
             out.append(violation("example_copy", f"{run} words in a row from a reference note: "
                                  "write it fresh", "body"))
             break
+    return out
+
+
+def _role_named(text: str, role: str) -> bool:
+    """The DM names the role: the title, or most of its words (a listing title carries tags like
+    "(m/f/d)" that nobody types)."""
+    words = [w for w in oc.words(oc.fold(re.sub(r"\([^)]*\)", " ", role))) if len(w) > 2]
+    if not words:
+        return True
+    folded = oc.fold(text)
+    found = sum(1 for w in words if re.search(rf"\b{re.escape(w)}\b", folded))
+    return found * 2 >= len(words)
+
+
+def _dm_rules(text: str, ctx: Context) -> list[dict[str, str]]:
+    """The first message after they accept. Blocking: the length and the dashes. The rest is
+    style, so a warning (the grounding, years and honesty checks in `check` still block)."""
+    out: list[dict[str, str]] = []
+    n = len(oc.words(text))
+    if n >= DM_MAX_WORDS:
+        out.append(violation("length", f"{n} words: a first DM stays under {DM_MAX_WORDS}",
+                             "body", "error"))
+    if _DASHES.search(text):
+        out.append(violation("dash", "No em-dash or en-dash: use a comma, a period or "
+                             "parentheses", "body", "error"))
+    folded = oc.fold(text.replace("’", "'"))
+    hits = [p for p in DM_BANNED if re.search(rf"\b{re.escape(oc.fold(p))}\b", folded)]
+    if hits:
+        out.append(violation("banlist", f"Banned wording: “{', '.join(hits)}”", "body"))
+    if _SUBJECT_LINE.search(text) or _SIGN_OFF.search(text):
+        out.append(violation("format", "A plain DM: no subject line and no sign-off", "body"))
+    if _MEETING_ASK.search(text):
+        out.append(violation("meeting_ask", "Never ask for a call, a meeting or a time slot in "
+                             "the first DM: ask who handles the role", "body"))
+    if not text.rstrip().endswith("?"):
+        out.append(violation("question", "End with a short routing question", "body"))
+    if ctx.role and not _role_named(text, ctx.role):
+        out.append(violation("role", f"Name the role ({ctx.role})", "body"))
+    if ctx.alumni and ctx.school and not re.search(
+            rf"\b{re.escape(oc.fold(ctx.school))}\b", folded):
+        out.append(violation("school", f"Open with the shared school ({ctx.school})", "body"))
     return out
 
 
@@ -236,7 +291,7 @@ def _group_rules(text: str, ctx: Context) -> list[dict[str, str]]:
         if ctx.kind in ("note", "inmail") and not _ADVICE.search(text):
             out.append(violation("ask", "Ask an alumnus for advice or a referral", "body"))
     elif ctx.group == "peer":
-        if m := _PEER_ASK.search(text):
+        if ctx.kind != "dm" and (m := _PEER_ASK.search(text)):
             out.append(violation("peer_ask", f"“{m.group(0)}”: never ask a developer peer for a "
                                  "call, a referral or to look at your CV; connect on their "
                                  "work", "body", "error"))
