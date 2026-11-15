@@ -104,6 +104,14 @@
       "cases": 11,
       "errors": 8,
       "note": "The code-built opening names the company ('I applied for the <role> role at <company> through <where> <when>', legal forms dropped) and the applied subject is '<role> at <company> - <name>'; the prompt tells the model never to write the opening and to use the exact company name. Run with --claude: applied cases (#28, #29, #30, #39, #40) 0 errors with the company in every new opening; the errors are the older speculative reference/rejected cases, unchanged in kind."
+    },
+    "25": {
+      "report": "data/eval/emails/20261115-215754_outreach_v25.md",
+      "date": "2026-11-15",
+      "cases": 18,
+      "errors": 11,
+      "hook_checker": "mock",
+      "note": "Run with --claude --hook-checker mock: the drafter was claude -p (subscription); the hook check used the mock (no model call), so the hook claims of the speculative cases #1-#4 and #8 were NOT really checked. Versions 23 and 24 were never recorded; this run covers them. 11 errors: the older speculative reference/rejected cases (#1-#4, #8: 9 errors, same kinds as before: proof length, tool counts, word count, years on projects); applied cases: 2 errors in 13 cases. #31 (rejected GAIA) cites an unknown pool id (24); #43 (Accurat.ai) is flagged 'no link or domain in the body' because the company name itself looks like a domain (a likely false positive of the domain rule, not checked further). The other 11 applied cases have 0 errors. must-block #32-#36 all blocked; must-warn #15 and #16 no longer reach the copy-warning threshold (4 and 7 words, #17 warns with 8): not investigated here."
     }
   }
 }

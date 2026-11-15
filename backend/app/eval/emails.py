@@ -314,6 +314,9 @@ def main() -> None:
     parser.add_argument("--mock", action="store_true", help="the mock drafter (no model)")
     parser.add_argument("--claude", action="store_true",
                         help="write with Claude instead of the Settings → Models email generator")
+    parser.add_argument("--hook-checker", choices=["research", "mock"], default="research",
+                        help="research = the Settings → Models research model (APInex by "
+                             "default); mock = no model call (the hook check is not exercised)")
     args = parser.parse_args()
     if args.do_import:
         print(f"Imported {import_examples(engine)} example(s) from {EXAMPLES_FILE}")
@@ -328,7 +331,9 @@ def main() -> None:
                             thinking_level=pick["thinking_level"])
     with Session(engine) as s:
         model, fallback = _research_models(s)  # Settings → Models (research)
-    checker = hook_checker(mock=args.mock or None, model=model, fallback=fallback)
+    use_mock_hooks = args.mock or args.hook_checker == "mock"
+    checker = hook_checker(mock=use_mock_hooks or None, model=model, fallback=fallback)
+    print(f"Hook checker: {'mock (no model call)' if use_mock_hooks else model}")
     path, results = run_eval(engine, drafter, limit=args.limit, case=args.case,
                              hook_checker=checker)
     done = [r for r in results if not r.get("skipped")]
