@@ -543,7 +543,7 @@ class LinkedInMessage(BaseModel):
 
 
 class LinkedInRequest(BaseModel):
-    kind: str  # note | followup | inmail
+    kind: str  # note | linkedin_dm (the first message after they accept) | inmail
     job: dict[str, Any]
     person: dict[str, Any]  # first_name, full_name, title, group, alumni, warm_opener
     candidate: dict[str, Any]

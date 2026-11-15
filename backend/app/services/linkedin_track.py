@@ -299,20 +299,25 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
     angle = "alumni" if alumni and group == LinkedInGroup.peer else ANGLE[group]
     if angle == "lead" and group == LinkedInGroup.peer and kind == "note":
         angle = "peer"  # a developer peer: connect on the work, never a call, CV or referral
+    dm = kind == "followup"  # the first message after they accept (stored as `followup`)
+    persona = "peer" if group == LinkedInGroup.peer else ANGLE[group]
+    if dm:
+        angle = persona  # the school is a flag (`alum`), not a fourth angle
     job_text = f"{job.title}\n{job.description or ''}"
     tools = matching_tools(pool, job_text)
     years = max((int(f["years"]) for f in facts), default=None)
     rules_ = honesty.rules(s)
     transition = framing(s, job, years, pool)
     request = LinkedInRequest(
-        kind=kind,
+        kind="linkedin_dm" if dm else kind,
         job={"title": job.title, "company": company.name, "track": job.matched_track,
              "agency": agency.is_agency(company, job),
              "description": (job.description or "")[:4000]},
         # `reason` ("viewed my profile on …") is for you only and is deliberately NOT here.
         person={"first_name": first, "full_name": person.full_name, "title": person.title,
                 "group": angle, "hiring_team": row.hiring_team, "alumni": alumni,
-                "warm_opener": warm},
+                "warm_opener": warm,
+                **({"persona": persona, "alum": alumni} if dm else {})},
         candidate={"first_name": (pool.profile.get("full_name") or "").split(" ")[0],
                    "years_statement": english if language != "fr" else french,
                    "school": short if alumni else None,
@@ -329,7 +334,8 @@ def _request(s: Session, row: LinkedInOutreach, kind: str,
         pool=pool, allowed_years={int(f["years"]) for f in facts},
         job_text=job_text + "\n"
         + " ".join(f"{x['fact']} {x.get('quote', '')}" for x in signals or []),
-        company=company.name, kind=kind, max_chars=max_chars, alumni=alumni, school=short,
+        company=company.name, kind="dm" if dm else kind, role=job.title, max_chars=max_chars,
+        alumni=alumni, school=short,
         school_full=full, first_name=first, places=_places(pool), banned=list(DEFAULT_BANNED),
         honesty=rules_, examples=reference_notes(s, row.id), group=angle, warm=warm,
         matching_tools=tools + (transition["tools"] + transition["words"] if transition else []))

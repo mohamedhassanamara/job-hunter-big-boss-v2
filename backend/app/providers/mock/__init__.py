@@ -375,13 +375,16 @@ class MockLinkedInDrafter:
                     f"approaches this work and what it needs most right now. {ask}")
             return LinkedInMessage(subject=f"Interested in the {job.get('title')} role",
                                    text=body[:limit])
-        if request.kind == "followup":
-            role = next((r for r in request.pool.get("roles", []) if r.get("facts")), None)
-            proof = (f" At {role['org']} I {next(iter(role['facts'].values()))[0].lower()}"
-                     f"{next(iter(role['facts'].values()))[1:].rstrip('.')}." if role else "")
-            text = (f"Thanks for connecting, {first}.{proof} Who would be the right person to "
-                    f"talk to about the {job.get('title')} opening?")
-            return LinkedInMessage(text=text, citations=[role["id"]] if role else [])
+        if request.kind == "linkedin_dm":  # short, no dash, a routing question, school if alum
+            school = request.candidate.get("school") if person.get("alum") else None
+            thanks = (f"Thanks for connecting, {first}, fellow {school} alum here." if school
+                      else f"Thanks for connecting, {first}.")
+            question = {"recruiter": "Are you handling screening for this role?",
+                        "peer": "Do you know if that opening is for your team?"}.get(
+                person.get("persona"), "Are you the hiring lead for this opening?")
+            text = (f"{thanks} I just applied for the {job.get('title')} role at "
+                    f"{job.get('company')} and wanted to reach out directly. {question}")
+            return LinkedInMessage(text=text)
         if person.get("alumni") and request.candidate.get("school"):
             text = (f"Hi {first}, fellow {request.candidate['school']} graduate here. I work on "
                     f"data systems and noticed the {job.get('title')} opening at "
