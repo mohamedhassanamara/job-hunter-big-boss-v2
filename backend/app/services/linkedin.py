@@ -185,6 +185,17 @@ def profile_url(url: str | None) -> str | None:
     return f"https://www.linkedin.com/in/{m.group(1)}/" if m else None
 
 
+def lookup_key(value: str | None) -> str:
+    """The comparable form of a profile slug, whatever the extension or a URL gives: `slug`,
+    `/in/slug/`, `/fr/in/slug/`, `…/in/slug/?x=1`. Percent-decoded and lowercased ("" if none)."""
+    from urllib.parse import unquote
+
+    text = unquote((value or "").strip())
+    m = re.search(r"(?:^|/)in/([^/?#]+)", text)
+    seg = m.group(1) if m else re.split(r"[/?#]", text.strip("/"), maxsplit=1)[0]
+    return seg.strip().lower()
+
+
 def remote_type(workplace: str | None, location: str | None) -> RemoteType:
     text = f"{workplace or ''} {location or ''}".lower()
     if re.search(r"\bremote\b|télétravail|à distance|remoto", text):

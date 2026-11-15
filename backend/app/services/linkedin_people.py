@@ -8,6 +8,7 @@ separate flag. Nothing here requests linkedin.com."""
 
 from typing import Any
 
+from sqlalchemy import func
 from sqlmodel import Session, col, select
 
 from app.models import Application, Company, Contact, Job, LinkedInOutreach, LinkedInProfile
@@ -261,6 +262,40 @@ def update(s: Session, contact_id: int, *, persona: str | None = None,
     s.commit()
     return {"saved": True, "contact_id": contact_id, "persona": str(prof.persona),
             "alumni": prof.is_alum, "job": job}
+
+
+def linked_jobs(s: Session, contact_id: int) -> list[dict[str, Any]]:
+    """The jobs a person is on, for the extension button. Only what it needs: ids, title, company,
+    the outreach status and whether a first-message draft exists (never its text, never contact
+    data). Newest first."""
+    rows = s.exec(select(LinkedInOutreach, Application, Job, Company)
+                  .join(Application, col(Application.id) == LinkedInOutreach.application_id)
+                  .join(Job, col(Job.id) == Application.job_id)
+                  .join(Company, col(Company.id) == Job.company_id)
+                  .where(LinkedInOutreach.contact_id == contact_id)
+                  .order_by(col(LinkedInOutreach.id).desc())).all()
+    return [{"job_id": job.id, "outreach_id": o.id, "title": job.title, "company": co.name,
+             "status": str(o.status), "has_first_message": bool((o.followup or {}).get("text"))}
+            for o, _app, job, co in rows]
+
+
+def lookup(s: Session, slug: str) -> dict[str, Any]:
+    """Who is this profile page? Matches the vanity slug (`LinkedInProfile.public_id`, which every
+    capture writes, also for a person matched by name and company), then the contact's stored URL.
+    Read-only; an unknown slug is an empty answer, never an error."""
+    key = linkedin.lookup_key(slug)
+    empty: dict[str, Any] = {"matched": False, "name": None, "jobs": []}
+    if not key:
+        return empty
+    prof = s.exec(select(LinkedInProfile).where(
+        func.lower(LinkedInProfile.public_id) == key)).first()
+    contact = s.get(Contact, prof.contact_id) if prof else None
+    if contact is None:
+        contact = s.exec(select(Contact).where(func.lower(Contact.linkedin_url).contains(
+            f"/in/{key}/", autoescape=True)).order_by(col(Contact.id))).first()
+    if contact is None:
+        return empty
+    return {"matched": True, "name": contact.full_name, "jobs": linked_jobs(s, contact.id)}
 
 
 def listing(s: Session) -> list[dict[str, Any]]:

@@ -133,6 +133,31 @@ def saved_status(session: ExtSession, linkedin_job_id: str = "", profile: str = 
     return StatusOut(saved=False)
 
 
+class LinkedJobOut(BaseModel):
+    job_id: int
+    outreach_id: int
+    title: str
+    company: str
+    status: str
+    has_first_message: bool
+
+
+class LookupOut(BaseModel):
+    matched: bool
+    name: str | None = None
+    jobs: list[LinkedJobOut] = []
+
+
+@ext.get("/person/lookup", response_model=LookupOut)
+def person_lookup(session: ExtSession, slug: str = "") -> LookupOut:
+    """Is the profile page open in the browser someone you saved? Keyed by the slug in the URL
+    only. Read-only: it saves nothing, drafts nothing and changes no status. It returns the
+    display name and the linked jobs, never an email, phone or notes."""
+    out = linkedin_people.lookup(session, slug)
+    session.rollback()
+    return LookupOut(**out)
+
+
 class ExtJobOut(BaseModel):
     saved: bool  # False: a required field is missing, nothing was saved
     missing: list[str]
