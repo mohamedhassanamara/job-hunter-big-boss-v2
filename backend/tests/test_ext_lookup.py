@@ -5,7 +5,7 @@ import pytest
 from sqlmodel import Session, SQLModel, select
 
 from app.db import engine
-from app.models import Contact, LinkedInOutreach
+from app.models import Contact, Job, LinkedInOutreach, LinkedInProfile
 from app.models.enums import LinkedInStatus
 from app.services import linkedin
 from tests.test_ext_people import _h, _profile
@@ -141,3 +141,44 @@ def test_the_lookup_changes_nothing(client) -> None:  # noqa: ANN001
     for slug in ("rex-readonly", "/in/rex-readonly/", "unknown-person"):
         assert _lookup(client, h, slug).status_code == 200
     assert _snapshot() == before
+
+
+def test_saving_returns_the_linked_jobs(client) -> None:  # noqa: ANN001
+    h = _h(client)
+    company = "Savedco Phase4"
+    job_id = _job(client, h, company, "4100000006")
+    saved = client.post("/api/ext/person", json={"payload": _profile(
+        company, slug="sue-saved", name="Sue Saved")}, headers=h).json()
+    linked = saved["linked"]
+    assert linked["matched"] and linked["name"] == "Sue Saved"
+    assert [j["job_id"] for j in linked["jobs"]] == [job_id]
+    assert set(linked["jobs"][0]) == ALLOWED_JOB
+    assert linked == _lookup(client, h, "sue-saved").json()  # one answer, two routes
+    nojob = client.post("/api/ext/person", json={"payload": _profile(
+        "Lonelyco Phase4", slug="lon-lonely", name="Lon Lonely")}, headers=h).json()
+    assert nojob["linked"] == {"matched": True, "name": "Lon Lonely", "jobs": []}
+
+
+def test_a_name_and_company_match_stores_the_vanity_slug(client) -> None:  # noqa: ANN001
+    h = _h(client)
+    company = "Namematchco Phase4"
+    job_id = _job(client, h, company, "4100000007")
+    with Session(engine) as s:  # a hiring-team style contact: an opaque id, no vanity slug
+        company_id = s.get(Job, job_id).company_id
+        opaque = "https://www.linkedin.com/in/ACoAAnora123/"
+        contact = linkedin.ensure_contact(s, company_id, full_name="Nora Match",
+                                          title="Engineering Manager", linkedin_url=opaque)
+        s.commit()
+        contact_id = contact.id
+    assert _lookup(client, h, "nora-match").json()["matched"] is False  # not yet known by slug
+    saved = client.post("/api/ext/person", json={"payload": _profile(
+        company, slug="nora-match", name="Nora Match")}, headers=h).json()
+    assert saved["contact_id"] == contact_id and saved["linked"]["jobs"]
+    with Session(engine) as s:
+        prof = s.exec(select(LinkedInProfile).where(
+            LinkedInProfile.contact_id == contact_id)).one()
+        assert prof.public_id == "nora-match"
+        assert s.get(Contact, contact_id).linkedin_url == opaque  # untouched
+    found = _lookup(client, h, "nora-match").json()
+    assert found["matched"] and found["name"] == "Nora Match" and found["jobs"]
+    assert _lookup(client, h, "ACoAAnora123").json()["name"] == "Nora Match"  # the old id too

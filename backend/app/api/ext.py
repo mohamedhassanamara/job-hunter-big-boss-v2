@@ -262,6 +262,7 @@ class ExtPersonOut(BaseModel):
     existing: bool
     contact_id: int | None
     do_not_contact: str | None
+    linked: LookupOut | None = None  # the person's jobs after saving (the panel's button)
 
 
 class PersonPatch(BaseModel):

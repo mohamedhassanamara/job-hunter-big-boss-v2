@@ -200,6 +200,9 @@ def save(s: Session, *, extension_version: str = "", **kw: Any) -> dict[str, Any
     r["contact"], r["profile"] = contact, prof
     out = _out(r, saved=True, undo=created)
     out["accepted_row_id"] = accepted_row.id if accepted_row is not None else None
+    # The same answer as the lookup, so the extension shows its button right after saving.
+    out["linked"] = {"matched": True, "name": contact.full_name,
+                     "jobs": linked_jobs(s, contact.id)}
     return out
 
 
