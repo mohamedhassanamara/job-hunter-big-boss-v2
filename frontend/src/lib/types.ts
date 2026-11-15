@@ -2033,6 +2033,7 @@ export interface MotivationSummary {
   streak: Streak
   tokens: number
   chests: Chests
+  freeze: FreezeShop
 }
 
 export interface ChestOpen {
@@ -2076,6 +2077,8 @@ export interface FreezeShop {
   cap: number
   can_buy: boolean
   reason: string | null
+  use: 'available' | 'none_owned' | 'used_today' | 'goal_met' | 'weekend'
+  use_reason: string | null
 }
 
 export interface Shop {

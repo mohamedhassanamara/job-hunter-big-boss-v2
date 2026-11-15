@@ -100,6 +100,17 @@ export function useBuyFreeze() {
   })
 }
 
+/** Freeze today: one click, the streak in the top bar updates from the returned summary. */
+export function useUseFreeze() {
+  const qc = useQueryClient()
+  const invalidate = useInvalidateMotivation()
+  return useMutation({
+    mutationFn: () => api.post<MotivationSummary>('/motivation/freeze/use'),
+    onSuccess: (summary) => qc.setQueryData(motivationKeys.summary, summary),
+    onSettled: invalidate,
+  })
+}
+
 export function useRedeem() {
   const qc = useQueryClient()
   return useMutation({

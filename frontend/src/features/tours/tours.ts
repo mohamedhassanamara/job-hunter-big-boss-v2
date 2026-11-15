@@ -488,6 +488,7 @@ export const TOURS: Record<TourId, Tour> = {
       { target: 'today-chest', title: 'Chests', body: 'Every 30 applications (Settings → Motivation) unlock a chest with 1 to 10 tokens. Extra applications carry over; tokens are never taken back.', placement: 'left' },
       { target: 'motiv-tabs', route: '/motivation', title: 'Motiv Center', body: 'Small tools for the hard days: a breathing exercise, the 5-minute rule to get started, WOOP planning, your wins from real data, and your own goal images and videos.', placement: 'bottom' },
       { target: 'motiv-shop', route: '/motivation?tab=shop', title: 'Spend your tokens', body: 'Set your own rewards with a token price. Buying asks first and never takes you below zero; tick a purchase once you have taken the treat.', placement: 'top' },
+      { target: 'shop-freeze', route: '/motivation?tab=shop', title: 'Streak freeze', body: 'Buy a freeze (price in Settings → Motivation, at most 2 held, they never expire). Hover or focus the streak in the top bar on a workday and click "Freeze streak": today counts as completed and the streak goes up by one. Not on weekends, not once the goal is met, once per day. Every weekend application also pays +1 token.', placement: 'bottom' },
     ],
   },
 }
