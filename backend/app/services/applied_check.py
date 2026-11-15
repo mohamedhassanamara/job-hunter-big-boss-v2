@@ -90,11 +90,37 @@ def clean(text: str) -> str:
     return re.sub(r"[ \t]+([,.;])", r"\1", text)
 
 
+_GENDER_TAG = re.compile(
+    r"\s*[(\[]\s*(?:(?:[hmwfdxig]\s*/\s*){1,3}[hmwfdxig]|all genders?|gn)\s*[)\]]", re.I)
+_BARE_GENDER_TAG = re.compile(r"\s+[HFMWDX](?:/[HFMWDX]){1,2}\s*$")
+_FEMININE_ENDING = re.compile(r"/\s*(?:e|se|ne|euse|rice|trice|ère|ienne|ale)\b(?![\w/])", re.I)
+_PAIRED_FORM = re.compile(r"([^\W\d_]{4,})\s*/\s*([^\W\d_]{4,})")
+
+
+def _drop_feminine_twin(match: re.Match[str]) -> str:
+    """"Développeur/Développeuse" -> "Développeur": the second word repeats the first one's
+    stem. "Frontend/Backend" and "Product/Service" are not twins and stay."""
+    first, second = match.group(1), match.group(2)
+    if first.lower()[:5] == second.lower()[:5] and first.lower() != second.lower():
+        return first
+    return match.group(0)
+
+
+def clean_job_title(raw_title: str) -> str:
+    """The role as an email says it: no gender tag ("(H/F)", "(m/w/d)", "(All Genders)"), no
+    feminine twin ("Développeur/Développeuse"), no "- Paris" / "– Flutter, App" tail."""
+    role = _GENDER_TAG.sub("", raw_title or "")
+    role = _BARE_GENDER_TAG.sub("", role.strip())
+    role = re.split(r",\s*\(", role.strip())[0]  # "Engineer, (New Grad) Milan" -> "Engineer"
+    role = " ".join(re.split(r"\s+[–—|]\s+|\s+-\s+", role)[0].split())
+    role = _PAIRED_FORM.sub(_drop_feminine_twin, role)
+    role = _FEMININE_ENDING.sub("", role)
+    return role.strip(" ,;:/")
+
+
 def plain_role(role: str) -> str:
-    """The role as a subject says it: no gender tag, no "– Flutter, Enterprise-App" tail."""
-    role = re.sub(r"\s*\((?:[mwfdxi]\s*/\s*){1,3}[mwfdxi]\)", "", role or "", flags=re.I)
-    role = re.split(r",\s*\(", role.strip())[0]  # "Engineer, (New Grad) Milan" → "Engineer"
-    return " ".join(re.split(r"\s+[–—|]\s+|\s+-\s+", role)[0].split())
+    """Kept for callers: the cleaned role (see `clean_job_title`)."""
+    return clean_job_title(role)
 
 
 def display_company(name: str | None) -> str:
@@ -108,26 +134,21 @@ def display_company(name: str | None) -> str:
     return " ".join(words).strip()
 
 
-def subject_line(role: str, name: str, language: str, company: str = "") -> str:
-    """"<Role> at <Company> - <your name>" (without a company: "<Role> application - <name>";
-    French: "Candidature <role> chez <company> - <name>"); editable."""
-    role, name = plain_role(role), " ".join((name or "").split())
-    if company := display_company(company):
-        if language == "fr":
-            head = f"Candidature {role} chez {company}" if role else f"Candidature chez {company}"
-        else:
-            head = f"{role} at {company}" if role else f"Application at {company}"
-        return f"{head} - {name}" if name else head
+def subject_line(role: str, language: str, company: str = "") -> str:
+    """English "<Role> application - <Company>", French "Candidature <role> - <company>". No
+    sender name: the From header already shows it. Editable."""
+    role = clean_job_title(role)
+    company = display_company(company)
     if language == "fr":
         head = f"Candidature {role}" if role else "Candidature"
     else:
         head = f"{role} application" if role else "Application"
-    return f"{head} - {name}" if name else head
+    return f"{head} - {company}" if company else head
 
 
 def speculative_subject(role: str, company: str, language: str) -> str:
     """"Quick intro | <Role> at <Company>" (French: "Présentation rapide | <Role> chez <X>")."""
-    role, company = plain_role(role), " ".join((company or "").split())
+    role, company = clean_job_title(role), " ".join((company or "").split())
     head = "Présentation rapide" if language == "fr" else "Quick intro"
     at = "chez" if language == "fr" else "at"
     if role and company:
@@ -178,11 +199,28 @@ def when_phrase(applied: date | None, today: date, language: str) -> str:
     return f"le {applied.day} {month}{year}" if fr else f"on {applied.day} {month}{year}"
 
 
+def hook_phrase(clause: str | None) -> str:
+    """The model's hook clause, tidied to finish the opening: no dashes, no leading "as", no
+    final stop, one line."""
+    clause = re.sub(r"[—–]", ",", clean(clause or ""))
+    clause = " ".join(clause.split()).strip(" ,;:.")
+    return re.sub(r"^as\s+", "", clause, flags=re.I)
+
+
 def opening_line(role: str, method: str | None, applied: date | None, today: date,
-                 language: str, variant: int = 0, company: str = "") -> str:
-    """"I applied for the <Role> role at <Company> through <where> <when>." Everything comes
-    from the application record; four equivalent wordings rotate. Nothing else is said."""
-    role, via = plain_role(role), method_phrase(method, language)
+                 language: str, variant: int = 0, company: str = "", hook: str = "") -> str:
+    """"I applied for the <Role> role at <Company> through <where> <when>, as <hook>." (French
+    ", <hook>."). Everything but the hook comes from the application record; four equivalent
+    wordings rotate. Without a hook the sentence simply ends."""
+    line = _opening_base(role, method, applied, today, language, variant, company)
+    if hook := hook_phrase(hook):
+        line = f"{line.rstrip('.')}, {'' if language == 'fr' else 'as '}{hook}."
+    return line
+
+
+def _opening_base(role: str, method: str | None, applied: date | None, today: date,
+                  language: str, variant: int, company: str) -> str:
+    role, via = clean_job_title(role), method_phrase(method, language)
     company = display_company(company)
     when = when_phrase(applied, today, language)
     v = variant % VARIANTS
@@ -334,6 +372,15 @@ V19_BANNED = (
     "ui assembly", "i'd love to grab", "so here is the part that matters",
     "i'd rather say that up front", "i also", "additionally i", "furthermore", "moreover",
     "seamlessly", "successfully")
+# Characters and glue the folded banlist cannot see (folding drops punctuation).
+_DASHES = re.compile(r"[—–]")
+_THEN_GLUE = re.compile(r",\s+then\s", re.I)
+# A scraper's leftovers in a subject or opening: "(H/F)", "(m/w/d)", "/Développeuse".
+_SCRAPED_TITLE = re.compile(
+    r"[(\[]\s*(?:(?:[hmwfdxig]\s*/\s*){1,3}[hmwfdxig]|all genders?)\s*[)\]]|"
+    r"/\s*\w*(?:euse|trice)\b", re.I)
+MAX_RUN_ON_WORDS = 28
+HOOK_WORDS = (8, 14)
 SCENARIO_BANNED = {
     "years_gap": ("despite my lack of", "even though i only have", "rather than ticket-taking",
                   "high-velocity"),
@@ -344,8 +391,47 @@ SCENARIO_BANNED = {
 def banlist_violations(text: str, scenario: str = "direct") -> list[dict[str, str]]:
     folded = oc.fold(text)  # punctuation-free, so "rock-solid" and "I'd" match their folded form
     banned = V19_BANNED + SCENARIO_BANNED.get(scenario, ())
-    return [violation("banlist", f"Banned wording: “{p}”", "body", "error")
-            for p in banned if re.search(rf"\b{re.escape(oc.fold(p))}\b", folded)]
+    out = [violation("banlist", f"Banned wording: “{p}”", "body", "error")
+           for p in banned if re.search(rf"\b{re.escape(oc.fold(p))}\b", folded)]
+    if m := _DASHES.search(text):
+        out.append(violation("banlist", f"Banned character: “{m.group(0)}” (use a comma or a "
+                             "period)", "body", "error"))
+    if _THEN_GLUE.search(text):
+        out.append(violation("banlist", "Banned wording: “, then ” (don't glue facts together)",
+                             "body", "error"))
+    return out
+
+
+def run_on_violations(text: str, where: str = "experience") -> list[dict[str, str]]:
+    """A proof sentence over 28 words is two bullets glued together: split it."""
+    out = []
+    for sentence in re.split(r"(?<=[.!?])\s+", text or ""):
+        if (n := len(oc.words(sentence))) > MAX_RUN_ON_WORDS:
+            out.append(violation("run_on", f"{n} words in one sentence (“{sentence[:50]}…”): "
+                                 f"write short sentences of {MAX_RUN_ON_WORDS} words at most",
+                                 where, "error"))
+    return out
+
+
+def scraped_title_violations(subject: str, opening: str) -> list[dict[str, str]]:
+    """No scraper tag ("(H/F)", "(m/w/d)", "/Développeuse") in the subject or the opening."""
+    out = []
+    for where, text in (("subject", subject), ("opening", opening)):
+        if m := _SCRAPED_TITLE.search(text or ""):
+            out.append(violation("scraped_title", f"“{m.group(0)}” is a job-board tag, not part "
+                                 "of the role's name: use the clean title", where, "error"))
+    return out
+
+
+def hook_violations(plan: "AppliedEmailPlan") -> list[dict[str, str]]:
+    hook = hook_phrase(plan.hook_clause)
+    n = len(oc.words(hook))
+    if not hook:
+        return [violation("hook", "No hook clause: say in 8-14 words how the role's main "
+                          "priority matches your background", "opening")]
+    if not HOOK_WORDS[0] <= n <= HOOK_WORDS[1]:
+        return [violation("hook", f"The hook clause is {n} words (8-14 reads best)", "opening")]
+    return []
 
 
 CTA_VARIANTS = 3
@@ -416,7 +502,7 @@ def strip_model_opening(sentences: list[Any]) -> list[Any]:
 
 
 # Recruiters skim for a checklist; library, pattern and counted-metric detail is noise.
-RECRUITER_MAX_WORDS, RECRUITER_MAX_SENTENCE = 85, 25
+RECRUITER_MAX_WORDS, RECRUITER_MAX_SENTENCE = 100, 25  # the hook clause lengthens the opening
 _RECRUITER_JARGON = re.compile(
     r"\bBFF\b|\bendpoints?\b|\bRESTful\b|\bclean architecture\b|\bstate management\b|"
     r"\bRiverpod\b|\bGoRouter\b|\bBLoC\b|\bRetrofit\b|\bDio\b|\bbinary size\b|"
@@ -736,12 +822,15 @@ def check_plan(plan: AppliedEmailPlan, ctx: ic.Context,
             out.append(violation("vague", f"“{sentence.text}” is vague: say what it is and "
                                  "with which tools", where))
     part = " ".join(s.text for s in plan.experience)
+    out += run_on_violations(part)
+    out += hook_violations(plan)
     run = ic._longest_run(part, ctx.job_text)
     if run >= 7 or _overlap(part, ctx.job_text) >= RESTATE_THRESHOLD:
         out.append(violation("restates", f"The proof restates the listing ({run} words in a "
                              "row): say it in your own words", "experience"))
     out += projects_track_problems(plan, ctx)
-    subject = subject_line(plan.role, ctx.candidate_name, ctx.language, ctx.company)
+    subject = subject_line(plan.role, ctx.language, ctx.company)
+    out += scraped_title_violations(subject, plan.opening)
     if recruiter:
         out += recruiter_problems(plan)
     return out + text_rules(subject, body(plan), ctx, visa_in_whole_text=False, v17=True)
@@ -753,6 +842,8 @@ def check_text(subject: str, text: str, ctx: ic.Context) -> list[dict[str, str]]
     rest = _facts_without_statement(text, ctx).split("\n", 1)[-1]
     out = [violation("grounding", p, "body", "error")
            for p in oc._source_problems(rest, _source_text(ctx))]
+    out += run_on_violations(proof_of(text)) + scraped_title_violations(
+        subject, "\n".join((text or "").split("\n\n")[1:2]))
     return (out + _visa_in_edited_text(text, ctx)
             + text_rules(subject, text, ctx, visa_in_whole_text=False, v17=True))
 

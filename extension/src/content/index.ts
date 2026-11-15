@@ -5,10 +5,16 @@
  * anything from LinkedIn. The save goes to YOUR app on this computer (through the worker, which holds the
  * token). Afterwards the panel shows what was saved and where each field came from, and the app's LinkedIn
  * Jobs / Profiles sections flag anything that looks misread.
+ *
+ * One more thing happens on a profile page without a click: a LOOKUP. It sends only the profile slug from
+ * `location.pathname` (never the page) to your app on this computer, which answers whether you saved this
+ * person and on which jobs, so the panel can offer "View jobs associated with profile". It only reads; it
+ * saves nothing, drafts nothing and changes no status. If the app or the token is missing, nothing shows.
  */
 import { extract, type Extraction } from '../shared/extract'
 import { buildReport } from '../shared/report'
 import { skeleton } from '../shared/structure'
+import { jobPath, lookupPath, slugFromPath, statusLabel, viewOf, type LookupResult } from '../shared/lookup'
 import { pageOf, type PageKind } from '../shared/urls'
 
 const EXT_VERSION = '0.2.0'
@@ -29,6 +35,9 @@ const STYLE = `
   .pill.save { background: Highlight; border-color: Highlight; color: HighlightText; font-weight: 600 } .pill.save * { color: HighlightText }
   .pill.idle { opacity: .6; cursor: default }
   .dot { width: 14px; height: 14px; padding: 0 }
+  a.pill { text-decoration: none; display: inline-block } a.pill.link, a.pill.link * { background: Highlight; border-color: Highlight; color: HighlightText; font-weight: 600 }
+  .stack { display: flex; flex-direction: column; align-items: flex-end; gap: 8px }
+  .jobs { display: flex; flex-direction: column; gap: 4px; border: 1px solid GrayText; background: Canvas; border-radius: 10px; padding: 8px 10px; box-shadow: 0 2px 14px rgb(0 0 0 / 30%); max-width: 360px }
   .panel { width: 360px; max-height: 75vh; overflow: auto; border: 1px solid GrayText; background: Canvas; border-radius: 10px; padding: 12px; box-shadow: 0 2px 14px rgb(0 0 0 / 30%); display: flex; flex-direction: column; gap: 6px }
   .row { display: flex; gap: 6px; align-items: baseline } .ok { color: #1a7f37 } .no { color: #cf222e }
   .small { font-size: 12px; color: GrayText } .btns { display: flex; gap: 6px; flex-wrap: wrap }
@@ -83,6 +92,7 @@ interface PersonOut {
   job: { job_id: number; title: string; stage: string } | null
   contact_id: number | null
   do_not_contact: string | null
+  linked?: LookupResult | null
 }
 
 const root = h('div')
@@ -104,6 +114,12 @@ let paste = ''
 let showPaste = false
 let undone = ''
 let message = ''
+// the lookup: what the app says about the profile open in this tab (in memory, per tab)
+let lookupSlug = ''
+let lookupResult: LookupResult | null = null
+let lookupSeq = 0
+let showJobs = false
+const lookupCache = new Map<string, LookupResult>()
 
 const kindLabel = (k: PageKind): string => (k === 'job' ? 'Save job' : k === 'profile' ? 'Save profile' : 'Open a job or profile')
 const here = (): PageKind => pageOf(location.href).kind
@@ -143,6 +159,27 @@ async function copy(text: string): Promise<boolean> {
     ta.remove()
     return ok
   }
+}
+
+/** The slug comes from the address path only, never the page; the same slug is not asked twice. */
+async function refreshLookup(): Promise<void> {
+  const slug = pageOf(location.href).kind === 'profile' ? slugFromPath(location.pathname) : ''
+  if (slug === lookupSlug) return
+  lookupSlug = slug
+  lookupResult = slug ? (lookupCache.get(slug) ?? null) : null
+  showJobs = false
+  render()
+  if (!slug || lookupCache.has(slug)) return
+  const seq = ++lookupSeq
+  const cfg = (await chrome.runtime.sendMessage({ type: 'config' })) as { app: string; paired: boolean }
+  appUrl = cfg.app
+  paired = cfg.paired
+  if (!cfg.paired) return // no token: no call, no message
+  const r = await api(lookupPath(slug), 'GET')
+  if (!r.ok || seq !== lookupSeq || slug !== lookupSlug) return // the app is down or the page moved on: show nothing
+  lookupCache.set(slug, r.data as LookupResult)
+  lookupResult = r.data as LookupResult
+  render()
 }
 
 function reset(): void {
@@ -199,6 +236,12 @@ async function saveProfile(): Promise<void> {
   busy = ''
   if (r.ok) {
     person = r.data as PersonOut
+    if (person.saved && person.linked) {
+      const slug = slugFromPath(location.pathname)
+      if (slug) lookupCache.set(slug, person.linked)
+      lookupSlug = slug
+      lookupResult = person.linked
+    }
     if (!person.saved) message = ''
   } else message = failure(r)
 }
@@ -249,6 +292,24 @@ function flagLines(flags: Flag[]): Node[] {
 
 function openLink(path: string): Node {
   return h('a', { href: `${appUrl}${path}`, target: '_blank', rel: 'noreferrer' }, 'Open in the app')
+}
+
+/** Next to the Save profile pill: the saved person's jobs in the app (a link opens a new tab). */
+function lookupView(): Node | null {
+  const v = viewOf(lookupResult)
+  const link = (path: string, cls: string, label: string): HTMLAnchorElement => h('a', { href: `${appUrl}${path}`, target: '_blank', rel: 'noreferrer', class: cls }, label)
+  if (v.kind === 'one') return link(jobPath(v.job), 'pill link', 'View jobs associated with profile')
+  if (v.kind === 'saved_no_job') return h('div', { class: 'small' }, 'Saved, no job linked yet')
+  if (v.kind === 'many') {
+    const toggle = h('button', { type: 'button', class: 'pill save', 'aria-expanded': String(showJobs) }, 'View jobs associated with profile')
+    toggle.addEventListener('click', () => {
+      showJobs = !showJobs
+      render()
+    })
+    const box = h('div', { class: 'stack' }, ...(showJobs ? [h('div', { class: 'jobs' }, ...v.jobs.map((j) => h('a', { href: `${appUrl}${jobPath(j)}`, target: '_blank', rel: 'noreferrer' }, `${j.title} · ${j.company} · ${statusLabel(j.status)}`)))] : []), toggle)
+    return box
+  }
+  return null
 }
 
 function jobView(): Node[] {
@@ -407,6 +468,8 @@ function render(): void {
     )
     wrap.append(panel)
   }
+  const jobsLink = kind === 'profile' && !collapsed ? lookupView() : null
+  if (jobsLink) wrap.append(jobsLink)
   if (collapsed) {
     wrap.append(
       button(
@@ -448,6 +511,7 @@ chrome.runtime.onMessage.addListener((raw, _sender, send) => {
     last = null
     reset()
     render()
+    void refreshLookup()
   } else if (msg.type === 'command') {
     void start()
   } else if (msg.type === 'info') {
@@ -462,11 +526,16 @@ chrome.runtime.onMessage.addListener((raw, _sender, send) => {
 })
 
 // Same-page navigations (no reload, no message from the worker): events only, nothing is polled.
-window.addEventListener('popstate', refreshLabel)
-;(window as unknown as { navigation?: EventTarget }).navigation?.addEventListener('currententrychange', refreshLabel)
+const onNavigate = (): void => {
+  refreshLabel()
+  void refreshLookup()
+}
+window.addEventListener('popstate', onNavigate)
+;(window as unknown as { navigation?: EventTarget }).navigation?.addEventListener('currententrychange', onNavigate)
 
 void chrome.storage.local.get('includeText').then((v) => {
   includeText = v.includeText === true
 })
 document.documentElement.append(root)
 render()
+void refreshLookup()

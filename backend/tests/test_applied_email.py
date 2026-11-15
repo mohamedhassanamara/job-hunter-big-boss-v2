@@ -81,11 +81,12 @@ def test_a_job_with_a_posting_is_applied_and_one_without_is_speculative() -> Non
     assert outreach.email_mode(posted, "nonsense") == "applied"
 
 
-def test_the_subject_is_role_application_and_your_name() -> None:
-    assert ac.subject_line("Mobile Developer", "Alex Doe", "en") \
-        == "Mobile Developer application - Alex Doe"
-    assert ac.subject_line("Développeur mobile", "Alex Doe", "fr") \
-        == "Candidature Développeur mobile - Alex Doe"
+def test_the_subject_is_role_application_and_company_without_your_name() -> None:
+    assert ac.subject_line("Mobile Developer", "en", "Acme") \
+        == "Mobile Developer application - Acme"
+    assert ac.subject_line("Développeur mobile", "fr", "Acme") \
+        == "Candidature Développeur mobile - Acme"
+    assert ac.subject_line("Mobile Developer", "en") == "Mobile Developer application"
     assert ac.speculative_subject("Data Engineer (m/w/d) – Berlin", "Voxa", "en") \
         == "Quick intro | Data Engineer at Voxa"
     assert ac.plain_role("Mobile Engineer (m/w/d) – Flutter, Enterprise-App") == "Mobile Engineer"
@@ -101,7 +102,7 @@ def test_generate_writes_the_application_follow_up_without_researching(
     d = outreach.generate(engine, job_ready["app"], MockEmailDrafter(), researcher=NoResearch(),
                           hook_checker=NoResearch())
     assert d.plan["format"] == "applied" and d.plan["mode"] == "applied"
-    assert d.subject.startswith("Data Engineer at ")
+    assert d.subject.startswith("Data Engineer application - ")
     parts = d.body.split("\n\n")
     assert parts[0] == "Hi Ana," and "applied" in parts[1] and "Data Engineer" in parts[1]
     assert parts[-1].endswith("?") and "roadmap" not in parts[-1]  # the ask is built by code
@@ -265,7 +266,7 @@ def test_an_edited_email_keeps_the_fact_checks_and_only_warns_about_style(
         job_ready: dict) -> None:  # noqa: F811
     ctx = ctx_for(job_ready)
     ok = "Hi Ana,\n\nI applied for the Data Engineer role at Voxa.\n\nI built pipelines."
-    assert errors(ac.check_text("Data Engineer application - Alex Doe", ok, ctx)) == set()
+    assert errors(ac.check_text("Data Engineer application - Voxa", ok, ctx)) == set()
     bad = ok + " I also run Kubernetes clusters with 99% uptime."
     assert "grounding" in errors(ac.check_text("S", bad, ctx))
     assert "subject" in errors(ac.check_text("", ok, ctx))
@@ -844,6 +845,53 @@ def test_the_opening_and_subject_name_the_company_without_its_legal_form() -> No
     assert lines[0] == (
         "I applied for the Fullstack Developer role at Acme Corp through LinkedIn today.")
     assert "chez Acme" in ac.opening_line("Dev", "linkedin", TODAY, TODAY, "fr", 0, "Acme SAS")
-    assert ac.subject_line("Fullstack Developer", "Alex Doe", "en", "Acme Corp") \
-        == "Fullstack Developer at Acme Corp - Alex Doe"
-    assert ac.subject_line("Dev", "Alex Doe", "en") == "Dev application - Alex Doe"
+    assert ac.subject_line("Fullstack Developer", "en", "Acme Corp") \
+        == "Fullstack Developer application - Acme Corp"
+    assert ac.subject_line("Dev", "en") == "Dev application"
+
+
+# ---- v25: clean titles, hook clause, executive-altitude guards
+
+def test_clean_job_title_strips_scraper_tags() -> None:
+    assert ac.clean_job_title("Développeur/Développeuse Flutter (H/F)") == "Développeur Flutter"
+    assert ac.clean_job_title("Ingénieur logiciel (F/H) - Paris") == "Ingénieur logiciel"
+    assert ac.clean_job_title("Data Engineer (m/w/d)") == "Data Engineer"
+    assert ac.clean_job_title("Backend Developer (M/F/D) - Remote") == "Backend Developer"
+    assert ac.clean_job_title("Software Engineer (All Genders)") == "Software Engineer"
+    assert ac.clean_job_title("Développeur/euse mobile") == "Développeur mobile"
+    # not twins: left alone
+    assert ac.clean_job_title("Frontend/Backend Engineer") == "Frontend/Backend Engineer"
+    assert ac.clean_job_title("Product/Service Owner") == "Product/Service Owner"
+    assert "(H/F)" not in ac.subject_line("Développeur Flutter (H/F)", "fr", "Acme")
+
+
+def test_the_opening_ends_with_the_hook_clause_in_both_languages() -> None:
+    hook = "building fast, reliable mobile apps aligns closely with my background"
+    en = ac.opening_line("Flutter Developer", "company_site", TODAY, TODAY, "en", 0, "Acme",
+                         hook + ".")
+    assert en == ("I applied for the Flutter Developer role at Acme through your careers page "
+                  f"today, as {hook}.")
+    fr = ac.opening_line("Développeur Flutter (H/F)", "company_site", TODAY, TODAY, "fr", 0,
+                         "Acme", "un poste centré sur le mobile correspond à mon parcours")
+    assert fr == ("J'ai postulé au poste de Développeur Flutter chez Acme via votre site "
+                  "carrières aujourd'hui, un poste centré sur le mobile correspond à mon parcours.")
+    assert ac.opening_line("X", "linkedin", TODAY, TODAY, "en", 2, "", "as a clause").endswith(
+        "on LinkedIn, as a clause.")  # a leading "as" is not doubled
+    assert ac.opening_line("X", "linkedin", TODAY, TODAY, "en").endswith("today.")  # no hook
+
+
+def test_run_on_dashes_and_then_glue_are_blocking() -> None:
+    long = " ".join(["word"] * 29) + "."
+    assert [v["type"] for v in ac.run_on_violations(long)] == ["run_on"]
+    assert ac.run_on_violations(" ".join(["word"] * 28) + ". Short one.") == []
+    for bad in ("I built it — then shipped it.", "I built it – fast.",
+                "I built it, then shipped it."):
+        assert any(v["severity"] == "error" for v in ac.banlist_violations(bad)), bad
+    for bad in ("Moreover, I led it.", "I also led it.", "Furthermore it ran.",
+                "It ran seamlessly.", "I successfully shipped it.", "Additionally, I led it."):
+        assert ac.banlist_violations(bad), bad
+    assert ac.banlist_violations("I built it and shipped it.") == []
+    assert ac.scraped_title_violations("Dev (H/F) application - Acme", "")
+    assert ac.scraped_title_violations("x", "Développeur/Développeuse Flutter")
+    assert ac.scraped_title_violations("(m/w/d) x", "")
+    assert ac.scraped_title_violations("Dev application - Acme", "I applied for the Dev role") == []

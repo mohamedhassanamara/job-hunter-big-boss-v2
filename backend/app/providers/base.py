@@ -421,6 +421,9 @@ class AppliedEmailPlan(BaseModel):
     role: str = Field(default="", description="Leave empty: code writes it")
     greeting: str = Field(default="", description="Leave empty: code writes it")
     opening: str = Field(default="", description="Leave empty: code writes it")
+    hook_clause: str = Field(default="", description=(
+        "8-14 words that finish the opening sentence (\"... today, as <clause>.\"): how the "
+        "job description's main priority matches the candidate's pool-backed background"))
     experience: list[EmailSentence] = Field(description=(
         "One or two plain first-person sentences (at most two proofs, one sentence each) from "
         "the EXPERIENCE POOL: one concrete proof of stack alignment for the job's track, in the "

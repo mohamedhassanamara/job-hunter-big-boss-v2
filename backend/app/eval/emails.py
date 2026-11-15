@@ -244,7 +244,6 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
     from app.services import outreach_check as oc
     from app.services.cv_pool import load_pool
 
-    name = str(request.candidate.get("full_name") or "")
     job = s.get(Job, app.job_id) if app is not None else None
     recruiter = ac.is_recruiter(request.contact.get("title"), request.contact.get("role_group"))
 
@@ -276,8 +275,7 @@ def _applied_row(s: Session, row: dict[str, Any], ex: EmailExample, request: Ema
                     len(oc.errors(found)), ac.copies(found)):
                 plan, found = retry, retry_found
     text = ac.body(plan)
-    subject = ac.subject_line(plan.role, name, language,
-                              str((request.job or {}).get("company") or ""))
+    subject = ac.subject_line(plan.role, language, str((request.job or {}).get("company") or ""))
     row.update(new={"subject": subject, "body": text}, attempts=attempts,
                errors=[v["message"] for v in found if v["severity"] == "error"],
                warnings=[v["message"] for v in found if v["severity"] != "error"],

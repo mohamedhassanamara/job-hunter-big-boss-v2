@@ -266,7 +266,8 @@ def build_request(s: Session, app: Application, job: Job, company: Company, cont
     job_text = f"{job.title}\n{job.description or ''}"
     role = cl.current_role(pool, job_text)
     return EmailRequest(
-        job={"title": job.title, "company": company.name, "location": job.location,
+        job={"title": job.title, "clean_title": ac.clean_job_title(job.title),
+             "company": company.name, "location": job.location,
              "description": (job.description or "")[:6000]},
         contact={"first_name": _first_name(contact), "full_name": contact.full_name,
                  "title": contact.title, "role_group": ranking.label(contact.role_rank)},
@@ -951,7 +952,8 @@ def complete_applied(plan: Any, app: Application, job: Job, request: EmailReques
     plan.opening = ac.opening_line(
         plan.role, facts["method"],
         app.web_applied_at.date() if app.web_applied_at else None,
-        datetime.now().astimezone().date(), language, variant, company)
+        datetime.now().astimezone().date(), language, variant, company,
+        getattr(plan, "hook_clause", ""))
     plan.ask = ac.cta_line(language, recruiter, cta, weekday)
     plan.signal = HookSentence(text="")
 
@@ -1041,8 +1043,7 @@ def generate_applied(engine: Engine, app_id: int, drafter: Any, *, progress: Any
                 s.add(old)
             draft = OutreachDraft(
                 application_id=app_id, contact_id=app.contact_id,
-                subject=ac.subject_line(plan.role, ctx.candidate_name, language,
-                                        company.name),
+                subject=ac.subject_line(plan.role, language, company.name),
                 body=ac.body(plan), model=drafter.model, cv_version_id=cv.id,
                 parent_id=base.id if base else None, feedback=feedback,
                 plan={"delivery": "cv", "format": "applied", "mode": "applied",

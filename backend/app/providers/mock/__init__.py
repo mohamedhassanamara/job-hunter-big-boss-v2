@@ -263,7 +263,10 @@ class MockEmailDrafter:
                       if fr else f"At {role.get('org')}, I built production systems with {tag}, "
                                  "from the first design to release, with a small team."),
                 citations=[role["id"]]))
-        return AppliedEmailPlan(experience=experience)
+        tag = ((role or project or {}).get("tags") or [""])[0]
+        hook = (f"un poste en lien direct avec mon expérience en {tag}" if fr else
+                f"building dependable production systems with {tag} matches my background")
+        return AppliedEmailPlan(experience=experience, hook_clause=hook if tag else "")
 
     @staticmethod
     def sample(title: str, company: str, first_name: str) -> tuple[str, str]:

@@ -90,3 +90,20 @@ def test_no_css_class_or_id_selectors() -> None:
             if re.search(r"[.#][A-Za-z_-]", bare):
                 offenders.append(f"{p.relative_to(EXT)}: {selector}")
     assert offenders == []
+
+
+def test_the_lookup_reads_the_address_only_and_never_the_page() -> None:
+    """The profile lookup runs without a click, so it may use ONLY the slug from
+    `location.pathname`: the pure module has no DOM access, and the content script's lookup never
+    extracts or queries."""
+    pure = _code(SRC / "shared" / "lookup.ts")
+    assert not re.search(r"\b(?:document|window|querySelector|chrome)\b", pure)
+    content = _code(SRC / "content" / "index.ts")
+    body = re.search(r"async function refreshLookup\(\).*?\n}\n", content, flags=re.S)
+    assert body, "refreshLookup is missing"
+    fn = body.group(0)
+    assert "slugFromPath(location.pathname)" in fn and "lookupPath(slug)" in fn
+    page_reads = r"\b(?:extract|skeleton|document|querySelector|innerText|textContent)\b"
+    assert not re.search(page_reads, fn)
+    # only the GET lookup is sent from it: nothing is saved or changed without your click
+    assert "'POST'" not in fn and "'PATCH'" not in fn and "'DELETE'" not in fn

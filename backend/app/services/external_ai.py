@@ -206,8 +206,7 @@ def check_pasted(s: Session, app_id: int, text: str, *, mode: str | None, verifi
     choice = ou.language_choice(s, job, app, language)
     subject, body = split_pasted(text, (pool.profile.get("full_name") or "").strip())
     if not subject:
-        subject = (ac.subject_line(job.title, pool.profile.get("full_name") or "", choice.language,
-                                  company.name)
+        subject = (ac.subject_line(job.title, choice.language, company.name)
                    if mode == "applied" else ac.speculative_subject(
                        job.title, company.name, choice.language))
     found = _code_checks(s, app, job, company, contact, pool, subject, body, mode, choice.language)
